@@ -1,23 +1,25 @@
-import { LOGIN_COPY } from "@/components/login/lib/constants"
+import { useTranslation } from "react-i18next"
 
 export function LoginFooterLinks() {
+  const { t } = useTranslation("login")
+
   return (
     <>
       <p className="text-center text-sm text-muted-foreground">
-        {LOGIN_COPY.signUpPrompt}{" "}
+        {t("signUpPrompt")}{" "}
         <a href="#" className="font-medium text-primary hover:underline">
-          {LOGIN_COPY.signUpLabel}
+          {t("signUpLabel")}
         </a>
       </p>
 
       <p className="text-center text-xs text-muted-foreground">
-        {LOGIN_COPY.termsPrefix}{" "}
+        {t("termsPrefix")}{" "}
         <a href="#" className="underline">
-          {LOGIN_COPY.termsLabel}
+          {t("termsLabel")}
         </a>{" "}
         and{" "}
         <a href="#" className="underline">
-          {LOGIN_COPY.privacyLabel}
+          {t("privacyLabel")}
         </a>
         .
       </p>

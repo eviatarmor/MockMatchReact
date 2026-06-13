@@ -1,9 +1,9 @@
 import { Eye, EyeOff } from "lucide-react"
 import type { UseFormRegisterReturn } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { LOGIN_COPY } from "@/components/login/lib/constants"
 
 interface LoginPasswordFieldProps {
   readonly register: UseFormRegisterReturn
@@ -18,12 +18,14 @@ export function LoginPasswordField({
   isPasswordVisible,
   onTogglePasswordVisibility,
 }: LoginPasswordFieldProps) {
+  const { t } = useTranslation("login")
+
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between">
         <Label htmlFor="password">Password</Label>
         <a href="#" className="text-sm font-medium text-primary hover:underline">
-          {LOGIN_COPY.forgotPasswordLabel}
+          {t("forgotPasswordLabel")}
         </a>
       </div>
       <div className="relative">

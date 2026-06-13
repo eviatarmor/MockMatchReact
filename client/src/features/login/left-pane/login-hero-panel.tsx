@@ -1,15 +1,12 @@
 import { BadgeCheck, CheckCircle2, Sparkles } from "lucide-react"
-import { FeatureHighlightList } from "@/components/login/feature-highlight-list"
-import { ReadinessSummaryCard } from "@/components/login/readiness-summary-card"
-import {
-  APP_NAME,
-  FEATURE_HIGHLIGHTS,
-  HERO_HEADLINE,
-  READINESS_SUMMARY,
-  TRUST_MESSAGE,
-} from "@/components/login/lib/constants"
+import { useTranslation } from "react-i18next"
+import { FeatureHighlightList } from "@/features/login/left-pane/feature-highlight-list"
+import { ReadinessSummaryCard } from "@/features/login/left-pane/readiness-summary-card"
+import { FEATURE_HIGHLIGHTS, READINESS_SUMMARY } from "@/features/login/constants"
 
 export function LoginHeroPanel() {
+  const { t } = useTranslation(["common", "login"])
+
   return (
     <div className="relative hidden flex-1 flex-col justify-between overflow-hidden bg-primary p-12 text-white lg:flex">
       <div
@@ -21,17 +18,17 @@ export function LoginHeroPanel() {
           <span className="flex size-8 items-center justify-center rounded-lg bg-white text-primary">
             <CheckCircle2 className="size-5" />
           </span>
-          <span className="text-lg font-semibold">{APP_NAME}</span>
+          <span className="text-lg font-semibold">{t("common:appName")}</span>
         </div>
 
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-3">
             <span className="flex items-center gap-1.5 text-xs font-semibold tracking-widest text-white/70 uppercase">
               <Sparkles className="size-3.5" />
-              {HERO_HEADLINE.eyebrow}
+              {t("common:heroHeadline.eyebrow")}
             </span>
-            <h1 className="text-4xl font-bold leading-tight">{HERO_HEADLINE.title}</h1>
-            <p className="text-white/80">{HERO_HEADLINE.description}</p>
+            <h1 className="text-4xl font-bold leading-tight">{t("common:heroHeadline.title")}</h1>
+            <p className="text-white/80">{t("common:heroHeadline.description")}</p>
           </div>
 
           <FeatureHighlightList features={FEATURE_HIGHLIGHTS} />
@@ -41,7 +38,7 @@ export function LoginHeroPanel() {
 
         <p className="flex items-center gap-1.5 text-sm text-white/70">
           <BadgeCheck className="size-4 shrink-0" />
-          {TRUST_MESSAGE}
+          {t("login:trustMessage")}
         </p>
       </div>
     </div>

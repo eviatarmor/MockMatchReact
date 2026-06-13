@@ -1,9 +1,9 @@
 import type { UseFormReturn } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { LoginPasswordField } from "@/components/login/login-password-field"
-import { LOGIN_COPY } from "@/components/login/lib/constants"
+import { LoginPasswordField } from "@/features/login/right-pane/login-password-field"
 import type { LoginCredentials } from "@mockmatch/schemas"
 
 interface LoginCredentialsFormProps {
@@ -21,6 +21,7 @@ export function LoginCredentialsForm({
   onTogglePasswordVisibility,
   onSubmit,
 }: LoginCredentialsFormProps) {
+  const { t } = useTranslation("login")
   const {
     register,
     handleSubmit,
@@ -52,7 +53,7 @@ export function LoginCredentialsForm({
       />
 
       <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Signing in…" : LOGIN_COPY.submitLabel}
+        {isSubmitting ? t("submittingLabel") : t("submitLabel")}
       </Button>
     </form>
   )

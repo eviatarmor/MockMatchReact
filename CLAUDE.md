@@ -35,32 +35,48 @@ No test runner is configured yet.
 - ESLint: `@eslint/js` + `typescript-eslint` + `eslint-plugin-react-hooks` + `eslint-plugin-react-refresh` + `eslint-plugin-sonarjs`
 
 ### Path aliases (`@/*` → `client/src/*`)
-- `@/components` — shared/feature components
+- `@/features` — feature modules (route content, panels, hooks, types, constants)
+- `@/components` — shared, cross-feature components (e.g. `@/components/icons`)
 - `@/components/ui` — shadcn primitives (button, input, label, checkbox, separator, card)
-- `@/lib` — utilities and domain logic
-- `@/hooks` — custom hooks
+- `@/lib` — utilities and cross-cutting setup (e.g. `@/lib/i18n`)
+- `@/hooks` — shared cross-feature hooks
+- `@/locales` — i18next translation resource files
 - `@/lib/utils` — `cn()` helper etc.
 
 ### Routing
-Routes are declared in `src/main.tsx` via `react-router-dom`'s `<Routes>`. Each route renders a page component from `src/pages/<name>-page.tsx`, which sets `document.title` and renders the feature's top-level component from `components/<feature>/`.
+Routes are declared in `src/main.tsx` via `react-router-dom`'s `<Routes>`. Each route renders a page component from `src/pages/<name>-page.tsx`, which sets `document.title` and renders the feature's top-level content component from `features/<feature>/`.
 
 ### Feature module pattern
-Features are organized as: route in `src/pages/<feature>-page.tsx` → top-level component in `components/<feature>/` → sub-panels/icons in `components/<feature>/` (and `components/<feature>/icons/`) → domain types/constants in `lib/<feature>/types.ts` and `lib/<feature>/constants.ts` → stateful logic extracted into `hooks/use-<feature>-*.ts`.
+Features live under `src/features/<feature>/`:
+- `<feature>-page.tsx` at the feature root — the content component rendered by `src/pages/<feature>-page.tsx`
+- `types.ts` — shared domain types for the feature
+- `constants.ts` — non-text structural data (ids, enums, ordering) — translatable copy lives in `@/locales`, not here
+- `hooks/use-<feature>-*.ts` — extracted stateful logic
+- Layout sub-folders (e.g. `left-pane/`, `right-pane/`) grouping the panels/components composed by `<feature>-page.tsx`
+- Feature-specific icons that aren't shared go in `@/components/icons` if reused elsewhere, otherwise colocate in the feature folder
 
-Example (auth/login):
-- Route: `src/pages/login-page.tsx` → renders `LoginPage`
-- `components/auth/login-page.tsx` composes `LoginHeroPanel` + `LoginFormPanel`
-- `components/auth/login-credentials-form.tsx`, `social-auth-buttons.tsx`, `feature-highlight-list.tsx`, `readiness-summary-card.tsx` — sub-components
-- `lib/auth/types.ts` — `LoginCredentials`, `SocialProvider`, `FeatureHighlight`, `ReadinessSummary`
-- `lib/auth/constants.ts` — copy/content constants (`LOGIN_COPY`, `FEATURE_HIGHLIGHTS`, etc.)
-- `hooks/use-login-form.ts`, `use-social-auth.ts` — extracted stateful logic
+Example (login):
+- Route: `src/pages/login-page.tsx` → renders `LoginPageContent`
+- `features/login/login-page.tsx` composes `LoginHeroPanel` (left-pane) + `LoginFormPanel` (right-pane)
+- `features/login/left-pane/` — `login-hero-panel.tsx`, `feature-highlight-list.tsx`, `readiness-summary-card.tsx`, `readiness-message-ticker.tsx`, `readiness-progress-bar.tsx`
+- `features/login/right-pane/` — `login-form-panel.tsx`, `login-credentials-form.tsx`, `login-footer-links.tsx`, `login-password-field.tsx`, `social-auth-buttons.tsx`
+- `features/login/types.ts` — `LoginCredentials`, `SocialProvider`, `FeatureHighlight`, `ReadinessSummary`
+- `features/login/constants.ts` — `FEATURE_HIGHLIGHTS`, `READINESS_SUMMARY` (ids/scores/translation keys, no literal copy)
+- `features/login/hooks/use-login-form.ts`, `use-social-auth.ts` — extracted stateful logic
+- `@/components/icons/google-icon.tsx`, `linkedin-icon.tsx` — shared social icons
 
-Follow this pattern for new features: copy/content as constants in `lib/<feature>/constants.ts`, shared types in `lib/<feature>/types.ts`, interactive state in dedicated hooks, presentational components composed in `components/<feature>/`.
+Follow this pattern for new features: structural constants in `features/<feature>/constants.ts`, shared types in `features/<feature>/types.ts`, translatable copy in `@/locales/<locale>/<feature>.json`, interactive state in dedicated hooks, presentational components composed in `features/<feature>/` (split into pane/layout sub-folders as the feature grows).
 
 Exception: small self-contained UI animations (e.g. `ReadinessSummaryCard`'s rolling text/score) keep their `useState`/`useEffect` inline in the component instead of a dedicated hook — extract to a hook only if the logic is reused or grows complex.
 
+### Internationalization (i18next)
+- `@/lib/i18n` initializes `i18next` + `react-i18next`, imported once in `src/main.tsx`.
+- Translation resources live in `@/locales/<locale>/<namespace>.json` (e.g. `en-US/common.json`, `en-US/login.json`). Namespace = feature name (or `common` for app-wide/shared copy like `appName`, hero headline).
+- All user-facing copy must go through `useTranslation()` / `t()` — never hardcode strings in components. Structural data in `constants.ts` references translation keys (e.g. `labelKey: "featureHighlights.resume"`) rather than literal text.
+- New locales/dialects (e.g. `en-GB`) are added as sibling folders under `@/locales` with the same namespace files, then registered in `@/lib/i18n`'s `resources`.
+
 ### Component conventions
-- No semicolons in `.tsx`/`.ts` files within `components/`, `hooks/`, `lib/` (existing code is unsemicoloned; `src/main.tsx` and other entry files still use semicolons — match the surrounding file).
+- No semicolons in `.tsx`/`.ts` files within `features/`, `components/`, `hooks/`, `lib/` (existing code is unsemicoloned; `src/main.tsx` and other entry files still use semicolons — match the surrounding file).
 - No backend/API wired up yet — form submissions are stubbed (e.g. `useLoginForm.handleSubmit` uses a dummy timeout).
 
 ### UI components — shadcnspace first

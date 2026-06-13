@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
 
-import { ReadinessMessageTicker } from "@/components/login/readiness-message-ticker"
-import { ReadinessProgressBar } from "@/components/login/readiness-progress-bar"
-import type { ReadinessSummary } from "@/components/login/lib/types"
+import { ReadinessMessageTicker } from "@/features/login/left-pane/readiness-message-ticker"
+import { ReadinessProgressBar } from "@/features/login/left-pane/readiness-progress-bar"
+import type { ReadinessSummary } from "@/features/login/types"
 
 const ROTATE_INTERVAL_MS = 4000
 const SCORE_STEP_MS = 30

@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
-import { GoogleIcon } from "@/components/login/icons/google-icon"
-import { LinkedinIcon } from "@/components/login/icons/linkedin-icon"
-import type { SocialProvider } from "@/components/login/lib/types"
+import { GoogleIcon } from "@/components/icons/google-icon"
+import { LinkedinIcon } from "@/components/icons/linkedin-icon"
+import type { SocialProvider } from "@/features/login/types"
 
 interface SocialAuthButtonsProps {
   readonly pendingProvider: SocialProvider | null

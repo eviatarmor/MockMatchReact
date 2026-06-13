@@ -1,5 +1,6 @@
 import { FileText, Mic, Compass } from "lucide-react"
-import type { FeatureHighlight } from "@/components/login/lib/types"
+import { useTranslation } from "react-i18next"
+import type { FeatureHighlight } from "@/features/login/types"
 
 const FEATURE_ICONS: Record<FeatureHighlight["icon"], typeof FileText> = {
   resume: FileText,
@@ -12,6 +13,8 @@ interface FeatureHighlightListProps {
 }
 
 export function FeatureHighlightList({ features }: FeatureHighlightListProps) {
+  const { t } = useTranslation("login")
+
   return (
     <ul className="flex flex-col gap-3">
       {features.map((feature) => {
@@ -22,7 +25,7 @@ export function FeatureHighlightList({ features }: FeatureHighlightListProps) {
             <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-white/15">
               <FeatureIcon className="size-3.5" />
             </span>
-            {feature.label}
+            {t(feature.labelKey)}
           </li>
         )
       })}

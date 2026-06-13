@@ -1,12 +1,13 @@
-import { LoginCredentialsForm } from "@/components/login/login-credentials-form"
-import { LoginFooterLinks } from "@/components/login/login-footer-links"
-import { SocialAuthButtons } from "@/components/login/social-auth-buttons"
+import { useTranslation } from "react-i18next"
+import { LoginCredentialsForm } from "@/features/login/right-pane/login-credentials-form"
+import { LoginFooterLinks } from "@/features/login/right-pane/login-footer-links"
+import { SocialAuthButtons } from "@/features/login/right-pane/social-auth-buttons"
 import { Separator } from "@/components/ui/separator"
-import { useLoginForm } from "@/components/login/hooks/use-login-form"
-import { useSocialAuth } from "@/components/login/hooks/use-social-auth"
-import { LOGIN_COPY } from "@/components/login/lib/constants"
+import { useLoginForm } from "@/features/login/hooks/use-login-form"
+import { useSocialAuth } from "@/features/login/hooks/use-social-auth"
 
 export function LoginFormPanel() {
+  const { t } = useTranslation("login")
   const { form, isSubmitting, isPasswordVisible, togglePasswordVisibility, onSubmit } =
     useLoginForm()
 
@@ -16,8 +17,8 @@ export function LoginFormPanel() {
     <div className="flex flex-1 items-center justify-center p-6 lg:p-12">
       <div className="flex w-full max-w-sm flex-col gap-6">
         <div className="flex flex-col gap-1.5">
-          <h2 className="text-2xl font-bold">{LOGIN_COPY.title}</h2>
-          <p className="text-sm text-muted-foreground">{LOGIN_COPY.subtitle}</p>
+          <h2 className="text-2xl font-bold">{t("title")}</h2>
+          <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
 
         <SocialAuthButtons
@@ -28,7 +29,7 @@ export function LoginFormPanel() {
         <div className="relative flex items-center">
           <Separator className="flex-1" />
           <span className="px-3 text-xs text-muted-foreground">
-            {LOGIN_COPY.dividerLabel}
+            {t("dividerLabel")}
           </span>
           <Separator className="flex-1" />
         </div>

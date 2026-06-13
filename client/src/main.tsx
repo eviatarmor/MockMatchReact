@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
 import "./index.css"
+import "./lib/i18n"
 import { HomePage } from "./pages/home-page"
 import { LoginPage } from "./pages/login-page"
 

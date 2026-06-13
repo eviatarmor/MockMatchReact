@@ -2,13 +2,14 @@ export type SocialProvider = "google" | "linkedin"
 
 export interface FeatureHighlight {
   id: string
-  label: string
+  labelKey: string
   icon: "resume" | "interview" | "readiness"
 }
 
 export interface ReadinessUpdate {
+  id: string
   score: number
-  message: string
+  messageKey: string
 }
 
 export interface ReadinessSummary {

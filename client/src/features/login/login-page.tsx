@@ -1,5 +1,5 @@
-import { LoginFormPanel } from "@/components/login/login-form-panel"
-import { LoginHeroPanel } from "@/components/login/login-hero-panel"
+import { LoginFormPanel } from "@/features/login/right-pane/login-form-panel"
+import { LoginHeroPanel } from "@/features/login/left-pane/login-hero-panel"
 
 export function LoginPageContent() {
   return (

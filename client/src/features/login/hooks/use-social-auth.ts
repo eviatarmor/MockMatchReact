@@ -1,6 +1,6 @@
 import { useCallback } from "react"
 import { useMutation } from "@tanstack/react-query"
-import type { SocialProvider } from "@/components/login/lib/types"
+import type { SocialProvider } from "@/features/login/types"
 
 export interface UseSocialAuthResult {
   readonly pendingProvider: SocialProvider | null

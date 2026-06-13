@@ -1,0 +1,24 @@
+{
+  "title": "Sign in to MockMatch",
+  "subtitle": "Welcome back — pick up your prep where you left off.",
+  "dividerLabel": "or continue with email",
+  "forgotPasswordLabel": "Forgot password?",
+  "submitLabel": "Sign in",
+  "submittingLabel": "Signing in…",
+  "signUpPrompt": "New to MockMatch?",
+  "signUpLabel": "Create an account",
+  "termsPrefix": "By continuing you agree to our",
+  "termsLabel": "Terms",
+  "privacyLabel": "Privacy Policy",
+  "trustMessage": "Trusted by candidates prepping across software, consulting, and healthcare.",
+  "featureHighlights": {
+    "resume": "ATS-scored resumes with fix-it guidance",
+    "interview": "Role-specific AI mock interviews",
+    "readiness": "A readiness score that tells you what's next"
+  },
+  "readinessUpdates": {
+    "addKeywords": "Add the two missing keywords on your resume to reach 90+.",
+    "tailorSummary": "Tailor your summary to the target role to climb higher.",
+    "runMockInterview": "Run a mock interview to lock in your readiness score."
+  }
+}
