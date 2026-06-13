@@ -1,10 +1,5 @@
 export type SocialProvider = "google" | "linkedin"
 
-export interface LoginCredentials {
-  email: string
-  password: string
-}
-
 export interface FeatureHighlight {
   id: string
   label: string

@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 
-import { LoginPage as LoginPageContent } from "@/components/auth/login-page"
+import { LoginPageContent } from "@/components/login/login-page"
 
 export function LoginPage() {
   useEffect(() => {

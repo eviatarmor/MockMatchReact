@@ -1,58 +1,43 @@
 import { useCallback, useState } from "react"
-import type { LoginCredentials } from "@/lib/auth/types"
-
-const INITIAL_CREDENTIALS: LoginCredentials = {
-  email: "",
-  password: "",
-}
+import { useForm, type UseFormReturn } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { loginSchema, type LoginCredentials } from "@mockmatch/schemas"
 
 export interface UseLoginFormResult {
-  readonly credentials: LoginCredentials
+  readonly form: UseFormReturn<LoginCredentials>
   readonly isSubmitting: boolean
   readonly isPasswordVisible: boolean
-  readonly setEmail: (email: string) => void
-  readonly setPassword: (password: string) => void
   readonly togglePasswordVisibility: () => void
-  readonly handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void
+  readonly onSubmit: () => void
 }
 
 export function useLoginForm(): UseLoginFormResult {
-  const [credentials, setCredentials] = useState<LoginCredentials>(INITIAL_CREDENTIALS)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
 
-  const setEmail = useCallback((email: string) => {
-    setCredentials((previous) => ({ ...previous, email }))
-  }, [])
-
-  const setPassword = useCallback((password: string) => {
-    setCredentials((previous) => ({ ...previous, password }))
-  }, [])
+  const form = useForm<LoginCredentials>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  })
 
   const togglePasswordVisibility = useCallback(() => {
     setIsPasswordVisible((previous) => !previous)
   }, [])
 
-  const handleSubmit = useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault()
-      setIsSubmitting(true)
+  const onSubmit = useCallback(() => {
+    setIsSubmitting(true)
 
-      // Dummy submit: no backend wired up yet.
-      window.setTimeout(() => {
-        setIsSubmitting(false)
-      }, 600)
-    },
-    []
-  )
+    // Dummy submit: no backend wired up yet.
+    window.setTimeout(() => {
+      setIsSubmitting(false)
+    }, 600)
+  }, [])
 
   return {
-    credentials,
+    form,
     isSubmitting,
     isPasswordVisible,
-    setEmail,
-    setPassword,
     togglePasswordVisibility,
-    handleSubmit,
+    onSubmit,
   }
 }

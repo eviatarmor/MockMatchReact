@@ -1,13 +1,13 @@
 import { BadgeCheck, CheckCircle2, Sparkles } from "lucide-react"
-import { FeatureHighlightList } from "@/components/auth/feature-highlight-list"
-import { ReadinessSummaryCard } from "@/components/auth/readiness-summary-card"
+import { FeatureHighlightList } from "@/components/login/feature-highlight-list"
+import { ReadinessSummaryCard } from "@/components/login/readiness-summary-card"
 import {
   APP_NAME,
   FEATURE_HIGHLIGHTS,
   HERO_HEADLINE,
   READINESS_SUMMARY,
   TRUST_MESSAGE,
-} from "@/lib/auth/constants"
+} from "@/lib/login/constants"
 
 export function LoginHeroPanel() {
   return (

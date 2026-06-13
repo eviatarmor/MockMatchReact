@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react"
-import type { SocialProvider } from "@/lib/auth/types"
+import type { SocialProvider } from "@/lib/login/types"
 
 export interface UseSocialAuthResult {
   readonly pendingProvider: SocialProvider | null

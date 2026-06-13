@@ -1,20 +1,14 @@
-import { LoginCredentialsForm } from "@/components/auth/login-credentials-form"
-import { SocialAuthButtons } from "@/components/auth/social-auth-buttons"
+import { LoginCredentialsForm } from "@/components/login/login-credentials-form"
+import { LoginFooterLinks } from "@/components/login/login-footer-links"
+import { SocialAuthButtons } from "@/components/login/social-auth-buttons"
 import { Separator } from "@/components/ui/separator"
 import { useLoginForm } from "@/hooks/use-login-form"
 import { useSocialAuth } from "@/hooks/use-social-auth"
-import { LOGIN_COPY } from "@/lib/auth/constants"
+import { LOGIN_COPY } from "@/lib/login/constants"
 
 export function LoginFormPanel() {
-  const {
-    credentials,
-    isSubmitting,
-    isPasswordVisible,
-    setEmail,
-    setPassword,
-    togglePasswordVisibility,
-    handleSubmit,
-  } = useLoginForm()
+  const { form, isSubmitting, isPasswordVisible, togglePasswordVisibility, onSubmit } =
+    useLoginForm()
 
   const { pendingProvider, signInWithProvider } = useSocialAuth()
 
@@ -40,33 +34,14 @@ export function LoginFormPanel() {
         </div>
 
         <LoginCredentialsForm
-          credentials={credentials}
+          form={form}
           isSubmitting={isSubmitting}
           isPasswordVisible={isPasswordVisible}
-          onEmailChange={setEmail}
-          onPasswordChange={setPassword}
           onTogglePasswordVisibility={togglePasswordVisibility}
-          onSubmit={handleSubmit}
+          onSubmit={onSubmit}
         />
 
-        <p className="text-center text-sm text-muted-foreground">
-          {LOGIN_COPY.signUpPrompt}{" "}
-          <a href="#" className="font-medium text-primary hover:underline">
-            {LOGIN_COPY.signUpLabel}
-          </a>
-        </p>
-
-        <p className="text-center text-xs text-muted-foreground">
-          {LOGIN_COPY.termsPrefix}{" "}
-          <a href="#" className="underline">
-            {LOGIN_COPY.termsLabel}
-          </a>{" "}
-          and{" "}
-          <a href="#" className="underline">
-            {LOGIN_COPY.privacyLabel}
-          </a>
-          .
-        </p>
+        <LoginFooterLinks />
       </div>
     </div>
   )
