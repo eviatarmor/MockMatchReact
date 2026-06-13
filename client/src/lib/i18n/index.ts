@@ -5,6 +5,8 @@ import common from "@/locales/en-US/common.json"
 import login from "@/locales/en-US/login.json"
 import signup from "@/locales/en-US/signup.json"
 import verifyEmail from "@/locales/en-US/verify-email.json"
+import resetPassword from "@/locales/en-US/reset-password.json"
+import forgotPassword from "@/locales/en-US/forgot-password.json"
 
 export const defaultNS = "common"
 
@@ -13,7 +15,14 @@ i18next.use(initReactI18next).init({
   fallbackLng: "en-US",
   defaultNS,
   resources: {
-    "en-US": { common, login, signup, "verify-email": verifyEmail },
+    "en-US": {
+      common,
+      login,
+      signup,
+      "verify-email": verifyEmail,
+      "reset-password": resetPassword,
+      "forgot-password": forgotPassword,
+    },
   },
   interpolation: {
     escapeValue: false,

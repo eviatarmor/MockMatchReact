@@ -9,6 +9,8 @@ import { HomePage } from "./pages/home-page"
 import { LoginPage } from "./pages/login-page"
 import { SignupPage } from "./pages/signup-page"
 import { VerifyEmailPage } from "./pages/verify-email-page"
+import { ResetPasswordPage } from "./pages/reset-password-page"
+import { ForgotPasswordPage } from "./pages/forgot-password-page"
 
 const queryClient = new QueryClient()
 
@@ -21,6 +23,8 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/signup/verify" element={<VerifyEmailPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

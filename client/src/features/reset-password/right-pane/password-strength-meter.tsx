@@ -1,7 +1,7 @@
 import { CheckCircle2, X } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
-import { PASSWORD_STRENGTH_CHECKS } from "@/features/signup/constants"
+import { PASSWORD_STRENGTH_CHECKS } from "@/features/reset-password/right-pane/constants"
 
 interface PasswordStrengthMeterProps {
   readonly password: string
@@ -12,7 +12,7 @@ const STRENGTH_TEXT_COLORS = ["text-muted-foreground", "text-red-500", "text-ora
 const STRENGTH_LABEL_KEYS = ["", "passwordStrength.weak", "passwordStrength.moderate", "passwordStrength.strong", "passwordStrength.veryStrong"]
 
 export function PasswordStrengthMeter({ password }: PasswordStrengthMeterProps) {
-  const { t } = useTranslation("signup")
+  const { t } = useTranslation("reset-password")
   const results = PASSWORD_STRENGTH_CHECKS.map((check) => check.test(password))
   const strength = results.filter(Boolean).length
 
