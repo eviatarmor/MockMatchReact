@@ -1,4 +1,4 @@
-import type { FeatureHighlight, ReadinessSummary } from "@/lib/login/types"
+import type { FeatureHighlight, ReadinessSummary } from "@/components/login/lib/types"
 
 export const APP_NAME = "MockMatch"
 

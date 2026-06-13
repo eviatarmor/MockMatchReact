@@ -3,7 +3,7 @@ import type { UseFormRegisterReturn } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { LOGIN_COPY } from "@/lib/login/constants"
+import { LOGIN_COPY } from "@/components/login/lib/constants"
 
 interface LoginPasswordFieldProps {
   readonly register: UseFormRegisterReturn

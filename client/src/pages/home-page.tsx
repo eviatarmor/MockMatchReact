@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import { Link } from "react-router-dom"
 
-import { APP_NAME, HERO_HEADLINE } from "@/lib/login/constants"
+import { APP_NAME, HERO_HEADLINE } from "@/components/login/lib/constants"
 
 export function HomePage() {
   useEffect(() => {

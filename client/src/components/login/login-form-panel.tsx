@@ -2,9 +2,9 @@ import { LoginCredentialsForm } from "@/components/login/login-credentials-form"
 import { LoginFooterLinks } from "@/components/login/login-footer-links"
 import { SocialAuthButtons } from "@/components/login/social-auth-buttons"
 import { Separator } from "@/components/ui/separator"
-import { useLoginForm } from "@/hooks/use-login-form"
-import { useSocialAuth } from "@/hooks/use-social-auth"
-import { LOGIN_COPY } from "@/lib/login/constants"
+import { useLoginForm } from "@/components/login/hooks/use-login-form"
+import { useSocialAuth } from "@/components/login/hooks/use-social-auth"
+import { LOGIN_COPY } from "@/components/login/lib/constants"
 
 export function LoginFormPanel() {
   const { form, isSubmitting, isPasswordVisible, togglePasswordVisibility, onSubmit } =

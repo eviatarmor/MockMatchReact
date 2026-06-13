@@ -7,7 +7,7 @@ import {
   HERO_HEADLINE,
   READINESS_SUMMARY,
   TRUST_MESSAGE,
-} from "@/lib/login/constants"
+} from "@/components/login/lib/constants"
 
 export function LoginHeroPanel() {
   return (

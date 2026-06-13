@@ -1,5 +1,5 @@
 import { FileText, Mic, Compass } from "lucide-react"
-import type { FeatureHighlight } from "@/lib/login/types"
+import type { FeatureHighlight } from "@/components/login/lib/types"
 
 const FEATURE_ICONS: Record<FeatureHighlight["icon"], typeof FileText> = {
   resume: FileText,

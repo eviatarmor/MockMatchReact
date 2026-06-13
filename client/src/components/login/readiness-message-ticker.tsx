@@ -1,4 +1,4 @@
-import type { ReadinessUpdate } from "@/lib/login/types"
+import type { ReadinessUpdate } from "@/components/login/lib/types"
 
 const ROW_HEIGHT_PX = 20
 

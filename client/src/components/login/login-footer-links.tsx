@@ -1,4 +1,4 @@
-import { LOGIN_COPY } from "@/lib/login/constants"
+import { LOGIN_COPY } from "@/components/login/lib/constants"
 
 export function LoginFooterLinks() {
   return (

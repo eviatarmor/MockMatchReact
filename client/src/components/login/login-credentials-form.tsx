@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LoginPasswordField } from "@/components/login/login-password-field"
-import { LOGIN_COPY } from "@/lib/login/constants"
+import { LOGIN_COPY } from "@/components/login/lib/constants"
 import type { LoginCredentials } from "@mockmatch/schemas"
 
 interface LoginCredentialsFormProps {

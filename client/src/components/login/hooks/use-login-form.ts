@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react"
 import { useForm, type UseFormReturn } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation } from "@tanstack/react-query"
 import { loginSchema, type LoginCredentials } from "@mockmatch/schemas"
 
 export interface UseLoginFormResult {
@@ -11,8 +12,11 @@ export interface UseLoginFormResult {
   readonly onSubmit: () => void
 }
 
+// Dummy submit: no backend wired up yet.
+const loginRequest: (credentials: LoginCredentials) => Promise<void> = () =>
+  new Promise((resolve) => window.setTimeout(resolve, 600))
+
 export function useLoginForm(): UseLoginFormResult {
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
 
   const form = useForm<LoginCredentials>({
@@ -20,22 +24,21 @@ export function useLoginForm(): UseLoginFormResult {
     defaultValues: { email: "", password: "" },
   })
 
+  const { mutate, isPending } = useMutation({
+    mutationFn: loginRequest,
+  })
+
   const togglePasswordVisibility = useCallback(() => {
     setIsPasswordVisible((previous) => !previous)
   }, [])
 
   const onSubmit = useCallback(() => {
-    setIsSubmitting(true)
-
-    // Dummy submit: no backend wired up yet.
-    window.setTimeout(() => {
-      setIsSubmitting(false)
-    }, 600)
-  }, [])
+    mutate(form.getValues())
+  }, [mutate, form])
 
   return {
     form,
-    isSubmitting,
+    isSubmitting: isPending,
     isPasswordVisible,
     togglePasswordVisibility,
     onSubmit,
