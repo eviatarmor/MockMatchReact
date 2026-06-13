@@ -1,0 +1,13 @@
+{
+  "name": "mockmatch",
+  "private": true,
+  "workspaces": [
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently -n client -c cyan \"npm:dev --workspace=client\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
