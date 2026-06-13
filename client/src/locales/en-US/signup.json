@@ -1,4 +1,5 @@
 {
+  "documentTitle": "Create your MockMatch account",
   "heroHeadline": {
     "eyebrow": "Get started in minutes",
     "title": "Your interview prep, organized from day one.",
@@ -48,15 +49,5 @@
   "signInPrompt": "Already have an account?",
   "signInLabel": "Sign in",
   "socialProofPrefix": "Join",
-  "socialProofSuffix": "candidates prepping smarter.",
-  "verifyEmail": {
-    "title": "Verify your email",
-    "description": "We sent a 6-digit code to <strong>{{email}}</strong>. Enter it below to confirm your account.",
-    "submitLabel": "Verify & continue",
-    "submittingLabel": "Verifying…",
-    "resendPrompt": "Didn't get a code?",
-    "resendLabel": "Resend",
-    "resendCountdown": "Resend ({{seconds}}s)",
-    "useDifferentEmailLabel": "Use a different email"
-  }
+  "socialProofSuffix": "candidates prepping smarter."
 }

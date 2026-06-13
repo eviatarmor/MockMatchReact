@@ -12,7 +12,7 @@ import { OTP_LENGTH } from "@/features/verify-email/constants"
 import type { VerifyEmailLocationState } from "@/features/verify-email/types"
 
 export function VerifyEmailPageContent() {
-  const { t } = useTranslation("signup")
+  const { t } = useTranslation("verify-email")
   const location = useLocation()
   const email = (location.state as VerifyEmailLocationState | null)?.email ?? ""
 
@@ -37,11 +37,11 @@ export function VerifyEmailPageContent() {
           </span>
 
           <div className="flex flex-col gap-1.5">
-            <h1 className="text-2xl font-bold">{t("verifyEmail.title")}</h1>
+            <h1 className="text-2xl font-bold">{t("title")}</h1>
             <p className="text-sm text-muted-foreground">
               <Trans
                 t={t}
-                i18nKey="verifyEmail.description"
+                i18nKey="description"
                 values={{ email }}
                 components={{ strong: <strong className="font-semibold text-foreground" /> }}
               />
@@ -51,28 +51,28 @@ export function VerifyEmailPageContent() {
           <AnimatedOTP value={code} onChange={setCode} maxLength={OTP_LENGTH} />
 
           <Button className="w-full" size="lg" disabled={!isComplete || isSubmitting} onClick={onSubmit}>
-            {isSubmitting ? t("verifyEmail.submittingLabel") : t("verifyEmail.submitLabel")}
+            {isSubmitting ? t("submittingLabel") : t("submitLabel")}
           </Button>
 
           <p className="text-sm text-muted-foreground">
-            {t("verifyEmail.resendPrompt")}{" "}
+            {t("resendPrompt")}{" "}
             {canResend ? (
               <button
                 type="button"
                 onClick={onResend}
                 className="font-medium text-primary hover:underline"
               >
-                {t("verifyEmail.resendLabel")}
+                {t("resendLabel")}
               </button>
             ) : (
               <span className="font-medium">
-                {t("verifyEmail.resendCountdown", { seconds: resendSecondsLeft })}
+                {t("resendCountdown", { seconds: resendSecondsLeft })}
               </span>
             )}
           </p>
 
           <Link to="/signup" className="text-sm font-medium text-primary hover:underline">
-            {t("verifyEmail.useDifferentEmailLabel")}
+            {t("useDifferentEmailLabel")}
           </Link>
         </div>
       </div>
