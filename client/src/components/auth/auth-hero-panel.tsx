@@ -1,10 +1,29 @@
-import { BadgeCheck, CheckCircle2, Sparkles } from "lucide-react"
+import { BadgeCheck, CheckCircle2, Sparkles, type LucideIcon } from "lucide-react"
+import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { FeatureHighlightList } from "@/features/login/left-pane/feature-highlight-list"
 import { ReadinessSummaryCard } from "@/features/login/left-pane/readiness-summary-card"
 import { FEATURE_HIGHLIGHTS, READINESS_SUMMARY } from "@/features/login/constants"
 
-export function LoginHeroPanel() {
+interface AuthHeroPanelProps {
+  readonly trustMessageKey?: string
+  readonly bottomSlot?: ReactNode
+  readonly eyebrowIcon?: LucideIcon
+  readonly eyebrowKey?: string
+  readonly titleKey?: string
+  readonly descriptionKey?: string
+  readonly middleSlot?: ReactNode
+}
+
+export function AuthHeroPanel({
+  trustMessageKey,
+  bottomSlot,
+  eyebrowIcon: EyebrowIcon = Sparkles,
+  eyebrowKey = "common:heroHeadline.eyebrow",
+  titleKey = "common:heroHeadline.title",
+  descriptionKey = "common:heroHeadline.description",
+  middleSlot,
+}: AuthHeroPanelProps) {
   const { t } = useTranslation(["common", "login"])
 
   return (
@@ -24,22 +43,27 @@ export function LoginHeroPanel() {
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-3">
             <span className="flex items-center gap-1.5 text-xs font-semibold tracking-widest text-white/70 uppercase">
-              <Sparkles className="size-3.5" />
-              {t("common:heroHeadline.eyebrow")}
+              <EyebrowIcon className="size-3.5" />
+              {t(eyebrowKey)}
             </span>
-            <h1 className="text-4xl font-bold leading-tight">{t("common:heroHeadline.title")}</h1>
-            <p className="text-white/80">{t("common:heroHeadline.description")}</p>
+            <h1 className="text-4xl font-bold leading-tight">{t(titleKey)}</h1>
+            <p className="text-white/80">{t(descriptionKey)}</p>
           </div>
 
-          <FeatureHighlightList features={FEATURE_HIGHLIGHTS} />
-
-          <ReadinessSummaryCard summary={READINESS_SUMMARY} />
+          {middleSlot ?? (
+            <>
+              <FeatureHighlightList features={FEATURE_HIGHLIGHTS} />
+              <ReadinessSummaryCard summary={READINESS_SUMMARY} />
+            </>
+          )}
         </div>
 
-        <p className="flex items-center gap-1.5 text-sm text-white/70">
-          <BadgeCheck className="size-4 shrink-0" />
-          {t("login:trustMessage")}
-        </p>
+        {bottomSlot ?? (
+          <p className="flex items-center gap-1.5 text-sm text-white/70">
+            <BadgeCheck className="size-4 shrink-0" />
+            {trustMessageKey && t(trustMessageKey)}
+          </p>
+        )}
       </div>
     </div>
   )

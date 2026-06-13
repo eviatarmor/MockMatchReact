@@ -5,7 +5,6 @@ import { ReadinessProgressBar } from "@/features/login/left-pane/readiness-progr
 import type { ReadinessSummary } from "@/features/login/types"
 
 const ROTATE_INTERVAL_MS = 4000
-const SCORE_STEP_MS = 30
 
 interface ReadinessSummaryCardProps {
   readonly summary: ReadinessSummary
@@ -14,7 +13,6 @@ interface ReadinessSummaryCardProps {
 export function ReadinessSummaryCard({ summary }: ReadinessSummaryCardProps) {
   const { updates, maxScore } = summary
   const [index, setIndex] = useState(0)
-  const [score, setScore] = useState(0)
 
   useEffect(() => {
     const rotate = window.setInterval(() => {
@@ -24,24 +22,9 @@ export function ReadinessSummaryCard({ summary }: ReadinessSummaryCardProps) {
     return () => window.clearInterval(rotate)
   }, [updates.length])
 
-  useEffect(() => {
-    const target = updates[index].score
-    const tick = window.setInterval(() => {
-      setScore((current) => {
-        if (current === target) {
-          window.clearInterval(tick)
-          return current
-        }
-        return current < target ? current + 1 : current - 1
-      })
-    }, SCORE_STEP_MS)
-
-    return () => window.clearInterval(tick)
-  }, [index, updates])
-
   return (
     <div className="rounded-xl bg-white/10 p-5 text-white backdrop-blur-sm">
-      <ReadinessProgressBar score={score} maxScore={maxScore} />
+      <ReadinessProgressBar score={updates[index].score} maxScore={maxScore} />
       <ReadinessMessageTicker updates={updates} index={index} />
     </div>
   )

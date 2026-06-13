@@ -1,3 +1,5 @@
+import { NumberTicker } from "@/components/shadcn-space/number-ticker/number-ticker-01"
+
 interface ReadinessProgressBarProps {
   readonly score: number
   readonly maxScore: number
@@ -11,7 +13,7 @@ export function ReadinessProgressBar({ score, maxScore }: ReadinessProgressBarPr
       <div className="flex items-baseline justify-between">
         <span className="text-sm text-white/80">Your readiness</span>
         <span className="text-2xl font-bold">
-          {score}
+          <NumberTicker end={score} duration={0.6} />
           <span className="text-base font-normal text-white/60"> / {maxScore}</span>
         </span>
       </div>

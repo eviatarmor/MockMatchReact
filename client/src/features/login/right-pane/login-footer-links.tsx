@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next"
+import { Link } from "react-router-dom"
 
 export function LoginFooterLinks() {
   const { t } = useTranslation("login")
@@ -7,9 +8,9 @@ export function LoginFooterLinks() {
     <>
       <p className="text-center text-sm text-muted-foreground">
         {t("signUpPrompt")}{" "}
-        <a href="#" className="font-medium text-primary hover:underline">
+        <Link to="/signup" className="font-medium text-primary hover:underline">
           {t("signUpLabel")}
-        </a>
+        </Link>
       </p>
 
       <p className="text-center text-xs text-muted-foreground">

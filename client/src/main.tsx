@@ -7,6 +7,8 @@ import "./index.css"
 import "./lib/i18n"
 import { HomePage } from "./pages/home-page"
 import { LoginPage } from "./pages/login-page"
+import { SignupPage } from "./pages/signup-page"
+import { VerifyEmailPage } from "./pages/verify-email-page"
 
 const queryClient = new QueryClient()
 
@@ -17,6 +19,8 @@ createRoot(document.getElementById("root")!).render(
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/signup/verify" element={<VerifyEmailPage />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>

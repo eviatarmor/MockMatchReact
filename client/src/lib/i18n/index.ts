@@ -3,6 +3,7 @@ import { initReactI18next } from "react-i18next"
 
 import common from "@/locales/en-US/common.json"
 import login from "@/locales/en-US/login.json"
+import signup from "@/locales/en-US/signup.json"
 
 export const defaultNS = "common"
 
@@ -11,7 +12,7 @@ i18next.use(initReactI18next).init({
   fallbackLng: "en-US",
   defaultNS,
   resources: {
-    "en-US": { common, login },
+    "en-US": { common, login, signup },
   },
   interpolation: {
     escapeValue: false,

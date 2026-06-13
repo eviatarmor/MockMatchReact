@@ -1,5 +1,3 @@
-export type SocialProvider = "google" | "linkedin"
-
 export interface FeatureHighlight {
   id: string
   labelKey: string

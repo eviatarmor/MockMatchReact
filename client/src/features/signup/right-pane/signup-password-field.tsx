@@ -1,36 +1,35 @@
 import type { UseFormRegisterReturn } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { AuthPasswordField } from "@/components/auth/auth-password-field"
+import { PasswordStrengthMeter } from "@/features/signup/right-pane/password-strength-meter"
 
-interface LoginPasswordFieldProps {
+interface SignupPasswordFieldProps {
   readonly register: UseFormRegisterReturn
+  readonly password: string
   readonly error?: string
   readonly isPasswordVisible: boolean
   readonly onTogglePasswordVisibility: () => void
 }
 
-export function LoginPasswordField({
+export function SignupPasswordField({
   register,
+  password,
   error,
   isPasswordVisible,
   onTogglePasswordVisibility,
-}: LoginPasswordFieldProps) {
-  const { t } = useTranslation("login")
+}: SignupPasswordFieldProps) {
+  const { t } = useTranslation("signup")
 
   return (
     <AuthPasswordField
       register={register}
-      label="Password"
-      placeholder="Enter your password"
-      autoComplete="current-password"
+      label={t("passwordLabel")}
+      placeholder={t("passwordPlaceholder")}
+      autoComplete="new-password"
       error={error}
       isPasswordVisible={isPasswordVisible}
       onTogglePasswordVisibility={onTogglePasswordVisibility}
-      labelEndSlot={
-        <a href="#" className="text-sm font-medium text-primary hover:underline">
-          {t("forgotPasswordLabel")}
-        </a>
-      }
+      belowField={<PasswordStrengthMeter password={password} />}
     />
   )
 }

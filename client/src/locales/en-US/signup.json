@@ -1,0 +1,62 @@
+{
+  "heroHeadline": {
+    "eyebrow": "Get started in minutes",
+    "title": "Your interview prep, organized from day one.",
+    "description": "Create a free account and build the workspace that gets you from application to offer."
+  },
+  "getStartedSteps": {
+    "buildResume": {
+      "title": "Build your resume",
+      "description": "Get an instant ATS score and fix-it guidance."
+    },
+    "runMockInterview": {
+      "title": "Run a mock interview",
+      "description": "Practice role-specific questions with AI feedback."
+    },
+    "trackApplications": {
+      "title": "Track every application",
+      "description": "One readiness score tells you what to do next."
+    }
+  },
+  "title": "Create your account",
+  "subtitle": "Free to start — no credit card required.",
+  "dividerLabel": "or sign up with email",
+  "googleLabel": "Sign up with Google",
+  "linkedinLabel": "Sign up with LinkedIn",
+  "fullNameLabel": "Full name",
+  "fullNamePlaceholder": "Jordan Lee",
+  "emailLabel": "Email",
+  "emailPlaceholder": "you@example.com",
+  "passwordLabel": "Password",
+  "passwordPlaceholder": "At least 8 characters",
+  "passwordHint": "Password must contain",
+  "passwordChecks": {
+    "length": "At least 8 characters",
+    "number": "Contains a number",
+    "uppercase": "Contains uppercase letter",
+    "special": "Contains special character"
+  },
+  "passwordStrength": {
+    "weak": "Weak",
+    "moderate": "Moderate",
+    "strong": "Strong",
+    "veryStrong": "Very Strong"
+  },
+  "agreeToTermsLabel": "I agree to the <terms>Terms</terms> and <privacy>Privacy Policy</privacy>.",
+  "submitLabel": "Create account",
+  "submittingLabel": "Creating account…",
+  "signInPrompt": "Already have an account?",
+  "signInLabel": "Sign in",
+  "socialProofPrefix": "Join",
+  "socialProofSuffix": "candidates prepping smarter.",
+  "verifyEmail": {
+    "title": "Verify your email",
+    "description": "We sent a 6-digit code to <strong>{{email}}</strong>. Enter it below to confirm your account.",
+    "submitLabel": "Verify & continue",
+    "submittingLabel": "Verifying…",
+    "resendPrompt": "Didn't get a code?",
+    "resendLabel": "Resend",
+    "resendCountdown": "Resend ({{seconds}}s)",
+    "useDifferentEmailLabel": "Use a different email"
+  }
+}

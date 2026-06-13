@@ -2,6 +2,8 @@
   "title": "Sign in to MockMatch",
   "subtitle": "Welcome back — pick up your prep where you left off.",
   "dividerLabel": "or continue with email",
+  "googleLabel": "Continue with Google",
+  "linkedinLabel": "Continue with LinkedIn",
   "forgotPasswordLabel": "Forgot password?",
   "submitLabel": "Sign in",
   "submittingLabel": "Signing in…",

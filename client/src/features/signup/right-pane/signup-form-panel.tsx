@@ -1,15 +1,15 @@
 import { useTranslation } from "react-i18next"
-import { LoginCredentialsForm } from "@/features/login/right-pane/login-credentials-form"
-import { LoginFooterLinks } from "@/features/login/right-pane/login-footer-links"
+import { SignupCredentialsForm } from "@/features/signup/right-pane/signup-credentials-form"
+import { SignupFooterLinks } from "@/features/signup/right-pane/signup-footer-links"
 import { SocialAuthButtons } from "@/components/auth/social-auth-buttons"
 import { Separator } from "@/components/ui/separator"
-import { useLoginForm } from "@/features/login/hooks/use-login-form"
+import { useSignupForm } from "@/features/signup/hooks/use-signup-form"
 import { useSocialAuth } from "@/hooks/use-social-auth"
 
-export function LoginFormPanel() {
-  const { t } = useTranslation("login")
+export function SignupFormPanel() {
+  const { t } = useTranslation("signup")
   const { form, isSubmitting, isPasswordVisible, togglePasswordVisibility, onSubmit } =
-    useLoginForm()
+    useSignupForm()
 
   const { pendingProvider, signInWithProvider } = useSocialAuth()
 
@@ -36,7 +36,7 @@ export function LoginFormPanel() {
           <Separator className="flex-1" />
         </div>
 
-        <LoginCredentialsForm
+        <SignupCredentialsForm
           form={form}
           isSubmitting={isSubmitting}
           isPasswordVisible={isPasswordVisible}
@@ -44,7 +44,7 @@ export function LoginFormPanel() {
           onSubmit={onSubmit}
         />
 
-        <LoginFooterLinks />
+        <SignupFooterLinks />
       </div>
     </div>
   )
