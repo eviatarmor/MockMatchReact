@@ -23,7 +23,7 @@ export function DashboardNavbar() {
     <header className="flex h-14 items-center gap-2 rounded-xl border bg-sidebar px-4 text-sidebar-foreground shadow-sm">
       <SidebarTrigger />
 
-      <Breadcrumb>
+      <Breadcrumb className="hidden md:flex">
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink render={<Link to="/" />}>{t("appName")}</BreadcrumbLink>

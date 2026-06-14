@@ -5,11 +5,12 @@ export interface NavbarSlots {
   readonly end: ReactNode
 }
 
-export interface NavbarSlotsContextValue extends NavbarSlots {
-  setSlots: (slots: Partial<NavbarSlots>) => void
+export interface NavbarSlotsActions {
+  readonly setSlots: (slots: Partial<NavbarSlots>) => void
 }
 
-export const NavbarSlotsContext = createContext<NavbarSlotsContextValue | null>(null)
+export const NavbarSlotsContext = createContext<NavbarSlots | null>(null)
+export const NavbarSlotsActionsContext = createContext<NavbarSlotsActions | null>(null)
 
 export function useNavbarSlotsValue() {
   const context = useContext(NavbarSlotsContext)
@@ -19,8 +20,16 @@ export function useNavbarSlotsValue() {
   return context
 }
 
+export function useNavbarSlotsActions() {
+  const context = useContext(NavbarSlotsActionsContext)
+  if (!context) {
+    throw new Error("useNavbarSlotsActions must be used within a NavbarSlotsProvider")
+  }
+  return context
+}
+
 export function useNavbarSlots(slots: { readonly center?: ReactNode; readonly end?: ReactNode }) {
-  const { setSlots } = useNavbarSlotsValue()
+  const { setSlots } = useNavbarSlotsActions()
   const { center, end } = slots
 
   useEffect(() => {

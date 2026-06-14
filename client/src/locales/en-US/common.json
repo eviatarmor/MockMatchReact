@@ -29,5 +29,63 @@
     "billing": "Billing",
     "privacy": "Privacy",
     "logout": "Log out"
+  },
+  "dashboard": {
+    "search": {
+      "resumes": "Search resumes...",
+      "coverLetters": "Search cover letters...",
+      "jobs": "Search jobs...",
+      "workflows": "Search workflows...",
+      "simulations": "Search simulations...",
+      "assessments": "Search assessments...",
+      "questions": "Search questions...",
+      "readiness": "Search metrics...",
+      "performance": "Search performance...",
+      "autofill": "Search profiles...",
+      "default": "Search..."
+    },
+    "actions": {
+      "importResume": "Import resume",
+      "newResume": "New resume",
+      "generateForJob": "Generate for a job",
+      "generateForJobShort": "Generate for job",
+      "generateResumeForJob": "Generate for a job based on past resumes",
+      "importCoverLetter": "Import cover letter",
+      "newCoverLetter": "New cover letter",
+      "importJob": "Import job",
+      "newJob": "New job",
+      "newWorkflow": "New workflow",
+      "startSimulation": "Start simulation",
+      "startAssessment": "Start assessment",
+      "addProfile": "Add profile"
+    }
+  },
+  "resumeLab": {
+    "documentTitle": "Resume Lab — MockMatch",
+    "title": "Resume Lab",
+    "description": "Build, tailor, and ATS-score a resume for every role you chase.",
+    "tabs": {
+      "all": "All",
+      "active": "Active",
+      "drafts": "Drafts",
+      "archived": "Archived"
+    },
+    "sort": {
+      "lastEdited": "Last edited"
+    },
+    "table": {
+      "columns": {
+        "resume": "Resume",
+        "ats": "ATS",
+        "status": "Status",
+        "updated": "Updated"
+      },
+      "noTargetRole": "No target role",
+      "statusLabels": {
+        "active": "Active",
+        "draft": "Draft",
+        "archived": "Archived"
+      }
+    }
   }
 }
