@@ -1,4 +1,5 @@
-import { BadgeCheck, CheckCircle2, Sparkles, type LucideIcon } from "lucide-react"
+import { BadgeCheck, Sparkles, type LucideIcon } from "lucide-react"
+import { AppLogo } from "@/components/icons/app-logo"
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { FeatureHighlightList } from "@/features/login/left-pane/feature-highlight-list"
@@ -34,8 +35,8 @@ export function AuthHeroPanel({
       />
       <div className="relative flex w-full max-w-md flex-1 flex-col justify-between">
         <div className="flex items-center gap-2">
-          <span className="flex size-8 items-center justify-center rounded-lg bg-white text-primary">
-            <CheckCircle2 className="size-5" />
+          <span className="flex size-8 items-center justify-center rounded-lg bg-white p-1">
+            <AppLogo className="size-full" />
           </span>
           <span className="text-lg font-semibold">{t("common:appName")}</span>
         </div>

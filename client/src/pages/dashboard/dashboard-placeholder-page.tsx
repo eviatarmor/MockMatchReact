@@ -37,10 +37,6 @@ const PAGE_CONFIGS: Record<string, DashboardPageConfig> = {
           <Upload className="size-4" />
           <span className="hidden sm:inline">{t("dashboard.actions.importCoverLetter")}</span>
         </Button>
-        <Button variant="outline" className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5">
-          <Sparkles className="size-4" />
-          <span className="hidden lg:inline">{t("dashboard.actions.generateForJob")}</span>
-        </Button>
         <Button variant="default" className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5">
           <Plus className="size-4" />
           <span className="hidden sm:inline">{t("dashboard.actions.newCoverLetter")}</span>

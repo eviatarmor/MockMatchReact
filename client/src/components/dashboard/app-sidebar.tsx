@@ -1,4 +1,4 @@
-import { CheckCircle2 } from "lucide-react"
+import { AppLogo } from "@/components/icons/app-logo"
 import { useTranslation } from "react-i18next"
 import {
   Sidebar,
@@ -22,9 +22,7 @@ export function AppSidebar() {
           <SidebarMenu>
             <SidebarMenuItem>
               <a href="/" className="flex w-full items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0">
-                <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <CheckCircle2 className="size-5" />
-                </span>
+                <AppLogo className="size-8 shrink-0" />
                 <span className="text-lg font-semibold group-data-[collapsible=icon]:hidden">{t("appName")}</span>
               </a>
             </SidebarMenuItem>

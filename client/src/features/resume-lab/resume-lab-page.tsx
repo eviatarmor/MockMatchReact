@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { Upload, Plus, Sparkles } from "lucide-react"
+import { Upload, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
@@ -44,18 +44,6 @@ export function ResumeLabPageContent() {
       >
         <Upload className="size-4" />
         <span className="hidden sm:inline">{t("dashboard.actions.importResume")}</span>
-      </Button>
-      <Button
-        variant="outline"
-        className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
-      >
-        <Sparkles className="size-4" />
-        <span className="hidden lg:inline xl:hidden">
-          {t("dashboard.actions.generateForJobShort")}
-        </span>
-        <span className="hidden xl:inline">
-          {t("dashboard.actions.generateResumeForJob")}
-        </span>
       </Button>
       <Button
         variant="default"
