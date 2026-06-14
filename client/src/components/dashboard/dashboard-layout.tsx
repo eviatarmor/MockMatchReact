@@ -10,7 +10,7 @@ export function DashboardLayout() {
     <TooltipProvider>
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset className="m-4 ml-0 gap-4 bg-transparent shadow-none">
+        <SidebarInset className="m-4 ml-0 gap-4 bg-transparent shadow-none transition-[margin] duration-200 ease-linear">
           <NavbarSlotsProvider>
             <DashboardNavbar />
             <div className="flex flex-1 flex-col rounded-xl border bg-sidebar p-4 shadow-sm">
