@@ -8,3 +8,20 @@ export interface ResumeItem {
   readonly updatedAt: string
   readonly avatarText: string
 }
+
+export type ResumeTemplateCategory =
+  | "tech"
+  | "healthcare"
+  | "finance"
+  | "consulting"
+  | "engineering"
+  | "legal"
+
+export interface ResumeTemplate {
+  readonly id: string
+  readonly title: string
+  readonly company: string
+  readonly category: ResumeTemplateCategory
+  readonly description: string
+  readonly avatarText: string
+}

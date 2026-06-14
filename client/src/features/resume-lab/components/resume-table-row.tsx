@@ -1,6 +1,13 @@
-import { MoreHorizontal } from "lucide-react"
+import { MoreHorizontal, Eye, Pencil, Download, Copy, Trash2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
 import { ResumeATSBadge } from "./resume-ats-badge"
 import { ResumeStatusBadge } from "./resume-status-badge"
 import type { ResumeItem } from "../types"
@@ -55,13 +62,42 @@ export function ResumeTableRow({ resume }: ResumeTableRowProps) {
       </td>
 
       <td className="py-3 px-4 text-right">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
-        >
-          <MoreHorizontal className="size-4" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
+              />
+            }
+          >
+            <MoreHorizontal className="size-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem className="cursor-pointer">
+              <Eye />
+              {t("resumeLab.table.rowActions.preview")}
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer">
+              <Pencil />
+              {t("resumeLab.table.rowActions.edit")}
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer">
+              <Download />
+              {t("resumeLab.table.rowActions.export")}
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer">
+              <Copy />
+              {t("resumeLab.table.rowActions.duplicate")}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" className="cursor-pointer">
+              <Trash2 />
+              {t("resumeLab.table.rowActions.delete")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </td>
     </tr>
   )

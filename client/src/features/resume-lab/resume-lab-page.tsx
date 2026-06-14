@@ -1,9 +1,11 @@
 import { useTranslation } from "react-i18next"
 import { Upload, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
 import { ResumeTable } from "./components/resume-table"
+import { ResumeTemplatesSection } from "./components/resume-templates-section"
 import { MOCK_RESUMES } from "./constants"
 
 export function ResumeLabPageContent() {
@@ -34,13 +36,17 @@ export function ResumeLabPageContent() {
       searchPlaceholder={t("dashboard.search.resumes")}
       actions={actions}
     >
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-3">
         <DashboardPageHeader
           title={t("resumeLab.title")}
           description={t("resumeLab.description")}
         />
 
         <ResumeTable resumes={MOCK_RESUMES} />
+
+        <Separator className="my-2" />
+
+        <ResumeTemplatesSection />
       </div>
     </DashboardPageShell>
   )

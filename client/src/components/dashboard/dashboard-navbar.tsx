@@ -20,7 +20,7 @@ export function DashboardNavbar() {
   const currentItem = NAV_DATA.find((item) => item.href && pathname.startsWith(item.href))
 
   return (
-    <header className="flex h-14 items-center gap-2 rounded-xl border bg-sidebar px-4 text-sidebar-foreground shadow-sm">
+    <header className="sticky top-4 z-20 flex h-14 items-center gap-2 rounded-xl border bg-sidebar px-4 text-sidebar-foreground shadow-sm">
       <SidebarTrigger />
 
       <Breadcrumb className="hidden md:flex">

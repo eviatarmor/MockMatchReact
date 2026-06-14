@@ -5,7 +5,7 @@ interface DashboardPageHeaderProps {
 
 export function DashboardPageHeader({ title, description }: DashboardPageHeaderProps) {
   return (
-    <div className="flex flex-col gap-1 pb-4">
+    <div className="flex flex-col gap-1 pb-2">
       <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
       {description && <p className="text-sm text-muted-foreground">{description}</p>}
     </div>
