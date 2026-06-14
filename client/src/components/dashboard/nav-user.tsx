@@ -20,8 +20,8 @@ export function NavUser() {
         <SidebarMenuItem>
           <UserMenu
             user={user}
-            side="right"
-            align="end"
+            side="top"
+            align="start"
             contentClassName="w-64"
             items={USER_MENU_ACTIONS.map(({ labelKey, icon }) => ({ label: t(labelKey), icon }))}
             logoutItem={{

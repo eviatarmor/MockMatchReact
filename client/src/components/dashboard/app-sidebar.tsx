@@ -33,7 +33,7 @@ export function AppSidebar() {
 
         <SidebarContent className="min-h-0 flex-1 overflow-hidden">
           <ScrollArea className="h-full">
-            <div className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center">
+            <div className="pr-3 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:pr-0">
               <NavMain items={NAV_DATA} />
             </div>
           </ScrollArea>
