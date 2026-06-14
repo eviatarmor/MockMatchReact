@@ -114,5 +114,50 @@
         "legal": "Legal"
       }
     }
+  },
+  "coverLetters": {
+    "documentTitle": "Cover Letters — MockMatch",
+    "title": "Cover Letters",
+    "description": "Tailor a cover letter for every application, matched to the role and company.",
+    "table": {
+      "columns": {
+        "coverLetter": "Cover Letter",
+        "status": "Status",
+        "updated": "Updated"
+      },
+      "noTargetRole": "No target role",
+      "statusLabels": {
+        "active": "Active",
+        "draft": "Draft",
+        "archived": "Archived"
+      },
+      "rowActions": {
+        "preview": "Preview",
+        "edit": "Edit",
+        "export": "Export",
+        "duplicate": "Duplicate",
+        "delete": "Delete"
+      }
+    },
+    "templates": {
+      "title": "Start from a template",
+      "description": "Role- and company-tuned starting points, pre-loaded with the right tone and structure.",
+      "browseAll": "Browse all",
+      "browseTitle": "Browse templates",
+      "browseDescription": "Search and filter role- and company-tuned cover letter templates.",
+      "searchPlaceholder": "Search templates...",
+      "useTemplate": "Use template",
+      "preview": "Preview",
+      "noResults": "No templates found",
+      "categories": {
+        "all": "All",
+        "tech": "Tech",
+        "healthcare": "Healthcare",
+        "finance": "Finance",
+        "consulting": "Consulting",
+        "engineering": "Engineering",
+        "legal": "Legal"
+      }
+    }
   }
 }

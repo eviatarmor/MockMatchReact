@@ -1,0 +1,128 @@
+import type { CoverLetterItem, CoverLetterTemplate, CoverLetterTemplateCategory } from "./types"
+
+export const MOCK_COVER_LETTERS: CoverLetterItem[] = [
+  {
+    id: "1",
+    title: "General cover letter",
+    company: null,
+    status: "active",
+    updatedAt: "Edited yesterday",
+    avatarText: "DR",
+  },
+  {
+    id: "2",
+    title: "Senior Product Designer",
+    company: "Acme Corp",
+    status: "active",
+    updatedAt: "Edited 2 days ago",
+    avatarText: "A",
+  },
+  {
+    id: "3",
+    title: "Product Designer",
+    company: "Linear",
+    status: "draft",
+    updatedAt: "Edited 5 days ago",
+    avatarText: "L",
+  },
+  {
+    id: "4",
+    title: "Design Lead",
+    company: "Northwind",
+    status: "active",
+    updatedAt: "Edited 1 week ago",
+    avatarText: "N",
+  },
+  {
+    id: "5",
+    title: "UX Designer",
+    company: "Globex",
+    status: "draft",
+    updatedAt: "Edited 2 weeks ago",
+    avatarText: "G",
+  },
+  {
+    id: "6",
+    title: "Staff Product Designer",
+    company: "Vercel",
+    status: "archived",
+    updatedAt: "Edited 1 month ago",
+    avatarText: "V",
+  },
+]
+
+export const TEMPLATE_CATEGORIES: CoverLetterTemplateCategory[] = [
+  "tech",
+  "healthcare",
+  "finance",
+  "consulting",
+  "engineering",
+  "legal",
+]
+
+export const MOCK_TEMPLATES: CoverLetterTemplate[] = [
+  {
+    id: "t1",
+    title: "Software Engineer",
+    company: "Microsoft",
+    category: "tech",
+    description: "Big-tech engineering tone",
+    avatarText: "MS",
+  },
+  {
+    id: "t2",
+    title: "Investment Banking Analyst",
+    company: "Goldman Sachs",
+    category: "finance",
+    description: "Formal deal-desk tone",
+    avatarText: "GS",
+  },
+  {
+    id: "t3",
+    title: "Cardiologist",
+    company: "Sheba — Tel HaShomer",
+    category: "healthcare",
+    description: "Clinical motivation letter",
+    avatarText: "S",
+  },
+  {
+    id: "t4",
+    title: "Management Consultant",
+    company: "McKinsey & Company",
+    category: "consulting",
+    description: "Impact-driven narrative",
+    avatarText: "MC",
+  },
+  {
+    id: "t5",
+    title: "Mechanical Engineer",
+    company: "Tesla",
+    category: "engineering",
+    description: "Project-led narrative",
+    avatarText: "T",
+  },
+  {
+    id: "t6",
+    title: "Corporate Associate",
+    company: "Skadden",
+    category: "legal",
+    description: "Practice-area focused tone",
+    avatarText: "SK",
+  },
+  {
+    id: "t7",
+    title: "Frontend Engineer",
+    company: "Vercel",
+    category: "tech",
+    description: "Startup-friendly tone",
+    avatarText: "V",
+  },
+  {
+    id: "t8",
+    title: "Registered Nurse",
+    company: "Mayo Clinic",
+    category: "healthcare",
+    description: "Patient-care motivation letter",
+    avatarText: "MC",
+  },
+]

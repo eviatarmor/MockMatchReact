@@ -2,6 +2,7 @@ import { Route } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { DashboardRoutePage } from "@/pages/dashboard/dashboard-placeholder-page";
 import { ResumeLabPage } from "@/pages/dashboard/resume-lab-page";
+import { CoverLettersPage } from "@/pages/dashboard/cover-letters-page";
 
 const DASHBOARD_ROUTES = [
   { path: "resume-lab", titleKey: "navItems.resumeLab" },
@@ -22,6 +23,9 @@ export function dashboardRoutes() {
       {DASHBOARD_ROUTES.map(({ path, titleKey }) => {
         if (path === "resume-lab") {
           return <Route key={path} path={path} element={<ResumeLabPage />} />;
+        }
+        if (path === "cover-letters") {
+          return <Route key={path} path={path} element={<CoverLettersPage />} />;
         }
         return <Route key={path} path={path} element={<DashboardRoutePage path={path} titleKey={titleKey} />} />;
       })}
