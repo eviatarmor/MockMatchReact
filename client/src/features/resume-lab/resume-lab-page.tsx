@@ -1,40 +1,13 @@
-import { useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Upload, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
-import { ResumeFilterTabs } from "./components/resume-filter-tabs"
-import { ResumeSortSelect } from "./components/resume-sort-select"
 import { ResumeTable } from "./components/resume-table"
 import { MOCK_RESUMES } from "./constants"
 
 export function ResumeLabPageContent() {
   const { t } = useTranslation("common")
-  const [activeTab, setActiveTab] = useState<string>("all")
-  const [sortBy, setSortBy] = useState<"lastEdited" | "title" | "atsScore">("lastEdited")
-
-  const processedResumes = useMemo(() => {
-    // 1. Filter
-    let items = [...MOCK_RESUMES]
-    if (activeTab !== "all") {
-      items = items.filter((item) => item.status === activeTab)
-    }
-
-    // 2. Sort
-    if (sortBy === "title") {
-      items.sort((a, b) => a.title.localeCompare(b.title))
-    } else if (sortBy === "atsScore") {
-      items.sort((a, b) => {
-        const scoreA = a.atsScore ?? -1
-        const scoreB = b.atsScore ?? -1
-        return scoreB - scoreA
-      })
-    }
-    // "lastEdited" matches the natural order of mock data, so no sorting needed.
-
-    return items
-  }, [activeTab, sortBy])
 
   const actions = (
     <>
@@ -67,12 +40,7 @@ export function ResumeLabPageContent() {
           description={t("resumeLab.description")}
         />
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <ResumeFilterTabs activeTab={activeTab} onChange={setActiveTab} />
-          <ResumeSortSelect sortBy={sortBy} onChange={setSortBy} />
-        </div>
-
-        <ResumeTable resumes={processedResumes} />
+        <ResumeTable resumes={MOCK_RESUMES} />
       </div>
     </DashboardPageShell>
   )
