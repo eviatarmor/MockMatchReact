@@ -1,6 +1,8 @@
 import { Outlet } from "react-router-dom"
 import { AppSidebar } from "@/components/dashboard/app-sidebar"
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { DashboardNavbar } from "@/components/dashboard/dashboard-navbar"
+import { NavbarSlotsProvider } from "@/components/dashboard/navbar-slots-context"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
 export function DashboardLayout() {
@@ -8,13 +10,13 @@ export function DashboardLayout() {
     <TooltipProvider>
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset>
-          <header className="flex h-14 items-center gap-2 border-b px-4">
-            <SidebarTrigger />
-          </header>
-          <div className="flex flex-1 flex-col p-4">
-            <Outlet />
-          </div>
+        <SidebarInset className="m-4 ml-0 gap-4 bg-transparent shadow-none">
+          <NavbarSlotsProvider>
+            <DashboardNavbar />
+            <div className="flex flex-1 flex-col rounded-xl border bg-sidebar p-4 shadow-sm">
+              <Outlet />
+            </div>
+          </NavbarSlotsProvider>
         </SidebarInset>
       </SidebarProvider>
     </TooltipProvider>
