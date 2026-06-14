@@ -1,4 +1,4 @@
-import { Navigate, Route } from "react-router-dom"
+import { Route } from "react-router-dom"
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout"
 import { DashboardRoutePage } from "@/pages/dashboard/dashboard-placeholder-page"
 
@@ -17,8 +17,7 @@ const DASHBOARD_ROUTES = [
 
 export function dashboardRoutes() {
   return (
-    <Route path="/app" element={<DashboardLayout />}>
-      <Route index element={<Navigate to="resume-lab" replace />} />
+    <Route element={<DashboardLayout />}>
       {DASHBOARD_ROUTES.map(({ path, titleKey }) => (
         <Route key={path} path={path} element={<DashboardRoutePage titleKey={titleKey} />} />
       ))}
