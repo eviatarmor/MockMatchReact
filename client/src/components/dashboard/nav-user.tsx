@@ -20,7 +20,7 @@ export function NavUser() {
         <SidebarMenuItem>
           <UserMenu
             user={user}
-            side="top"
+            side="right"
             align="end"
             items={USER_MENU_ACTIONS.map(({ labelKey, icon }) => ({ label: t(labelKey), icon }))}
             logoutItem={{
