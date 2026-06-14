@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { DashboardRoutePage } from "@/pages/dashboard/dashboard-placeholder-page";
 import { ResumeLabPage } from "@/pages/dashboard/resume-lab-page";
 import { CoverLettersPage } from "@/pages/dashboard/cover-letters-page";
+import { JobTrackerPage } from "@/pages/dashboard/job-tracker-page";
 
 const DASHBOARD_ROUTES = [
   { path: "resume-lab", titleKey: "navItems.resumeLab" },
@@ -26,6 +27,9 @@ export function dashboardRoutes() {
         }
         if (path === "cover-letters") {
           return <Route key={path} path={path} element={<CoverLettersPage />} />;
+        }
+        if (path === "job-tracker") {
+          return <Route key={path} path={path} element={<JobTrackerPage />} />;
         }
         return <Route key={path} path={path} element={<DashboardRoutePage path={path} titleKey={titleKey} />} />;
       })}

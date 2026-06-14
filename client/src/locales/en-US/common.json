@@ -45,14 +45,14 @@
       "default": "Search..."
     },
     "actions": {
-      "importResume": "Import resume",
+      "importResume": "Import",
       "newResume": "New resume",
       "generateForJob": "Generate for a job",
       "generateForJobShort": "Generate for job",
       "generateResumeForJob": "Generate for a job based on past resumes",
-      "importCoverLetter": "Import cover letter",
+      "importCoverLetter": "Import",
       "newCoverLetter": "New cover letter",
-      "importJob": "Import job",
+      "importJob": "Import",
       "newJob": "New job",
       "newWorkflow": "New workflow",
       "startSimulation": "Start simulation",
@@ -114,6 +114,55 @@
         "legal": "Legal"
       }
     }
+  },
+  "jobTracker": {
+    "documentTitle": "Job Tracker — MockMatch",
+    "title": "Job Tracker",
+    "description": "Discover roles matched to you, then track each one through to an offer.",
+    "tabs": {
+      "discover": "Discover",
+      "tracking": "Tracking"
+    },
+    "filters": {
+      "remote": "Remote",
+      "all": "All",
+      "senior": "Senior",
+      "lead": "Lead",
+      "staff": "Staff"
+    },
+    "sort": {
+      "label": "Sort",
+      "bestMatch": "Best match",
+      "newest": "Newest",
+      "salary": "Salary"
+    },
+    "matchBanner": {
+      "title": "{{count}} roles matched to your profile",
+      "description": "Scored from your resume, skills, and saved preferences · refreshed today",
+      "addJob": "Add a job"
+    },
+    "matchTiers": {
+      "strong": "Strong match",
+      "good": "Good match",
+      "fair": "Fair match"
+    },
+    "actions": {
+      "track": "Track",
+      "dismiss": "Dismiss"
+    },
+    "summary": {
+      "saved": "Saved",
+      "applied": "Applied",
+      "interviewing": "Interviewing",
+      "offer": "Offer"
+    },
+    "statusLabels": {
+      "saved": "Saved",
+      "applied": "Applied",
+      "interviewing": "Interviewing",
+      "offer": "Offer"
+    },
+    "matchSuffix": "match"
   },
   "coverLetters": {
     "documentTitle": "Cover Letters — MockMatch",

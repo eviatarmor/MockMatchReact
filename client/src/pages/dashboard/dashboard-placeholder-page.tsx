@@ -44,21 +44,6 @@ const PAGE_CONFIGS: Record<string, DashboardPageConfig> = {
       </>
     ),
   },
-  "job-tracker": {
-    searchPlaceholderKey: "dashboard.search.jobs",
-    actions: (t) => (
-      <>
-        <Button variant="outline" className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5">
-          <Upload className="size-4" />
-          <span className="hidden sm:inline">{t("dashboard.actions.importJob")}</span>
-        </Button>
-        <Button variant="default" className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5">
-          <Plus className="size-4" />
-          <span className="hidden sm:inline">{t("dashboard.actions.newJob")}</span>
-        </Button>
-      </>
-    ),
-  },
   "job-workflow": {
     searchPlaceholderKey: "dashboard.search.workflows",
     actions: (t) => (
