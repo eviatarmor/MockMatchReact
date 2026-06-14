@@ -8,6 +8,10 @@ MockMatch — interview prep app (resume scoring, AI mock interviews, readiness 
 
 This is an npm workspaces monorepo. Root `package.json` has no deps of its own; all app code lives in `client/`.
 
+## Testing UI changes
+
+Don't start the dev server or open browser devtools yourself. Instead, ask the user to test the change and report back (e.g. what they see, any console errors).
+
 ## Commands
 
 Run from repo root:

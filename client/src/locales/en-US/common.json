@@ -23,5 +23,11 @@
     "readiness": "Readiness",
     "performance": "Performance",
     "autofill": "Autofill"
+  },
+  "userMenu": {
+    "accountSettings": "Account Settings",
+    "billing": "Billing",
+    "privacy": "Privacy",
+    "logout": "Log out"
   }
 }

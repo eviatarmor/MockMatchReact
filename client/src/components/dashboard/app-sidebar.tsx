@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sidebar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { NavMain } from "@/components/dashboard/nav-main"
+import { NavUser } from "@/components/dashboard/nav-user"
 import { NAV_DATA } from "@/components/dashboard/constants"
 
 export function AppSidebar() {
@@ -31,12 +32,14 @@ export function AppSidebar() {
         </SidebarHeader>
 
         <SidebarContent className="overflow-hidden">
-          <ScrollArea className="h-[calc(100vh-100px)]">
+          <ScrollArea className="h-[calc(100vh-160px)]">
             <div className="px-4">
               <NavMain items={NAV_DATA} />
             </div>
           </ScrollArea>
         </SidebarContent>
+
+        <NavUser />
       </div>
     </Sidebar>
   )

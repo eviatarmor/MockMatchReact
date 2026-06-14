@@ -9,8 +9,13 @@ import {
   Gauge,
   TrendingUp,
   Wand2,
+  Settings,
+  CreditCard,
+  ShieldCheck,
+  LogOut,
 } from "lucide-react"
 import type { NavItem } from "@/components/dashboard/nav-main"
+import type { DashboardUser, UserMenuAction } from "@/components/dashboard/types"
 
 export const NAV_DATA: NavItem[] = [
   { label: "navGroups.applications", isSection: true },
@@ -31,3 +36,20 @@ export const NAV_DATA: NavItem[] = [
   { label: "navGroups.automation", isSection: true },
   { title: "navItems.autofill", icon: Wand2, href: "/autofill" },
 ]
+
+export const MOCK_USER: DashboardUser = {
+  name: "Jordan Avery",
+  email: "jordan.avery@example.com",
+}
+
+export const USER_MENU_ACTIONS: UserMenuAction[] = [
+  { labelKey: "userMenu.accountSettings", icon: Settings },
+  { labelKey: "userMenu.billing", icon: CreditCard },
+  { labelKey: "userMenu.privacy", icon: ShieldCheck },
+]
+
+export const USER_MENU_LOGOUT: UserMenuAction = {
+  labelKey: "userMenu.logout",
+  icon: LogOut,
+  destructive: true,
+}
