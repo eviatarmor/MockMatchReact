@@ -1,13 +1,23 @@
-import { useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { useDetailPanel } from "@/hooks/use-detail-panel"
 import { TrackingSummaryCards } from "./tracking-summary-cards"
 import { TrackedJobRow } from "./tracked-job-row"
-import { TrackedJobDetailsSheet } from "./tracked-job-details-sheet"
+import { TrackedJobDetailsPanel } from "./tracked-job-details-panel"
 import { MOCK_TRACKED_JOBS } from "../constants"
 import type { TrackedJob, TrackingStatus } from "../types"
 
 export function TrackingTab() {
   const [statusFilter, setStatusFilter] = useState<TrackingStatus | null>(null)
-  const [detailsJob, setDetailsJob] = useState<TrackedJob | null>(null)
+  const { open, close } = useDetailPanel()
+
+  const viewDetails = useCallback(
+    (job: TrackedJob) => {
+      open(<TrackedJobDetailsPanel job={job} onClose={close} />)
+    },
+    [open, close]
+  )
+
+  useEffect(() => close, [close])
 
   const jobs = useMemo(() => {
     if (!statusFilter) return MOCK_TRACKED_JOBS
@@ -24,15 +34,9 @@ export function TrackingTab() {
 
       <div className="flex flex-col gap-2">
         {jobs.map((job) => (
-          <TrackedJobRow key={job.id} job={job} onViewDetails={setDetailsJob} />
+          <TrackedJobRow key={job.id} job={job} onViewDetails={viewDetails} />
         ))}
       </div>
-
-      <TrackedJobDetailsSheet
-        job={detailsJob}
-        open={detailsJob !== null}
-        onOpenChange={(next) => !next && setDetailsJob(null)}
-      />
     </div>
   )
 }
