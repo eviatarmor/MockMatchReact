@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { Upload, Plus } from "lucide-react"
+import { Upload, Plus, Compass, ClipboardList } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
@@ -46,12 +46,14 @@ export function JobTrackerPageContent() {
         <Tabs defaultValue="discover">
           <TabsList variant="line">
             <TabsTrigger value="discover" className="gap-1.5 cursor-pointer">
+              <Compass className="size-4" />
               {t("jobTracker.tabs.discover")}
               <Badge variant="secondary" className="rounded-full">
                 {MOCK_DISCOVER_JOBS.length}
               </Badge>
             </TabsTrigger>
             <TabsTrigger value="tracking" className="gap-1.5 cursor-pointer">
+              <ClipboardList className="size-4" />
               {t("jobTracker.tabs.tracking")}
               <Badge variant="secondary" className="rounded-full">
                 {MOCK_TRACKED_JOBS.length}

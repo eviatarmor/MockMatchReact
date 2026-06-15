@@ -125,21 +125,22 @@
     },
     "filters": {
       "remote": "Remote",
-      "all": "All",
-      "senior": "Senior",
-      "lead": "Lead",
-      "staff": "Staff"
+      "new": "New",
+      "strongMatch": "Strong match",
+      "salary": "Salary",
+      "employment": "Job type"
+    },
+    "employmentTypes": {
+      "fullTime": "Full-time",
+      "partTime": "Part-time",
+      "contract": "Contract",
+      "internship": "Internship"
     },
     "sort": {
       "label": "Sort",
       "bestMatch": "Best match",
       "newest": "Newest",
       "salary": "Salary"
-    },
-    "matchBanner": {
-      "title": "{{count}} roles matched to your profile",
-      "description": "Scored from your resume, skills, and saved preferences · refreshed today",
-      "addJob": "Add a job"
     },
     "matchTiers": {
       "strong": "Strong match",
@@ -148,6 +149,10 @@
     },
     "actions": {
       "track": "Track",
+      "applyToRole": "Apply to this role",
+      "tailorResume": "Tailor resume & cover letter",
+      "viewDetails": "View details",
+      "notInterested": "Not interested",
       "dismiss": "Dismiss"
     },
     "summary": {

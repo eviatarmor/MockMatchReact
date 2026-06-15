@@ -1,6 +1,15 @@
-import type { DiscoverJob, SeniorityLevel, TrackedJob, TrackingStatus } from "./types"
+import type { DiscoverJob, EmploymentType, TrackedJob, TrackingStatus } from "./types"
 
-export const SENIORITY_FILTERS: SeniorityLevel[] = ["senior", "lead", "staff"]
+export const STRONG_MATCH_THRESHOLD = 90
+
+export const SALARY_FILTER_OPTIONS: number[] = [0, 120000, 150000, 180000, 200000]
+
+export const EMPLOYMENT_TYPE_OPTIONS: EmploymentType[] = [
+  "fullTime",
+  "partTime",
+  "contract",
+  "internship",
+]
 
 export const MOCK_DISCOVER_JOBS: DiscoverJob[] = [
   {
@@ -14,6 +23,7 @@ export const MOCK_DISCOVER_JOBS: DiscoverJob[] = [
     remoteType: "remote",
     salaryRange: "$185K – $215K",
     seniority: "staff",
+    employmentType: "fullTime",
     postedAt: "2d ago",
     matchScore: 96,
     matchTier: "strong",
@@ -35,6 +45,7 @@ export const MOCK_DISCOVER_JOBS: DiscoverJob[] = [
     remoteType: "hybrid",
     salaryRange: "$170K – $195K",
     seniority: "senior",
+    employmentType: "fullTime",
     postedAt: "1d ago",
     matchScore: 92,
     matchTier: "strong",
@@ -57,6 +68,7 @@ export const MOCK_DISCOVER_JOBS: DiscoverJob[] = [
     remoteType: "hybrid",
     salaryRange: "$190K – $220K",
     seniority: "lead",
+    employmentType: "contract",
     postedAt: "4d ago",
     matchScore: 88,
     matchTier: "good",

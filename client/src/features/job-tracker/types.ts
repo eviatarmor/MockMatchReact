@@ -2,7 +2,11 @@ export type RemoteType = "remote" | "hybrid" | "onsite"
 
 export type SeniorityLevel = "senior" | "lead" | "staff"
 
+export type EmploymentType = "fullTime" | "partTime" | "contract" | "internship"
+
 export type MatchTier = "strong" | "good" | "fair"
+
+export type DiscoverFilterKey = "remote" | "new" | "strongMatch"
 
 export interface JobSkillTag {
   readonly label: string
@@ -20,6 +24,7 @@ export interface DiscoverJob {
   readonly remoteType: RemoteType
   readonly salaryRange: string
   readonly seniority: SeniorityLevel
+  readonly employmentType: EmploymentType
   readonly postedAt: string
   readonly matchScore: number
   readonly matchTier: MatchTier

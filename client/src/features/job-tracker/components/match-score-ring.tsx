@@ -14,7 +14,7 @@ const TIER_COLOR_CLASS: Record<MatchTier, string> = {
   fair: "text-amber-600",
 }
 
-const RADIUS = 26
+const RADIUS = 27
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 
 export function MatchScoreRing({ score, tier, className }: MatchScoreRingProps) {
@@ -23,15 +23,15 @@ export function MatchScoreRing({ score, tier, className }: MatchScoreRingProps) 
   const colorClass = TIER_COLOR_CLASS[tier]
 
   return (
-    <div className={cn("flex flex-col items-center gap-1", className)}>
-      <div className="relative flex size-16 items-center justify-center">
-        <svg viewBox="0 0 64 64" className="size-16 -rotate-90">
+    <div className={cn("flex shrink-0 flex-col items-center gap-1", className)}>
+      <div className="relative flex size-14 items-center justify-center">
+        <svg viewBox="0 0 64 64" className="size-14 -rotate-90">
           <circle
             cx="32"
             cy="32"
             r={RADIUS}
             fill="none"
-            strokeWidth="5"
+            strokeWidth="4"
             className="stroke-muted"
           />
           <circle
@@ -39,7 +39,7 @@ export function MatchScoreRing({ score, tier, className }: MatchScoreRingProps) 
             cy="32"
             r={RADIUS}
             fill="none"
-            strokeWidth="5"
+            strokeWidth="4"
             strokeLinecap="round"
             strokeDasharray={CIRCUMFERENCE}
             strokeDashoffset={offset}
@@ -47,7 +47,7 @@ export function MatchScoreRing({ score, tier, className }: MatchScoreRingProps) 
             stroke="currentColor"
           />
         </svg>
-        <span className={cn("absolute text-base font-bold", colorClass)}>{score}</span>
+        <span className={cn("absolute text-sm font-bold", colorClass)}>{score}</span>
       </div>
       <span className={cn("text-[11px] font-medium whitespace-nowrap", colorClass)}>
         {t(`jobTracker.matchTiers.${tier}`)}

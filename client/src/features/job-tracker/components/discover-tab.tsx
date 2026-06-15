@@ -1,46 +1,86 @@
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { DiscoverFilterBar } from "./discover-filter-bar"
-import { AiMatchBanner } from "./ai-match-banner"
 import { DiscoverJobCard } from "./discover-job-card"
-import { MOCK_DISCOVER_JOBS } from "../constants"
-import type { SeniorityLevel } from "../types"
+import { MOCK_DISCOVER_JOBS, STRONG_MATCH_THRESHOLD } from "../constants"
+import type { DiscoverFilterKey, DiscoverJob, EmploymentType } from "../types"
 
-type SeniorityFilter = "all" | SeniorityLevel
 type SortOption = "bestMatch" | "newest" | "salary"
 
+function parseMinSalary(range: string): number {
+  const match = range.match(/\$(\d+)K/)
+  return match ? Number(match[1]) * 1000 : 0
+}
+
+function matchesFilter(job: DiscoverJob, key: DiscoverFilterKey): boolean {
+  switch (key) {
+    case "remote":
+      return job.remoteType === "remote"
+    case "new":
+      return job.isNew
+    case "strongMatch":
+      return job.matchScore >= STRONG_MATCH_THRESHOLD
+  }
+}
+
 export function DiscoverTab() {
-  const [remoteOnly, setRemoteOnly] = useState(false)
-  const [seniorityFilter, setSeniorityFilter] = useState<SeniorityFilter>("all")
+  const [activeFilters, setActiveFilters] = useState<ReadonlySet<DiscoverFilterKey>>(new Set())
+  const [minSalary, setMinSalary] = useState(0)
+  const [employmentTypes, setEmploymentTypes] = useState<ReadonlySet<EmploymentType>>(new Set())
   const [sort, setSort] = useState<SortOption>("bestMatch")
 
+  const toggleFilter = useCallback((key: DiscoverFilterKey) => {
+    setActiveFilters((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) {
+        next.delete(key)
+      } else {
+        next.add(key)
+      }
+      return next
+    })
+  }, [])
+
+  const toggleEmploymentType = useCallback((type: EmploymentType) => {
+    setEmploymentTypes((prev) => {
+      const next = new Set(prev)
+      if (next.has(type)) {
+        next.delete(type)
+      } else {
+        next.add(type)
+      }
+      return next
+    })
+  }, [])
+
   const jobs = useMemo(() => {
-    let result = MOCK_DISCOVER_JOBS
-    if (remoteOnly) {
-      result = result.filter((job) => job.remoteType === "remote")
-    }
-    if (seniorityFilter !== "all") {
-      result = result.filter((job) => job.seniority === seniorityFilter)
-    }
+    let result = MOCK_DISCOVER_JOBS.filter(
+      (job) =>
+        [...activeFilters].every((key) => matchesFilter(job, key)) &&
+        parseMinSalary(job.salaryRange) >= minSalary &&
+        (employmentTypes.size === 0 || employmentTypes.has(job.employmentType))
+    )
     if (sort === "newest") {
       result = [...result].sort((a, b) => a.postedAt.localeCompare(b.postedAt))
     } else if (sort === "bestMatch") {
       result = [...result].sort((a, b) => b.matchScore - a.matchScore)
+    } else if (sort === "salary") {
+      result = [...result].sort((a, b) => parseMinSalary(b.salaryRange) - parseMinSalary(a.salaryRange))
     }
     return result
-  }, [remoteOnly, seniorityFilter, sort])
+  }, [activeFilters, minSalary, employmentTypes, sort])
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
       <DiscoverFilterBar
-        remoteOnly={remoteOnly}
-        onRemoteOnlyChange={setRemoteOnly}
-        seniorityFilter={seniorityFilter}
-        onSeniorityFilterChange={setSeniorityFilter}
+        activeFilters={activeFilters}
+        onToggleFilter={toggleFilter}
+        minSalary={minSalary}
+        onMinSalaryChange={setMinSalary}
+        employmentTypes={employmentTypes}
+        onToggleEmploymentType={toggleEmploymentType}
         sort={sort}
         onSortChange={setSort}
       />
-
-      <AiMatchBanner count={jobs.length} />
 
       <div className="flex flex-col gap-2">
         {jobs.map((job) => (
