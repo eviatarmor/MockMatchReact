@@ -74,16 +74,18 @@ export function DiscoverFilterBar({
         ))}
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant={minSalary > 0 ? "default" : "outline"}
-              size="sm"
-              className="h-8 gap-1.5 rounded-full cursor-pointer"
-            >
-              <DollarSign className="size-3.5" />
-              {minSalary > 0 ? salaryLabel(minSalary) : t("jobTracker.filters.salary")}
-              <ChevronDown className="size-3.5 opacity-70" />
-            </Button>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant={minSalary > 0 ? "default" : "outline"}
+                size="sm"
+                className="h-8 gap-1.5 rounded-full cursor-pointer"
+              />
+            }
+          >
+            <DollarSign className="size-3.5" />
+            {minSalary > 0 ? salaryLabel(minSalary) : t("jobTracker.filters.salary")}
+            <ChevronDown className="size-3.5 opacity-70" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="min-w-32">
             <DropdownMenuRadioGroup
@@ -104,16 +106,18 @@ export function DiscoverFilterBar({
         </DropdownMenu>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant={employmentTypes.size > 0 ? "default" : "outline"}
-              size="sm"
-              className="h-8 max-w-56 gap-1.5 rounded-full cursor-pointer"
-            >
-              <Briefcase className="size-3.5" />
-              <span className="truncate">{employmentLabel}</span>
-              <ChevronDown className="size-3.5 shrink-0 opacity-70" />
-            </Button>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant={employmentTypes.size > 0 ? "default" : "outline"}
+                size="sm"
+                className="h-8 max-w-56 gap-1.5 rounded-full cursor-pointer"
+              />
+            }
+          >
+            <Briefcase className="size-3.5" />
+            <span className="truncate">{employmentLabel}</span>
+            <ChevronDown className="size-3.5 shrink-0 opacity-70" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="min-w-40">
             {EMPLOYMENT_TYPE_OPTIONS.map((type) => (

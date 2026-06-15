@@ -6,6 +6,7 @@ interface MatchScoreRingProps {
   readonly score: number
   readonly tier: MatchTier
   readonly className?: string
+  readonly showLabel?: boolean
 }
 
 const TIER_COLOR_CLASS: Record<MatchTier, string> = {
@@ -17,7 +18,7 @@ const TIER_COLOR_CLASS: Record<MatchTier, string> = {
 const RADIUS = 27
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 
-export function MatchScoreRing({ score, tier, className }: MatchScoreRingProps) {
+export function MatchScoreRing({ score, tier, className, showLabel = true }: MatchScoreRingProps) {
   const { t } = useTranslation("common")
   const offset = CIRCUMFERENCE * (1 - score / 100)
   const colorClass = TIER_COLOR_CLASS[tier]
@@ -49,9 +50,11 @@ export function MatchScoreRing({ score, tier, className }: MatchScoreRingProps) 
         </svg>
         <span className={cn("absolute text-sm font-bold", colorClass)}>{score}</span>
       </div>
-      <span className={cn("text-[11px] font-medium whitespace-nowrap", colorClass)}>
-        {t(`jobTracker.matchTiers.${tier}`)}
-      </span>
+      {showLabel && (
+        <span className={cn("text-[11px] font-medium whitespace-nowrap", colorClass)}>
+          {t(`jobTracker.matchTiers.${tier}`)}
+        </span>
+      )}
     </div>
   )
 }

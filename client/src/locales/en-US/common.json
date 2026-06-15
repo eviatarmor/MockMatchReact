@@ -147,6 +147,42 @@
       "good": "Good match",
       "fair": "Fair match"
     },
+    "details": {
+      "compensation": "Compensation",
+      "level": "Level",
+      "location": "Location",
+      "posted": "Posted",
+      "tailorDocs": "Tailor docs",
+      "applyNow": "Apply now",
+      "applyHint": "Generate a resume & cover letter optimized for this posting, then apply in one step.",
+      "whyYouMatch": "Why you match",
+      "inResume": "— in your resume",
+      "considerAdding": "— consider adding",
+      "close": "Close",
+      "trackRole": "Track this role",
+      "scoredNote": "Scored against your resume and saved skills.",
+      "applicationStage": "Application stage",
+      "openWorkflow": "Open workflow",
+      "viewPosting": "View posting"
+    },
+    "trackingActions": {
+      "openDetails": "Open details",
+      "tailorResume": "Tailor resume & cover letter",
+      "remove": "Remove from tracking"
+    },
+    "addJob": {
+      "title": "Add a job to track",
+      "description": "Paste a job description or link — we'll score the match and start tracking.",
+      "tabs": {
+        "paste": "Paste description",
+        "link": "From a link"
+      },
+      "pastePlaceholder": "Paste the full job description here…\n\nTip: include the role title on the first line.",
+      "linkPlaceholder": "https://company.com/careers/role",
+      "matchNote": "Match scored against your resume",
+      "cancel": "Cancel",
+      "submit": "Analyze & track"
+    },
     "actions": {
       "track": "Track",
       "applyToRole": "Apply to this role",

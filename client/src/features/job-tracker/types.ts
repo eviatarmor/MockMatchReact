@@ -45,6 +45,10 @@ export interface TrackedJob {
   readonly nextStep: string
   readonly nextStepDate: string | null
   readonly matchScore: number
+  readonly matchTier: MatchTier
+  readonly salaryRange: string
+  readonly seniority: SeniorityLevel
+  readonly postedAt: string
   readonly progressSteps: number
   readonly progressCompleted: number
   readonly activeStepIndex: number | null

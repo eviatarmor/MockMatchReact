@@ -1,16 +1,24 @@
-import { Clock, ExternalLink, Trash2 } from "lucide-react"
+import { Clock, MoreHorizontal, ArrowUpRight, Wand2, Trash2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { TrackingStatusBadge } from "./tracking-status-badge"
 import { TrackingProgressDots } from "./tracking-progress-dots"
 import type { TrackedJob } from "../types"
 
 interface TrackedJobRowProps {
   readonly job: TrackedJob
+  readonly onViewDetails: (job: TrackedJob) => void
 }
 
-export function TrackedJobRow({ job }: TrackedJobRowProps) {
+export function TrackedJobRow({ job, onViewDetails }: TrackedJobRowProps) {
   const { t } = useTranslation("common")
 
   return (
@@ -54,14 +62,34 @@ export function TrackedJobRow({ job }: TrackedJobRowProps) {
           <span className="text-xs text-muted-foreground">{job.statusUpdatedAt}</span>
         </div>
 
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer">
-            <ExternalLink className="size-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive cursor-pointer">
-            <Trash2 className="size-4" />
-          </Button>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
+              />
+            }
+          >
+            <MoreHorizontal className="size-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-48">
+            <DropdownMenuItem className="cursor-pointer" onClick={() => onViewDetails(job)}>
+              <ArrowUpRight className="size-4" />
+              {t("jobTracker.trackingActions.openDetails")}
+            </DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer">
+              <Wand2 className="size-4" />
+              {t("jobTracker.trackingActions.tailorResume")}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" className="cursor-pointer">
+              <Trash2 className="size-4" />
+              {t("jobTracker.trackingActions.remove")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   )

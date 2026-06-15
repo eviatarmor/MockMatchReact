@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { Upload, Plus, Compass, ClipboardList } from "lucide-react"
+import { Upload, Compass, ClipboardList } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
@@ -7,28 +7,24 @@ import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
 import { DiscoverTab } from "./components/discover-tab"
 import { TrackingTab } from "./components/tracking-tab"
+import { AddJobDialog } from "./components/add-job-dialog"
 import { MOCK_DISCOVER_JOBS, MOCK_TRACKED_JOBS } from "./constants"
 
 export function JobTrackerPageContent() {
   const { t } = useTranslation("common")
 
   const actions = (
-    <>
-      <Button
-        variant="outline"
-        className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
-      >
-        <Upload className="size-4" />
-        <span className="hidden sm:inline">{t("dashboard.actions.importJob")}</span>
-      </Button>
-      <Button
-        variant="default"
-        className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
-      >
-        <Plus className="size-4" />
-        <span className="hidden sm:inline">{t("dashboard.actions.newJob")}</span>
-      </Button>
-    </>
+    <AddJobDialog
+      trigger={
+        <Button
+          variant="default"
+          className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
+        >
+          <Upload className="size-4" />
+          <span className="hidden sm:inline">{t("dashboard.actions.importJob")}</span>
+        </Button>
+      }
+    />
   )
 
   return (

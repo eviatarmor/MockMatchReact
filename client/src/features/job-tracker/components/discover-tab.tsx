@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react"
 import { DiscoverFilterBar } from "./discover-filter-bar"
 import { DiscoverJobCard } from "./discover-job-card"
+import { JobDetailsSheet } from "./job-details-sheet"
 import { MOCK_DISCOVER_JOBS, STRONG_MATCH_THRESHOLD } from "../constants"
 import type { DiscoverFilterKey, DiscoverJob, EmploymentType } from "../types"
 
@@ -27,6 +28,7 @@ export function DiscoverTab() {
   const [minSalary, setMinSalary] = useState(0)
   const [employmentTypes, setEmploymentTypes] = useState<ReadonlySet<EmploymentType>>(new Set())
   const [sort, setSort] = useState<SortOption>("bestMatch")
+  const [detailsJob, setDetailsJob] = useState<DiscoverJob | null>(null)
 
   const toggleFilter = useCallback((key: DiscoverFilterKey) => {
     setActiveFilters((prev) => {
@@ -84,9 +86,15 @@ export function DiscoverTab() {
 
       <div className="flex flex-col gap-2">
         {jobs.map((job) => (
-          <DiscoverJobCard key={job.id} job={job} />
+          <DiscoverJobCard key={job.id} job={job} onViewDetails={setDetailsJob} />
         ))}
       </div>
+
+      <JobDetailsSheet
+        job={detailsJob}
+        open={detailsJob !== null}
+        onOpenChange={(next) => !next && setDetailsJob(null)}
+      />
     </div>
   )
 }

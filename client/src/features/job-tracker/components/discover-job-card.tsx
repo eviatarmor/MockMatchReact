@@ -15,9 +15,10 @@ import type { DiscoverJob } from "../types"
 
 interface DiscoverJobCardProps {
   readonly job: DiscoverJob
+  readonly onViewDetails: (job: DiscoverJob) => void
 }
 
-export function DiscoverJobCard({ job }: DiscoverJobCardProps) {
+export function DiscoverJobCard({ job, onViewDetails }: DiscoverJobCardProps) {
   const { t } = useTranslation("common")
 
   return (
@@ -76,10 +77,10 @@ export function DiscoverJobCard({ job }: DiscoverJobCardProps) {
             {t("jobTracker.actions.track")}
           </Button>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="size-8 cursor-pointer">
-                <MoreHorizontal className="size-4" />
-              </Button>
+            <DropdownMenuTrigger
+              render={<Button variant="outline" size="icon" className="size-8 cursor-pointer" />}
+            >
+              <MoreHorizontal className="size-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-44">
               <DropdownMenuItem className="cursor-pointer">
@@ -90,7 +91,7 @@ export function DiscoverJobCard({ job }: DiscoverJobCardProps) {
                 <Wand2 className="size-4" />
                 {t("jobTracker.actions.tailorResume")}
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
+              <DropdownMenuItem className="cursor-pointer" onClick={() => onViewDetails(job)}>
                 <ArrowUpRight className="size-4" />
                 {t("jobTracker.actions.viewDetails")}
               </DropdownMenuItem>
