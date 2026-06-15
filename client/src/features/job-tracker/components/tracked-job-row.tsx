@@ -14,7 +14,7 @@ export function TrackedJobRow({ job }: TrackedJobRowProps) {
   const { t } = useTranslation("common")
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+    <div className="flex flex-col gap-2 rounded-xl border bg-card p-3 shadow-sm transition-colors hover:border-primary sm:flex-row sm:items-center sm:justify-between sm:gap-4">
       <div className="flex items-start gap-3">
         <div
           className={cn(

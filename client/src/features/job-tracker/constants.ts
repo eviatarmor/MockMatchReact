@@ -71,6 +71,13 @@ export const MOCK_DISCOVER_JOBS: DiscoverJob[] = [
 
 export const TRACKING_STATUS_ORDER: TrackingStatus[] = ["saved", "applied", "interviewing", "offer"]
 
+export const TRACKING_STATUS_TRENDS: Record<TrackingStatus, number> = {
+  saved: 12,
+  applied: 18,
+  interviewing: -5,
+  offer: 50,
+}
+
 export const MOCK_TRACKED_JOBS: TrackedJob[] = [
   {
     id: "t1",

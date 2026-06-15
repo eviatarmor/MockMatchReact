@@ -154,7 +154,8 @@
       "saved": "Saved",
       "applied": "Applied",
       "interviewing": "Interviewing",
-      "offer": "Offer"
+      "offer": "Offer",
+      "last7days": "Last 7 days"
     },
     "statusLabels": {
       "saved": "Saved",

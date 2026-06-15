@@ -30,7 +30,7 @@ export function DiscoverTab() {
   }, [remoteOnly, seniorityFilter, sort])
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       <DiscoverFilterBar
         remoteOnly={remoteOnly}
         onRemoteOnlyChange={setRemoteOnly}
@@ -42,7 +42,7 @@ export function DiscoverTab() {
 
       <AiMatchBanner count={jobs.length} />
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2">
         {jobs.map((job) => (
           <DiscoverJobCard key={job.id} job={job} />
         ))}

@@ -14,7 +14,7 @@ export function DiscoverJobCard({ job }: DiscoverJobCardProps) {
   const { t } = useTranslation("common")
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm">
+    <div className="flex flex-col gap-2 rounded-xl border bg-card p-3 shadow-sm transition-colors hover:border-primary">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
           <div
@@ -51,13 +51,13 @@ export function DiscoverJobCard({ job }: DiscoverJobCardProps) {
         </div>
       </div>
 
-      <div className="flex items-start gap-2 rounded-lg bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+      <div className="flex items-start gap-2 rounded-lg bg-muted/40 px-3 py-1.5 text-sm text-muted-foreground">
         <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" />
         <span>{job.fitNote}</span>
       </div>
 
       <div className="flex items-center justify-between gap-4">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {job.skills.map((skill) => (
             <Badge
               key={skill.label}
@@ -75,7 +75,7 @@ export function DiscoverJobCard({ job }: DiscoverJobCardProps) {
           ))}
         </div>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1">
           <Button variant="outline" size="icon" className="h-8 w-8 cursor-pointer">
             <ExternalLink className="size-4" />
           </Button>
