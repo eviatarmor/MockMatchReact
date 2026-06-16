@@ -1,5 +1,6 @@
 import { ChevronsUpDown } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   SidebarFooter,
@@ -10,8 +11,14 @@ import {
 import { UserMenu, initials } from "@/components/ui/user-menu"
 import { MOCK_USER, USER_MENU_ACTIONS, USER_MENU_LOGOUT } from "@/components/dashboard/constants"
 
+const USER_MENU_ROUTES: Record<string, string> = {
+  "userMenu.accountSettings": "/account-settings",
+  "userMenu.privacy": "/privacy",
+}
+
 export function NavUser() {
   const { t } = useTranslation("common")
+  const navigate = useNavigate()
   const user = MOCK_USER
 
   return (
@@ -23,7 +30,14 @@ export function NavUser() {
             side="top"
             align="start"
             contentClassName="w-64"
-            items={USER_MENU_ACTIONS.map(({ labelKey, icon }) => ({ label: t(labelKey), icon }))}
+            items={USER_MENU_ACTIONS.map(({ labelKey, icon }) => {
+              const route = USER_MENU_ROUTES[labelKey]
+              return {
+                label: t(labelKey),
+                icon,
+                onSelect: route ? () => navigate(route) : undefined,
+              }
+            })}
             logoutItem={{
               label: t(USER_MENU_LOGOUT.labelKey),
               icon: USER_MENU_LOGOUT.icon,

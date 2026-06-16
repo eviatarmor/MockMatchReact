@@ -1,0 +1,68 @@
+{
+  "documentTitle": "Privacy & data — MockMatch",
+  "title": "Privacy & Data",
+  "description": "Manage your privacy preferences and data.",
+  "nav": {
+    "heading": "On this page",
+    "privacy": "Privacy settings",
+    "cookies": "Cookies & tracking",
+    "data": "Your data"
+  },
+  "toast": {
+    "saved": "Settings saved",
+    "saveErrorTitle": "Couldn't auto-save changes",
+    "saveErrorDescription": "Something went wrong. Please check your connection.",
+    "exportTitle": "Export requested",
+    "exportDescription": "We will email you when your data is ready to download.",
+    "clearedTitle": "History cleared",
+    "clearedDescription": "Your mock interview history has been permanently removed."
+  },
+  "privacy": {
+    "heading": "Privacy settings",
+    "description": "Manage your data and privacy preferences.",
+    "locationMetadata": {
+      "label": "Location metadata",
+      "description": "Allow the app to use coarse location metadata (city/region) to improve product experiences."
+    },
+    "improveApp": {
+      "label": "Help improve the app",
+      "description": "Allow the use of your sessions to train and improve our AI model."
+    },
+    "marketingEmails": {
+      "label": "Marketing emails",
+      "description": "Occasional updates about new features, templates, and tips."
+    },
+    "footer": "Learn how your information is protected when using our product, and visit our Privacy Center and Privacy Policy for more details."
+  },
+  "cookies": {
+    "heading": "Cookies & tracking",
+    "description": "Control what's collected during your session. Required cookies keep you signed in and can't be turned off.",
+    "required": {
+      "label": "Required",
+      "badge": "Always on",
+      "description": "Authentication, fraud prevention, and core functionality."
+    },
+    "analytics": {
+      "label": "Analytics",
+      "description": "Aggregated, anonymous metrics on which features people use."
+    },
+    "performance": {
+      "label": "Performance monitoring",
+      "description": "Crash and slowdown reports to help us fix issues faster."
+    }
+  },
+  "data": {
+    "heading": "Your data",
+    "description": "Take a copy with you, or remove specific data without deleting your account.",
+    "export": {
+      "label": "Export your data",
+      "description": "Download a copy of your resumes, transcripts, and settings as a ZIP. Ready in a few minutes.",
+      "button": "Request export"
+    },
+    "clearHistory": {
+      "label": "Clear mock interview history",
+      "description": "Removes all transcripts and audio recordings. Your resumes and account are unaffected.",
+      "button": "Clear history"
+    }
+  }
+}

@@ -7,6 +7,8 @@ import signup from "@/locales/en-US/signup.json"
 import verifyEmail from "@/locales/en-US/verify-email.json"
 import resetPassword from "@/locales/en-US/reset-password.json"
 import forgotPassword from "@/locales/en-US/forgot-password.json"
+import accountSettings from "@/locales/en-US/account-settings.json"
+import privacy from "@/locales/en-US/privacy.json"
 
 export const defaultNS = "common"
 
@@ -22,6 +24,8 @@ i18next.use(initReactI18next).init({
       "verify-email": verifyEmail,
       "reset-password": resetPassword,
       "forgot-password": forgotPassword,
+      "account-settings": accountSettings,
+      privacy,
     },
   },
   interpolation: {
