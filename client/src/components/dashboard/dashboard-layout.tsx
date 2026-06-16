@@ -15,7 +15,7 @@ export function DashboardLayout() {
           <SidebarInset className="m-4 md:ml-0 min-w-0 gap-4 bg-transparent shadow-none transition-[margin] duration-200 ease-linear">
             <NavbarSlotsProvider>
               <DashboardNavbar />
-              <div className="flex min-w-0 flex-1 flex-col rounded-xl border bg-sidebar p-4 shadow-sm">
+              <div className="flex min-w-0 flex-1 flex-col rounded-xl border bg-background p-4 shadow-sm">
                 <Outlet />
               </div>
             </NavbarSlotsProvider>

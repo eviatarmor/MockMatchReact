@@ -16,7 +16,7 @@ export function AppSidebar() {
   const { t } = useTranslation("common")
 
   return (
-    <Sidebar variant="floating" collapsible="icon" className="[&_[data-slot=sidebar-inner]]:rounded-xl [&_[data-slot=sidebar-inner]]:p-4 group-data-[collapsible=icon]:[&_[data-slot=sidebar-inner]]:p-2">
+    <Sidebar variant="floating" collapsible="icon" className="[&_[data-slot=sidebar-inner]]:rounded-xl [&_[data-slot=sidebar-inner]]:p-4 [&_[data-slot=sidebar-inner]]:bg-background group-data-[collapsible=icon]:[&_[data-slot=sidebar-inner]]:p-2">
       <div className="flex h-full min-h-0 flex-col gap-6 overflow-hidden">
         <SidebarHeader className="p-0">
           <SidebarMenu>
