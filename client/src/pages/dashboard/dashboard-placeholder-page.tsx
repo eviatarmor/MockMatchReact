@@ -4,13 +4,11 @@ import { Button } from "@/components/ui/button"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 
 interface DashboardPageConfig {
-  readonly searchPlaceholderKey: string
   readonly actions?: (t: (key: string) => React.ReactNode) => React.ReactNode
 }
 
 const PAGE_CONFIGS: Record<string, DashboardPageConfig> = {
   "resume-lab": {
-    searchPlaceholderKey: "dashboard.search.resumes",
     actions: (t) => (
       <>
         <Button variant="outline" className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5">
@@ -30,7 +28,6 @@ const PAGE_CONFIGS: Record<string, DashboardPageConfig> = {
     ),
   },
   "cover-letters": {
-    searchPlaceholderKey: "dashboard.search.coverLetters",
     actions: (t) => (
       <>
         <Button variant="outline" className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5">
@@ -45,7 +42,6 @@ const PAGE_CONFIGS: Record<string, DashboardPageConfig> = {
     ),
   },
   "job-workflow": {
-    searchPlaceholderKey: "dashboard.search.workflows",
     actions: (t) => (
       <Button variant="default" className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5">
         <Plus className="size-4" />
@@ -54,7 +50,6 @@ const PAGE_CONFIGS: Record<string, DashboardPageConfig> = {
     ),
   },
   "simulations": {
-    searchPlaceholderKey: "dashboard.search.simulations",
     actions: (t) => (
       <Button variant="default" className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5">
         <Play className="size-4" />
@@ -63,7 +58,6 @@ const PAGE_CONFIGS: Record<string, DashboardPageConfig> = {
     ),
   },
   "assessments": {
-    searchPlaceholderKey: "dashboard.search.assessments",
     actions: (t) => (
       <Button variant="default" className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5">
         <Play className="size-4" />
@@ -71,17 +65,10 @@ const PAGE_CONFIGS: Record<string, DashboardPageConfig> = {
       </Button>
     ),
   },
-  "question-bank": {
-    searchPlaceholderKey: "dashboard.search.questions",
-  },
-  "readiness": {
-    searchPlaceholderKey: "dashboard.search.readiness",
-  },
-  "performance": {
-    searchPlaceholderKey: "dashboard.search.performance",
-  },
+  "question-bank": {},
+  "readiness": {},
+  "performance": {},
   "autofill": {
-    searchPlaceholderKey: "dashboard.search.autofill",
     actions: (t) => (
       <Button variant="default" className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5">
         <Sparkles className="size-4" />
@@ -104,7 +91,6 @@ export function DashboardRoutePage({
   return (
     <DashboardPageShell
       title={t(titleKey)}
-      searchPlaceholder={config ? t(config.searchPlaceholderKey) : t("dashboard.search.default")}
       actions={config?.actions?.(t)}
     />
   )

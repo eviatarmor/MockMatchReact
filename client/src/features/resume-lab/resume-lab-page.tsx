@@ -1,15 +1,27 @@
+import { useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Upload, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
+import { SearchBar } from "@/components/dashboard/search-bar"
 import { ResumeTable } from "./components/resume-table"
 import { ResumeTemplatesSection } from "./components/resume-templates-section"
 import { MOCK_RESUMES } from "./constants"
 
 export function ResumeLabPageContent() {
   const { t } = useTranslation("common")
+  const [search, setSearch] = useState("")
+
+  const filteredResumes = useMemo(
+    () => MOCK_RESUMES.filter(
+      (r) =>
+        r.title.toLowerCase().includes(search.toLowerCase()) ||
+        (r.targetRole && r.targetRole.toLowerCase().includes(search.toLowerCase()))
+    ),
+    [search]
+  )
 
   const actions = (
     <>
@@ -33,7 +45,6 @@ export function ResumeLabPageContent() {
   return (
     <DashboardPageShell
       title={t("resumeLab.title")}
-      searchPlaceholder={t("dashboard.search.resumes")}
       actions={actions}
     >
       <div className="flex flex-col gap-3">
@@ -41,11 +52,13 @@ export function ResumeLabPageContent() {
           title={t("resumeLab.title")}
           description={t("resumeLab.description")}
         />
-
-        <ResumeTable resumes={MOCK_RESUMES} />
-
+        <SearchBar
+          placeholder={t("dashboard.search.resumes")}
+          value={search}
+          onChange={setSearch}
+        />
+        <ResumeTable resumes={filteredResumes} />
         <Separator className="my-2" />
-
         <ResumeTemplatesSection />
       </div>
     </DashboardPageShell>

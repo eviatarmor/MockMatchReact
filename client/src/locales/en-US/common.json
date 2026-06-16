@@ -15,14 +15,15 @@
   "navItems": {
     "resumeLab": "Resume Lab",
     "coverLetters": "Cover Letters",
-    "jobTracker": "Job Tracker",
     "jobWorkflow": "Job Workflow",
     "simulations": "Simulations",
     "assessments": "Assessments",
     "questionBank": "Question Bank",
     "readiness": "Readiness",
     "performance": "Performance",
-    "autofill": "Autofill"
+    "autofill": "Autofill",
+    "discover": "Discover",
+    "applications": "Applications"
   },
   "userMenu": {
     "accountSettings": "Account Settings",
@@ -42,7 +43,9 @@
       "readiness": "Search metrics...",
       "performance": "Search performance...",
       "autofill": "Search profiles...",
-      "default": "Search..."
+      "default": "Search...",
+      "discover": "Search jobs...",
+      "applications": "Search applications..."
     },
     "actions": {
       "importResume": "Import",
@@ -116,8 +119,8 @@
     }
   },
   "jobTracker": {
-    "documentTitle": "Job Tracker — MockMatch",
-    "title": "Job Tracker",
+    "documentTitle": "Discover — MockMatch",
+    "title": "Discover",
     "description": "Discover roles matched to you, then track each one through to an offer.",
     "tabs": {
       "discover": "Discover",
@@ -249,6 +252,98 @@
         "engineering": "Engineering",
         "legal": "Legal"
       }
+    }
+  },
+  "discover": {
+    "documentTitle": "Discover — MockMatch",
+    "title": "Discover",
+    "description": "Discover roles matched to you",
+    "filters": {
+      "remote": "Remote",
+      "new": "New",
+      "strongMatch": "Strong match",
+      "salary": "Salary",
+      "employment": "Job type"
+    },
+    "employmentTypes": {
+      "fullTime": "Full-time",
+      "partTime": "Part-time",
+      "contract": "Contract",
+      "internship": "Internship"
+    },
+    "sort": {
+      "label": "Sort",
+      "bestMatch": "Best match",
+      "newest": "Newest",
+      "salary": "Salary"
+    },
+    "matchTiers": {
+      "strong": "Strong match",
+      "good": "Good match",
+      "fair": "Fair match"
+    },
+    "details": {
+      "compensation": "Compensation",
+      "level": "Level",
+      "location": "Location",
+      "posted": "Posted",
+      "tailorDocs": "Tailor docs",
+      "applyNow": "Apply now",
+      "applyHint": "Generate a resume & cover letter optimized for this posting, then apply in one step.",
+      "whyYouMatch": "Why you match",
+      "inResume": "— in your resume",
+      "considerAdding": "— consider adding",
+      "close": "Close",
+      "trackRole": "Track this role",
+      "scoredNote": "Scored against your resume and saved skills.",
+      "applicationStage": "Application stage",
+      "openWorkflow": "Open workflow",
+      "viewPosting": "View posting"
+    },
+    "addJob": {
+      "title": "Add a job to track",
+      "description": "Paste a job description or link — we'll score the match and start tracking.",
+      "tabs": {
+        "paste": "Paste description",
+        "link": "From a link"
+      },
+      "pastePlaceholder": "Paste the full job description here…\n\nTip: include the role title on the first line.",
+      "linkPlaceholder": "https://company.com/careers/role",
+      "matchNote": "Match scored against your resume",
+      "cancel": "Cancel",
+      "submit": "Analyze & track"
+    },
+    "actions": {
+      "track": "Track",
+      "applyToRole": "Apply to this role",
+      "tailorResume": "Tailor resume & cover letter",
+      "viewDetails": "View details",
+      "notInterested": "Not interested",
+      "dismiss": "Dismiss"
+    },
+    "matchSuffix": "match"
+  },
+  "applications": {
+    "documentTitle": "Applications — MockMatch",
+    "title": "Applications",
+    "description": "Track every application from saved to offer.",
+    "summary": {
+      "saved": "Saved",
+      "applied": "Applied",
+      "interviewing": "Interviewing",
+      "offer": "Offer",
+      "last7days": "Last 7 days"
+    },
+    "statusLabels": {
+      "saved": "Saved",
+      "applied": "Applied",
+      "interviewing": "Interviewing",
+      "offer": "Offer"
+    },
+    "trackingActions": {
+      "openDetails": "Open details",
+      "tailorResume": "Tailor resume & cover letter",
+      "remove": "Remove from tracking"
     }
   }
 }

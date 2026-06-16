@@ -3,14 +3,16 @@ import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { DashboardRoutePage } from "@/pages/dashboard/dashboard-placeholder-page";
 import { ResumeLabPage } from "@/pages/dashboard/resume-lab-page";
 import { CoverLettersPage } from "@/pages/dashboard/cover-letters-page";
-import { JobTrackerPage } from "@/pages/dashboard/job-tracker-page";
+import { DiscoverPage } from "@/pages/dashboard/discover-page";
+import { ApplicationsPage } from "@/pages/dashboard/applications-page";
 import { AccountSettingsPage } from "@/pages/dashboard/account-settings-page";
 import { PrivacyPage } from "@/pages/dashboard/privacy-page";
 
 const DASHBOARD_ROUTES = [
   { path: "resume-lab", titleKey: "navItems.resumeLab" },
   { path: "cover-letters", titleKey: "navItems.coverLetters" },
-  { path: "job-tracker", titleKey: "navItems.jobTracker" },
+  { path: "discover", titleKey: "navItems.discover" },
+  { path: "applications", titleKey: "navItems.applications" },
   { path: "job-workflow", titleKey: "navItems.jobWorkflow" },
   { path: "simulations", titleKey: "navItems.simulations" },
   { path: "assessments", titleKey: "navItems.assessments" },
@@ -32,8 +34,11 @@ export function dashboardRoutes() {
         if (path === "cover-letters") {
           return <Route key={path} path={path} element={<CoverLettersPage />} />;
         }
-        if (path === "job-tracker") {
-          return <Route key={path} path={path} element={<JobTrackerPage />} />;
+        if (path === "discover") {
+          return <Route key={path} path={path} element={<DiscoverPage />} />;
+        }
+        if (path === "applications") {
+          return <Route key={path} path={path} element={<ApplicationsPage />} />;
         }
         if (path === "account-settings") {
           return <Route key={path} path={path} element={<AccountSettingsPage />} />;

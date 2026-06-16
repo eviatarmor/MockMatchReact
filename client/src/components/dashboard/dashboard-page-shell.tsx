@@ -1,27 +1,21 @@
 import type { ReactNode } from "react"
 import { useNavbarSlots } from "@/hooks/use-navbar-slots"
-import { SearchBar } from "./search-bar"
-import { ThemeToggle } from "./theme-toggle"
 import { NotificationBell } from "./notification-bell"
 
 interface DashboardPageShellProps {
   readonly title: string
-  readonly searchPlaceholder?: string
   readonly actions?: ReactNode
   readonly children?: ReactNode
 }
 
 export function DashboardPageShell({
   title,
-  searchPlaceholder = "Search...",
   actions,
   children,
 }: DashboardPageShellProps) {
   useNavbarSlots({
-    center: <SearchBar placeholder={searchPlaceholder} />,
     end: (
       <div className="flex items-center gap-1.5 sm:gap-2">
-        <ThemeToggle />
         <NotificationBell />
         {actions}
       </div>

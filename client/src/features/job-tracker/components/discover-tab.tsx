@@ -3,7 +3,7 @@ import { useDetailPanel } from "@/hooks/use-detail-panel"
 import { DiscoverFilterBar } from "./discover-filter-bar"
 import { DiscoverJobCard } from "./discover-job-card"
 import { JobDetailsPanel } from "./job-details-panel"
-import { MOCK_DISCOVER_JOBS, STRONG_MATCH_THRESHOLD } from "../constants"
+import { STRONG_MATCH_THRESHOLD } from "../constants"
 import type { DiscoverFilterKey, DiscoverJob, EmploymentType } from "../types"
 
 type SortOption = "bestMatch" | "newest" | "salary"
@@ -24,7 +24,11 @@ function matchesFilter(job: DiscoverJob, key: DiscoverFilterKey): boolean {
   }
 }
 
-export function DiscoverTab() {
+interface DiscoverTabProps {
+  readonly jobs: DiscoverJob[]
+}
+
+export function DiscoverTab({ jobs: allJobs }: DiscoverTabProps) {
   const [activeFilters, setActiveFilters] = useState<ReadonlySet<DiscoverFilterKey>>(new Set())
   const [minSalary, setMinSalary] = useState(0)
   const [employmentTypes, setEmploymentTypes] = useState<ReadonlySet<EmploymentType>>(new Set())
@@ -65,7 +69,7 @@ export function DiscoverTab() {
   }, [])
 
   const jobs = useMemo(() => {
-    let result = MOCK_DISCOVER_JOBS.filter(
+    let result = allJobs.filter(
       (job) =>
         [...activeFilters].every((key) => matchesFilter(job, key)) &&
         parseMinSalary(job.salaryRange) >= minSalary &&
@@ -79,7 +83,7 @@ export function DiscoverTab() {
       result = [...result].sort((a, b) => parseMinSalary(b.salaryRange) - parseMinSalary(a.salaryRange))
     }
     return result
-  }, [activeFilters, minSalary, employmentTypes, sort])
+  }, [allJobs, activeFilters, minSalary, employmentTypes, sort])
 
   return (
     <div className="flex flex-col gap-3">

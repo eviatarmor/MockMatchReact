@@ -1,7 +1,8 @@
 import {
   FileText,
   Mail,
-  Briefcase,
+  Compass,
+  ClipboardList,
   Workflow,
   MonitorPlay,
   ClipboardCheck,
@@ -21,7 +22,8 @@ export const NAV_DATA: NavItem[] = [
   { label: "navGroups.applications", isSection: true },
   { title: "navItems.resumeLab", icon: FileText, href: "/resume-lab" },
   { title: "navItems.coverLetters", icon: Mail, href: "/cover-letters" },
-  { title: "navItems.jobTracker", icon: Briefcase, href: "/job-tracker" },
+  { title: "navItems.discover", icon: Compass, href: "/discover" },
+  { title: "navItems.applications", icon: ClipboardList, href: "/applications" },
 
   { label: "navGroups.practice", isSection: true },
   { title: "navItems.jobWorkflow", icon: Workflow, href: "/job-workflow" },
