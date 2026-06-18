@@ -352,5 +352,86 @@
   },
   "navbar": {
     "feedback": "Feedback"
+  },
+  "simulations": {
+    "documentTitle": "Simulations — MockMatch",
+    "title": "Simulations",
+    "description": "Practice role-specific interviews with an AI interviewer. Pick a track to begin.",
+    "configureRole": "Configure role",
+    "startPractice": "Start practice",
+    "interviewTracksLabel": "Interview tracks",
+    "difficulty": {
+      "adaptive": "Adaptive",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "metaKind": {
+      "questions": "questions",
+      "problems": "problems",
+      "prompt": "prompt",
+      "cases": "cases"
+    },
+    "recentSessions": {
+      "title": "Recent sessions",
+      "description": "Your last four practice runs and how they scored.",
+      "viewAll": "View all",
+      "columns": {
+        "role": "Role",
+        "track": "Track",
+        "date": "Date",
+        "duration": "Duration",
+        "score": "Score",
+        "status": "Status"
+      },
+      "durationSuffix": "min",
+      "statusLabels": {
+        "completed": "Completed",
+        "in_progress": "In progress",
+        "abandoned": "Abandoned"
+      }
+    },
+    "tracks": {
+      "behavioral": {
+        "title": "Behavioral",
+        "description": "STAR-method stories on leadership, conflict, and impact."
+      },
+      "technicalCoding": {
+        "title": "Technical · Coding",
+        "description": "Live coding with hints, edge cases, and complexity review."
+      },
+      "systemDesign": {
+        "title": "System Design",
+        "description": "Architect a scalable system out loud, end to end."
+      },
+      "productSense": {
+        "title": "Product Sense",
+        "description": "Product critique, metrics, and prioritization tradeoffs."
+      },
+      "caseStudy": {
+        "title": "Case Study",
+        "description": "Structure an ambiguous business problem under time."
+      },
+      "financeQuant": {
+        "title": "Finance · Quant",
+        "description": "Markets, valuation, and mental-math drills."
+      },
+      "pmStrategy": {
+        "title": "PM · Strategy",
+        "description": "Roadmap, go-to-market, and stakeholder alignment scenarios."
+      },
+      "leadership": {
+        "title": "Leadership",
+        "description": "Influence without authority, team conflicts, and culture."
+      },
+      "dataAnalytics": {
+        "title": "Data · Analytics",
+        "description": "SQL, metrics interpretation, and experiment design."
+      },
+      "communication": {
+        "title": "Communication",
+        "description": "Clarity, executive presence, and persuasion under pressure."
+      }
+    }
   }
 }
