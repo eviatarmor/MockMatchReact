@@ -80,7 +80,7 @@ export function VerticalTabs({
         </TabsList>
       </div>
 
-      <div className="relative w-full flex-1 overflow-hidden p-1">
+      <div className="relative w-full flex-1 overflow-hidden p-1 max-w-2xl">
         <AnimatePresence mode="wait" custom={direction}>
           {tabs.map((tab) => {
             if (tab.id !== activeTab) return null
