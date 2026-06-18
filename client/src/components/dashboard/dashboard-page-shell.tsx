@@ -23,8 +23,8 @@ export function DashboardPageShell({
   })
 
   return (
-    <div className="flex flex-1 flex-col gap-4">
-      <div className="flex-1">
+    <div className="flex flex-1 flex-col gap-4 min-h-0">
+      <div className="flex flex-1 flex-col min-h-0">
         {children ?? (
           <div className="flex h-[calc(100vh-10rem)] items-center justify-center rounded-xl border border-dashed border-muted/50 p-6">
             <h1 className="text-xl font-medium text-muted-foreground">{title}</h1>

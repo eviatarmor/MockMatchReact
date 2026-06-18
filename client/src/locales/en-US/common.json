@@ -344,6 +344,10 @@
       "openDetails": "Open details",
       "tailorResume": "Tailor resume & cover letter",
       "remove": "Remove from tracking"
+    },
+    "views": {
+      "list": "List view",
+      "kanban": "Kanban view"
     }
   }
 }
