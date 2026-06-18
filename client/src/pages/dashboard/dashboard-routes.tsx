@@ -12,7 +12,8 @@ import { SimulationsPage } from "@/pages/dashboard/simulations-page"
 import { AssessmentsPage } from "@/pages/dashboard/assessments-page"
 import { QuestionBankPage } from "@/pages/dashboard/question-bank-page"
 import { ReadinessPage } from "@/pages/dashboard/readiness-page"
-import { PerformancePage } from "@/pages/dashboard/performance-page";
+import { PerformancePage } from "@/pages/dashboard/performance-page"
+import { AutofillPage } from "@/pages/dashboard/autofill-page";
 
 const DASHBOARD_ROUTES = [
   { path: "resume-lab", titleKey: "navItems.resumeLab" },
@@ -67,6 +68,9 @@ export function dashboardRoutes() {
         }
         if (path === "performance") {
           return <Route key={path} path={path} element={<PerformancePage />} />;
+        }
+        if (path === "autofill") {
+          return <Route key={path} path={path} element={<AutofillPage />} />;
         }
         if (path === "privacy") {
           return <Route key={path} path={path} element={<PrivacyPage />} />;

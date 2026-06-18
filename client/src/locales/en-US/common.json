@@ -353,6 +353,51 @@
   "navbar": {
     "feedback": "Feedback"
   },
+  "autofill": {
+    "documentTitle": "Auto Apply — MockMatch",
+    "title": "Auto Apply",
+    "description": "A browser extension that fills your details into any job application — one click does the typing.",
+    "extension": {
+      "name": "MockMatch Auto Apply",
+      "status": "Installed · Active",
+      "description": "Pinned to your browser. When you open a job application, it detects the form and fills your profile, resume, and screening answers automatically.",
+      "chrome": "Chrome",
+      "edge": "Edge",
+      "brave": "Brave",
+      "firefox": "Firefox",
+      "addedToChrome": "Added to Chrome",
+      "manage": "Manage"
+    },
+    "steps": {
+      "open":   { "title": "Open a job posting",  "desc": "On any supported site, the icon lights up." },
+      "click":  { "title": "Click to autofill",   "desc": "Your profile maps into every field." },
+      "review": { "title": "Review & submit",      "desc": "Confirm, then it submits for you." }
+    },
+    "stats": {
+      "filled":  "Auto-filled this week",
+      "time":    "Time saved",
+      "fields":  "Fields mapped",
+      "success": "Submit success"
+    },
+    "activity": {
+      "title": "Recent activity",
+      "description": "Applications the extension has filled.",
+      "fullLog": "Full log",
+      "columns": {
+        "company": "Company",
+        "role": "Role",
+        "site": "Site",
+        "date": "Date",
+        "fieldsFilled": "Fields filled",
+        "status": "Status"
+      },
+      "status": {
+        "submitted": "Submitted",
+        "needsReview": "Needs review",
+        "draft": "Draft"
+      }
+    }
+  },
   "readiness": {
     "documentTitle": "Readiness — MockMatch",
     "title": "Readiness",
