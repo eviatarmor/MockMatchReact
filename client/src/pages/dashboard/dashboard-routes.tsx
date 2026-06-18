@@ -15,6 +15,7 @@ import { ReadinessPage } from "@/pages/dashboard/readiness-page"
 import { PerformancePage } from "@/pages/dashboard/performance-page"
 import { AutofillPage } from "@/pages/dashboard/autofill-page"
 import { JobWorkflowPage } from "@/pages/dashboard/job-workflow-page";
+import { InterviewRecorderPage } from "@/pages/dashboard/interview-recorder-page";
 
 const DASHBOARD_ROUTES = [
   { path: "resume-lab", titleKey: "navItems.resumeLab" },
@@ -28,6 +29,7 @@ const DASHBOARD_ROUTES = [
   { path: "readiness", titleKey: "navItems.readiness" },
   { path: "performance", titleKey: "navItems.performance" },
   { path: "autofill", titleKey: "navItems.autofill" },
+  { path: "interview-recorder", titleKey: "navItems.interviewRecorder" },
   { path: "account-settings", titleKey: "userMenu.accountSettings" },
   { path: "billing", titleKey: "userMenu.billing" },
   { path: "privacy", titleKey: "userMenu.privacy" },
@@ -75,6 +77,9 @@ export function dashboardRoutes() {
         }
         if (path === "job-workflow") {
           return <Route key={path} path={path} element={<JobWorkflowPage />} />;
+        }
+        if (path === "interview-recorder") {
+          return <Route key={path} path={path} element={<InterviewRecorderPage />} />;
         }
         if (path === "privacy") {
           return <Route key={path} path={path} element={<PrivacyPage />} />;

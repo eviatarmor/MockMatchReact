@@ -10,6 +10,7 @@ import {
   Gauge,
   TrendingUp,
   Wand2,
+  AudioWaveform,
   Settings,
   CreditCard,
   ShieldCheck,
@@ -37,6 +38,7 @@ export const NAV_DATA: NavItem[] = [
 
   { label: "navGroups.automation", isSection: true },
   { title: "navItems.autofill", icon: Wand2, href: "/autofill" },
+  { title: "navItems.interviewRecorder", icon: AudioWaveform, href: "/interview-recorder" },
 ]
 
 export const MOCK_USER: DashboardUser = {

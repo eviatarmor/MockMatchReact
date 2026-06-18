@@ -1,13 +1,5 @@
-import { useEffect } from "react"
-import { useTranslation } from "react-i18next"
-import { JobWorkflowPageContent } from "@/features/job-workflow/job-workflow-page"
+import { DashboardRoutePage } from "@/pages/dashboard/dashboard-placeholder-page"
 
 export function JobWorkflowPage() {
-  const { t } = useTranslation("common")
-
-  useEffect(() => {
-    document.title = t("recorder.documentTitle")
-  }, [t])
-
-  return <JobWorkflowPageContent />
+  return <DashboardRoutePage path="job-workflow" titleKey="navItems.jobWorkflow" />
 }
