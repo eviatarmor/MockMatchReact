@@ -28,7 +28,7 @@ export function PrivacyPageContent() {
   }, [form, t])
 
   return (
-    <DashboardPageShell title={t("title")} searchPlaceholder={t("title")}>
+    <DashboardPageShell title={t("title")}>
       <div className="flex flex-col gap-6">
         <DashboardPageHeader title={t("title")} description={t("description")} />
         <VerticalTabs tabs={tabs} defaultTabId="privacy" layoutId="privacy-tab" />

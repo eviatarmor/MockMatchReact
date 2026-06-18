@@ -32,7 +32,7 @@ export function AccountSettingsPageContent() {
   }, [form, email, t])
 
   return (
-    <DashboardPageShell title={t("title")} searchPlaceholder={t("title")}>
+    <DashboardPageShell title={t("title")}>
       <div className="flex flex-col gap-6">
         <DashboardPageHeader title={t("title")} description={t("description")} />
         <VerticalTabs tabs={tabs} defaultTabId="profile" layoutId="account-settings-tab" />

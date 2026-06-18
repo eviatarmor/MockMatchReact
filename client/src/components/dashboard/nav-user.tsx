@@ -13,6 +13,7 @@ import { MOCK_USER, USER_MENU_ACTIONS, USER_MENU_LOGOUT } from "@/components/das
 
 const USER_MENU_ROUTES: Record<string, string> = {
   "userMenu.accountSettings": "/account-settings",
+  "userMenu.billing": "/billing",
   "userMenu.privacy": "/privacy",
 }
 

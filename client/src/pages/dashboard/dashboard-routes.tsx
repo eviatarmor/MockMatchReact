@@ -6,6 +6,7 @@ import { CoverLettersPage } from "@/pages/dashboard/cover-letters-page";
 import { DiscoverPage } from "@/pages/dashboard/discover-page";
 import { ApplicationsPage } from "@/pages/dashboard/applications-page";
 import { AccountSettingsPage } from "@/pages/dashboard/account-settings-page";
+import { BillingPage } from "@/pages/dashboard/billing-page";
 import { PrivacyPage } from "@/pages/dashboard/privacy-page";
 
 const DASHBOARD_ROUTES = [
@@ -21,6 +22,7 @@ const DASHBOARD_ROUTES = [
   { path: "performance", titleKey: "navItems.performance" },
   { path: "autofill", titleKey: "navItems.autofill" },
   { path: "account-settings", titleKey: "userMenu.accountSettings" },
+  { path: "billing", titleKey: "userMenu.billing" },
   { path: "privacy", titleKey: "userMenu.privacy" },
 ] as const;
 
@@ -42,6 +44,9 @@ export function dashboardRoutes() {
         }
         if (path === "account-settings") {
           return <Route key={path} path={path} element={<AccountSettingsPage />} />;
+        }
+        if (path === "billing") {
+          return <Route key={path} path={path} element={<BillingPage />} />;
         }
         if (path === "privacy") {
           return <Route key={path} path={path} element={<PrivacyPage />} />;

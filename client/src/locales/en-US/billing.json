@@ -1,0 +1,68 @@
+{
+  "documentTitle": "Billing — MockMatch",
+  "title": "Billing",
+  "description": "Manage your plan, payment method, and review past invoices.",
+  "nav": {
+    "usage": "Usage",
+    "payment": "Payment",
+    "history": "Billing history"
+  },
+  "usage": {
+    "heading": "Usage",
+    "description": "Your current plan and remaining interview-prep credits.",
+    "currentPlan": "Current plan",
+    "renewsOn": "Renews on {{date}}",
+    "managePlan": "Manage plan",
+    "plans": {
+      "pro": "Pro"
+    },
+    "price": {
+      "pro": "$29 / month"
+    },
+    "credits": {
+      "heading": "Credits",
+      "remaining": "{{count}} credits left",
+      "usedOfTotal": "{{used}} of {{total}} used",
+      "breakdownHeading": "Usage breakdown"
+    },
+    "breakdown": {
+      "mockInterviews": "Mock interviews",
+      "resumeScans": "Resume scans",
+      "coverLetters": "Cover letters"
+    }
+  },
+  "payment": {
+    "heading": "Payment method",
+    "description": "The card we charge for your subscription and credit top-ups.",
+    "creditsLabel": "Credits left",
+    "creditsValue": "{{count}} credits",
+    "flipHint": "Click card to flip",
+    "detailsHeading": "Billing details",
+    "name": "Name",
+    "email": "Email",
+    "address": "Address",
+    "country": "Country",
+    "update": "Update payment method"
+  },
+  "history": {
+    "heading": "Billing history",
+    "description": "Download receipts for your past invoices.",
+    "columns": {
+      "invoice": "Invoice",
+      "date": "Date",
+      "amount": "Amount",
+      "status": "Status",
+      "receipt": "Receipt"
+    },
+    "status": {
+      "paid": "Paid",
+      "pending": "Pending"
+    },
+    "download": "Download"
+  },
+  "toast": {
+    "planManaged": "Plan management isn't available yet",
+    "paymentUpdated": "Payment method update isn't available yet",
+    "receiptDownloaded": "Downloading receipt for {{invoice}}"
+  }
+}
