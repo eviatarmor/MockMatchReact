@@ -353,6 +353,96 @@
   "navbar": {
     "feedback": "Feedback"
   },
+  "assessments": {
+    "documentTitle": "Assessments — MockMatch",
+    "title": "Assessments",
+    "description": "Timed practice exercises across every domain — coding, case studies, clinical, and more.",
+    "surpriseMe": "Surprise me",
+    "searchPlaceholder": "Search exercises...",
+    "best": "Best",
+    "stats": {
+      "completed": "Completed",
+      "avgScore": "Avg score",
+      "dayStreak": "Day streak",
+      "hoursPracticed": "Hours practiced"
+    },
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "filters": {
+      "anyDifficulty": "Any difficulty"
+    },
+    "domains": {
+      "all": "All",
+      "coding": "Coding",
+      "caseStudy": "Case study",
+      "behavioral": "Behavioral",
+      "product": "Product",
+      "systemDesign": "System design",
+      "finance": "Finance",
+      "clinical": "Clinical"
+    },
+    "status": {
+      "notStarted": "Not started",
+      "inProgress": "In progress",
+      "mastered": "Mastered"
+    },
+    "actions": {
+      "start": "Start exercise",
+      "continue": "Continue",
+      "retry": "Retry"
+    }
+  },
+  "questionBank": {
+    "documentTitle": "Question Bank — MockMatch",
+    "title": "Question bank",
+    "description": "Every individual practice question, in one searchable pool. Filter, drill a question, or add it to a custom set.",
+    "searchPlaceholder": "Search questions...",
+    "questionsCount": "questions",
+    "noResults": "No questions found",
+    "filters": {
+      "title": "Filters",
+      "domain": "Domain",
+      "difficulty": "Difficulty",
+      "status": "Status",
+      "company": "Company"
+    },
+    "domains": {
+      "coding": "Coding",
+      "systemDesign": "System design",
+      "caseStudy": "Case study",
+      "product": "Product",
+      "behavioral": "Behavioral",
+      "finance": "Finance",
+      "clinical": "Clinical"
+    },
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "status": {
+      "new": "New",
+      "attempted": "Attempted",
+      "mastered": "Mastered"
+    },
+    "columns": {
+      "question": "Question",
+      "domain": "Domain",
+      "difficulty": "Difficulty",
+      "company": "Company",
+      "status": "Status",
+      "action": "Action"
+    },
+    "actions": {
+      "saved": "Saved",
+      "newPracticeSet": "New practice set",
+      "save": "Save to set",
+      "practice": "Practice"
+    }
+  },
   "simulations": {
     "documentTitle": "Simulations — MockMatch",
     "title": "Simulations",
