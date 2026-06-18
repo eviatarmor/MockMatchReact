@@ -353,6 +353,93 @@
   "navbar": {
     "feedback": "Feedback"
   },
+  "readiness": {
+    "documentTitle": "Readiness — MockMatch",
+    "title": "Readiness",
+    "description": "Where you stand today, and what to do next to get interview-ready.",
+    "exportReport": "Export report",
+    "overallLabel": "Overall readiness",
+    "almostReady": "Almost ready",
+    "thisMonth": "this month",
+    "improveTip": "Closing the gap on Coding and System design will push you past 80.",
+    "stats": {
+      "activeApplications": "Active applications",
+      "thisWeek": "{{count}} this week",
+      "mockInterviews": "Mock interviews",
+      "completed": "completed",
+      "offers": "Offers"
+    },
+    "byArea": {
+      "title": "Readiness by area",
+      "description": "Weighted from your practice sessions and assessments."
+    },
+    "areas": {
+      "resume": "Resume & ATS",
+      "behavioral": "Behavioral",
+      "coding": "Coding challenges",
+      "caseStudy": "Case studies",
+      "systemDesign": "System design"
+    },
+    "nextUp": {
+      "title": "Next up",
+      "description": "Recommended to lift your weakest areas.",
+      "n1Sub": "20 min · raises Coding",
+      "n2Sub": "AI Interviewer · 25 min",
+      "n3Sub": "Resume Lab · +6 pts"
+    },
+    "history": {
+      "title": "Session history",
+      "description": "Every scored practice run.",
+      "exportCsv": "Export CSV",
+      "columns": {
+        "date": "Date",
+        "role": "Role",
+        "track": "Track",
+        "score": "Score",
+        "delta": "Δ vs prev"
+      }
+    }
+  },
+  "performance": {
+    "documentTitle": "Performance — MockMatch",
+    "title": "Performance",
+    "description": "How your interview performance has trended over time, by domain and session.",
+    "export": "Export",
+    "timeRange": {
+      "last30": "Last 30 days",
+      "last90": "Last 90 days",
+      "last180": "Last 180 days",
+      "allTime": "All time"
+    },
+    "stats": {
+      "avgScore": "Avg score",
+      "sessions": "Sessions",
+      "time": "Time practiced",
+      "percentile": "Percentile"
+    },
+    "scoreTrend": {
+      "title": "Score trend",
+      "description": "Average session score, last 12 weeks."
+    },
+    "byDomain": {
+      "title": "By domain",
+      "description": "Current score and movement vs last period."
+    },
+    "domains": {
+      "behavioral": "Behavioral",
+      "caseStudy": "Case study",
+      "productSense": "Product sense",
+      "systemDesign": "System design",
+      "coding": "Coding",
+      "financeQuant": "Finance / quant"
+    },
+    "strengths": {
+      "title": "Strengths"
+    },
+    "focusAreas": {
+      "title": "Focus areas"
+    }
+  },
   "assessments": {
     "documentTitle": "Assessments — MockMatch",
     "title": "Assessments",
