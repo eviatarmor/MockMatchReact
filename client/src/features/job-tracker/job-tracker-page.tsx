@@ -2,7 +2,6 @@ import { useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
-import { SearchBar } from "@/components/dashboard/search-bar"
 import { DiscoverTab } from "./components/discover-tab"
 import { MOCK_DISCOVER_JOBS } from "./constants"
 
@@ -22,19 +21,13 @@ export function JobTrackerPageContent() {
   return (
     <DashboardPageShell
       title={t("discover.title")}
-      actions={undefined}
     >
       <div className="flex flex-col gap-3">
         <DashboardPageHeader
           title={t("discover.title")}
           description={t("discover.description")}
         />
-        <SearchBar
-          placeholder={t("dashboard.search.discover")}
-          value={search}
-          onChange={setSearch}
-        />
-        <DiscoverTab jobs={filteredJobs} />
+        <DiscoverTab jobs={filteredJobs} search={search} onSearchChange={setSearch} />
       </div>
     </DashboardPageShell>
   )

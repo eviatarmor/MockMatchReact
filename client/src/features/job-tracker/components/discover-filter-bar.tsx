@@ -1,4 +1,4 @@
-import { Globe, Sparkles, Target, DollarSign, Briefcase, ChevronDown } from "lucide-react"
+import { Globe, Target, DollarSign, Briefcase, ChevronDown } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { SearchBar } from "@/components/dashboard/search-bar"
 import { cn } from "@/lib/utils"
 import { EMPLOYMENT_TYPE_OPTIONS, SALARY_FILTER_OPTIONS } from "../constants"
 import type { DiscoverFilterKey, EmploymentType } from "../types"
@@ -17,6 +18,8 @@ import type { DiscoverFilterKey, EmploymentType } from "../types"
 type SortOption = "bestMatch" | "newest" | "salary"
 
 interface DiscoverFilterBarProps {
+  readonly search: string
+  readonly onSearchChange: (value: string) => void
   readonly activeFilters: ReadonlySet<DiscoverFilterKey>
   readonly onToggleFilter: (key: DiscoverFilterKey) => void
   readonly minSalary: number
@@ -29,7 +32,6 @@ interface DiscoverFilterBarProps {
 
 const FILTER_PILLS: ReadonlyArray<{ key: DiscoverFilterKey; icon: LucideIcon }> = [
   { key: "remote", icon: Globe },
-  { key: "new", icon: Sparkles },
   { key: "strongMatch", icon: Target },
 ]
 
@@ -40,6 +42,8 @@ function salaryLabel(value: number): string {
 }
 
 export function DiscoverFilterBar({
+  search,
+  onSearchChange,
   activeFilters,
   onToggleFilter,
   minSalary,
@@ -58,8 +62,13 @@ export function DiscoverFilterBar({
           .join(", ")
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className="flex items-center justify-between gap-2 overflow-x-auto">
+      <div className="flex shrink-0 items-center gap-2">
+        <SearchBar
+          placeholder={t("dashboard.search.discover")}
+          value={search}
+          onChange={onSearchChange}
+        />
         {FILTER_PILLS.map(({ key, icon: Icon }) => (
           <Button
             key={key}

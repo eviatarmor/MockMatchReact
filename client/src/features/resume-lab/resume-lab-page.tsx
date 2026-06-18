@@ -23,34 +23,32 @@ export function ResumeLabPageContent() {
     [search]
   )
 
-  const actions = (
-    <>
-      <Button
-        variant="outline"
-        className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
-      >
-        <Upload className="size-4" />
-        <span className="hidden sm:inline">{t("dashboard.actions.importResume")}</span>
-      </Button>
-      <Button
-        variant="default"
-        className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
-      >
-        <Plus className="size-4" />
-        <span className="hidden sm:inline">{t("dashboard.actions.newResume")}</span>
-      </Button>
-    </>
-  )
-
   return (
     <DashboardPageShell
       title={t("resumeLab.title")}
-      actions={actions}
     >
       <div className="flex flex-col gap-3">
         <DashboardPageHeader
           title={t("resumeLab.title")}
           description={t("resumeLab.description")}
+          actions={
+            <>
+              <Button
+                variant="outline"
+                className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
+              >
+                <Upload className="size-4" />
+                <span className="hidden sm:inline">{t("dashboard.actions.importResume")}</span>
+              </Button>
+              <Button
+                variant="default"
+                className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
+              >
+                <Plus className="size-4" />
+                <span className="hidden sm:inline">{t("dashboard.actions.newResume")}</span>
+              </Button>
+            </>
+          }
         />
         <SearchBar
           placeholder={t("dashboard.search.resumes")}

@@ -26,38 +26,38 @@ export function ApplicationsPageContent() {
     [search]
   )
 
-  const actions = (
-    <div className="flex items-center gap-2">
-      <ApplicationsViewToggle view={view} onChange={setView} />
-      <AddJobDialog
-        trigger={
-          <Button
-            variant="default"
-            className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
-          >
-            <Upload className="size-4" />
-            <span className="hidden sm:inline">{t("dashboard.actions.importJob")}</span>
-          </Button>
-        }
-      />
-    </div>
-  )
-
   return (
     <DashboardPageShell
       title={t("applications.title")}
-      actions={actions}
     >
       <div className={view === "kanban" ? "flex flex-1 flex-col gap-3 min-h-0" : "flex flex-col gap-3"}>
         <DashboardPageHeader
           title={t("applications.title")}
           description={t("applications.description")}
+          actions={
+            <AddJobDialog
+              trigger={
+                <Button
+                  variant="default"
+                  className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
+                >
+                  <Upload className="size-4" />
+                  <span className="hidden sm:inline">{t("dashboard.actions.importJob")}</span>
+                </Button>
+              }
+            />
+          }
         />
-        <SearchBar
-          placeholder={t("dashboard.search.applications")}
-          value={search}
-          onChange={setSearch}
-        />
+        <div className="flex items-center gap-2">
+          <SearchBar
+            placeholder={t("dashboard.search.applications")}
+            value={search}
+            onChange={setSearch}
+          />
+          <div className="ml-auto">
+            <ApplicationsViewToggle view={view} onChange={setView} />
+          </div>
+        </div>
         {view === "list" ? (
           <TrackingTab jobs={filteredJobs} />
         ) : (

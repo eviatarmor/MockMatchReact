@@ -23,34 +23,32 @@ export function CoverLettersPageContent() {
     [search]
   )
 
-  const actions = (
-    <>
-      <Button
-        variant="outline"
-        className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
-      >
-        <Upload className="size-4" />
-        <span className="hidden sm:inline">{t("dashboard.actions.importCoverLetter")}</span>
-      </Button>
-      <Button
-        variant="default"
-        className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
-      >
-        <Plus className="size-4" />
-        <span className="hidden sm:inline">{t("dashboard.actions.newCoverLetter")}</span>
-      </Button>
-    </>
-  )
-
   return (
     <DashboardPageShell
       title={t("coverLetters.title")}
-      actions={actions}
     >
       <div className="flex flex-col gap-3">
         <DashboardPageHeader
           title={t("coverLetters.title")}
           description={t("coverLetters.description")}
+          actions={
+            <>
+              <Button
+                variant="outline"
+                className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
+              >
+                <Upload className="size-4" />
+                <span className="hidden sm:inline">{t("dashboard.actions.importCoverLetter")}</span>
+              </Button>
+              <Button
+                variant="default"
+                className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
+              >
+                <Plus className="size-4" />
+                <span className="hidden sm:inline">{t("dashboard.actions.newCoverLetter")}</span>
+              </Button>
+            </>
+          }
         />
         <SearchBar
           placeholder={t("dashboard.search.coverLetters")}

@@ -26,9 +26,11 @@ function matchesFilter(job: DiscoverJob, key: DiscoverFilterKey): boolean {
 
 interface DiscoverTabProps {
   readonly jobs: DiscoverJob[]
+  readonly search: string
+  readonly onSearchChange: (value: string) => void
 }
 
-export function DiscoverTab({ jobs: allJobs }: DiscoverTabProps) {
+export function DiscoverTab({ jobs: allJobs, search, onSearchChange }: DiscoverTabProps) {
   const [activeFilters, setActiveFilters] = useState<ReadonlySet<DiscoverFilterKey>>(new Set())
   const [minSalary, setMinSalary] = useState(0)
   const [employmentTypes, setEmploymentTypes] = useState<ReadonlySet<EmploymentType>>(new Set())
@@ -88,6 +90,8 @@ export function DiscoverTab({ jobs: allJobs }: DiscoverTabProps) {
   return (
     <div className="flex flex-col gap-3">
       <DiscoverFilterBar
+        search={search}
+        onSearchChange={onSearchChange}
         activeFilters={activeFilters}
         onToggleFilter={toggleFilter}
         minSalary={minSalary}
