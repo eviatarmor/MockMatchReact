@@ -1,6 +1,4 @@
 import { useTranslation } from "react-i18next"
-import { Download } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import type { SessionHistoryRow } from "../types"
 
@@ -13,15 +11,9 @@ export function ReadinessSessionHistory({ rows }: ReadinessSessionHistoryProps) 
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border bg-card p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex flex-col gap-0.5">
-          <h2 className="text-base font-semibold">{t("readiness.history.title")}</h2>
-          <p className="text-sm text-muted-foreground">{t("readiness.history.description")}</p>
-        </div>
-        <Button variant="outline" className="h-8 gap-1.5 px-3 cursor-pointer">
-          <Download className="size-4" />
-          <span className="hidden sm:inline">{t("readiness.history.exportCsv")}</span>
-        </Button>
+      <div className="flex flex-col gap-0.5">
+        <h2 className="text-base font-semibold">{t("readiness.history.title")}</h2>
+        <p className="text-sm text-muted-foreground">{t("readiness.history.description")}</p>
       </div>
 
       <ScrollArea className="w-full">

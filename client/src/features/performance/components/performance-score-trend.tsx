@@ -32,18 +32,18 @@ export function PerformanceScoreTrend({ data, currentScore, delta }: Performance
         </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={200}>
-        <AreaChart data={data as ScoreTrendPoint[]} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+      <ResponsiveContainer width="100%" height={220}>
+        <AreaChart data={data as ScoreTrendPoint[]} margin={{ top: 8, right: 8, bottom: 0, left: -20 }}>
           <defs>
             <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
-              <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+              <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.35} />
+              <stop offset="100%" stopColor="#3b82f6" stopOpacity={0.02} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(128,128,128,0.2)" vertical={false} />
           <XAxis
             dataKey="week"
-            tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+            tick={{ fontSize: 11, fill: "rgba(128,128,128,0.8)" }}
             axisLine={false}
             tickLine={false}
             interval={2}
@@ -51,7 +51,7 @@ export function PerformanceScoreTrend({ data, currentScore, delta }: Performance
           <YAxis
             domain={[0, 100]}
             ticks={[0, 25, 50, 75, 100]}
-            tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+            tick={{ fontSize: 11, fill: "rgba(128,128,128,0.8)" }}
             axisLine={false}
             tickLine={false}
           />
@@ -62,16 +62,16 @@ export function PerformanceScoreTrend({ data, currentScore, delta }: Performance
               borderRadius: "8px",
               fontSize: 12,
             }}
-            cursor={{ stroke: "hsl(var(--primary))", strokeWidth: 1 }}
+            cursor={{ stroke: "#3b82f6", strokeWidth: 1, strokeDasharray: "4 2" }}
           />
           <Area
             type="monotone"
             dataKey="score"
-            stroke="hsl(var(--primary))"
-            strokeWidth={2}
+            stroke="#3b82f6"
+            strokeWidth={2.5}
             fill="url(#scoreGradient)"
-            dot={{ fill: "hsl(var(--primary))", r: 3, strokeWidth: 0 }}
-            activeDot={{ r: 5, fill: "hsl(var(--primary))" }}
+            dot={{ fill: "#3b82f6", r: 3.5, strokeWidth: 0 }}
+            activeDot={{ r: 5, fill: "#3b82f6", strokeWidth: 2, stroke: "#fff" }}
           />
         </AreaChart>
       </ResponsiveContainer>

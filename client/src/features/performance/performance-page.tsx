@@ -1,7 +1,5 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Download } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import {
   Select,
   SelectContent,
@@ -15,6 +13,7 @@ import { PerformanceStatCard } from "./components/performance-stat-card"
 import { PerformanceScoreTrend } from "./components/performance-score-trend"
 import { PerformanceByDomain } from "./components/performance-by-domain"
 import { PerformanceStrengthsFocus } from "./components/performance-strengths-focus"
+import { ReadinessSessionHistory } from "@/features/readiness/components/readiness-session-history"
 import {
   PERFORMANCE_STATS,
   SCORE_TREND,
@@ -24,6 +23,7 @@ import {
   TIME_RANGE_OPTIONS,
   type TimeRange,
 } from "./constants"
+import { MOCK_SESSION_HISTORY } from "@/features/readiness/constants"
 
 export function PerformancePageContent() {
   const { t } = useTranslation("common")
@@ -36,22 +36,16 @@ export function PerformancePageContent() {
           title={t("performance.title")}
           description={t("performance.description")}
           actions={
-            <>
-              <Select value={timeRange} onValueChange={(v) => setTimeRange(v as TimeRange)}>
-                <SelectTrigger className="h-8 w-auto gap-1.5 px-3 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TIME_RANGE_OPTIONS.map((r) => (
-                    <SelectItem key={r} value={r}>{t(`performance.timeRange.${r}`)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button variant="outline" className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer">
-                <Download className="size-4" />
-                <span className="hidden sm:inline">{t("performance.export")}</span>
-              </Button>
-            </>
+            <Select value={timeRange} onValueChange={(v) => setTimeRange(v as TimeRange)}>
+              <SelectTrigger className="h-8 w-auto gap-1.5 px-3 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TIME_RANGE_OPTIONS.map((r) => (
+                  <SelectItem key={r} value={r}>{t(`performance.timeRange.${r}`)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           }
         />
 
@@ -67,6 +61,8 @@ export function PerformancePageContent() {
         </div>
 
         <PerformanceStrengthsFocus strengths={STRENGTHS} focusAreas={FOCUS_AREAS} />
+
+        <ReadinessSessionHistory rows={MOCK_SESSION_HISTORY} />
       </div>
     </DashboardPageShell>
   )
