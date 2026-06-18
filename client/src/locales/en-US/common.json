@@ -349,5 +349,8 @@
       "list": "List view",
       "kanban": "Kanban view"
     }
+  },
+  "navbar": {
+    "feedback": "Feedback"
   }
 }

@@ -1,6 +1,8 @@
 import type { ReactNode } from "react"
 import { useNavbarSlots } from "@/hooks/use-navbar-slots"
 import { NotificationBell } from "./notification-bell"
+import { FeedbackButton } from "./feedback-button"
+import { NavbarHelpButton } from "./navbar-help-button"
 
 interface DashboardPageShellProps {
   readonly title: string
@@ -16,8 +18,10 @@ export function DashboardPageShell({
   useNavbarSlots({
     end: (
       <div className="flex items-center gap-1.5 sm:gap-2">
-        <NotificationBell />
         {actions}
+<NavbarHelpButton />
+        <NotificationBell />
+        <FeedbackButton />
       </div>
     ),
   })
