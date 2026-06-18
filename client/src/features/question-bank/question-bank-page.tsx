@@ -16,7 +16,6 @@ export function QuestionBankPageContent() {
   const [selectedDomains, setSelectedDomains] = useState<Set<QuestionDomain>>(new Set())
   const [selectedDifficulties, setSelectedDifficulties] = useState<Set<QuestionDifficulty>>(new Set())
   const [selectedStatuses, setSelectedStatuses] = useState<Set<QuestionStatus>>(new Set())
-  const [selectedCompanies, setSelectedCompanies] = useState<Set<string>>(new Set())
 
   function toggle<T>(set: Set<T>, value: T, setter: (s: Set<T>) => void) {
     const next = new Set(set)
@@ -31,12 +30,9 @@ export function QuestionBankPageContent() {
         const matchesDomain = selectedDomains.size === 0 || selectedDomains.has(q.domain)
         const matchesDifficulty = selectedDifficulties.size === 0 || selectedDifficulties.has(q.difficulty)
         const matchesStatus = selectedStatuses.size === 0 || selectedStatuses.has(q.status)
-        const matchesCompany =
-          selectedCompanies.size === 0 ||
-          (q.company !== null && selectedCompanies.has(q.company))
-        return matchesSearch && matchesDomain && matchesDifficulty && matchesStatus && matchesCompany
+        return matchesSearch && matchesDomain && matchesDifficulty && matchesStatus
       }),
-    [search, selectedDomains, selectedDifficulties, selectedStatuses, selectedCompanies]
+    [search, selectedDomains, selectedDifficulties, selectedStatuses]
   )
 
   return (
@@ -60,17 +56,17 @@ export function QuestionBankPageContent() {
         />
 
         <div className="flex flex-1 gap-4 min-h-0">
-          <aside className="hidden w-44 shrink-0 lg:flex lg:flex-col">
-            <QuestionBankFilters
-              selectedDomains={selectedDomains}
-              selectedDifficulties={selectedDifficulties}
-              selectedStatuses={selectedStatuses}
-              selectedCompanies={selectedCompanies}
-              onDomainToggle={(d) => toggle(selectedDomains, d, setSelectedDomains)}
-              onDifficultyToggle={(d) => toggle(selectedDifficulties, d, setSelectedDifficulties)}
-              onStatusToggle={(s) => toggle(selectedStatuses, s, setSelectedStatuses)}
-              onCompanyToggle={(c) => toggle(selectedCompanies, c, setSelectedCompanies)}
-            />
+          <aside className="hidden w-44 shrink-0 lg:block">
+            <div className="sticky top-20">
+              <QuestionBankFilters
+                selectedDomains={selectedDomains}
+                selectedDifficulties={selectedDifficulties}
+                selectedStatuses={selectedStatuses}
+                onDomainToggle={(d) => toggle(selectedDomains, d, setSelectedDomains)}
+                onDifficultyToggle={(d) => toggle(selectedDifficulties, d, setSelectedDifficulties)}
+                onStatusToggle={(s) => toggle(selectedStatuses, s, setSelectedStatuses)}
+              />
+            </div>
           </aside>
 
           <div className="flex flex-1 flex-col gap-3 min-w-0">
@@ -80,7 +76,7 @@ export function QuestionBankPageContent() {
               onChange={setSearch}
               className="max-w-full sm:max-w-xs"
             />
-            <QuestionBankTable questions={filtered} total={filtered.length} />
+            <QuestionBankTable questions={filtered} />
           </div>
         </div>
       </div>
