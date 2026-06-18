@@ -353,6 +353,94 @@
   "navbar": {
     "feedback": "Feedback"
   },
+  "recorder": {
+    "documentTitle": "Interview Recorder — MockMatch",
+    "title": "Interview Recorder",
+    "description": "Connect MockMatch to your real interviews. It joins the call, transcribes, and turns each one into structured insights.",
+    "banner": {
+      "name": "MockMatch Recorder",
+      "status": "Connected",
+      "description": "A companion that joins your scheduled interviews from your calendar, captures the conversation, and analyzes your delivery the moment the call ends.",
+      "zoom": "Zoom",
+      "meet": "Google Meet",
+      "teams": "Microsoft Teams",
+      "calendar": "Calendar",
+      "connected": "Connected",
+      "manage": "Manage"
+    },
+    "steps": {
+      "join":    { "title": "Joins your call",        "desc": "Auto-detects interviews from your calendar." },
+      "consent": { "title": "Records with consent",   "desc": "Announces itself and asks everyone first." },
+      "insights":{ "title": "Delivers insights",      "desc": "Transcript, metrics & moments after the call." }
+    },
+    "consent": {
+      "title": "Recording consent is built in",
+      "description": "Recording laws vary by region. The Recorder announces its presence and requests consent from all participants at the start of every call. You control retention below."
+    },
+    "stats": {
+      "captured":  "Interviews captured",
+      "hours":     "Hours analyzed",
+      "talkRatio": "Avg talk ratio",
+      "filler":    "Filler words / min"
+    },
+    "latest": {
+      "title": "Latest interview",
+      "talkRatio": "Talk ratio",
+      "you": "You",
+      "interviewer": "Interviewer",
+      "pace": "Pace",
+      "idealRange": "ideal range",
+      "fillerWords": "Filler words",
+      "fillerPerMin": "/ min",
+      "longestAnswer": "Longest answer",
+      "watchLength": "watch length",
+      "topicsCovered": "Topics covered",
+      "keyMoments": "Key moments",
+      "transcript": "Transcript",
+      "replay": "Replay",
+      "drillWeakSpots": "Drill the weak spots"
+    },
+    "settings": {
+      "platforms": { "title": "Connected platforms" },
+      "capture": {
+        "title": "Capture settings",
+        "autoJoin": "Auto-join scheduled interviews",
+        "autoJoinDesc": "Detect interview events on your calendar and join.",
+        "transcription": "Live transcription",
+        "transcriptionDesc": "Caption the call in real time.",
+        "insights": "Generate insights after call",
+        "insightsDesc": "Analyze delivery the moment it ends.",
+        "retention": "Recording retention",
+        "retentionDesc": "How long to keep audio."
+      },
+      "retention": {
+        "7days": "7 days",
+        "30days": "30 days",
+        "90days": "90 days",
+        "forever": "Forever"
+      }
+    },
+    "table": {
+      "title": "Recorded interviews",
+      "description": "Every captured call and its analysis.",
+      "viewAll": "View all",
+      "columns": {
+        "date": "Date",
+        "company": "Company",
+        "role": "Role",
+        "platform": "Platform",
+        "duration": "Duration",
+        "talkRatio": "Talk ratio",
+        "insights": "Insights",
+        "status": "Status"
+      },
+      "status": {
+        "analyzed": "Analyzed",
+        "processing": "Processing",
+        "draft": "Draft"
+      }
+    }
+  },
   "autofill": {
     "documentTitle": "Auto Apply — MockMatch",
     "title": "Auto Apply",
