@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState, type ReactNode } from "react"
 import { cn } from "@/lib/utils"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import {
   DetailPanelActionsContext,
@@ -47,7 +48,7 @@ export function DetailPanel() {
       <Sheet open={isOpen} onOpenChange={(next) => !next && close()}>
         <SheetContent side="right" showCloseButton={false} className="w-full gap-0 p-0 sm:max-w-md">
           <SheetTitle className="sr-only">Details</SheetTitle>
-          <div className="h-full overflow-y-auto">{lastContent.current}</div>
+          <ScrollArea className="h-full">{lastContent.current}</ScrollArea>
         </SheetContent>
       </Sheet>
     )
@@ -63,9 +64,9 @@ export function DetailPanel() {
         "data-[state=open]:w-[27rem] data-[state=open]:py-4 data-[state=open]:pr-4 data-[state=open]:opacity-100"
       )}
     >
-      <div className="h-full w-full overflow-y-auto rounded-xl border bg-sidebar shadow-sm">
+      <ScrollArea className="h-full w-full rounded-xl border bg-sidebar shadow-sm">
         {lastContent.current}
-      </div>
+      </ScrollArea>
     </div>
   )
 }

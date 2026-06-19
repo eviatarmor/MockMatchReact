@@ -5,9 +5,11 @@ import { NavbarSlotsProvider } from "@/components/dashboard/navbar-slots-context
 import { DetailPanel, DetailPanelProvider } from "@/components/dashboard/detail-panel"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { TooltipProvider } from "@/components/ui/tooltip"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 export function DashboardLayout() {
   return (
+    <ScrollArea className="h-svh w-full">
     <TooltipProvider>
       <SidebarProvider>
         <DetailPanelProvider>
@@ -24,5 +26,6 @@ export function DashboardLayout() {
         </DetailPanelProvider>
       </SidebarProvider>
     </TooltipProvider>
+    </ScrollArea>
   )
 }
