@@ -3,7 +3,6 @@ import {
   Mail,
   Compass,
   ClipboardList,
-  Workflow,
   MonitorPlay,
   ClipboardCheck,
   HelpCircle,
@@ -27,7 +26,6 @@ export const NAV_DATA: NavItem[] = [
   { title: "navItems.applications", icon: ClipboardList, href: "/applications" },
 
   { label: "navGroups.practice", isSection: true },
-  { title: "navItems.jobWorkflow", icon: Workflow, href: "/job-workflow" },
   { title: "navItems.simulations", icon: MonitorPlay, href: "/simulations" },
   { title: "navItems.assessments", icon: ClipboardCheck, href: "/assessments" },
   { title: "navItems.questionBank", icon: HelpCircle, href: "/question-bank" },
