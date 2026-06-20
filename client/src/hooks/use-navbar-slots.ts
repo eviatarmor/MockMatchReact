@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, type ReactNode } from "react"
 
 export interface NavbarSlots {
+  readonly crumb: ReactNode
   readonly center: ReactNode
   readonly end: ReactNode
 }
@@ -28,13 +29,17 @@ export function useNavbarSlotsActions() {
   return context
 }
 
-export function useNavbarSlots(slots: { readonly center?: ReactNode; readonly end?: ReactNode }) {
+export function useNavbarSlots(slots: {
+  readonly crumb?: ReactNode
+  readonly center?: ReactNode
+  readonly end?: ReactNode
+}) {
   const { setSlots } = useNavbarSlotsActions()
-  const { center, end } = slots
+  const { crumb, center, end } = slots
 
   useEffect(() => {
-    setSlots({ center: center ?? null, end: end ?? null })
-    return () => setSlots({ center: null, end: null })
+    setSlots({ crumb: crumb ?? null, center: center ?? null, end: end ?? null })
+    return () => setSlots({ crumb: null, center: null, end: null })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [center, end])
+  }, [crumb, center, end])
 }

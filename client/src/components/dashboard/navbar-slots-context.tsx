@@ -6,7 +6,7 @@ import {
 } from "@/hooks/use-navbar-slots"
 
 export function NavbarSlotsProvider({ children }: { readonly children: ReactNode }) {
-  const [slots, setSlotsState] = useState<NavbarSlots>({ center: null, end: null })
+  const [slots, setSlotsState] = useState<NavbarSlots>({ crumb: null, center: null, end: null })
 
   const actions = useMemo(
     () => ({

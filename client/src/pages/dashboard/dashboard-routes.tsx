@@ -3,6 +3,7 @@ import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { DashboardRoutePage } from "@/pages/dashboard/dashboard-placeholder-page";
 import { ResumeLabPage } from "@/pages/dashboard/resume-lab-page";
 import { CoverLettersPage } from "@/pages/dashboard/cover-letters-page";
+import { CoverLetterEditorPage } from "@/pages/dashboard/cover-letter-editor-page";
 import { DiscoverPage } from "@/pages/dashboard/discover-page";
 import { ApplicationsPage } from "@/pages/dashboard/applications-page";
 import { ApplicationDetailPage } from "@/pages/dashboard/application-detail-page";
@@ -40,6 +41,7 @@ export function dashboardRoutes() {
   return (
     <Route element={<DashboardLayout />}>
       <Route path="applications/:jobId" element={<ApplicationDetailPage />} />
+      <Route path="cover-letters/:letterId" element={<CoverLetterEditorPage />} />
       {DASHBOARD_ROUTES.map(({ path, titleKey }) => {
         if (path === "resume-lab") {
           return <Route key={path} path={path} element={<ResumeLabPage />} />;

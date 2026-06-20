@@ -15,7 +15,7 @@ import { NAV_DATA } from "@/components/dashboard/constants"
 export function DashboardNavbar() {
   const { t } = useTranslation("common")
   const { pathname } = useLocation()
-  const { center, end } = useNavbarSlotsValue()
+  const { crumb, center, end } = useNavbarSlotsValue()
 
   const currentItem = NAV_DATA.find((item) => item.href && pathname.startsWith(item.href))
 
@@ -32,8 +32,20 @@ export function DashboardNavbar() {
             <>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
-                <BreadcrumbPage>{t(currentItem.title)}</BreadcrumbPage>
+                {crumb ? (
+                  <BreadcrumbLink render={<Link to={currentItem.href ?? "/"} />}>
+                    {t(currentItem.title)}
+                  </BreadcrumbLink>
+                ) : (
+                  <BreadcrumbPage>{t(currentItem.title)}</BreadcrumbPage>
+                )}
               </BreadcrumbItem>
+            </>
+          )}
+          {crumb && (
+            <>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>{crumb}</BreadcrumbItem>
             </>
           )}
         </BreadcrumbList>

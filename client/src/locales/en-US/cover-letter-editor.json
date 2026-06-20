@@ -1,0 +1,69 @@
+{
+  "documentTitle": "Cover Letter Editor — MockMatch",
+  "toolbar": {
+    "back": "Back to cover letters",
+    "subtitle": "Cover Letters · {{company}}",
+    "saved": "Saved",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "resetZoom": "Reset zoom",
+    "resetView": "Fit to view",
+    "undo": "Undo",
+    "redo": "Redo",
+    "share": "Share",
+    "exportPdf": "Export PDF"
+  },
+  "rail": {
+    "templates": "Templates",
+    "style": "Style",
+    "sections": "Sections",
+    "ai": "AI",
+    "collapse": "Collapse panel"
+  },
+  "templates": {
+    "title": "Templates",
+    "description": "Switch layouts instantly — your content carries over.",
+    "items": {
+      "modern": { "name": "Modern", "description": "Bold name, accent headings" },
+      "classic": { "name": "Classic", "description": "Centered, serif, rule lines" },
+      "minimal": { "name": "Minimal", "description": "Airy, small caps, no rules" },
+      "technical": { "name": "Technical", "description": "Mono accents, tight grid" }
+    }
+  },
+  "style": {
+    "title": "Style",
+    "description": "Fine-tune accent color, type size, and spacing.",
+    "accent": "Accent color",
+    "fontSize": "Font size",
+    "spacing": "Line spacing",
+    "spacings": {
+      "compact": "Compact",
+      "cozy": "Cozy",
+      "roomy": "Roomy"
+    }
+  },
+  "sections": {
+    "title": "Sections",
+    "description": "Show, hide, and reorder parts of the letter.",
+    "items": {
+      "header": "Header",
+      "date": "Date",
+      "recipient": "Recipient",
+      "salutation": "Salutation",
+      "body": "Body",
+      "signature": "Signature"
+    }
+  },
+  "ai": {
+    "title": "AI assistant",
+    "description": "Rewrite, shorten, or tailor your letter in one click.",
+    "actions": {
+      "improve": "Improve writing",
+      "shorten": "Make shorter",
+      "tailor": "Tailor to job",
+      "grammar": "Fix grammar"
+    },
+    "promptPlaceholder": "Ask AI to edit your letter…",
+    "send": "Send"
+  }
+}

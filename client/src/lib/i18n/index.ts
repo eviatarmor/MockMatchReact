@@ -10,6 +10,7 @@ import forgotPassword from "@/locales/en-US/forgot-password.json"
 import accountSettings from "@/locales/en-US/account-settings.json"
 import privacy from "@/locales/en-US/privacy.json"
 import billing from "@/locales/en-US/billing.json"
+import coverLetterEditor from "@/locales/en-US/cover-letter-editor.json"
 
 export const defaultNS = "common"
 
@@ -28,6 +29,7 @@ i18next.use(initReactI18next).init({
       "account-settings": accountSettings,
       privacy,
       billing,
+      "cover-letter-editor": coverLetterEditor,
     },
   },
   interpolation: {

@@ -1,5 +1,6 @@
 import { MoreHorizontal, Eye, Pencil, Download, Copy, Trash2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -26,12 +27,17 @@ const AVATAR_COLORS: Record<string, string> = {
 
 export function CoverLetterTableRow({ coverLetter }: CoverLetterTableRowProps) {
   const { t } = useTranslation("common")
+  const navigate = useNavigate()
   const avatarClass = AVATAR_COLORS[coverLetter.avatarText] ?? "bg-muted text-muted-foreground"
 
   const subtitle = coverLetter.company ?? t("coverLetters.table.noTargetRole")
+  const openEditor = () => navigate(`/cover-letters/${coverLetter.id}`)
 
   return (
-    <tr className="group border-b border-border/40 hover:bg-muted/5 transition-colors">
+    <tr
+      onClick={openEditor}
+      className="group cursor-pointer border-b border-border/40 hover:bg-muted/5 transition-colors"
+    >
       <td className="py-3 px-4">
         <div className="flex items-center gap-3">
           <div
@@ -56,7 +62,7 @@ export function CoverLetterTableRow({ coverLetter }: CoverLetterTableRowProps) {
         {coverLetter.updatedAt}
       </td>
 
-      <td className="py-3 px-4 text-right">
+      <td className="py-3 px-4 text-right" onClick={(e) => e.stopPropagation()}>
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
@@ -70,11 +76,11 @@ export function CoverLetterTableRow({ coverLetter }: CoverLetterTableRowProps) {
             <MoreHorizontal className="size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer" onClick={openEditor}>
               <Eye />
               {t("coverLetters.table.rowActions.preview")}
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer" onClick={openEditor}>
               <Pencil />
               {t("coverLetters.table.rowActions.edit")}
             </DropdownMenuItem>
