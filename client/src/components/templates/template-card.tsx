@@ -2,10 +2,12 @@ import { Eye, Plus } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import type { CoverLetterTemplate } from "../types"
+import type { TemplateItem } from "./types"
 
-interface CoverLetterTemplateCardProps {
-  readonly template: CoverLetterTemplate
+interface TemplateCardProps {
+  readonly template: TemplateItem
+  // i18n key prefix, e.g. "resumeLab.templates"
+  readonly translationPrefix: string
 }
 
 const AVATAR_COLORS = [
@@ -22,7 +24,7 @@ function avatarColor(id: string) {
   return AVATAR_COLORS[index]
 }
 
-export function CoverLetterTemplateCard({ template }: CoverLetterTemplateCardProps) {
+export function TemplateCard({ template, translationPrefix }: TemplateCardProps) {
   const { t } = useTranslation("common")
 
   return (
@@ -34,7 +36,7 @@ export function CoverLetterTemplateCard({ template }: CoverLetterTemplateCardPro
           {template.avatarText}
         </div>
         <Badge variant="outline" className="font-normal text-muted-foreground">
-          {t(`coverLetters.templates.categories.${template.category}`)}
+          {t(`${translationPrefix}.categories.${template.category}`)}
         </Badge>
       </div>
 
@@ -47,13 +49,13 @@ export function CoverLetterTemplateCard({ template }: CoverLetterTemplateCardPro
       <div className="mt-auto flex items-center gap-2">
         <Button className="h-8 flex-1 gap-1.5 cursor-pointer">
           <Plus className="size-4" />
-          {t("coverLetters.templates.useTemplate")}
+          {t(`${translationPrefix}.useTemplate`)}
         </Button>
         <Button
           variant="outline"
           size="icon"
           className="h-8 w-8 shrink-0 cursor-pointer"
-          aria-label={t("coverLetters.templates.preview")}
+          aria-label={t(`${translationPrefix}.preview`)}
         >
           <Eye className="size-4" />
         </Button>

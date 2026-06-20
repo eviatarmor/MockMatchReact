@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { PaymentCardVisual } from "@/components/shadcn-space/credit-card/credit-card"
-import { SectionShell } from "@/features/billing/right-pane/section-shell"
+import { SectionShell } from "@/components/layout/section-shell"
 import { MOCK_BILLING } from "@/features/billing/constants"
 
 interface DetailRowProps {

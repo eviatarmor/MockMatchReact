@@ -1,6 +1,12 @@
-import type { DiscoverJob, EmploymentType, TrackedJob, TrackingStatus } from "./types"
+import type { DiscoverJob, EmploymentType, MatchTier, TrackedJob, TrackingStatus } from "./types"
 
 export const STRONG_MATCH_THRESHOLD = 90
+
+export const MATCH_TIER_TEXT_CLASS: Record<MatchTier, string> = {
+  strong: "text-emerald-600",
+  good: "text-blue-600",
+  fair: "text-amber-600",
+}
 
 export const SALARY_FILTER_OPTIONS: number[] = [0, 120000, 150000, 180000, 200000]
 

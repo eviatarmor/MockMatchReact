@@ -1,19 +1,7 @@
-import {
-  CheckCircle2,
-  Target,
-  Flame,
-  Timer,
-} from "lucide-react"
-import type { LucideIcon } from "lucide-react"
+import { CheckCircle2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import { resolveIcon } from "@/lib/icon-map"
 import type { AssessmentStat } from "../types"
-
-const ICON_MAP: Record<string, LucideIcon> = {
-  CheckCircle2,
-  Target,
-  Flame,
-  Timer,
-}
 
 interface AssessmentStatCardProps {
   readonly stat: AssessmentStat
@@ -21,7 +9,7 @@ interface AssessmentStatCardProps {
 
 export function AssessmentStatCard({ stat }: AssessmentStatCardProps) {
   const { t } = useTranslation("common")
-  const Icon = ICON_MAP[stat.iconName] ?? CheckCircle2
+  const Icon = resolveIcon(stat.iconName, CheckCircle2)
 
   return (
     <div className="flex items-center gap-3 rounded-xl border bg-card px-4 py-3 shadow-sm">

@@ -5,7 +5,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
-import { SectionShell } from "@/features/account-settings/right-pane/section-shell"
+import { SectionShell } from "@/components/layout/section-shell"
 
 interface DataActionCardProps {
   readonly icon: ReactNode

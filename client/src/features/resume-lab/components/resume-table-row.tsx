@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { ResumeATSBadge } from "./resume-ats-badge"
-import { ResumeStatusBadge } from "./resume-status-badge"
+import { DocumentStatusBadge } from "@/components/data/document-status-badge"
 import type { ResumeItem } from "../types"
 
 interface ResumeTableRowProps {
@@ -54,7 +54,7 @@ export function ResumeTableRow({ resume }: ResumeTableRowProps) {
       </td>
 
       <td className="py-3 px-4">
-        <ResumeStatusBadge status={resume.status} />
+        <DocumentStatusBadge status={resume.status} translationPrefix="resumeLab.table.statusLabels" />
       </td>
 
       <td className="py-3 px-4 text-sm text-muted-foreground hidden sm:table-cell">

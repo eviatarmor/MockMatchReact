@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { MatchScoreRing } from "./match-score-ring"
+import { MATCH_TIER_TEXT_CLASS } from "../constants"
 import type { DiscoverJob } from "../types"
 
 interface DiscoverJobCardProps {
@@ -62,7 +63,12 @@ export function DiscoverJobCard({ job, onViewDetails }: DiscoverJobCardProps) {
           </div>
         </div>
 
-        <MatchScoreRing score={job.matchScore} tier={job.matchTier} />
+        <div className="flex shrink-0 flex-col items-center gap-1">
+          <MatchScoreRing score={job.matchScore} tier={job.matchTier} />
+          <span className={cn("text-[11px] font-medium whitespace-nowrap", MATCH_TIER_TEXT_CLASS[job.matchTier])}>
+            {t(`jobTracker.matchTiers.${job.matchTier}`)}
+          </span>
+        </div>
       </div>
 
       <div className="flex items-center justify-between gap-4">

@@ -4,18 +4,13 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { PanelShell } from "@/components/dashboard/panel-shell"
 import { MatchScoreRing } from "./match-score-ring"
+import { MATCH_TIER_TEXT_CLASS } from "../constants"
 import type { DiscoverJob } from "../types"
 
 interface JobDetailsPanelProps {
   readonly job: DiscoverJob
   readonly onClose: () => void
 }
-
-const TIER_TEXT_CLASS = {
-  strong: "text-emerald-600",
-  good: "text-blue-600",
-  fair: "text-amber-600",
-} as const
 
 export function JobDetailsPanel({ job, onClose }: JobDetailsPanelProps) {
   const { t } = useTranslation("common")
@@ -71,9 +66,9 @@ export function JobDetailsPanel({ job, onClose }: JobDetailsPanelProps) {
       }
     >
       <div className="flex items-center gap-4 rounded-xl border p-3">
-        <MatchScoreRing score={job.matchScore} tier={job.matchTier} showLabel={false} />
+        <MatchScoreRing score={job.matchScore} tier={job.matchTier} />
         <div className="flex flex-col gap-0.5">
-          <span className={cn("text-sm font-semibold", TIER_TEXT_CLASS[job.matchTier])}>
+          <span className={cn("text-sm font-semibold", MATCH_TIER_TEXT_CLASS[job.matchTier])}>
             {t(`jobTracker.matchTiers.${job.matchTier}`)}
           </span>
           <span className="text-sm text-muted-foreground">{job.fitNote}</span>

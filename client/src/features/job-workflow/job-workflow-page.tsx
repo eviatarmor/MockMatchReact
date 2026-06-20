@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
 import { RecorderBanner } from "./components/recorder-banner"
-import { RecorderStatCard } from "./components/recorder-stat-card"
+import { StatCard } from "@/components/data/stat-card"
 import { RecorderLatestInterview } from "./components/recorder-latest-interview"
 import { RecorderSettings } from "./components/recorder-settings"
 import { RecorderInterviewsTable } from "./components/recorder-interviews-table"
@@ -23,7 +23,7 @@ export function JobWorkflowPageContent() {
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {RECORDER_STATS.map((stat) => (
-            <RecorderStatCard key={stat.id} stat={stat} />
+            <StatCard key={stat.id} iconName={stat.iconName} label={t(stat.labelKey)} value={stat.value} subValue={stat.subValue} />
           ))}
         </div>
 

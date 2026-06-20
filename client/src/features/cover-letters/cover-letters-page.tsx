@@ -6,9 +6,9 @@ import { Separator } from "@/components/ui/separator"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
 import { SearchBar } from "@/components/dashboard/search-bar"
+import { TemplateBrowserSection } from "@/components/templates/template-browser-section"
 import { CoverLetterTable } from "./components/cover-letter-table"
-import { CoverLetterTemplatesSection } from "./components/cover-letter-templates-section"
-import { MOCK_COVER_LETTERS } from "./constants"
+import { MOCK_COVER_LETTERS, MOCK_TEMPLATES, TEMPLATE_CATEGORIES } from "./constants"
 
 export function CoverLettersPageContent() {
   const { t } = useTranslation("common")
@@ -57,7 +57,7 @@ export function CoverLettersPageContent() {
         />
         <CoverLetterTable coverLetters={filteredLetters} />
         <Separator className="my-2" />
-        <CoverLetterTemplatesSection />
+        <TemplateBrowserSection items={MOCK_TEMPLATES} categories={TEMPLATE_CATEGORIES} translationPrefix="coverLetters.templates" />
       </div>
     </DashboardPageShell>
   )

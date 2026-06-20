@@ -1,35 +1,9 @@
-import {
-  MessageSquare,
-  Code2,
-  Network,
-  Lightbulb,
-  Monitor,
-  TrendingUp,
-  Target,
-  Users,
-  BarChart2,
-  Mic2,
-  AlignJustify,
-  Clock,
-} from "lucide-react"
-import type { LucideIcon } from "lucide-react"
+import { AlignJustify, Clock } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { resolveIcon } from "@/lib/icon-map"
 import type { InterviewTrack, DifficultyLevel } from "../types"
-
-const ICON_MAP: Record<string, LucideIcon> = {
-  MessageSquare,
-  Code2,
-  Network,
-  Lightbulb,
-  Monitor,
-  TrendingUp,
-  Target,
-  Users,
-  BarChart2,
-  Mic2,
-}
 
 function difficultyVariant(level: DifficultyLevel): "outline" | "secondary" {
   return level === "adaptive" ? "outline" : "secondary"
@@ -41,7 +15,7 @@ interface SimulationTrackCardProps {
 
 export function SimulationTrackCard({ track }: SimulationTrackCardProps) {
   const { t } = useTranslation("common")
-  const Icon = ICON_MAP[track.iconName] ?? AlignJustify
+  const Icon = resolveIcon(track.iconName, AlignJustify)
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border bg-card p-4 shadow-sm">

@@ -1,27 +1,10 @@
-import {
-  Code2,
-  Monitor,
-  Scan,
-  Network,
-  MessageSquare,
-  TrendingDown,
-  TrendingUp,
-  Lightbulb,
-  AlignJustify,
-  Clock,
-  Play,
-  RotateCcw,
-} from "lucide-react"
-import type { LucideIcon } from "lucide-react"
+import { AlignJustify, Clock, Play, RotateCcw } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
-import { AssessmentDifficultyBadge } from "./assessment-difficulty-badge"
+import { resolveIcon } from "@/lib/icon-map"
+import { DifficultyBadge } from "@/components/data/difficulty-badge"
 import { AssessmentStatusBadge } from "./assessment-status-badge"
 import type { Assessment } from "../types"
-
-const ICON_MAP: Record<string, LucideIcon> = {
-  Code2, Monitor, Scan, Network, MessageSquare, TrendingDown, TrendingUp, Lightbulb,
-}
 
 interface AssessmentCardProps {
   readonly assessment: Assessment
@@ -29,7 +12,7 @@ interface AssessmentCardProps {
 
 export function AssessmentCard({ assessment }: AssessmentCardProps) {
   const { t } = useTranslation("common")
-  const Icon = ICON_MAP[assessment.iconName] ?? AlignJustify
+  const Icon = resolveIcon(assessment.iconName, AlignJustify)
 
   const isNotStarted = assessment.status === "notStarted"
   const isInProgress = assessment.status === "inProgress"
@@ -40,7 +23,7 @@ export function AssessmentCard({ assessment }: AssessmentCardProps) {
         <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Icon className="size-4" />
         </div>
-        <AssessmentDifficultyBadge difficulty={assessment.difficulty} />
+        <DifficultyBadge difficulty={assessment.difficulty} translationPrefix="assessments.difficulty" />
       </div>
 
       <div className="flex flex-col gap-0.5">

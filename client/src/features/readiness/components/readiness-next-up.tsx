@@ -1,9 +1,7 @@
-import { Code2, Mic2, FileText, ArrowRight } from "lucide-react"
-import type { LucideIcon } from "lucide-react"
+import { Code2, ArrowRight } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import { resolveIcon } from "@/lib/icon-map"
 import type { NextUpItem } from "../types"
-
-const ICON_MAP: Record<string, LucideIcon> = { Code2, Mic2, FileText }
 
 interface ReadinessNextUpProps {
   readonly items: readonly NextUpItem[]
@@ -21,7 +19,7 @@ export function ReadinessNextUp({ items }: ReadinessNextUpProps) {
 
       <div className="flex flex-col gap-2">
         {items.map((item) => {
-          const Icon = ICON_MAP[item.iconName] ?? Code2
+          const Icon = resolveIcon(item.iconName, Code2)
           return (
             <button
               key={item.id}

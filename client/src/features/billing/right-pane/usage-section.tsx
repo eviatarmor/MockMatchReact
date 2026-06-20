@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
-import { SectionShell } from "@/features/billing/right-pane/section-shell"
+import { SectionShell } from "@/components/layout/section-shell"
 import { MOCK_BILLING } from "@/features/billing/constants"
 
 export function UsageSection() {

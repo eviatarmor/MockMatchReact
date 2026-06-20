@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
-import { PerformanceStatCard } from "./components/performance-stat-card"
+import { StatCard } from "@/components/data/stat-card"
 import { PerformanceScoreTrend } from "./components/performance-score-trend"
 import { PerformanceByDomain } from "./components/performance-by-domain"
 import { PerformanceStrengthsFocus } from "./components/performance-strengths-focus"
@@ -51,7 +51,14 @@ export function PerformancePageContent() {
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           {PERFORMANCE_STATS.map((stat) => (
-            <PerformanceStatCard key={stat.id} stat={stat} />
+            <StatCard
+              key={stat.id}
+              iconName={stat.iconName}
+              label={t(stat.labelKey)}
+              value={stat.value}
+              subValue={stat.subValue}
+              delta={{ label: stat.delta, positive: stat.deltaPositive }}
+            />
           ))}
         </div>
 

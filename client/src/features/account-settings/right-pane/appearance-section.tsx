@@ -3,7 +3,7 @@ import { Check } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { cn } from "@/lib/utils"
-import { SectionShell } from "@/features/account-settings/right-pane/section-shell"
+import { SectionShell } from "@/components/layout/section-shell"
 import { THEME_OPTIONS } from "@/features/account-settings/constants"
 import type { ThemeMode } from "@/features/account-settings/types"
 

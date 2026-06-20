@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { SectionShell } from "@/features/account-settings/right-pane/section-shell"
+import { SectionShell } from "@/components/layout/section-shell"
 
 interface ActionRowProps {
   readonly title: string

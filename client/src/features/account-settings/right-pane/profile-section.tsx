@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { initials } from "@/components/ui/user-menu"
-import { SectionShell } from "@/features/account-settings/right-pane/section-shell"
+import { SectionShell } from "@/components/layout/section-shell"
 import type { AccountSettingsForm } from "@/features/account-settings/types"
 
 interface ProfileSectionProps {

@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next"
 import { FileText, Play, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { BADGE_TONES } from "@/components/data/badge-tones"
 import { LATEST_INTERVIEW, KEY_MOMENTS } from "../constants"
 
 export function RecorderLatestInterview() {
@@ -20,7 +21,7 @@ export function RecorderLatestInterview() {
             {iv.company} · {iv.role} · {iv.date} · {iv.durationMin} min
           </p>
         </div>
-        <Badge variant="outline" className="shrink-0 border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400">
+        <Badge variant="outline" className={`shrink-0 ${BADGE_TONES.emerald}`}>
           {iv.tone}
         </Badge>
       </div>

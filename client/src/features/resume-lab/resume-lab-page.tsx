@@ -6,9 +6,9 @@ import { Separator } from "@/components/ui/separator"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
 import { SearchBar } from "@/components/dashboard/search-bar"
+import { TemplateBrowserSection } from "@/components/templates/template-browser-section"
 import { ResumeTable } from "./components/resume-table"
-import { ResumeTemplatesSection } from "./components/resume-templates-section"
-import { MOCK_RESUMES } from "./constants"
+import { MOCK_RESUMES, MOCK_TEMPLATES, TEMPLATE_CATEGORIES } from "./constants"
 
 export function ResumeLabPageContent() {
   const { t } = useTranslation("common")
@@ -57,7 +57,7 @@ export function ResumeLabPageContent() {
         />
         <ResumeTable resumes={filteredResumes} />
         <Separator className="my-2" />
-        <ResumeTemplatesSection />
+        <TemplateBrowserSection items={MOCK_TEMPLATES} categories={TEMPLATE_CATEGORIES} translationPrefix="resumeLab.templates" />
       </div>
     </DashboardPageShell>
   )

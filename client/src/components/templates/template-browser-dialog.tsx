@@ -10,38 +10,42 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { CoverLetterTemplateCard } from "./cover-letter-template-card"
-import { MOCK_TEMPLATES, TEMPLATE_CATEGORIES } from "../constants"
-import type { CoverLetterTemplateCategory } from "../types"
+import { TemplateCard } from "./template-card"
+import type { TemplateItem } from "./types"
 
-interface CoverLetterTemplatesDialogProps {
+interface TemplateBrowserDialogProps {
   readonly open: boolean
   readonly onOpenChange: (open: boolean) => void
+  readonly items: readonly TemplateItem[]
+  readonly categories: readonly string[]
+  // i18n key prefix, e.g. "resumeLab.templates"
+  readonly translationPrefix: string
 }
 
-export function CoverLetterTemplatesDialog({ open, onOpenChange }: CoverLetterTemplatesDialogProps) {
+export function TemplateBrowserDialog({ open, onOpenChange, items, categories, translationPrefix }: TemplateBrowserDialogProps) {
   const { t } = useTranslation("common")
   const [query, setQuery] = useState("")
-  const [activeCategory, setActiveCategory] = useState<CoverLetterTemplateCategory | "all">("all")
+  const [activeCategory, setActiveCategory] = useState<string>("all")
 
   const filteredTemplates = useMemo(() => {
-    return MOCK_TEMPLATES.filter((template) => {
+    const needle = query.trim().toLowerCase()
+    return items.filter((template) => {
       const matchesCategory = activeCategory === "all" || template.category === activeCategory
       const matchesQuery =
-        query.trim().length === 0 ||
-        template.title.toLowerCase().includes(query.trim().toLowerCase()) ||
-        template.company.toLowerCase().includes(query.trim().toLowerCase())
+        needle.length === 0 ||
+        template.title.toLowerCase().includes(needle) ||
+        template.company.toLowerCase().includes(needle)
 
       return matchesCategory && matchesQuery
     })
-  }, [query, activeCategory])
+  }, [items, query, activeCategory])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex h-[80vh] w-[80vw] max-w-none flex-col sm:max-w-none">
         <DialogHeader>
-          <DialogTitle>{t("coverLetters.templates.browseTitle")}</DialogTitle>
-          <DialogDescription>{t("coverLetters.templates.browseDescription")}</DialogDescription>
+          <DialogTitle>{t(`${translationPrefix}.browseTitle`)}</DialogTitle>
+          <DialogDescription>{t(`${translationPrefix}.browseDescription`)}</DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -50,7 +54,7 @@ export function CoverLetterTemplatesDialog({ open, onOpenChange }: CoverLetterTe
             <Input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder={t("coverLetters.templates.searchPlaceholder")}
+              placeholder={t(`${translationPrefix}.searchPlaceholder`)}
               className="pl-9"
             />
           </div>
@@ -62,9 +66,9 @@ export function CoverLetterTemplatesDialog({ open, onOpenChange }: CoverLetterTe
               className="cursor-pointer"
               onClick={() => setActiveCategory("all")}
             >
-              {t("coverLetters.templates.categories.all")}
+              {t(`${translationPrefix}.categories.all`)}
             </Button>
-            {TEMPLATE_CATEGORIES.map((category) => (
+            {categories.map((category) => (
               <Button
                 key={category}
                 variant={activeCategory === category ? "default" : "outline"}
@@ -72,7 +76,7 @@ export function CoverLetterTemplatesDialog({ open, onOpenChange }: CoverLetterTe
                 className="cursor-pointer"
                 onClick={() => setActiveCategory(category)}
               >
-                {t(`coverLetters.templates.categories.${category}`)}
+                {t(`${translationPrefix}.categories.${category}`)}
               </Button>
             ))}
           </div>
@@ -82,12 +86,12 @@ export function CoverLetterTemplatesDialog({ open, onOpenChange }: CoverLetterTe
           {filteredTemplates.length > 0 ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredTemplates.map((template) => (
-                <CoverLetterTemplateCard key={template.id} template={template} />
+                <TemplateCard key={template.id} template={template} translationPrefix={translationPrefix} />
               ))}
             </div>
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-              {t("coverLetters.templates.noResults")}
+              {t(`${translationPrefix}.noResults`)}
             </div>
           )}
         </div>

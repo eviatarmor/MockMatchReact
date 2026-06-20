@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { SectionShell } from "@/features/billing/right-pane/section-shell"
+import { SectionShell } from "@/components/layout/section-shell"
 import { MOCK_BILLING } from "@/features/billing/constants"
 
 export function BillingHistorySection() {

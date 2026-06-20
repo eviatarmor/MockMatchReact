@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next"
 import { Zap, Check } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { BADGE_TONES } from "@/components/data/badge-tones"
 
 const BROWSERS = [
   { id: "chrome",  labelKey: "autofill.extension.chrome",  active: true  },
@@ -29,7 +30,7 @@ export function AutofillExtensionBanner() {
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-base font-semibold">{t("autofill.extension.name")}</span>
-              <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400">
+              <Badge variant="outline" className={BADGE_TONES.emerald}>
                 {t("autofill.extension.status")}
               </Badge>
               <span className="text-xs text-muted-foreground">v2.4.1</span>
@@ -41,7 +42,7 @@ export function AutofillExtensionBanner() {
                   key={b.id}
                   className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border ${
                     b.active
-                      ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
+                      ? BADGE_TONES.emerald
                       : "border-border text-muted-foreground"
                   }`}
                 >

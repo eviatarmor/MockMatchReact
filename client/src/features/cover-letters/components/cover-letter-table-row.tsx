@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { CoverLetterStatusBadge } from "./cover-letter-status-badge"
+import { DocumentStatusBadge } from "@/components/data/document-status-badge"
 import type { CoverLetterItem } from "../types"
 
 interface CoverLetterTableRowProps {
@@ -49,7 +49,7 @@ export function CoverLetterTableRow({ coverLetter }: CoverLetterTableRowProps) {
       </td>
 
       <td className="py-3 px-4">
-        <CoverLetterStatusBadge status={coverLetter.status} />
+        <DocumentStatusBadge status={coverLetter.status} translationPrefix="coverLetters.table.statusLabels" />
       </td>
 
       <td className="py-3 px-4 text-sm text-muted-foreground hidden sm:table-cell">

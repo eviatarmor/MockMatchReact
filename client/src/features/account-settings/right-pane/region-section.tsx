@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { SectionShell } from "@/features/account-settings/right-pane/section-shell"
+import { SectionShell } from "@/components/layout/section-shell"
 import {
   COUNTRY_OPTIONS,
   DATE_FORMAT_OPTIONS,

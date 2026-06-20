@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next"
-import { Progress } from "@/components/ui/progress"
 import type { ReadinessArea } from "../types"
 
 interface ReadinessByAreaProps {

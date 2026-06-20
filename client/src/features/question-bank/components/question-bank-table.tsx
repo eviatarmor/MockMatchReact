@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next"
 import { Plus, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { QuestionDifficultyBadge } from "./question-difficulty-badge"
+import { DifficultyBadge } from "@/components/data/difficulty-badge"
 import { QuestionStatusBadge } from "./question-status-badge"
 import type { BankQuestion } from "../types"
 
@@ -36,7 +36,7 @@ export function QuestionBankTable({ questions }: QuestionBankTableProps) {
                   {t(`questionBank.domains.${q.domain}`)}
                 </td>
                 <td className="py-3 px-4">
-                  <QuestionDifficultyBadge difficulty={q.difficulty} />
+                  <DifficultyBadge difficulty={q.difficulty} translationPrefix="questionBank.difficulty" />
                 </td>
                 <td className="py-3 px-4">
                   <QuestionStatusBadge status={q.status} />

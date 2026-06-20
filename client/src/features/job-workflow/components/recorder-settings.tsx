@@ -65,7 +65,7 @@ export function RecorderSettings() {
               <span className="text-sm font-medium">{t("recorder.settings.capture.retention")}</span>
               <span className="text-xs text-muted-foreground">{t("recorder.settings.capture.retentionDesc")}</span>
             </div>
-            <Select value={retention} onValueChange={setRetention}>
+            <Select value={retention} onValueChange={(value) => setRetention(value ?? "")}>
               <SelectTrigger className="h-8 w-28 text-sm">
                 <SelectValue />
               </SelectTrigger>

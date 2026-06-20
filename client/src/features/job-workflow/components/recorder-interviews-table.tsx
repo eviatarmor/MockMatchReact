@@ -2,11 +2,12 @@ import { useTranslation } from "react-i18next"
 import { History } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { BADGE_TONES } from "@/components/data/badge-tones"
 import type { RecordedInterview } from "../types"
 
 function statusClasses(status: RecordedInterview["status"]): string {
-  if (status === "analyzed")   return "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/30 dark:text-emerald-400"
-  if (status === "processing") return "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-400"
+  if (status === "analyzed")   return BADGE_TONES.emerald
+  if (status === "processing") return BADGE_TONES.amber
   return ""
 }
 
