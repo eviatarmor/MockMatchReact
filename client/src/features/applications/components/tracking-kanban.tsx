@@ -1,11 +1,9 @@
-import { useCallback, useEffect, useMemo } from "react"
+import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { KanbanBoard } from "@/components/kanban/kanban-board"
 import type { KanbanColumn } from "@/components/kanban/kanban-board"
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
-import { useDetailPanel } from "@/hooks/use-detail-panel"
 import { KanbanJobCard } from "./kanban-job-card"
-import { TrackedJobDetailsPanel } from "./tracked-job-details-panel"
 import { TRACKING_STATUS_ORDER } from "../constants"
 import type { TrackedJob, TrackingStatus } from "../types"
 
@@ -22,16 +20,6 @@ interface TrackingKanbanProps {
 
 export function TrackingKanban({ jobs }: TrackingKanbanProps) {
   const { t } = useTranslation("common")
-  const { open, close } = useDetailPanel()
-
-  const viewDetails = useCallback(
-    (job: TrackedJob) => {
-      open(<TrackedJobDetailsPanel job={job} onClose={close} />)
-    },
-    [open, close]
-  )
-
-  useEffect(() => close, [close])
 
   const columns = useMemo<KanbanColumn<TrackedJob>[]>(
     () =>
@@ -49,9 +37,7 @@ export function TrackingKanban({ jobs }: TrackingKanbanProps) {
       <KanbanBoard
         columns={columns}
         keyExtractor={(job) => job.id}
-        renderCard={(job) => (
-          <KanbanJobCard job={job} onViewDetails={viewDetails} />
-        )}
+        renderCard={(job) => <KanbanJobCard job={job} />}
         className="h-full"
       />
       <ScrollBar orientation="horizontal" />

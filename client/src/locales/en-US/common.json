@@ -351,6 +351,87 @@
       "kanban": "Kanban view"
     }
   },
+  "applicationDetail": {
+    "documentTitle": "Preparation timeline — MockMatch",
+    "title": "Preparation timeline",
+    "description": "Every step for this application, from research to offer — pick up where you left off.",
+    "backLink": "All applications",
+    "switchJob": "Switch job",
+    "tasksCount": "{{completed}} of {{total}} tasks",
+    "stepLabel": "Step {{n}}: {{title}}",
+    "stepBadge": "Step {{n}}",
+    "nextUp": "NEXT UP",
+    "pipeline": "PIPELINE",
+    "notFound": "We couldn't find that application.",
+    "stepStatus": {
+      "done": "Done",
+      "inProgress": "In progress",
+      "upNext": "Up next"
+    },
+    "steps": {
+      "research": {
+        "title": "Research & fit",
+        "description": "Understand the role and where you stand before investing effort.",
+        "tasks": {
+          "reviewJobDescription": "Review the full job description",
+          "identifyRequirements": "Identify the must-have requirements",
+          "noteMatchGaps": "Note your match gaps to address"
+        },
+        "action": "Open in Tracker"
+      },
+      "resume": {
+        "title": "Tailor resume",
+        "description": "Shape your resume to this role's keywords and clear the ATS bar.",
+        "tasks": {
+          "matchKeywords": "Match resume bullets to top keywords",
+          "reorderBullets": "Reorder experience to lead with relevant wins",
+          "exportPdf": "Export the tailored PDF"
+        },
+        "action": "Open Resume Lab"
+      },
+      "coverLetter": {
+        "title": "Cover letter",
+        "description": "A short, specific letter that connects your work to their needs.",
+        "tasks": {
+          "generateDraft": "Generate a tailored draft",
+          "personalizeOpening": "Personalize the opening line",
+          "proofread": "Proofread & finalize"
+        },
+        "action": "Open Cover Letters"
+      },
+      "apply": {
+        "title": "Apply",
+        "description": "Submit, then log exactly what you sent and when.",
+        "tasks": {
+          "submit": "Submit the application",
+          "logDate": "Log date & versions sent",
+          "saveConfirmation": "Save the confirmation / job ID"
+        },
+        "action": "Mark as applied"
+      },
+      "interview": {
+        "title": "Prep & interview",
+        "description": "Rehearse the rounds you'll actually face for this role.",
+        "tasks": {
+          "mockInterview": "Run a behavioral mock (STAR)",
+          "assessment": "Complete a role-specific assessment",
+          "researchInterviewers": "Research your interviewers"
+        },
+        "action": "Start mock interview",
+        "secondaryAction": "Browse assessments"
+      },
+      "offer": {
+        "title": "Offer & decide",
+        "description": "Close it out — thank-yous, comp review, and your decision.",
+        "tasks": {
+          "thankYouNotes": "Send thank-you notes",
+          "reviewComp": "Review the compensation",
+          "makeDecision": "Make your decision"
+        },
+        "action": "Compare offer"
+      }
+    }
+  },
   "navbar": {
     "feedback": "Feedback"
   },

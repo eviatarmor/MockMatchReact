@@ -1,0 +1,131 @@
+import { Target, FileText, Mail, Send, MessageSquare, Sparkles } from "lucide-react"
+import type { PrepStep } from "./types"
+
+export const PREP_STEPS: PrepStep[] = [
+  {
+    id: "research",
+    icon: Target,
+    titleKey: "applicationDetail.steps.research.title",
+    descriptionKey: "applicationDetail.steps.research.description",
+    footerActionLabelKey: "applicationDetail.steps.research.action",
+    footerActionIcon: Target,
+    tasks: [
+      { id: "reviewJobDescription", labelKey: "applicationDetail.steps.research.tasks.reviewJobDescription", completed: true },
+      { id: "identifyRequirements", labelKey: "applicationDetail.steps.research.tasks.identifyRequirements", completed: true },
+      {
+        id: "noteMatchGaps",
+        labelKey: "applicationDetail.steps.research.tasks.noteMatchGaps",
+        completed: false,
+        actionLabelKey: "applicationDetail.steps.research.action",
+        actionIcon: Target,
+      },
+    ],
+  },
+  {
+    id: "resume",
+    icon: FileText,
+    titleKey: "applicationDetail.steps.resume.title",
+    descriptionKey: "applicationDetail.steps.resume.description",
+    footerActionLabelKey: "applicationDetail.steps.resume.action",
+    footerActionIcon: FileText,
+    tasks: [
+      { id: "matchKeywords", labelKey: "applicationDetail.steps.resume.tasks.matchKeywords", completed: false },
+      { id: "reorderBullets", labelKey: "applicationDetail.steps.resume.tasks.reorderBullets", completed: false },
+      {
+        id: "exportPdf",
+        labelKey: "applicationDetail.steps.resume.tasks.exportPdf",
+        completed: false,
+        actionLabelKey: "applicationDetail.steps.resume.action",
+        actionIcon: FileText,
+      },
+    ],
+  },
+  {
+    id: "coverLetter",
+    icon: Mail,
+    titleKey: "applicationDetail.steps.coverLetter.title",
+    descriptionKey: "applicationDetail.steps.coverLetter.description",
+    footerActionLabelKey: "applicationDetail.steps.coverLetter.action",
+    footerActionIcon: Mail,
+    tasks: [
+      {
+        id: "generateDraft",
+        labelKey: "applicationDetail.steps.coverLetter.tasks.generateDraft",
+        completed: false,
+        actionLabelKey: "applicationDetail.steps.coverLetter.action",
+        actionIcon: Mail,
+      },
+      {
+        id: "personalizeOpening",
+        labelKey: "applicationDetail.steps.coverLetter.tasks.personalizeOpening",
+        completed: false,
+        actionLabelKey: "applicationDetail.steps.coverLetter.action",
+        actionIcon: Mail,
+      },
+      { id: "proofread", labelKey: "applicationDetail.steps.coverLetter.tasks.proofread", completed: false },
+    ],
+  },
+  {
+    id: "apply",
+    icon: Send,
+    titleKey: "applicationDetail.steps.apply.title",
+    descriptionKey: "applicationDetail.steps.apply.description",
+    footerActionLabelKey: "applicationDetail.steps.apply.action",
+    footerActionIcon: Send,
+    tasks: [
+      {
+        id: "submit",
+        labelKey: "applicationDetail.steps.apply.tasks.submit",
+        completed: false,
+        actionLabelKey: "applicationDetail.steps.apply.action",
+        actionIcon: Send,
+      },
+      { id: "logDate", labelKey: "applicationDetail.steps.apply.tasks.logDate", completed: false },
+      { id: "saveConfirmation", labelKey: "applicationDetail.steps.apply.tasks.saveConfirmation", completed: false },
+    ],
+  },
+  {
+    id: "interview",
+    icon: MessageSquare,
+    titleKey: "applicationDetail.steps.interview.title",
+    descriptionKey: "applicationDetail.steps.interview.description",
+    footerActionLabelKey: "applicationDetail.steps.interview.action",
+    footerActionIcon: MessageSquare,
+    tasks: [
+      {
+        id: "mockInterview",
+        labelKey: "applicationDetail.steps.interview.tasks.mockInterview",
+        completed: false,
+        actionLabelKey: "applicationDetail.steps.interview.action",
+        actionIcon: MessageSquare,
+      },
+      {
+        id: "assessment",
+        labelKey: "applicationDetail.steps.interview.tasks.assessment",
+        completed: false,
+        actionLabelKey: "applicationDetail.steps.interview.secondaryAction",
+        actionIcon: MessageSquare,
+      },
+      { id: "researchInterviewers", labelKey: "applicationDetail.steps.interview.tasks.researchInterviewers", completed: false },
+    ],
+  },
+  {
+    id: "offer",
+    icon: Sparkles,
+    titleKey: "applicationDetail.steps.offer.title",
+    descriptionKey: "applicationDetail.steps.offer.description",
+    footerActionLabelKey: "applicationDetail.steps.offer.action",
+    footerActionIcon: Sparkles,
+    tasks: [
+      { id: "thankYouNotes", labelKey: "applicationDetail.steps.offer.tasks.thankYouNotes", completed: false },
+      {
+        id: "reviewComp",
+        labelKey: "applicationDetail.steps.offer.tasks.reviewComp",
+        completed: false,
+        actionLabelKey: "applicationDetail.steps.offer.action",
+        actionIcon: Sparkles,
+      },
+      { id: "makeDecision", labelKey: "applicationDetail.steps.offer.tasks.makeDecision", completed: false },
+    ],
+  },
+]

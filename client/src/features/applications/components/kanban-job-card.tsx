@@ -1,5 +1,6 @@
 import { Clock, MoreHorizontal, ArrowUpRight, Wand2, Trash2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -14,14 +15,18 @@ import type { TrackedJob } from "../types"
 
 interface KanbanJobCardProps {
   readonly job: TrackedJob
-  readonly onViewDetails: (job: TrackedJob) => void
 }
 
-export function KanbanJobCard({ job, onViewDetails }: KanbanJobCardProps) {
+export function KanbanJobCard({ job }: KanbanJobCardProps) {
   const { t } = useTranslation("common")
+  const navigate = useNavigate()
+  const openDetail = () => navigate(`/applications/${job.id}`)
 
   return (
-    <div className="flex flex-col gap-2.5 rounded-xl border bg-card p-3 shadow-sm transition-colors hover:border-primary">
+    <div
+      onClick={openDetail}
+      className="flex flex-col gap-2.5 rounded-xl border bg-card p-3 shadow-sm transition-colors hover:border-primary cursor-pointer"
+    >
       <div className="flex items-start gap-2.5">
         <div
           className={cn(
@@ -35,34 +40,36 @@ export function KanbanJobCard({ job, onViewDetails }: KanbanJobCardProps) {
           <span className="truncate text-sm font-semibold text-foreground">{job.title}</span>
           <span className="truncate text-xs text-muted-foreground">{job.company} · {job.location}</span>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground cursor-pointer"
-              />
-            }
-          >
-            <MoreHorizontal className="size-3.5" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-48">
-            <DropdownMenuItem className="cursor-pointer" onClick={() => onViewDetails(job)}>
-              <ArrowUpRight className="size-4" />
-              {t("jobTracker.trackingActions.openDetails")}
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer">
-              <Wand2 className="size-4" />
-              {t("jobTracker.trackingActions.tailorResume")}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" className="cursor-pointer">
-              <Trash2 className="size-4" />
-              {t("jobTracker.trackingActions.remove")}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div onClick={(event) => event.stopPropagation()}>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground cursor-pointer"
+                />
+              }
+            >
+              <MoreHorizontal className="size-3.5" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-48">
+              <DropdownMenuItem className="cursor-pointer" onClick={openDetail}>
+                <ArrowUpRight className="size-4" />
+                {t("jobTracker.trackingActions.openDetails")}
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">
+                <Wand2 className="size-4" />
+                {t("jobTracker.trackingActions.tailorResume")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" className="cursor-pointer">
+                <Trash2 className="size-4" />
+                {t("jobTracker.trackingActions.remove")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       <div className="flex items-center justify-between gap-2">

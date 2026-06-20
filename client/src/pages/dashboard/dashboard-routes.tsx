@@ -5,6 +5,7 @@ import { ResumeLabPage } from "@/pages/dashboard/resume-lab-page";
 import { CoverLettersPage } from "@/pages/dashboard/cover-letters-page";
 import { DiscoverPage } from "@/pages/dashboard/discover-page";
 import { ApplicationsPage } from "@/pages/dashboard/applications-page";
+import { ApplicationDetailPage } from "@/pages/dashboard/application-detail-page";
 import { AccountSettingsPage } from "@/pages/dashboard/account-settings-page";
 import { BillingPage } from "@/pages/dashboard/billing-page";
 import { PrivacyPage } from "@/pages/dashboard/privacy-page"
@@ -38,6 +39,7 @@ const DASHBOARD_ROUTES = [
 export function dashboardRoutes() {
   return (
     <Route element={<DashboardLayout />}>
+      <Route path="applications/:jobId" element={<ApplicationDetailPage />} />
       {DASHBOARD_ROUTES.map(({ path, titleKey }) => {
         if (path === "resume-lab") {
           return <Route key={path} path={path} element={<ResumeLabPage />} />;
