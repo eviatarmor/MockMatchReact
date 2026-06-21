@@ -50,6 +50,36 @@ export interface EditorTemplate {
   readonly serif: boolean
 }
 
+/** Accent color swatch shown in the Style panel. */
+export interface StyleAccent {
+  readonly id: string
+  /** Tailwind background class for the swatch + selected accent. */
+  readonly swatchClass: string
+}
+
+/** Typeface option card (preview glyph + name + description). */
+export interface StyleTypeface {
+  readonly id: string
+  readonly nameKey: string
+  readonly descriptionKey: string
+  /** Tailwind font-family class applied to the "Aa" preview. */
+  readonly sampleClass: string
+}
+
+/** Single option inside a segmented control (heading style, density). */
+export interface StyleSegmentOption {
+  readonly id: string
+  readonly labelKey: string
+}
+
+/** Boolean style feature rendered as an icon + label + switch row. */
+export interface StyleToggle {
+  readonly id: string
+  readonly icon: LucideIcon
+  readonly titleKey: string
+  readonly descriptionKey: string
+}
+
 export type EditorPanelId = "templates" | "style" | "sections" | "ai"
 
 /** Right-rail entry: icon button that toggles its panel. */

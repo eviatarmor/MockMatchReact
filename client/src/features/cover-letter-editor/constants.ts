@@ -1,5 +1,13 @@
-import { Mail, Phone, MapPin, Globe, Link2, LayoutTemplate, Palette, ListChecks, Sparkles } from "lucide-react"
-import type { CoverLetterDocument, EditorRailItem, EditorTemplate } from "./types"
+import { Mail, Phone, MapPin, Globe, Link2, LayoutTemplate, Palette, ListChecks, Sparkles, Columns2, UserRound, Minus } from "lucide-react"
+import type {
+  CoverLetterDocument,
+  EditorRailItem,
+  EditorTemplate,
+  StyleAccent,
+  StyleSegmentOption,
+  StyleToggle,
+  StyleTypeface,
+} from "./types"
 
 /** Zoom bounds + step for the canvas viewport (1 = 100%). */
 export const ZOOM = {
@@ -45,6 +53,48 @@ export const EDITOR_TEMPLATES: readonly EditorTemplate[] = [
     accentClass: "text-teal-600 dark:text-teal-500",
     serif: false,
   },
+]
+
+/** Accent colors offered in the Style panel. */
+export const STYLE_ACCENTS: readonly StyleAccent[] = [
+  { id: "blue", swatchClass: "bg-blue-600" },
+  { id: "teal", swatchClass: "bg-teal-600" },
+  { id: "indigo", swatchClass: "bg-indigo-600" },
+  { id: "emerald", swatchClass: "bg-emerald-600" },
+  { id: "amber", swatchClass: "bg-amber-500" },
+  { id: "rose", swatchClass: "bg-rose-500" },
+  { id: "purple", swatchClass: "bg-purple-500" },
+  { id: "slate", swatchClass: "bg-slate-700" },
+]
+
+/** Typeface options (preview glyph + name + description). */
+export const STYLE_TYPEFACES: readonly StyleTypeface[] = [
+  { id: "geist", nameKey: "style.typefaces.geist.name", descriptionKey: "style.typefaces.geist.description", sampleClass: "font-sans" },
+  { id: "source-serif", nameKey: "style.typefaces.sourceSerif.name", descriptionKey: "style.typefaces.sourceSerif.description", sampleClass: "font-serif" },
+  { id: "newsreader", nameKey: "style.typefaces.newsreader.name", descriptionKey: "style.typefaces.newsreader.description", sampleClass: "font-serif" },
+  { id: "mono", nameKey: "style.typefaces.mono.name", descriptionKey: "style.typefaces.mono.description", sampleClass: "font-mono" },
+]
+
+/** Section-heading treatments (segmented control). */
+export const STYLE_HEADINGS: readonly StyleSegmentOption[] = [
+  { id: "accent", labelKey: "style.headingStyles.accent" },
+  { id: "underline", labelKey: "style.headingStyles.underline" },
+  { id: "small-caps", labelKey: "style.headingStyles.smallCaps" },
+  { id: "plain", labelKey: "style.headingStyles.plain" },
+]
+
+/** Content density (segmented control). */
+export const STYLE_DENSITIES: readonly StyleSegmentOption[] = [
+  { id: "compact", labelKey: "style.densities.compact" },
+  { id: "normal", labelKey: "style.densities.normal" },
+  { id: "relaxed", labelKey: "style.densities.relaxed" },
+]
+
+/** Boolean layout features (icon + label + switch). */
+export const STYLE_TOGGLES: readonly StyleToggle[] = [
+  { id: "two-column", icon: Columns2, titleKey: "style.toggles.twoColumn.title", descriptionKey: "style.toggles.twoColumn.description" },
+  { id: "photo", icon: UserRound, titleKey: "style.toggles.photo.title", descriptionKey: "style.toggles.photo.description" },
+  { id: "accent-rule", icon: Minus, titleKey: "style.toggles.accentRule.title", descriptionKey: "style.toggles.accentRule.description" },
 ]
 
 /** Document sections offered in the Sections panel (structural, copy in i18n). */

@@ -32,14 +32,32 @@
   },
   "style": {
     "title": "Style",
-    "description": "Fine-tune accent color, type size, and spacing.",
+    "description": "Fine-tune accent color, typeface, and layout.",
     "accent": "Accent color",
-    "fontSize": "Font size",
-    "spacing": "Line spacing",
-    "spacings": {
+    "typeface": "Typeface",
+    "headings": "Section headings",
+    "density": "Density",
+    "typefaces": {
+      "geist": { "name": "Geist Sans", "description": "Clean & modern" },
+      "sourceSerif": { "name": "Source Serif", "description": "Classic & warm" },
+      "newsreader": { "name": "Newsreader", "description": "Editorial headings" },
+      "mono": { "name": "Mono accent", "description": "Technical feel" }
+    },
+    "headingStyles": {
+      "accent": "Accent",
+      "underline": "Underline",
+      "smallCaps": "Small caps",
+      "plain": "Plain"
+    },
+    "densities": {
       "compact": "Compact",
-      "cozy": "Cozy",
-      "roomy": "Roomy"
+      "normal": "Normal",
+      "relaxed": "Relaxed"
+    },
+    "toggles": {
+      "twoColumn": { "title": "Two-column layout", "description": "Sidebar for skills & education" },
+      "photo": { "title": "Profile photo", "description": "Show initials avatar in header" },
+      "accentRule": { "title": "Accent rule under header", "description": "Only with accent headings" }
     }
   },
   "sections": {

@@ -55,8 +55,8 @@ export function EditorRail({ activeTemplateId, onTemplateChange }: EditorRailPro
               transition={{ type: "spring", stiffness: 320, damping: 34 }}
               className="overflow-hidden border-r border-border/60"
             >
-              <div className="flex h-full w-80 flex-col">
-                <div className="flex items-start justify-between gap-2 px-4 pt-4">
+              <div className="flex h-full min-h-0 w-80 flex-col">
+                <div className="flex items-start justify-between gap-2 border-b border-border/60 px-4 pb-4 pt-4">
                   <div className="min-w-0">
                     <h2 className="text-base font-semibold text-foreground">{t(`${activePanel}.title`)}</h2>
                     <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{t(`${activePanel}.description`)}</p>
@@ -71,7 +71,7 @@ export function EditorRail({ activeTemplateId, onTemplateChange }: EditorRailPro
                     <PanelRightClose className="size-4" />
                   </Button>
                 </div>
-                <ScrollArea className="flex-1">
+                <ScrollArea className="min-h-0 flex-1">
                   <div className="px-4 py-4">
                     <PanelBody panel={activePanel} activeTemplateId={activeTemplateId} onTemplateChange={onTemplateChange} />
                   </div>
