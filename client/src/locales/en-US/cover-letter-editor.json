@@ -62,15 +62,39 @@
   },
   "sections": {
     "title": "Sections",
-    "description": "Show, hide, and reorder parts of the letter.",
-    "items": {
-      "header": "Header",
-      "date": "Date",
-      "recipient": "Recipient",
-      "salutation": "Salutation",
-      "body": "Body",
-      "signature": "Signature"
-    }
+    "description": "Add, reorder, and remove parts of the letter."
+  },
+  "addSection": "Add section",
+  "blocks": {
+    "greeting": "Greeting",
+    "subject": "Subject line",
+    "paragraph": "Body paragraph",
+    "signoff": "Sign-off",
+    "custom": "Custom section"
+  },
+  "blockPlaceholders": {
+    "greeting": "Dear Hiring Team,",
+    "paragraph": "Write a paragraph…",
+    "subject": "Re: Senior Product Designer",
+    "closing": "Sincerely,",
+    "signature": "Your name",
+    "heading": "Section heading"
+  },
+  "blockToolbar": {
+    "ai": "Ask AI",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "duplicate": "Duplicate",
+    "delete": "Delete",
+    "drag": "Drag to reorder"
+  },
+  "fields": {
+    "name": "Your name",
+    "title": "Your title",
+    "date": "Date",
+    "recipientName": "Recipient name",
+    "recipientTitle": "Recipient title",
+    "company": "Company"
   },
   "ai": {
     "title": "AI assistant",

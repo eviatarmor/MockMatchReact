@@ -7,7 +7,8 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/comp
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { EDITOR_RAIL_ITEMS } from "../constants"
-import type { EditorPanelId, EditorTemplateId } from "../types"
+import type { CoverLetterHandlers } from "../hooks/use-cover-letter-document"
+import type { CoverLetterDocument, EditorPanelId, EditorTemplateId } from "../types"
 import { TemplatesPanel } from "./templates-panel"
 import { StylePanel } from "./style-panel"
 import { SectionsPanel } from "./sections-panel"
@@ -16,12 +17,16 @@ import { AiPanel } from "./ai-panel"
 interface EditorRailProps {
   readonly activeTemplateId: EditorTemplateId
   readonly onTemplateChange: (id: EditorTemplateId) => void
+  readonly document: CoverLetterDocument
+  readonly handlers: CoverLetterHandlers
 }
 
-function PanelBody({ panel, activeTemplateId, onTemplateChange }: {
+function PanelBody({ panel, activeTemplateId, onTemplateChange, document, handlers }: {
   readonly panel: EditorPanelId
   readonly activeTemplateId: EditorTemplateId
   readonly onTemplateChange: (id: EditorTemplateId) => void
+  readonly document: CoverLetterDocument
+  readonly handlers: CoverLetterHandlers
 }) {
   switch (panel) {
     case "templates":
@@ -29,13 +34,13 @@ function PanelBody({ panel, activeTemplateId, onTemplateChange }: {
     case "style":
       return <StylePanel />
     case "sections":
-      return <SectionsPanel />
+      return <SectionsPanel blocks={document.blocks} handlers={handlers} />
     case "ai":
       return <AiPanel />
   }
 }
 
-export function EditorRail({ activeTemplateId, onTemplateChange }: EditorRailProps) {
+export function EditorRail({ activeTemplateId, onTemplateChange, document, handlers }: EditorRailProps) {
   const { t } = useTranslation("cover-letter-editor")
   const [activePanel, setActivePanel] = useState<EditorPanelId | null>("templates")
 
@@ -73,7 +78,7 @@ export function EditorRail({ activeTemplateId, onTemplateChange }: EditorRailPro
                 </div>
                 <ScrollArea className="min-h-0 flex-1">
                   <div className="px-4 py-4">
-                    <PanelBody panel={activePanel} activeTemplateId={activeTemplateId} onTemplateChange={onTemplateChange} />
+                    <PanelBody panel={activePanel} activeTemplateId={activeTemplateId} onTemplateChange={onTemplateChange} document={document} handlers={handlers} />
                   </div>
                 </ScrollArea>
               </div>

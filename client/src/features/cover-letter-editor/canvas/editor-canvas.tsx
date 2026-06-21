@@ -3,12 +3,15 @@ import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 import { LetterDocument } from "./letter-document"
 import { ZOOM } from "../constants"
 import type { useCanvasViewport } from "../hooks/use-canvas-viewport"
+import type { CoverLetterHandlers } from "../hooks/use-cover-letter-document"
 import type { CoverLetterDocument, EditorTemplate } from "../types"
 
 interface EditorCanvasProps {
   readonly document: CoverLetterDocument
   readonly template: EditorTemplate
   readonly viewport: ReturnType<typeof useCanvasViewport>
+  readonly handlers: CoverLetterHandlers
+  readonly onAiBlock?: (id: string) => void
 }
 
 /**
@@ -18,7 +21,7 @@ interface EditorCanvasProps {
  * navbar z-20) so the page visually slides underneath them. Pan/zoom is handled
  * by react-zoom-pan-pinch; the dotted grid is synced to the live transform.
  */
-export function EditorCanvas({ document, template, viewport }: EditorCanvasProps) {
+export function EditorCanvas({ document, template, viewport, handlers, onAiBlock }: EditorCanvasProps) {
   const { ref, scale, offset, onTransform } = viewport
 
   return createPortal(
@@ -31,6 +34,7 @@ export function EditorCanvas({ document, template, viewport }: EditorCanvasProps
       limitToBounds={false}
       doubleClick={{ disabled: true }}
       wheel={{ step: 0.06 }}
+      panning={{ excluded: ["pan-ignore"] }}
       onTransform={onTransform}
     >
       <TransformComponent
@@ -42,7 +46,7 @@ export function EditorCanvas({ document, template, viewport }: EditorCanvasProps
         }}
       >
         <div className="pt-24">
-          <LetterDocument document={document} template={template} />
+          <LetterDocument document={document} template={template} handlers={handlers} onAiBlock={onAiBlock} scale={scale} />
         </div>
       </TransformComponent>
     </TransformWrapper>,

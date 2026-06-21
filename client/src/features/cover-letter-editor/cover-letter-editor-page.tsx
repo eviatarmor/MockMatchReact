@@ -7,12 +7,14 @@ import { EditorBottomBar, EditorToolbarActions } from "./top-bar/editor-toolbar"
 import { EditorCanvas } from "./canvas/editor-canvas"
 import { EditorRail } from "./right-rail/editor-rail"
 import { useCanvasViewport } from "./hooks/use-canvas-viewport"
+import { useCoverLetterDocument } from "./hooks/use-cover-letter-document"
 import { EDITOR_TEMPLATES, SAMPLE_DOCUMENT } from "./constants"
 import type { EditorTemplateId } from "./types"
 
 export function CoverLetterEditorPageContent() {
   const { t } = useTranslation("cover-letter-editor")
   const viewport = useCanvasViewport()
+  const { document, handlers } = useCoverLetterDocument(SAMPLE_DOCUMENT)
   const [templateId, setTemplateId] = useState<EditorTemplateId>("modern")
   const [letterName, setLetterName] = useState(SAMPLE_DOCUMENT.sender.title)
 
@@ -35,11 +37,11 @@ export function CoverLetterEditorPageContent() {
 
   return (
     <div className="relative h-full min-h-0">
-      <EditorCanvas document={SAMPLE_DOCUMENT} template={template} viewport={viewport} />
+      <EditorCanvas document={document} template={template} viewport={viewport} handlers={handlers} />
 
       <EditorBottomBar viewport={viewport} />
 
-      <EditorRail activeTemplateId={templateId} onTemplateChange={setTemplateId} />
+      <EditorRail activeTemplateId={templateId} onTemplateChange={setTemplateId} document={document} handlers={handlers} />
     </div>
   )
 }

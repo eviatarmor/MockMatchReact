@@ -22,20 +22,55 @@ export interface LetterRecipient {
   readonly addressLines?: readonly string[]
 }
 
+/** The body of a letter is an ordered list of typed blocks. */
+export type LetterBlockType = "greeting" | "paragraph" | "subject" | "signoff" | "custom"
+
+interface LetterBlockBase {
+  readonly id: string
+  readonly type: LetterBlockType
+}
+
+export interface GreetingBlock extends LetterBlockBase {
+  readonly type: "greeting"
+  readonly text: string
+}
+
+export interface ParagraphBlock extends LetterBlockBase {
+  readonly type: "paragraph"
+  readonly text: string
+}
+
+export interface SubjectBlock extends LetterBlockBase {
+  readonly type: "subject"
+  readonly text: string
+}
+
+export interface SignoffBlock extends LetterBlockBase {
+  readonly type: "signoff"
+  readonly closing: string
+  readonly signature: string
+}
+
+export interface CustomBlock extends LetterBlockBase {
+  readonly type: "custom"
+  readonly heading: string
+  readonly text: string
+}
+
+export type LetterBlock = GreetingBlock | ParagraphBlock | SubjectBlock | SignoffBlock | CustomBlock
+
 /**
  * Presentational data model for a cover letter document.
  *
  * Kept transport-agnostic so the same shape can drive the editor canvas, a
- * read-only preview, or a future PDF/export pipeline elsewhere in the app.
+ * read-only preview, or a future PDF/export pipeline elsewhere in the app. The
+ * body is a block list so sections can be added, reordered, and removed.
  */
 export interface CoverLetterDocument {
   readonly sender: LetterSender
   readonly date: string
   readonly recipient: LetterRecipient
-  readonly salutation: string
-  readonly paragraphs: readonly string[]
-  readonly closing: string
-  readonly signature: string
+  readonly blocks: readonly LetterBlock[]
 }
 
 export type EditorTemplateId = "modern" | "classic" | "minimal" | "technical"

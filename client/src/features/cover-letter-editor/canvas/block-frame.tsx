@@ -1,0 +1,58 @@
+import { useSortable } from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
+import { GripVertical } from "lucide-react"
+import { useTranslation } from "react-i18next"
+import { cn } from "@/lib/utils"
+import { BlockToolbar } from "./block-toolbar"
+
+interface BlockFrameProps {
+  readonly id: string
+  readonly canMoveUp: boolean
+  readonly canMoveDown: boolean
+  readonly onAi?: () => void
+  readonly onMoveUp: () => void
+  readonly onMoveDown: () => void
+  readonly onDuplicate: () => void
+  readonly onDelete: () => void
+  readonly children: React.ReactNode
+}
+
+/**
+ * Sortable wrapper around a single letter block: grip handle for drag-reorder
+ * plus a hover/focus toolbar. Visual chrome only appears on interaction so the
+ * page still reads as a clean document.
+ */
+export function BlockFrame({ id, children, canMoveUp, canMoveDown, ...toolbar }: BlockFrameProps) {
+  const { t } = useTranslation("cover-letter-editor")
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+
+  return (
+    <div
+      ref={setNodeRef}
+      // Translate only — never scaleX/scaleY. The vertical sort strategy would
+      // otherwise squish the dragged block to match the block it hovers over.
+      style={{ transform: transform ? CSS.Translate.toString(transform) : undefined, transition }}
+      className={cn(
+        "group/block relative rounded-md transition-shadow",
+        "hover:ring-1 hover:ring-blue-200 focus-within:ring-1 focus-within:ring-blue-300",
+        isDragging && "z-10 bg-white opacity-90 shadow-xl ring-1 ring-blue-300"
+      )}
+    >
+      <button
+        type="button"
+        aria-label={t("blockToolbar.drag")}
+        {...attributes}
+        {...listeners}
+        className="pan-ignore absolute -left-9 top-1/2 flex size-7 -translate-y-1/2 cursor-grab touch-none items-center justify-center rounded-md bg-neutral-800 text-neutral-300 opacity-0 transition-opacity hover:bg-neutral-700 group-hover/block:opacity-100 group-focus-within/block:opacity-100 active:cursor-grabbing"
+      >
+        <GripVertical className="size-4" />
+      </button>
+
+      <div className="pointer-events-none absolute -top-3.5 right-2 z-10 opacity-0 transition-opacity group-hover/block:pointer-events-auto group-hover/block:opacity-100 group-focus-within/block:pointer-events-auto group-focus-within/block:opacity-100">
+        <BlockToolbar canMoveUp={canMoveUp} canMoveDown={canMoveDown} {...toolbar} />
+      </div>
+
+      <div className="px-2 py-1">{children}</div>
+    </div>
+  )
+}
