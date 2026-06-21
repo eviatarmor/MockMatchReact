@@ -1,6 +1,7 @@
 import { createPortal } from "react-dom"
-import { cn } from "@/lib/utils"
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 import { LetterDocument } from "./letter-document"
+import { ZOOM } from "../constants"
 import type { useCanvasViewport } from "../hooks/use-canvas-viewport"
 import type { CoverLetterDocument, EditorTemplate } from "../types"
 
@@ -14,36 +15,37 @@ interface EditorCanvasProps {
  * Full-viewport, pan-and-zoomable document background.
  *
  * Rendered into a fixed z-0 layer behind the app chrome (sidebars z-10,
- * navbar z-20) so the page visually slides underneath them.
+ * navbar z-20) so the page visually slides underneath them. Pan/zoom is handled
+ * by react-zoom-pan-pinch; the dotted grid is synced to the live transform.
  */
 export function EditorCanvas({ document, template, viewport }: EditorCanvasProps) {
-  const { scale, offset, isPanning, containerRef, containerProps } = viewport
+  const { ref, scale, offset, onTransform } = viewport
 
   return createPortal(
-    <div
-      ref={containerRef}
-      {...containerProps}
-      className={cn(
-        "fixed inset-0 z-0 overflow-hidden bg-neutral-100 dark:bg-neutral-950",
-        "[--dot:var(--color-neutral-300)] dark:[--dot:var(--color-neutral-600)]",
-        isPanning ? "cursor-grabbing" : "cursor-grab"
-      )}
-      style={{
-        backgroundImage: "radial-gradient(circle, var(--dot) 1px, transparent 1px)",
-        backgroundSize: "24px 24px",
-      }}
+    <TransformWrapper
+      ref={ref}
+      initialScale={ZOOM.default}
+      minScale={ZOOM.min}
+      maxScale={ZOOM.max}
+      centerOnInit
+      limitToBounds={false}
+      doubleClick={{ disabled: true }}
+      wheel={{ step: 0.06 }}
+      onTransform={onTransform}
     >
-      <div
-        className="pointer-events-none absolute left-1/2 top-24 origin-top"
-        style={{
-          transform: `translate(-50%, 0) translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
+      <TransformComponent
+        wrapperClass="!fixed !inset-0 !z-0 !h-svh !w-screen cursor-grab bg-neutral-100 active:cursor-grabbing dark:bg-neutral-950 [--dot:var(--color-neutral-300)] dark:[--dot:var(--color-neutral-600)]"
+        wrapperStyle={{
+          backgroundImage: "radial-gradient(circle, var(--dot) 1px, transparent 1px)",
+          backgroundSize: `${24 * scale}px ${24 * scale}px`,
+          backgroundPosition: `${offset.x}px ${offset.y}px`,
         }}
       >
-        <div className="pointer-events-auto">
+        <div className="pt-24">
           <LetterDocument document={document} template={template} />
         </div>
-      </div>
-    </div>,
+      </TransformComponent>
+    </TransformWrapper>,
     window.document.body
   )
 }
