@@ -4,6 +4,7 @@ import {
   EditableText,
   RichTextField,
   SortableBlock,
+  type GrammarPopoverLabels,
   type RichTextToolbarLabels,
   type SortableBlockLabels,
 } from "@/components/document-editor"
@@ -42,6 +43,11 @@ export function LetterBlockView({ block, template, index, total, handlers, onAi 
     grammar: t("richText.grammar"),
     linkPrompt: t("richText.linkPrompt"),
   }
+  const grammarLabels: GrammarPopoverLabels = {
+    apply: t("grammar.apply"),
+    noSuggestions: t("grammar.noSuggestions"),
+    dismiss: t("grammar.dismiss"),
+  }
 
   return (
     <SortableBlock
@@ -63,6 +69,8 @@ export function LetterBlockView({ block, template, index, total, handlers, onAi 
           ariaLabel={t("blocks.greeting")}
           className="font-medium text-neutral-900"
           labels={richLabels}
+          grammar
+          grammarLabels={grammarLabels}
         />
       )}
 
@@ -74,6 +82,8 @@ export function LetterBlockView({ block, template, index, total, handlers, onAi 
           ariaLabel={t("blocks.paragraph")}
           className="text-justify leading-relaxed"
           labels={richLabels}
+          grammar
+          grammarLabels={grammarLabels}
         />
       )}
 
@@ -84,6 +94,8 @@ export function LetterBlockView({ block, template, index, total, handlers, onAi 
           placeholder={t("blockPlaceholders.subject")}
           ariaLabel={t("blocks.subject")}
           className="font-semibold text-neutral-900"
+          grammar
+          grammarLabels={grammarLabels}
         />
       )}
 
@@ -95,6 +107,8 @@ export function LetterBlockView({ block, template, index, total, handlers, onAi 
             placeholder={t("blockPlaceholders.closing")}
             ariaLabel={t("blockPlaceholders.closing")}
             labels={richLabels}
+            grammar
+            grammarLabels={grammarLabels}
           />
           <EditableText
             value={block.signature}
@@ -102,6 +116,8 @@ export function LetterBlockView({ block, template, index, total, handlers, onAi 
             placeholder={t("blockPlaceholders.signature")}
             ariaLabel={t("blockPlaceholders.signature")}
             className={cn("text-lg font-semibold text-neutral-900", template.serif && "font-serif")}
+            grammar
+            grammarLabels={grammarLabels}
           />
         </div>
       )}
@@ -114,6 +130,8 @@ export function LetterBlockView({ block, template, index, total, handlers, onAi 
             placeholder={t("blockPlaceholders.heading")}
             ariaLabel={t("blockPlaceholders.heading")}
             className={headingClass}
+            grammar
+            grammarLabels={grammarLabels}
           />
           <RichTextField
             value={block.text}
@@ -122,6 +140,8 @@ export function LetterBlockView({ block, template, index, total, handlers, onAi 
             ariaLabel={t("blocks.custom")}
             className="leading-relaxed"
             labels={richLabels}
+            grammar
+            grammarLabels={grammarLabels}
           />
         </div>
       )}

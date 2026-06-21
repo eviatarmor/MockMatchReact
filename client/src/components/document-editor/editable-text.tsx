@@ -1,5 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, type RefObject } from "react"
 import { cn } from "@/lib/utils"
+import { useGrammar } from "./grammar/use-grammar"
+import { TextGrammarOverlay } from "./grammar/text-grammar-overlay"
+import type { GrammarPopoverLabels } from "./grammar/grammar-popover"
 
 interface EditableTextProps {
   readonly value: string
@@ -9,6 +12,9 @@ interface EditableTextProps {
   readonly placeholder?: string
   readonly className?: string
   readonly ariaLabel?: string
+  /** Enable Harper grammar checking. Requires `grammarLabels`. */
+  readonly grammar?: boolean
+  readonly grammarLabels?: GrammarPopoverLabels
 }
 
 /**
@@ -30,8 +36,12 @@ export function EditableText({
   placeholder,
   className,
   ariaLabel,
+  grammar,
+  grammarLabels,
 }: EditableTextProps) {
   const ref = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
+  const grammarOn = Boolean(grammar && grammarLabels && !readOnly && onChange)
+  const issues = useGrammar(value, grammarOn)
 
   useLayoutEffect(() => {
     const el = ref.current
@@ -64,21 +74,29 @@ export function EditableText({
   const base =
     "pan-ignore w-full bg-transparent p-0 outline-none transition-colors placeholder:text-neutral-300 rounded-[3px] -mx-0.5 px-0.5 hover:bg-blue-500/[0.04] focus:bg-blue-500/[0.06]"
 
-  if (multiline) {
-    return (
-      <textarea
-        ref={ref as RefObject<HTMLTextAreaElement>}
-        rows={1}
-        value={value}
-        placeholder={placeholder}
-        aria-label={ariaLabel}
-        onChange={(event) => onChange(event.target.value)}
-        className={cn(base, "block resize-none overflow-hidden whitespace-pre-wrap", className)}
+  const overlay =
+    grammarOn && grammarLabels ? (
+      <TextGrammarOverlay
+        text={value}
+        issues={issues}
+        multiline={multiline}
+        className={className}
+        labels={grammarLabels}
+        onApply={(start, end, replacement) => onChange(value.slice(0, start) + replacement + value.slice(end))}
       />
-    )
-  }
+    ) : null
 
-  return (
+  const field = multiline ? (
+    <textarea
+      ref={ref as RefObject<HTMLTextAreaElement>}
+      rows={1}
+      value={value}
+      placeholder={placeholder}
+      aria-label={ariaLabel}
+      onChange={(event) => onChange(event.target.value)}
+      className={cn(base, "block resize-none overflow-hidden whitespace-pre-wrap", className)}
+    />
+  ) : (
     <input
       ref={ref as RefObject<HTMLInputElement>}
       type="text"
@@ -91,5 +109,15 @@ export function EditableText({
       }}
       className={cn(base, className)}
     />
+  )
+
+  // Only introduce the positioning wrapper when there's an overlay to host —
+  // bare fields keep their original inline/flex layout untouched.
+  if (!overlay) return field
+  return (
+    <div className="relative">
+      {field}
+      {overlay}
+    </div>
   )
 }

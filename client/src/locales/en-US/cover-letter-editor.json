@@ -98,6 +98,11 @@
     "grammar": "Check grammar",
     "linkPrompt": "Enter a URL"
   },
+  "grammar": {
+    "apply": "Apply suggestion",
+    "noSuggestions": "No suggestions available.",
+    "dismiss": "Remove"
+  },
   "fields": {
     "name": "Your name",
     "title": "Your title",

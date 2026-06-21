@@ -14,6 +14,8 @@ import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html"
 import { $getRoot, $insertNodes, $setSelection, type LexicalEditor } from "lexical"
 import { cn } from "@/lib/utils"
 import { FloatingTextToolbar, type RichTextToolbarLabels } from "./rich-text-toolbar"
+import { LexicalGrammarPlugin } from "./grammar/lexical-grammar-plugin"
+import type { GrammarPopoverLabels } from "./grammar/grammar-popover"
 
 interface RichTextFieldProps {
   /** Initial HTML. Treated as uncontrolled after mount — `onChange` is the source of truth. */
@@ -24,6 +26,9 @@ interface RichTextFieldProps {
   readonly className?: string
   readonly ariaLabel?: string
   readonly labels: RichTextToolbarLabels
+  /** Enable Harper grammar checking. Requires `grammarLabels`. */
+  readonly grammar?: boolean
+  readonly grammarLabels?: GrammarPopoverLabels
 }
 
 const theme = {
@@ -87,6 +92,8 @@ export function RichTextField({
   className,
   ariaLabel,
   labels,
+  grammar,
+  grammarLabels,
 }: RichTextFieldProps) {
   if (readOnly || !onChange) {
     if (!value) return null
@@ -131,6 +138,7 @@ export function RichTextField({
         <OnChangePlugin ignoreSelectionChange onChange={handleChange} />
         <FloatingTextToolbar labels={labels} />
         <BlurOnOutsidePointer />
+        {grammar && grammarLabels && <LexicalGrammarPlugin labels={grammarLabels} />}
       </div>
     </LexicalComposer>
   )
