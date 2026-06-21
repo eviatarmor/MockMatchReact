@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from "react"
+import { useEffect, useLayoutEffect, useRef, type RefObject } from "react"
 import { cn } from "@/lib/utils"
 
 interface EditableTextProps {
@@ -31,7 +31,7 @@ export function EditableText({
   className,
   ariaLabel,
 }: EditableTextProps) {
-  const ref = useRef<HTMLTextAreaElement>(null)
+  const ref = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
 
   useLayoutEffect(() => {
     const el = ref.current
@@ -39,6 +39,18 @@ export function EditableText({
     el.style.height = "auto"
     el.style.height = `${el.scrollHeight}px`
   }, [value, multiline])
+
+  // Blur on outside pointerdown. The zoom/pan canvas preventDefaults pointerdown
+  // for panning, suppressing the native blur, so fields stay stuck focused.
+  useEffect(() => {
+    const handler = (event: PointerEvent) => {
+      const el = ref.current
+      if (!el || document.activeElement !== el) return
+      if (!el.contains(event.target as Node)) el.blur()
+    }
+    document.addEventListener("pointerdown", handler, true)
+    return () => document.removeEventListener("pointerdown", handler, true)
+  }, [])
 
   if (readOnly || !onChange) {
     if (!value) return null
@@ -52,7 +64,7 @@ export function EditableText({
   if (multiline) {
     return (
       <textarea
-        ref={ref}
+        ref={ref as RefObject<HTMLTextAreaElement>}
         rows={1}
         value={value}
         placeholder={placeholder}
@@ -65,6 +77,7 @@ export function EditableText({
 
   return (
     <input
+      ref={ref as RefObject<HTMLInputElement>}
       type="text"
       value={value}
       placeholder={placeholder}

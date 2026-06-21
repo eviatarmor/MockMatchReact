@@ -26,19 +26,24 @@ interface LetterDocumentProps {
   readonly scale?: number
 }
 
+/** Prose fields hold HTML (Lexical output); render it as such in read-only mode. */
+function Html({ html, className }: { readonly html: string; readonly className?: string }) {
+  return <div className={cn("whitespace-pre-wrap", className)} dangerouslySetInnerHTML={{ __html: html }} />
+}
+
 /** Read-only render of a single body block (previews, export, non-edit mode). */
 function ReadOnlyBlock({ block, template }: { readonly block: LetterBlock; readonly template: EditorTemplate }) {
   switch (block.type) {
     case "greeting":
-      return <p className="font-medium text-neutral-900">{block.text}</p>
+      return <Html html={block.text} className="font-medium text-neutral-900" />
     case "paragraph":
-      return <p className="text-justify leading-relaxed">{block.text}</p>
+      return <Html html={block.text} className="text-justify leading-relaxed" />
     case "subject":
       return <p className="font-semibold text-neutral-900">{block.text}</p>
     case "signoff":
       return (
         <div className="flex flex-col gap-4">
-          <p>{block.closing}</p>
+          <Html html={block.closing} />
           <p className={cn("text-lg font-semibold text-neutral-900", template.serif && "font-serif")}>{block.signature}</p>
         </div>
       )
@@ -46,7 +51,7 @@ function ReadOnlyBlock({ block, template }: { readonly block: LetterBlock; reado
       return (
         <div className="flex flex-col gap-1.5">
           <p className={cn("text-sm font-semibold uppercase tracking-wide", template.accentClass)}>{block.heading}</p>
-          <p className="leading-relaxed">{block.text}</p>
+          <Html html={block.text} className="leading-relaxed" />
         </div>
       )
   }

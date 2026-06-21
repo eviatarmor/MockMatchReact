@@ -88,6 +88,16 @@
     "delete": "Delete",
     "drag": "Drag to reorder"
   },
+  "richText": {
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "list": "Bullet list",
+    "link": "Link",
+    "clear": "Clear formatting",
+    "grammar": "Check grammar",
+    "linkPrompt": "Enter a URL"
+  },
   "fields": {
     "name": "Your name",
     "title": "Your title",

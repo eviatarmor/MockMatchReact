@@ -1,4 +1,6 @@
 export { EditableText } from "./editable-text"
+export { RichTextField } from "./rich-text-field"
+export { type RichTextToolbarLabels } from "./rich-text-toolbar"
 export { BlockToolbar, type BlockToolbarLabels } from "./block-toolbar"
 export { SortableBlock, type SortableBlockLabels } from "./sortable-block"
 export { SectionInserter, type InserterItem } from "./section-inserter"

@@ -1,6 +1,12 @@
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
-import { EditableText, SortableBlock, type SortableBlockLabels } from "@/components/document-editor"
+import {
+  EditableText,
+  RichTextField,
+  SortableBlock,
+  type RichTextToolbarLabels,
+  type SortableBlockLabels,
+} from "@/components/document-editor"
 import type { CoverLetterHandlers } from "../hooks/use-cover-letter-document"
 import type { EditorTemplate, LetterBlock } from "../types"
 
@@ -26,6 +32,16 @@ export function LetterBlockView({ block, template, index, total, handlers, onAi 
     duplicate: t("blockToolbar.duplicate"),
     delete: t("blockToolbar.delete"),
   }
+  const richLabels: RichTextToolbarLabels = {
+    bold: t("richText.bold"),
+    italic: t("richText.italic"),
+    underline: t("richText.underline"),
+    list: t("richText.list"),
+    link: t("richText.link"),
+    clear: t("richText.clear"),
+    grammar: t("richText.grammar"),
+    linkPrompt: t("richText.linkPrompt"),
+  }
 
   return (
     <SortableBlock
@@ -40,24 +56,24 @@ export function LetterBlockView({ block, template, index, total, handlers, onAi 
       onDelete={() => handlers.removeBlock(block.id)}
     >
       {block.type === "greeting" && (
-        <EditableText
-          multiline
+        <RichTextField
           value={block.text}
           onChange={(text) => update({ text })}
           placeholder={t("blockPlaceholders.greeting")}
           ariaLabel={t("blocks.greeting")}
           className="font-medium text-neutral-900"
+          labels={richLabels}
         />
       )}
 
       {block.type === "paragraph" && (
-        <EditableText
-          multiline
+        <RichTextField
           value={block.text}
           onChange={(text) => update({ text })}
           placeholder={t("blockPlaceholders.paragraph")}
           ariaLabel={t("blocks.paragraph")}
           className="text-justify leading-relaxed"
+          labels={richLabels}
         />
       )}
 
@@ -73,12 +89,12 @@ export function LetterBlockView({ block, template, index, total, handlers, onAi 
 
       {block.type === "signoff" && (
         <div className="flex flex-col gap-4">
-          <EditableText
-            multiline
+          <RichTextField
             value={block.closing}
             onChange={(closing) => update({ closing })}
             placeholder={t("blockPlaceholders.closing")}
             ariaLabel={t("blockPlaceholders.closing")}
+            labels={richLabels}
           />
           <EditableText
             value={block.signature}
@@ -99,13 +115,13 @@ export function LetterBlockView({ block, template, index, total, handlers, onAi 
             ariaLabel={t("blockPlaceholders.heading")}
             className={headingClass}
           />
-          <EditableText
-            multiline
+          <RichTextField
             value={block.text}
             onChange={(text) => update({ text })}
             placeholder={t("blockPlaceholders.paragraph")}
             ariaLabel={t("blocks.custom")}
             className="leading-relaxed"
+            labels={richLabels}
           />
         </div>
       )}
