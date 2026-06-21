@@ -25,10 +25,11 @@ export function EditorCanvas({ document, template, viewport }: EditorCanvasProps
       {...containerProps}
       className={cn(
         "fixed inset-0 z-0 overflow-hidden bg-neutral-100 dark:bg-neutral-950",
+        "[--dot:var(--color-neutral-300)] dark:[--dot:var(--color-neutral-600)]",
         isPanning ? "cursor-grabbing" : "cursor-grab"
       )}
       style={{
-        backgroundImage: "radial-gradient(circle, var(--color-neutral-300) 1px, transparent 1px)",
+        backgroundImage: "radial-gradient(circle, var(--dot) 1px, transparent 1px)",
         backgroundSize: "24px 24px",
       }}
     >

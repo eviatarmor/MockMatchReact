@@ -1,30 +1,30 @@
 import { useTranslation } from "react-i18next"
-import { Minus, Plus, Undo2, Redo2, Maximize, Share2, Download } from "lucide-react"
+import { Minus, Plus, Undo2, Redo2, Share2, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import type { useCanvasViewport } from "../hooks/use-canvas-viewport"
 
-interface EditorToolbarCenterProps {
+interface EditorBottomBarProps {
   readonly viewport: ReturnType<typeof useCanvasViewport>
 }
 
-/** Center navbar slot: undo/redo + zoom controls. */
-export function EditorToolbarCenter({ viewport }: EditorToolbarCenterProps) {
+/** Floating bottom bar over the canvas: undo/redo + zoom controls. */
+export function EditorBottomBar({ viewport }: EditorBottomBarProps) {
   const { t } = useTranslation("cover-letter-editor")
   const { zoomPercent, zoomIn, zoomOut, resetView, canZoomIn, canZoomOut } = viewport
 
   return (
-    <div className="flex items-center gap-1">
-      <Button variant="ghost" size="icon" className="size-7 text-muted-foreground" aria-label={t("toolbar.undo")}>
+    <div className="pointer-events-auto absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-xl border bg-background/90 px-1.5 py-1 shadow-sm backdrop-blur">
+      <Button variant="ghost" size="icon" className="size-7 cursor-pointer text-muted-foreground" aria-label={t("toolbar.undo")}>
         <Undo2 className="size-4" />
       </Button>
-      <Button variant="ghost" size="icon" className="size-7 text-muted-foreground" aria-label={t("toolbar.redo")}>
+      <Button variant="ghost" size="icon" className="size-7 cursor-pointer text-muted-foreground" aria-label={t("toolbar.redo")}>
         <Redo2 className="size-4" />
       </Button>
 
       <Separator orientation="vertical" className="mx-1 h-5" />
 
-      <div className="flex items-center gap-0.5 rounded-lg border border-border/60 bg-muted/40 p-0.5">
+      <div className="flex items-center gap-0.5">
         <Button
           variant="ghost"
           size="icon"
@@ -54,16 +54,6 @@ export function EditorToolbarCenter({ viewport }: EditorToolbarCenterProps) {
           <Plus className="size-3.5" />
         </Button>
       </div>
-
-      <Button
-        variant="ghost"
-        size="icon"
-        className="size-7 cursor-pointer text-muted-foreground"
-        onClick={resetView}
-        aria-label={t("toolbar.resetView")}
-      >
-        <Maximize className="size-4" />
-      </Button>
     </div>
   )
 }
