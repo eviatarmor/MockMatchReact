@@ -6,16 +6,15 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
-  type Modifier,
 } from "@dnd-kit/core"
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
-import { EditableText } from "./editable-text"
+import { EditableText, SectionInserter, createScaleModifier, type InserterItem } from "@/components/document-editor"
 import { LetterBlockView } from "./letter-block"
-import { SectionInserter } from "./section-inserter"
+import { LETTER_BLOCK_TYPES } from "../constants"
 import type { CoverLetterHandlers } from "../hooks/use-cover-letter-document"
-import type { CoverLetterDocument, EditorTemplate, LetterBlock } from "../types"
+import type { CoverLetterDocument, EditorTemplate, LetterBlock, LetterBlockType } from "../types"
 
 interface LetterDocumentProps {
   readonly document: CoverLetterDocument
@@ -155,14 +154,15 @@ function EditableBody({ blocks, template, handlers, onAiBlock, scale = 1 }: {
   readonly onAiBlock?: (id: string) => void
   readonly scale?: number
 }) {
+  const { t } = useTranslation("cover-letter-editor")
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
+  const scaleModifier = useMemo(() => createScaleModifier(scale), [scale])
 
-  // The canvas applies a CSS transform: scale(); dnd-kit's transform is in screen
-  // pixels, so divide by the zoom to keep the dragged block under the cursor.
-  const scaleModifier = useMemo<Modifier>(
-    () => ({ transform }) => ({ ...transform, x: transform.x / scale, y: transform.y / scale }),
-    [scale]
-  )
+  const inserterItems: InserterItem[] = LETTER_BLOCK_TYPES.map((meta) => ({
+    id: meta.type,
+    icon: meta.icon,
+    label: t(meta.labelKey),
+  }))
 
   const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
@@ -183,7 +183,11 @@ function EditableBody({ blocks, template, handlers, onAiBlock, scale = 1 }: {
                 handlers={handlers}
                 onAi={onAiBlock}
               />
-              <SectionInserter onAdd={(type) => handlers.addBlock(type, block.id)} />
+              <SectionInserter
+                items={inserterItems}
+                addLabel={t("addSection")}
+                onAdd={(type) => handlers.addBlock(type as LetterBlockType, block.id)}
+              />
             </Fragment>
           ))}
         </div>

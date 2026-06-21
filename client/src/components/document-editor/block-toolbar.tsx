@@ -1,6 +1,14 @@
-import { useTranslation } from "react-i18next"
+import type { ReactNode } from "react"
 import { Sparkles, ArrowUp, ArrowDown, Copy, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+export interface BlockToolbarLabels {
+  readonly ai: string
+  readonly moveUp: string
+  readonly moveDown: string
+  readonly duplicate: string
+  readonly delete: string
+}
 
 interface BlockToolbarProps {
   readonly canMoveUp: boolean
@@ -10,6 +18,7 @@ interface BlockToolbarProps {
   readonly onMoveDown: () => void
   readonly onDuplicate: () => void
   readonly onDelete: () => void
+  readonly labels: BlockToolbarLabels
 }
 
 interface ActionProps {
@@ -17,7 +26,7 @@ interface ActionProps {
   readonly onClick: () => void
   readonly disabled?: boolean
   readonly danger?: boolean
-  readonly children: React.ReactNode
+  readonly children: ReactNode
 }
 
 function Action({ label, onClick, disabled, danger, children }: ActionProps) {
@@ -38,7 +47,7 @@ function Action({ label, onClick, disabled, danger, children }: ActionProps) {
   )
 }
 
-/** Floating per-block controls (AI / reorder / duplicate / delete). */
+/** Floating per-block controls (AI / reorder / duplicate / delete). Document-agnostic. */
 export function BlockToolbar({
   canMoveUp,
   canMoveDown,
@@ -47,24 +56,23 @@ export function BlockToolbar({
   onMoveDown,
   onDuplicate,
   onDelete,
+  labels,
 }: BlockToolbarProps) {
-  const { t } = useTranslation("cover-letter-editor")
-
   return (
     <div className="pan-ignore flex items-center gap-0.5 rounded-lg bg-neutral-900 p-1 shadow-lg ring-1 ring-black/20">
-      <Action label={t("blockToolbar.ai")} onClick={() => onAi?.()}>
+      <Action label={labels.ai} onClick={() => onAi?.()}>
         <Sparkles className="size-4 text-blue-400" />
       </Action>
-      <Action label={t("blockToolbar.moveUp")} onClick={onMoveUp} disabled={!canMoveUp}>
+      <Action label={labels.moveUp} onClick={onMoveUp} disabled={!canMoveUp}>
         <ArrowUp className="size-4" />
       </Action>
-      <Action label={t("blockToolbar.moveDown")} onClick={onMoveDown} disabled={!canMoveDown}>
+      <Action label={labels.moveDown} onClick={onMoveDown} disabled={!canMoveDown}>
         <ArrowDown className="size-4" />
       </Action>
-      <Action label={t("blockToolbar.duplicate")} onClick={onDuplicate}>
+      <Action label={labels.duplicate} onClick={onDuplicate}>
         <Copy className="size-4" />
       </Action>
-      <Action label={t("blockToolbar.delete")} onClick={onDelete} danger>
+      <Action label={labels.delete} onClick={onDelete} danger>
         <Trash2 className="size-4" />
       </Action>
     </div>

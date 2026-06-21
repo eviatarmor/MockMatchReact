@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
-import { EditableText } from "./editable-text"
-import { BlockFrame } from "./block-frame"
+import { EditableText, SortableBlock, type SortableBlockLabels } from "@/components/document-editor"
 import type { CoverLetterHandlers } from "../hooks/use-cover-letter-document"
 import type { EditorTemplate, LetterBlock } from "../types"
 
@@ -19,10 +18,19 @@ export function LetterBlockView({ block, template, index, total, handlers, onAi 
   const { t } = useTranslation("cover-letter-editor")
   const update = (patch: Partial<LetterBlock>) => handlers.updateBlock(block.id, patch)
   const headingClass = cn("text-sm font-semibold uppercase tracking-wide", template.accentClass)
+  const labels: SortableBlockLabels = {
+    drag: t("blockToolbar.drag"),
+    ai: t("blockToolbar.ai"),
+    moveUp: t("blockToolbar.moveUp"),
+    moveDown: t("blockToolbar.moveDown"),
+    duplicate: t("blockToolbar.duplicate"),
+    delete: t("blockToolbar.delete"),
+  }
 
   return (
-    <BlockFrame
+    <SortableBlock
       id={block.id}
+      labels={labels}
       canMoveUp={index > 0}
       canMoveDown={index < total - 1}
       onAi={onAi ? () => onAi(block.id) : undefined}
@@ -101,6 +109,6 @@ export function LetterBlockView({ block, template, index, total, handlers, onAi 
           />
         </div>
       )}
-    </BlockFrame>
+    </SortableBlock>
   )
 }

@@ -1,11 +1,15 @@
+import type { ReactNode } from "react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { GripVertical } from "lucide-react"
-import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
-import { BlockToolbar } from "./block-toolbar"
+import { BlockToolbar, type BlockToolbarLabels } from "./block-toolbar"
 
-interface BlockFrameProps {
+export interface SortableBlockLabels extends BlockToolbarLabels {
+  readonly drag: string
+}
+
+interface SortableBlockProps {
   readonly id: string
   readonly canMoveUp: boolean
   readonly canMoveDown: boolean
@@ -14,16 +18,17 @@ interface BlockFrameProps {
   readonly onMoveDown: () => void
   readonly onDuplicate: () => void
   readonly onDelete: () => void
-  readonly children: React.ReactNode
+  readonly labels: SortableBlockLabels
+  readonly children: ReactNode
 }
 
 /**
- * Sortable wrapper around a single letter block: grip handle for drag-reorder
+ * Sortable wrapper around a single document block: grip handle for drag-reorder
  * plus a hover/focus toolbar. Visual chrome only appears on interaction so the
- * page still reads as a clean document.
+ * page still reads as a clean document. Schema-agnostic — the caller renders the
+ * block content as children and owns the mutation handlers.
  */
-export function BlockFrame({ id, children, canMoveUp, canMoveDown, ...toolbar }: BlockFrameProps) {
-  const { t } = useTranslation("cover-letter-editor")
+export function SortableBlock({ id, labels, children, canMoveUp, canMoveDown, ...toolbar }: SortableBlockProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
 
   return (
@@ -40,7 +45,7 @@ export function BlockFrame({ id, children, canMoveUp, canMoveDown, ...toolbar }:
     >
       <button
         type="button"
-        aria-label={t("blockToolbar.drag")}
+        aria-label={labels.drag}
         {...attributes}
         {...listeners}
         className="pan-ignore absolute -left-9 top-1/2 flex size-7 -translate-y-1/2 cursor-grab touch-none items-center justify-center rounded-md bg-neutral-800 text-neutral-300 opacity-0 transition-opacity hover:bg-neutral-700 group-hover/block:opacity-100 group-focus-within/block:opacity-100 active:cursor-grabbing"
@@ -49,7 +54,7 @@ export function BlockFrame({ id, children, canMoveUp, canMoveDown, ...toolbar }:
       </button>
 
       <div className="pointer-events-none absolute -top-3.5 right-2 z-10 opacity-0 transition-opacity group-hover/block:pointer-events-auto group-hover/block:opacity-100 group-focus-within/block:pointer-events-auto group-focus-within/block:opacity-100">
-        <BlockToolbar canMoveUp={canMoveUp} canMoveDown={canMoveDown} {...toolbar} />
+        <BlockToolbar canMoveUp={canMoveUp} canMoveDown={canMoveDown} labels={labels} {...toolbar} />
       </div>
 
       <div className="px-2 py-1">{children}</div>

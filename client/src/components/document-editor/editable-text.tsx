@@ -15,10 +15,12 @@ interface EditableTextProps {
  * Inline text editor styled to be invisible until focused — it inherits the
  * surrounding typography via `className` so it reads as document text, not a
  * form field. Falls back to a plain node when `readOnly` (or no `onChange`),
- * so the same component drives both the editor and read-only previews/export.
+ * so the same component drives both an editor and read-only previews/export.
  *
- * `pan-ignore` marks the field so the zoom/pan canvas excludes it from panning,
+ * `pan-ignore` marks the field so a zoom/pan canvas can exclude it from panning,
  * letting clicks focus + select text instead of dragging the page.
+ *
+ * Document-agnostic — reuse for résumés, letters, or any editable document.
  */
 export function EditableText({
   value,
