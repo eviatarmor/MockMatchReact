@@ -46,7 +46,10 @@ export function EditableText({
     const handler = (event: PointerEvent) => {
       const el = ref.current
       if (!el || document.activeElement !== el) return
-      if (!el.contains(event.target as Node)) el.blur()
+      if (!el.contains(event.target as Node)) {
+        el.setSelectionRange(0, 0)
+        el.blur()
+      }
     }
     document.addEventListener("pointerdown", handler, true)
     return () => document.removeEventListener("pointerdown", handler, true)

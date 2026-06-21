@@ -11,7 +11,7 @@ import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin"
 import { ListNode, ListItemNode } from "@lexical/list"
 import { LinkNode } from "@lexical/link"
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html"
-import { $getRoot, $insertNodes, type LexicalEditor } from "lexical"
+import { $getRoot, $insertNodes, $setSelection, type LexicalEditor } from "lexical"
 import { cn } from "@/lib/utils"
 import { FloatingTextToolbar, type RichTextToolbarLabels } from "./rich-text-toolbar"
 
@@ -53,6 +53,8 @@ function BlurOnOutsidePointer() {
       if (root.contains(target)) return
       if (target instanceof Element && target.closest("[data-rte-toolbar]")) return
       root.blur()
+      // Clear Lexical's retained selection so the blue highlight disappears.
+      editor.update(() => $setSelection(null))
     }
     document.addEventListener("pointerdown", handler, true)
     return () => document.removeEventListener("pointerdown", handler, true)

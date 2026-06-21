@@ -24,6 +24,14 @@ interface EditorCanvasProps {
 export function EditorCanvas({ document, template, viewport, handlers, onAiBlock }: EditorCanvasProps) {
   const { ref, scale, offset, onTransform } = viewport
 
+  // Clicking/dragging the canvas background starts a pan — drop focus + text
+  // selection so editable fields don't stay focused/highlighted underneath.
+  const clearEditing = () => {
+    const active = window.document.activeElement
+    if (active instanceof HTMLElement) active.blur()
+    window.getSelection()?.removeAllRanges()
+  }
+
   return createPortal(
     <TransformWrapper
       ref={ref}
@@ -35,6 +43,7 @@ export function EditorCanvas({ document, template, viewport, handlers, onAiBlock
       doubleClick={{ disabled: true }}
       wheel={{ step: 0.06 }}
       panning={{ excluded: ["pan-ignore"] }}
+      onPanningStart={clearEditing}
       onTransform={onTransform}
     >
       <TransformComponent

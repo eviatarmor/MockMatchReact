@@ -72,6 +72,7 @@ export function FloatingTextToolbar({ labels }: { readonly labels: RichTextToolb
       !native ||
       native.rangeCount === 0 ||
       !root ||
+      document.activeElement !== root ||
       !root.contains(native.anchorNode)
     ) {
       setPos(null)
@@ -105,6 +106,15 @@ export function FloatingTextToolbar({ labels }: { readonly labels: RichTextToolb
       ),
     [editor, update]
   )
+
+  // Hide as soon as the editor loses focus (blur fires no editor update).
+  useEffect(() => {
+    const onBlur = () => setPos(null)
+    return editor.registerRootListener((root, prevRoot) => {
+      prevRoot?.removeEventListener("blur", onBlur)
+      root?.addEventListener("blur", onBlur)
+    })
+  }, [editor])
 
   useEffect(() => {
     const reposition = () => editor.getEditorState().read(update)
