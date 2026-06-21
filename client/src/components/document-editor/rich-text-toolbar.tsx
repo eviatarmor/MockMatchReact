@@ -43,8 +43,10 @@ function ToolbarButton({ label, active, onClick, children }: ToolbarButtonProps)
       onMouseDown={(event) => event.preventDefault()}
       onClick={onClick}
       className={cn(
-        "flex size-8 items-center justify-center rounded-md text-neutral-200 transition-colors hover:bg-white/10 hover:text-white",
-        active && "bg-white/15 text-white"
+        "flex size-8 items-center justify-center rounded-md transition-colors",
+        "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
+        "dark:text-neutral-200 dark:hover:bg-white/10 dark:hover:text-white",
+        active && "bg-neutral-100 text-neutral-900 dark:bg-white/15 dark:text-white"
       )}
     >
       {children}
@@ -149,7 +151,7 @@ export function FloatingTextToolbar({ labels }: { readonly labels: RichTextToolb
   return createPortal(
     <div
       data-rte-toolbar
-      className="pan-ignore fixed z-50 flex -translate-x-1/2 -translate-y-[calc(100%+8px)] items-center gap-0.5 rounded-lg bg-neutral-900 p-1 shadow-xl ring-1 ring-black/30"
+      className="pan-ignore fixed z-50 flex -translate-x-1/2 -translate-y-[calc(100%+8px)] items-center gap-0.5 rounded-lg border border-neutral-200 bg-white p-1 shadow-xl ring-1 ring-black/5 dark:border-transparent dark:bg-neutral-900 dark:ring-black/30"
       style={{ top: pos.top, left: pos.left }}
     >
       <ToolbarButton label={labels.bold} active={active.bold} onClick={() => format("bold")}>
@@ -161,7 +163,7 @@ export function FloatingTextToolbar({ labels }: { readonly labels: RichTextToolb
       <ToolbarButton label={labels.underline} active={active.underline} onClick={() => format("underline")}>
         <Underline className="size-4" />
       </ToolbarButton>
-      <span className="mx-0.5 h-5 w-px bg-white/15" />
+      <span className="mx-0.5 h-5 w-px bg-neutral-200 dark:bg-white/15" />
       <ToolbarButton label={labels.list} onClick={() => editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined)}>
         <List className="size-4" />
       </ToolbarButton>
@@ -171,7 +173,7 @@ export function FloatingTextToolbar({ labels }: { readonly labels: RichTextToolb
       <ToolbarButton label={labels.clear} onClick={clearFormatting}>
         <RemoveFormatting className="size-4" />
       </ToolbarButton>
-      <span className="mx-0.5 h-5 w-px bg-white/15" />
+      <span className="mx-0.5 h-5 w-px bg-neutral-200 dark:bg-white/15" />
       <ToolbarButton label={labels.grammar} onClick={() => { /* grammar — intentionally not implemented yet */ }}>
         <SpellCheck className="size-4" />
       </ToolbarButton>

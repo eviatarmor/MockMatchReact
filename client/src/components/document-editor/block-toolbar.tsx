@@ -38,8 +38,10 @@ function Action({ label, onClick, disabled, danger, children }: ActionProps) {
       aria-label={label}
       title={label}
       className={cn(
-        "pan-ignore flex size-7 items-center justify-center rounded-md text-neutral-300 transition-colors hover:bg-white/10 hover:text-white disabled:pointer-events-none disabled:opacity-30",
-        danger && "hover:bg-red-500/20 hover:text-red-400"
+        "pan-ignore flex size-7 items-center justify-center rounded-md transition-colors disabled:pointer-events-none disabled:opacity-30",
+        "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
+        "dark:text-neutral-300 dark:hover:bg-white/10 dark:hover:text-white",
+        danger && "hover:bg-red-500/10 hover:text-red-600 dark:hover:bg-red-500/20 dark:hover:text-red-400"
       )}
     >
       {children}
@@ -59,7 +61,7 @@ export function BlockToolbar({
   labels,
 }: BlockToolbarProps) {
   return (
-    <div className="pan-ignore flex items-center gap-0.5 rounded-lg bg-neutral-900 p-1 shadow-lg ring-1 ring-black/20">
+    <div className="pan-ignore flex items-center gap-0.5 rounded-lg border border-neutral-200 bg-white p-1 shadow-lg ring-1 ring-black/5 dark:border-transparent dark:bg-neutral-900 dark:ring-black/20">
       <Action label={labels.ai} onClick={() => onAi?.()}>
         <Sparkles className="size-4 text-blue-400" />
       </Action>

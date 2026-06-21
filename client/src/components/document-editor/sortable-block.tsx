@@ -48,7 +48,7 @@ export function SortableBlock({ id, labels, children, canMoveUp, canMoveDown, ..
         aria-label={labels.drag}
         {...attributes}
         {...listeners}
-        className="pan-ignore absolute -left-9 top-1/2 flex size-7 -translate-y-1/2 cursor-grab touch-none items-center justify-center rounded-md bg-neutral-800 text-neutral-300 opacity-0 transition-opacity hover:bg-neutral-700 group-hover/block:opacity-100 group-focus-within/block:opacity-100 active:cursor-grabbing"
+        className="pan-ignore absolute -left-9 top-1/2 flex size-7 -translate-y-1/2 cursor-grab touch-none items-center justify-center rounded-md border border-neutral-200 bg-white text-neutral-500 opacity-0 shadow-sm transition-opacity hover:bg-neutral-100 hover:text-neutral-700 group-hover/block:opacity-100 group-focus-within/block:opacity-100 active:cursor-grabbing dark:border-transparent dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700 dark:hover:text-neutral-300"
       >
         <GripVertical className="size-4" />
       </button>

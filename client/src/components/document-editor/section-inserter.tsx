@@ -31,7 +31,7 @@ export function SectionInserter({ items, onAdd, addLabel }: SectionInserterProps
         <span className="pointer-events-none absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-blue-400 opacity-0 transition-opacity group-hover/insert:opacity-100 group-has-data-[popup-open]/insert:opacity-100" />
         <DropdownMenuTrigger
           aria-label={addLabel}
-          className="relative flex size-6 cursor-pointer items-center justify-center rounded-full bg-neutral-900 text-white opacity-0 shadow-md transition-opacity hover:bg-neutral-800 group-hover/insert:opacity-100 data-[popup-open]:opacity-100"
+          className="relative flex size-6 cursor-pointer items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-600 opacity-0 shadow-md transition-opacity hover:bg-neutral-100 hover:text-neutral-900 group-hover/insert:opacity-100 data-[popup-open]:opacity-100 dark:border-transparent dark:bg-neutral-900 dark:text-white dark:hover:bg-neutral-800"
         >
           <Plus className="size-3.5" />
         </DropdownMenuTrigger>
