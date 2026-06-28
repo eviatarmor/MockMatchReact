@@ -103,7 +103,7 @@ export function EditorRail({ activeTemplateId, onTemplateChange, document, handl
                         "flex size-8 cursor-pointer items-center justify-center rounded-lg transition-colors",
                         isActive
                           ? "bg-primary text-primary-foreground shadow-sm"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          : "text-foreground hover:bg-muted"
                       )}
                     />
                   }
