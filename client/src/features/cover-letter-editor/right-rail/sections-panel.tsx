@@ -23,10 +23,16 @@ interface SectionsPanelProps {
 
 const META = new Map(LETTER_BLOCK_TYPES.map((m) => [m.type, m]))
 
+/** Body fields hold Lexical HTML; strip tags down to plain text for the preview line. */
+function stripHtml(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html")
+  return doc.body.textContent ?? ""
+}
+
 function snippet(block: LetterBlock): string {
-  if (block.type === "signoff") return block.closing
+  if (block.type === "signoff") return stripHtml(block.closing)
   if (block.type === "custom") return block.heading
-  return block.text
+  return stripHtml(block.text)
 }
 
 function SectionRow({ block, index, total, handlers }: {
