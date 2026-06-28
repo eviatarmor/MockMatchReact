@@ -13,6 +13,7 @@ import { GripVertical, ChevronUp, ChevronDown, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 import { LETTER_BLOCK_TYPES } from "../constants"
+import { snippet } from "../section-snippet"
 import type { CoverLetterHandlers } from "../hooks/use-cover-letter-document"
 import type { LetterBlock } from "../types"
 
@@ -22,18 +23,6 @@ interface SectionsPanelProps {
 }
 
 const META = new Map(LETTER_BLOCK_TYPES.map((m) => [m.type, m]))
-
-/** Body fields hold Lexical HTML; strip tags down to plain text for the preview line. */
-function stripHtml(html: string): string {
-  const doc = new DOMParser().parseFromString(html, "text/html")
-  return doc.body.textContent ?? ""
-}
-
-function snippet(block: LetterBlock): string {
-  if (block.type === "signoff") return stripHtml(block.closing)
-  if (block.type === "custom") return block.heading
-  return stripHtml(block.text)
-}
 
 function SectionRow({ block, index, total, handlers }: {
   readonly block: LetterBlock

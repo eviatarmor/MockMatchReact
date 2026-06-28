@@ -1,13 +1,6 @@
 import { useTranslation } from "react-i18next"
-import { cn } from "@/lib/utils"
-import {
-  EditableText,
-  RichTextField,
-  SortableBlock,
-  type GrammarPopoverLabels,
-  type RichTextToolbarLabels,
-  type SortableBlockLabels,
-} from "@/components/document-editor"
+import { SortableBlock, type SortableBlockLabels } from "@/components/document-editor"
+import { BlockFields } from "./block-fields"
 import type { CoverLetterHandlers } from "../hooks/use-cover-letter-document"
 import type { EditorTemplate, LetterBlock } from "../types"
 
@@ -24,7 +17,6 @@ interface LetterBlockViewProps {
 export function LetterBlockView({ block, template, index, total, handlers, onAi }: LetterBlockViewProps) {
   const { t } = useTranslation("cover-letter-editor")
   const update = (patch: Partial<LetterBlock>) => handlers.updateBlock(block.id, patch)
-  const headingClass = cn("text-sm font-semibold uppercase tracking-wide", template.accentClass)
   const labels: SortableBlockLabels = {
     drag: t("blockToolbar.drag"),
     ai: t("blockToolbar.ai"),
@@ -32,21 +24,6 @@ export function LetterBlockView({ block, template, index, total, handlers, onAi 
     moveDown: t("blockToolbar.moveDown"),
     duplicate: t("blockToolbar.duplicate"),
     delete: t("blockToolbar.delete"),
-  }
-  const richLabels: RichTextToolbarLabels = {
-    bold: t("richText.bold"),
-    italic: t("richText.italic"),
-    underline: t("richText.underline"),
-    list: t("richText.list"),
-    link: t("richText.link"),
-    clear: t("richText.clear"),
-    grammar: t("richText.grammar"),
-    linkPrompt: t("richText.linkPrompt"),
-  }
-  const grammarLabels: GrammarPopoverLabels = {
-    apply: t("grammar.apply"),
-    noSuggestions: t("grammar.noSuggestions"),
-    dismiss: t("grammar.dismiss"),
   }
 
   return (
@@ -61,90 +38,7 @@ export function LetterBlockView({ block, template, index, total, handlers, onAi 
       onDuplicate={() => handlers.duplicateBlock(block.id)}
       onDelete={() => handlers.removeBlock(block.id)}
     >
-      {block.type === "greeting" && (
-        <RichTextField
-          value={block.text}
-          onChange={(text) => update({ text })}
-          placeholder={t("blockPlaceholders.greeting")}
-          ariaLabel={t("blocks.greeting")}
-          className="font-medium text-neutral-900"
-          labels={richLabels}
-          grammar
-          grammarLabels={grammarLabels}
-        />
-      )}
-
-      {block.type === "paragraph" && (
-        <RichTextField
-          value={block.text}
-          onChange={(text) => update({ text })}
-          placeholder={t("blockPlaceholders.paragraph")}
-          ariaLabel={t("blocks.paragraph")}
-          className="text-justify leading-relaxed"
-          labels={richLabels}
-          grammar
-          grammarLabels={grammarLabels}
-        />
-      )}
-
-      {block.type === "subject" && (
-        <EditableText
-          value={block.text}
-          onChange={(text) => update({ text })}
-          placeholder={t("blockPlaceholders.subject")}
-          ariaLabel={t("blocks.subject")}
-          className="font-semibold text-neutral-900"
-          grammar
-          grammarLabels={grammarLabels}
-        />
-      )}
-
-      {block.type === "signoff" && (
-        <div className="flex flex-col gap-4">
-          <RichTextField
-            value={block.closing}
-            onChange={(closing) => update({ closing })}
-            placeholder={t("blockPlaceholders.closing")}
-            ariaLabel={t("blockPlaceholders.closing")}
-            labels={richLabels}
-            grammar
-            grammarLabels={grammarLabels}
-          />
-          <EditableText
-            value={block.signature}
-            onChange={(signature) => update({ signature })}
-            placeholder={t("blockPlaceholders.signature")}
-            ariaLabel={t("blockPlaceholders.signature")}
-            className={cn("text-lg font-semibold text-neutral-900", template.serif && "font-serif")}
-            grammar
-            grammarLabels={grammarLabels}
-          />
-        </div>
-      )}
-
-      {block.type === "custom" && (
-        <div className="flex flex-col gap-1.5">
-          <EditableText
-            value={block.heading}
-            onChange={(heading) => update({ heading })}
-            placeholder={t("blockPlaceholders.heading")}
-            ariaLabel={t("blockPlaceholders.heading")}
-            className={headingClass}
-            grammar
-            grammarLabels={grammarLabels}
-          />
-          <RichTextField
-            value={block.text}
-            onChange={(text) => update({ text })}
-            placeholder={t("blockPlaceholders.paragraph")}
-            ariaLabel={t("blocks.custom")}
-            className="leading-relaxed"
-            labels={richLabels}
-            grammar
-            grammarLabels={grammarLabels}
-          />
-        </div>
-      )}
+      <BlockFields block={block} template={template} update={update} />
     </SortableBlock>
   )
 }

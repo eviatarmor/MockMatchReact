@@ -111,6 +111,22 @@
     "recipientTitle": "Recipient title",
     "company": "Company"
   },
+  "contacts": {
+    "email": "Email",
+    "phone": "Phone",
+    "location": "Location",
+    "website": "Website",
+    "linkedin": "LinkedIn"
+  },
+  "mobile": {
+    "rows": {
+      "basicInfo": "Basic info",
+      "recipient": "Recipient",
+      "date": "Date"
+    },
+    "openSection": "Edit {{section}}",
+    "customize": "Customize"
+  },
   "ai": {
     "title": "AI assistant",
     "description": "Rewrite, shorten, or tailor your letter in one click.",

@@ -2,10 +2,12 @@ import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Cloud } from "lucide-react"
 import { useNavbarSlots } from "@/hooks/use-navbar-slots"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { BreadcrumbName } from "./top-bar/breadcrumb-name"
 import { EditorBottomBar, EditorToolbarActions } from "./top-bar/editor-toolbar"
 import { EditorCanvas } from "./canvas/editor-canvas"
 import { EditorRail } from "./right-rail/editor-rail"
+import { MobileEditor } from "./mobile/mobile-editor"
 import { useCanvasViewport } from "./hooks/use-canvas-viewport"
 import { useCoverLetterDocument } from "./hooks/use-cover-letter-document"
 import { EDITOR_TEMPLATES, SAMPLE_DOCUMENT } from "./constants"
@@ -13,6 +15,7 @@ import type { EditorTemplateId } from "./types"
 
 export function CoverLetterEditorPageContent() {
   const { t } = useTranslation("cover-letter-editor")
+  const isMobile = useIsMobile()
   const viewport = useCanvasViewport()
   const { document, handlers } = useCoverLetterDocument(SAMPLE_DOCUMENT)
   const [templateId, setTemplateId] = useState<EditorTemplateId>("modern")
@@ -32,8 +35,26 @@ export function CoverLetterEditorPageContent() {
     ),
     [letterName, t]
   )
+  // The breadcrumb (and its inline editable name) is hidden below md, so on
+  // mobile surface the editable title via the always-visible center slot.
+  const center = useMemo(
+    () => (isMobile ? <BreadcrumbName value={letterName} onChange={setLetterName} /> : null),
+    [isMobile, letterName]
+  )
   const end = useMemo(() => <EditorToolbarActions />, [])
-  useNavbarSlots({ crumb, center: null, end })
+  useNavbarSlots({ crumb, center, end })
+
+  if (isMobile) {
+    return (
+      <MobileEditor
+        document={document}
+        template={template}
+        templateId={templateId}
+        onTemplateChange={setTemplateId}
+        handlers={handlers}
+      />
+    )
+  }
 
   return (
     <div className="relative h-full min-h-0">
