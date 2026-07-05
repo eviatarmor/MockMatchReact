@@ -1,6 +1,13 @@
 import { useCallback, useRef, useState } from "react"
 import type { ReactZoomPanPinchRef } from "react-zoom-pan-pinch"
-import { ZOOM } from "../constants"
+
+/** Zoom bounds + step for the canvas viewport (1 = 100%). */
+export const ZOOM = {
+  min: 0.4,
+  max: 2.5,
+  step: 0.1,
+  default: 1,
+} as const
 
 interface TransformState {
   readonly scale: number
@@ -13,7 +20,8 @@ interface TransformState {
  *
  * Owns the library ref + a mirror of its transform state (scale/offset) so
  * consumers can both drive zoom (buttons) and read the live transform (e.g. to
- * sync a background grid). Generic enough to drive any document preview.
+ * sync a background grid). Generic enough to drive any document preview — shared
+ * by the cover-letter and resume editors.
  */
 export function useCanvasViewport() {
   const ref = useRef<ReactZoomPanPinchRef>(null)

@@ -1,24 +1,22 @@
-import { Fragment, useMemo } from "react"
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core"
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
-import { EditableText, SectionInserter, createScaleModifier, type InserterItem } from "@/components/document-editor"
-import { LetterBlockView } from "./letter-block"
+import {
+  EditableText,
+  SectionedBody,
+  type BlockTypeMeta,
+  type ResolvedStyle,
+  type SortableBlockLabels,
+} from "@/components/document-editor"
+import { BlockFields } from "./block-fields"
 import { LETTER_BLOCK_TYPES } from "../constants"
 import type { CoverLetterHandlers } from "../hooks/use-cover-letter-document"
-import type { CoverLetterDocument, EditorTemplate, LetterBlock, LetterBlockType } from "../types"
+import type { CoverLetterDocument, EditorTemplate, LetterBlock } from "../types"
 
 interface LetterDocumentProps {
   readonly document: CoverLetterDocument
   readonly template: EditorTemplate
+  /** Resolved visual style (template default + user Style-panel overrides). */
+  readonly style: ResolvedStyle
   /** When provided the document is editable; otherwise it renders read-only. */
   readonly handlers?: CoverLetterHandlers
   readonly onAiBlock?: (id: string) => void
@@ -32,33 +30,33 @@ function Html({ html, className }: { readonly html: string; readonly className?:
 }
 
 /** Read-only render of a single body block (previews, export, non-edit mode). */
-function ReadOnlyBlock({ block, template }: { readonly block: LetterBlock; readonly template: EditorTemplate }) {
+function ReadOnlyBlock({ block, style }: { readonly block: LetterBlock; readonly style: ResolvedStyle }) {
   switch (block.type) {
     case "greeting":
       return <Html html={block.text} className="font-medium text-neutral-900" />
     case "paragraph":
-      return <Html html={block.text} className="text-justify leading-relaxed" />
+      return <Html html={block.text} className={cn("text-justify", style.bodyLeading)} />
     case "subject":
       return <p className="font-semibold text-neutral-900">{block.text}</p>
     case "signoff":
       return (
         <div className="flex flex-col gap-4">
           <Html html={block.closing} />
-          <p className={cn("text-lg font-semibold text-neutral-900", template.serif && "font-serif")}>{block.signature}</p>
+          <p className={cn("text-lg font-semibold text-neutral-900", style.serif && "font-serif")}>{block.signature}</p>
         </div>
       )
     case "custom":
       return (
         <div className="flex flex-col gap-1.5">
-          <p className={cn("text-sm font-semibold uppercase tracking-wide", template.accentClass)}>{block.heading}</p>
-          <Html html={block.text} className="leading-relaxed" />
+          <p className={style.headingClass}>{block.heading}</p>
+          <Html html={block.text} className={style.bodyLeading} />
         </div>
       )
   }
 }
 
 /** Editable sender + recipient header. */
-function DocumentHeader({ document, template, handlers }: Required<Pick<LetterDocumentProps, "document" | "template">> & Pick<LetterDocumentProps, "handlers">) {
+function DocumentHeader({ document, template, style, handlers }: Required<Pick<LetterDocumentProps, "document" | "template" | "style">> & Pick<LetterDocumentProps, "handlers">) {
   const { t } = useTranslation("cover-letter-editor")
   const { sender, recipient } = document
   const bind = (onChange?: (v: string) => void) => (handlers ? onChange : undefined)
@@ -82,7 +80,7 @@ function DocumentHeader({ document, template, handlers }: Required<Pick<LetterDo
           onChange={bind((v) => handlers?.setSenderField("title", v))}
           placeholder={t("fields.title")}
           ariaLabel={t("fields.title")}
-          className={cn("mt-1 text-base font-medium", template.accentClass, template.id === "classic" && "text-center")}
+          className={cn("mt-1 text-base font-medium", style.accentText, template.id === "classic" && "text-center")}
         />
 
         <ul className={cn("mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-neutral-600", template.id === "classic" && "justify-center")}>
@@ -90,7 +88,7 @@ function DocumentHeader({ document, template, handlers }: Required<Pick<LetterDo
             const Icon = contact.icon
             return (
               <li key={contact.id} className="flex items-center gap-1.5">
-                <Icon className={cn("size-3.5 shrink-0", template.accentClass)} />
+                <Icon className={cn("size-3.5 shrink-0", style.accentText)} />
                 <EditableText
                   value={contact.value}
                   onChange={bind((v) => handlers?.setContact(contact.id, v))}
@@ -101,7 +99,7 @@ function DocumentHeader({ document, template, handlers }: Required<Pick<LetterDo
           })}
         </ul>
 
-        <hr className={cn("mt-4 border-t-2", template.id === "modern" ? "border-blue-600" : "border-neutral-300")} />
+        <hr className={cn("mt-4 border-t-2", style.accentBorder)} />
       </header>
 
       <EditableText
@@ -141,63 +139,52 @@ function DocumentHeader({ document, template, handlers }: Required<Pick<LetterDo
 }
 
 /** Read-only body block list (previews / export). */
-function ReadOnlyBody({ blocks, template }: { readonly blocks: readonly LetterBlock[]; readonly template: EditorTemplate }) {
+function ReadOnlyBody({ blocks, style }: { readonly blocks: readonly LetterBlock[]; readonly style: ResolvedStyle }) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className={cn("flex flex-col", style.sectionGap)}>
       {blocks.map((block) => (
-        <ReadOnlyBlock key={block.id} block={block} template={template} />
+        <ReadOnlyBlock key={block.id} block={block} style={style} />
       ))}
     </div>
   )
 }
 
 /** Editable, drag-reorderable body block list with between-block inserters. */
-function EditableBody({ blocks, template, handlers, onAiBlock, scale = 1 }: {
+function EditableBody({ blocks, style, handlers, onAiBlock, scale = 1 }: {
   readonly blocks: readonly LetterBlock[]
-  readonly template: EditorTemplate
+  readonly style: ResolvedStyle
   readonly handlers: CoverLetterHandlers
   readonly onAiBlock?: (id: string) => void
   readonly scale?: number
 }) {
   const { t } = useTranslation("cover-letter-editor")
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
-  const scaleModifier = useMemo(() => createScaleModifier(scale), [scale])
-
-  const inserterItems: InserterItem[] = LETTER_BLOCK_TYPES.map((meta) => ({
-    id: meta.type,
-    icon: meta.icon,
-    label: t(meta.labelKey),
-  }))
-
-  const onDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    if (over && active.id !== over.id) handlers.reorderBlocks(String(active.id), String(over.id))
+  const blockLabels: SortableBlockLabels = {
+    drag: t("blockToolbar.drag"),
+    ai: t("blockToolbar.ai"),
+    moveUp: t("blockToolbar.moveUp"),
+    moveDown: t("blockToolbar.moveDown"),
+    duplicate: t("blockToolbar.duplicate"),
+    delete: t("blockToolbar.delete"),
   }
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={[scaleModifier]} onDragEnd={onDragEnd}>
-      <SortableContext items={blocks.map((b) => b.id)} strategy={verticalListSortingStrategy}>
-        <div className="flex flex-col">
-          {blocks.map((block, index) => (
-            <Fragment key={block.id}>
-              <LetterBlockView
-                block={block}
-                template={template}
-                index={index}
-                total={blocks.length}
-                handlers={handlers}
-                onAi={onAiBlock}
-              />
-              <SectionInserter
-                items={inserterItems}
-                addLabel={t("addSection")}
-                onAdd={(type) => handlers.addBlock(type as LetterBlockType, block.id)}
-              />
-            </Fragment>
-          ))}
-        </div>
-      </SortableContext>
-    </DndContext>
+    <SectionedBody
+      blocks={blocks}
+      handlers={handlers}
+      registry={LETTER_BLOCK_TYPES}
+      labelFor={(meta: BlockTypeMeta<LetterBlock>) => t(meta.labelKey)}
+      blockLabels={blockLabels}
+      addLabel={t("addSection")}
+      onAiBlock={onAiBlock}
+      scale={scale}
+      renderFields={(block) => (
+        <BlockFields
+          block={block}
+          style={style}
+          update={(patch) => handlers.updateBlock(block.id, patch)}
+        />
+      )}
+    />
   )
 }
 
@@ -207,21 +194,21 @@ function EditableBody({ blocks, template, handlers, onAiBlock, scale = 1 }: {
  * Without `handlers` it stays a pure read-only render — reusable for previews,
  * thumbnails, or a future export pipeline. Fixed width (816px ≈ US Letter).
  */
-export function LetterDocument({ document, template, handlers, onAiBlock, scale }: LetterDocumentProps) {
+export function LetterDocument({ document, template, style, handlers, onAiBlock, scale }: LetterDocumentProps) {
   return (
     <article
       className={cn(
         "w-[816px] min-h-[1056px] shrink-0 bg-white px-24 py-20 text-neutral-800 shadow-2xl",
-        template.serif ? "font-serif" : "font-sans"
+        style.fontClass
       )}
     >
-      <DocumentHeader document={document} template={template} handlers={handlers} />
+      <DocumentHeader document={document} template={template} style={style} handlers={handlers} />
 
-      <div className="mt-6 text-[15px] leading-relaxed">
+      <div className={cn("mt-6 text-[15px]", style.bodyLeading)}>
         {handlers ? (
-          <EditableBody blocks={document.blocks} template={template} handlers={handlers} onAiBlock={onAiBlock} scale={scale} />
+          <EditableBody blocks={document.blocks} style={style} handlers={handlers} onAiBlock={onAiBlock} scale={scale} />
         ) : (
-          <ReadOnlyBody blocks={document.blocks} template={template} />
+          <ReadOnlyBody blocks={document.blocks} style={style} />
         )}
       </div>
     </article>

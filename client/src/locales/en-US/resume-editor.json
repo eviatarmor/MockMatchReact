@@ -1,8 +1,7 @@
 {
-  "documentTitle": "Cover Letter Editor — MockMatch",
+  "documentTitle": "Resume Editor — MockMatch",
   "toolbar": {
-    "back": "Back to cover letters",
-    "subtitle": "Cover Letters · {{company}}",
+    "back": "Back to resumes",
     "saved": "Saved",
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
@@ -57,24 +56,23 @@
   },
   "sections": {
     "title": "Sections",
-    "description": "Add, reorder, and remove parts of the letter."
-  },
-  "addSection": "Add section",
-  "blocks": {
-    "greeting": "Greeting",
-    "subject": "Subject line",
-    "paragraph": "Body paragraph",
-    "signoff": "Sign-off",
+    "description": "Add, reorder, and remove parts of the resume.",
+    "summary": "Summary",
+    "experience": "Work experience",
+    "education": "Education",
+    "skills": "Skills",
+    "projects": "Projects",
+    "volunteering": "Volunteering",
+    "awards": "Awards",
+    "certifications": "Certifications",
+    "publications": "Publications",
+    "languages": "Languages",
+    "affiliations": "Affiliations",
+    "hobbies": "Hobbies",
+    "references": "References",
     "custom": "Custom section"
   },
-  "blockPlaceholders": {
-    "greeting": "Dear Hiring Team,",
-    "paragraph": "Write a paragraph…",
-    "subject": "Re: Senior Product Designer",
-    "closing": "Sincerely,",
-    "signature": "Your name",
-    "heading": "Section heading"
-  },
+  "addSection": "Add section",
   "blockToolbar": {
     "ai": "Ask AI",
     "moveUp": "Move up",
@@ -100,11 +98,51 @@
   },
   "fields": {
     "name": "Your name",
-    "title": "Your title",
+    "headline": "Your headline",
+    "summary": "Write a short professional summary…",
+    "role": "Role",
+    "company": "Company",
+    "organization": "Organization",
+    "location": "Location",
+    "startDate": "Start",
+    "endDate": "End",
     "date": "Date",
-    "recipientName": "Recipient name",
-    "recipientTitle": "Recipient title",
-    "company": "Company"
+    "bullet": "Describe an accomplishment…",
+    "school": "School",
+    "degree": "Degree",
+    "field": "Field of study",
+    "skillGroup": "Group name",
+    "skill": "Skill",
+    "projectName": "Project name",
+    "url": "URL",
+    "description": "Description…",
+    "awardTitle": "Award title",
+    "issuer": "Issuer",
+    "certName": "Certification name",
+    "credentialId": "Credential ID",
+    "pubTitle": "Publication title",
+    "publisher": "Publisher",
+    "language": "Language",
+    "proficiency": "Proficiency",
+    "hobby": "Hobby",
+    "refName": "Name",
+    "refRelation": "Relationship",
+    "refContact": "Contact",
+    "customHeading": "Section heading"
+  },
+  "rows": {
+    "addBullet": "Add bullet",
+    "removeBullet": "Remove bullet",
+    "addGroup": "Add group",
+    "removeGroup": "Remove group",
+    "addSkill": "Add skill",
+    "removeSkill": "Remove skill",
+    "addLanguage": "Add language",
+    "removeLanguage": "Remove language",
+    "addHobby": "Add hobby",
+    "removeHobby": "Remove hobby",
+    "addReference": "Add reference",
+    "removeReference": "Remove reference"
   },
   "contacts": {
     "email": "Email",
@@ -115,23 +153,21 @@
   },
   "mobile": {
     "rows": {
-      "basicInfo": "Basic info",
-      "recipient": "Recipient",
-      "date": "Date"
+      "header": "Name & contact"
     },
     "openSection": "Edit {{section}}",
     "customize": "Customize"
   },
   "ai": {
     "title": "AI assistant",
-    "description": "Rewrite, shorten, or tailor your letter in one click.",
+    "description": "Rewrite, shorten, or tailor your resume in one click.",
     "actions": {
       "improve": "Improve writing",
       "shorten": "Make shorter",
       "tailor": "Tailor to job",
       "grammar": "Fix grammar"
     },
-    "promptPlaceholder": "Ask AI to edit your letter…",
+    "promptPlaceholder": "Ask AI to edit your resume…",
     "send": "Send"
   }
 }

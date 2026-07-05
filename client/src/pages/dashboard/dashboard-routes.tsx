@@ -2,6 +2,7 @@ import { Route } from "react-router-dom";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { DashboardRoutePage } from "@/pages/dashboard/dashboard-placeholder-page";
 import { ResumeLabPage } from "@/pages/dashboard/resume-lab-page";
+import { ResumeEditorPage } from "@/pages/dashboard/resume-editor-page";
 import { CoverLettersPage } from "@/pages/dashboard/cover-letters-page";
 import { CoverLetterEditorPage } from "@/pages/dashboard/cover-letter-editor-page";
 import { DiscoverPage } from "@/pages/dashboard/discover-page";
@@ -42,6 +43,7 @@ export function dashboardRoutes() {
     <Route element={<DashboardLayout />}>
       <Route path="applications/:jobId" element={<ApplicationDetailPage />} />
       <Route path="cover-letters/:letterId" element={<CoverLetterEditorPage />} />
+      <Route path="resumes/:resumeId" element={<ResumeEditorPage />} />
       {DASHBOARD_ROUTES.map(({ path, titleKey }) => {
         if (path === "resume-lab") {
           return <Route key={path} path={path} element={<ResumeLabPage />} />;

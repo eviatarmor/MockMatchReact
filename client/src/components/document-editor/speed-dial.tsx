@@ -24,6 +24,7 @@ interface SpeedDialProps {
 /**
  * Bottom-right floating action button (diceui speed-dial) that fans its actions
  * straight up. Fixed to the viewport so it stays pinned while the card scrolls.
+ * Feature-agnostic — shared by the cover-letter and resume mobile editors.
  */
 export function SpeedDial({ actions, openLabel }: SpeedDialProps) {
   return (

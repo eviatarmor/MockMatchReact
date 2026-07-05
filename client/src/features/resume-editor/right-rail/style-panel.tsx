@@ -27,7 +27,7 @@ function Segmented({ options, value, onChange, columns }: {
   readonly onChange: (id: string) => void
   readonly columns: number
 }) {
-  const { t } = useTranslation("cover-letter-editor")
+  const { t } = useTranslation("resume-editor")
   return (
     <div
       className="grid gap-1 rounded-lg border border-border/60 bg-muted/40 p-1"
@@ -54,7 +54,7 @@ function Segmented({ options, value, onChange, columns }: {
 
 /** Visual styling controls — wired live to the document render. */
 export function StylePanel({ style, onChange }: StylePanelProps) {
-  const { t } = useTranslation("cover-letter-editor")
+  const { t } = useTranslation("resume-editor")
 
   return (
     <div className="flex flex-col gap-6">

@@ -20,7 +20,7 @@ interface MobileCustomizeSheetProps {
 
 /** Mobile customise sheet: shows a single panel (templates / style / ai). */
 export function MobileCustomizeSheet({ panel, onClose, activeTemplateId, onTemplateChange, style, onStyleChange }: MobileCustomizeSheetProps) {
-  const { t } = useTranslation("cover-letter-editor")
+  const { t } = useTranslation("resume-editor")
 
   return (
     <Sheet open={panel !== null} onOpenChange={(next) => !next && onClose()}>

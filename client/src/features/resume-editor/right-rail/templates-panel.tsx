@@ -33,7 +33,7 @@ function TemplatePreview({ template }: { readonly template: EditorTemplate }) {
 }
 
 export function TemplatesPanel({ activeTemplateId, onSelect }: TemplatesPanelProps) {
-  const { t } = useTranslation("cover-letter-editor")
+  const { t } = useTranslation("resume-editor")
 
   return (
     <div className="grid grid-cols-2 gap-3">

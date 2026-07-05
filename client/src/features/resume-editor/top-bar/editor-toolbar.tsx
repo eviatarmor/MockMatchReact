@@ -10,7 +10,7 @@ interface EditorBottomBarProps {
 
 /** Floating bottom bar over the canvas: undo/redo + zoom controls. */
 export function EditorBottomBar({ viewport }: EditorBottomBarProps) {
-  const { t } = useTranslation("cover-letter-editor")
+  const { t } = useTranslation("resume-editor")
   const { zoomPercent, zoomIn, zoomOut, resetView, canZoomIn, canZoomOut } = viewport
 
   return (
@@ -60,7 +60,7 @@ export function EditorBottomBar({ viewport }: EditorBottomBarProps) {
 
 /** End navbar slot: share + export. */
 export function EditorToolbarActions() {
-  const { t } = useTranslation("cover-letter-editor")
+  const { t } = useTranslation("resume-editor")
 
   return (
     <div className="flex items-center gap-1.5">

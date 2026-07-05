@@ -1,5 +1,6 @@
 import { MoreHorizontal, Eye, Pencil, Download, Copy, Trash2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -27,14 +28,16 @@ const AVATAR_COLORS: Record<string, string> = {
 
 export function ResumeTableRow({ resume }: ResumeTableRowProps) {
   const { t } = useTranslation("common")
+  const navigate = useNavigate()
   const avatarClass = AVATAR_COLORS[resume.avatarText] ?? "bg-muted text-muted-foreground"
 
   const subtitle = resume.company ?? t("resumeLab.table.noTargetRole")
+  const openEditor = () => navigate(`/resumes/${resume.id}`)
 
   return (
     <tr className="group border-b border-border/40 hover:bg-muted/5 transition-colors">
       <td className="py-3 px-4">
-        <div className="flex items-center gap-3">
+        <button type="button" onClick={openEditor} className="flex w-full items-center gap-3 text-left cursor-pointer">
           <div
             className={`flex size-10 shrink-0 items-center justify-center rounded-xl text-sm font-semibold select-none ${avatarClass}`}
           >
@@ -46,7 +49,7 @@ export function ResumeTableRow({ resume }: ResumeTableRowProps) {
             </span>
             <span className="text-xs text-muted-foreground truncate">{subtitle}</span>
           </div>
-        </div>
+        </button>
       </td>
 
       <td className="py-3 px-4 text-center">
@@ -75,11 +78,11 @@ export function ResumeTableRow({ resume }: ResumeTableRowProps) {
             <MoreHorizontal className="size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer" onClick={openEditor}>
               <Eye />
               {t("resumeLab.table.rowActions.preview")}
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer">
+            <DropdownMenuItem className="cursor-pointer" onClick={openEditor}>
               <Pencil />
               {t("resumeLab.table.rowActions.edit")}
             </DropdownMenuItem>

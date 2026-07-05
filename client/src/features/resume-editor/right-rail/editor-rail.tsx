@@ -8,8 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { EDITOR_RAIL_ITEMS } from "../constants"
 import type { DocumentStyle } from "@/components/document-editor"
-import type { CoverLetterHandlers } from "../hooks/use-cover-letter-document"
-import type { CoverLetterDocument, EditorPanelId, EditorTemplateId } from "../types"
+import type { ResumeHandlers } from "../hooks/use-resume-document"
+import type { ResumeDocument, EditorPanelId, EditorTemplateId } from "../types"
 import { TemplatesPanel } from "./templates-panel"
 import { StylePanel } from "./style-panel"
 import { SectionsPanel } from "./sections-panel"
@@ -20,8 +20,8 @@ interface EditorRailProps {
   readonly onTemplateChange: (id: EditorTemplateId) => void
   readonly style: DocumentStyle
   readonly onStyleChange: (patch: Partial<DocumentStyle>) => void
-  readonly document: CoverLetterDocument
-  readonly handlers: CoverLetterHandlers
+  readonly document: ResumeDocument
+  readonly handlers: ResumeHandlers
 }
 
 function PanelBody({ panel, activeTemplateId, onTemplateChange, style, onStyleChange, document, handlers }: {
@@ -30,8 +30,8 @@ function PanelBody({ panel, activeTemplateId, onTemplateChange, style, onStyleCh
   readonly onTemplateChange: (id: EditorTemplateId) => void
   readonly style: DocumentStyle
   readonly onStyleChange: (patch: Partial<DocumentStyle>) => void
-  readonly document: CoverLetterDocument
-  readonly handlers: CoverLetterHandlers
+  readonly document: ResumeDocument
+  readonly handlers: ResumeHandlers
 }) {
   switch (panel) {
     case "templates":
@@ -39,14 +39,14 @@ function PanelBody({ panel, activeTemplateId, onTemplateChange, style, onStyleCh
     case "style":
       return <StylePanel style={style} onChange={onStyleChange} />
     case "sections":
-      return <SectionsPanel blocks={document.blocks} handlers={handlers} />
+      return <SectionsPanel sections={document.sections} handlers={handlers} />
     case "ai":
       return <AiPanel />
   }
 }
 
 export function EditorRail({ activeTemplateId, onTemplateChange, style, onStyleChange, document, handlers }: EditorRailProps) {
-  const { t } = useTranslation("cover-letter-editor")
+  const { t } = useTranslation("resume-editor")
   const [activePanel, setActivePanel] = useState<EditorPanelId | null>("templates")
 
   const toggle = (id: EditorPanelId) => setActivePanel((current) => (current === id ? null : id))
