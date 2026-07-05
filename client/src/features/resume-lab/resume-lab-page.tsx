@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
 import { Upload, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -12,6 +13,7 @@ import { MOCK_RESUMES, MOCK_TEMPLATES, TEMPLATE_CATEGORIES } from "./constants"
 
 export function ResumeLabPageContent() {
   const { t } = useTranslation("common")
+  const navigate = useNavigate()
   const [search, setSearch] = useState("")
 
   const filteredResumes = useMemo(
@@ -43,6 +45,7 @@ export function ResumeLabPageContent() {
               <Button
                 variant="default"
                 className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
+                onClick={() => navigate("/resumes/new")}
               >
                 <Plus className="size-4" />
                 <span className="hidden sm:inline">{t("dashboard.actions.newResume")}</span>

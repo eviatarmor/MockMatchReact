@@ -23,9 +23,9 @@ interface BlockFieldsProps {
 
 /**
  * The per-type editable fields for a single body block (greeting/subject/
- * paragraph/signoff/custom). Shared between the desktop canvas
- * ({@link LetterBlockView}, wrapped in `SortableBlock` chrome) and the mobile
- * edit sheet, so the field/editor logic lives in exactly one place.
+ * paragraph/signoff/custom). Shared between the desktop canvas (wrapped in
+ * `SortableBlock` chrome by `SectionedBody`) and the mobile edit sheet, so the
+ * field/editor logic lives in exactly one place.
  */
 export function BlockFields({ block, template, update, tone = "page" }: BlockFieldsProps) {
   const { t } = useTranslation("cover-letter-editor")

@@ -1,0 +1,178 @@
+{
+  "documentTitle": "Resume Editor — MockMatch",
+  "toolbar": {
+    "back": "Back to resumes",
+    "saved": "Saved",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "resetZoom": "Reset zoom",
+    "resetView": "Fit to view",
+    "undo": "Undo",
+    "redo": "Redo",
+    "share": "Share",
+    "exportPdf": "Export PDF"
+  },
+  "rail": {
+    "templates": "Templates",
+    "style": "Style",
+    "sections": "Sections",
+    "ai": "AI",
+    "collapse": "Collapse panel"
+  },
+  "templates": {
+    "title": "Templates",
+    "description": "Switch layouts instantly — your content carries over.",
+    "items": {
+      "modern": { "name": "Modern", "description": "Bold name, accent headings" },
+      "classic": { "name": "Classic", "description": "Centered, serif, rule lines" },
+      "minimal": { "name": "Minimal", "description": "Airy, small caps, no rules" },
+      "technical": { "name": "Technical", "description": "Mono accents, tight grid" }
+    }
+  },
+  "style": {
+    "title": "Style",
+    "description": "Fine-tune accent color, typeface, and layout.",
+    "accent": "Accent color",
+    "typeface": "Typeface",
+    "headings": "Section headings",
+    "density": "Density",
+    "typefaces": {
+      "geist": { "name": "Geist Sans", "description": "Clean & modern" },
+      "sourceSerif": { "name": "Source Serif", "description": "Classic & warm" },
+      "newsreader": { "name": "Newsreader", "description": "Editorial headings" },
+      "mono": { "name": "Mono accent", "description": "Technical feel" }
+    },
+    "headingStyles": {
+      "accent": "Accent",
+      "underline": "Underline",
+      "smallCaps": "Small caps",
+      "plain": "Plain"
+    },
+    "densities": {
+      "compact": "Compact",
+      "normal": "Normal",
+      "relaxed": "Relaxed"
+    },
+    "toggles": {
+      "twoColumn": { "title": "Two-column layout", "description": "Sidebar for skills & education" },
+      "photo": { "title": "Profile photo", "description": "Show initials avatar in header" },
+      "accentRule": { "title": "Accent rule under header", "description": "Only with accent headings" }
+    }
+  },
+  "sections": {
+    "title": "Sections",
+    "description": "Add, reorder, and remove parts of the resume.",
+    "summary": "Summary",
+    "experience": "Work experience",
+    "education": "Education",
+    "skills": "Skills",
+    "projects": "Projects",
+    "volunteering": "Volunteering",
+    "awards": "Awards",
+    "certifications": "Certifications",
+    "publications": "Publications",
+    "languages": "Languages",
+    "affiliations": "Affiliations",
+    "hobbies": "Hobbies",
+    "references": "References",
+    "custom": "Custom section"
+  },
+  "addSection": "Add section",
+  "blockToolbar": {
+    "ai": "Ask AI",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "duplicate": "Duplicate",
+    "delete": "Delete",
+    "drag": "Drag to reorder"
+  },
+  "richText": {
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "list": "Bullet list",
+    "link": "Link",
+    "clear": "Clear formatting",
+    "grammar": "Check grammar",
+    "linkPrompt": "Enter a URL"
+  },
+  "grammar": {
+    "apply": "Apply suggestion",
+    "noSuggestions": "No suggestions available.",
+    "dismiss": "Remove"
+  },
+  "fields": {
+    "name": "Your name",
+    "headline": "Your headline",
+    "summary": "Write a short professional summary…",
+    "role": "Role",
+    "company": "Company",
+    "organization": "Organization",
+    "location": "Location",
+    "startDate": "Start",
+    "endDate": "End",
+    "date": "Date",
+    "bullet": "Describe an accomplishment…",
+    "school": "School",
+    "degree": "Degree",
+    "field": "Field of study",
+    "skillGroup": "Group name",
+    "skill": "Skill",
+    "projectName": "Project name",
+    "url": "URL",
+    "description": "Description…",
+    "awardTitle": "Award title",
+    "issuer": "Issuer",
+    "certName": "Certification name",
+    "credentialId": "Credential ID",
+    "pubTitle": "Publication title",
+    "publisher": "Publisher",
+    "language": "Language",
+    "proficiency": "Proficiency",
+    "hobby": "Hobby",
+    "refName": "Name",
+    "refRelation": "Relationship",
+    "refContact": "Contact",
+    "customHeading": "Section heading"
+  },
+  "rows": {
+    "addBullet": "Add bullet",
+    "removeBullet": "Remove bullet",
+    "addGroup": "Add group",
+    "removeGroup": "Remove group",
+    "addSkill": "Add skill",
+    "removeSkill": "Remove skill",
+    "addLanguage": "Add language",
+    "removeLanguage": "Remove language",
+    "addHobby": "Add hobby",
+    "removeHobby": "Remove hobby",
+    "addReference": "Add reference",
+    "removeReference": "Remove reference"
+  },
+  "contacts": {
+    "email": "Email",
+    "phone": "Phone",
+    "location": "Location",
+    "website": "Website",
+    "linkedin": "LinkedIn"
+  },
+  "mobile": {
+    "rows": {
+      "header": "Name & contact"
+    },
+    "openSection": "Edit {{section}}",
+    "customize": "Customize"
+  },
+  "ai": {
+    "title": "AI assistant",
+    "description": "Rewrite, shorten, or tailor your resume in one click.",
+    "actions": {
+      "improve": "Improve writing",
+      "shorten": "Make shorter",
+      "tailor": "Tailor to job",
+      "grammar": "Fix grammar"
+    },
+    "promptPlaceholder": "Ask AI to edit your resume…",
+    "send": "Send"
+  }
+}

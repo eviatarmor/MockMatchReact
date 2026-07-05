@@ -1,26 +1,21 @@
 import { useMemo, useReducer } from "react"
-import { arrayMove } from "@dnd-kit/sortable"
+import { useBlockList, type BlockListHandlers } from "@/components/document-editor"
 import { LETTER_BLOCK_TYPES } from "../constants"
-import type { CoverLetterDocument, LetterBlock, LetterBlockType } from "../types"
+import type { CoverLetterDocument, LetterBlock } from "../types"
 
 type SenderField = "name" | "title"
 type RecipientField = "name" | "title" | "company"
 
-type Action =
+/** Header (sender/date/recipient) portion of the document — the letter-specific part. */
+type LetterHeader = Omit<CoverLetterDocument, "blocks">
+
+type HeaderAction =
   | { kind: "setSenderField"; field: SenderField; value: string }
   | { kind: "setContact"; id: string; value: string }
   | { kind: "setDate"; value: string }
   | { kind: "setRecipientField"; field: RecipientField; value: string }
-  | { kind: "updateBlock"; id: string; patch: Partial<LetterBlock> }
-  | { kind: "addBlock"; blockType: LetterBlockType; afterId?: string }
-  | { kind: "duplicateBlock"; id: string }
-  | { kind: "removeBlock"; id: string }
-  | { kind: "moveBlock"; id: string; direction: "up" | "down" }
-  | { kind: "reorderBlocks"; activeId: string; overId: string }
 
-const indexOf = (blocks: readonly LetterBlock[], id: string) => blocks.findIndex((b) => b.id === id)
-
-function reducer(state: CoverLetterDocument, action: Action): CoverLetterDocument {
+function headerReducer(state: LetterHeader, action: HeaderAction): LetterHeader {
   switch (action.kind) {
     case "setSenderField":
       return { ...state, sender: { ...state.sender, [action.field]: action.value } }
@@ -41,88 +36,41 @@ function reducer(state: CoverLetterDocument, action: Action): CoverLetterDocumen
 
     case "setRecipientField":
       return { ...state, recipient: { ...state.recipient, [action.field]: action.value } }
-
-    case "updateBlock":
-      return {
-        ...state,
-        blocks: state.blocks.map((b) =>
-          b.id === action.id ? ({ ...b, ...action.patch } as LetterBlock) : b
-        ),
-      }
-
-    case "addBlock": {
-      const meta = LETTER_BLOCK_TYPES.find((m) => m.type === action.blockType)
-      if (!meta) return state
-      const block = meta.make()
-      const at = action.afterId ? indexOf(state.blocks, action.afterId) + 1 : state.blocks.length
-      const blocks = [...state.blocks]
-      blocks.splice(at, 0, block)
-      return { ...state, blocks }
-    }
-
-    case "duplicateBlock": {
-      const at = indexOf(state.blocks, action.id)
-      if (at === -1) return state
-      const copy = { ...state.blocks[at], id: crypto.randomUUID() }
-      const blocks = [...state.blocks]
-      blocks.splice(at + 1, 0, copy)
-      return { ...state, blocks }
-    }
-
-    case "removeBlock":
-      return { ...state, blocks: state.blocks.filter((b) => b.id !== action.id) }
-
-    case "moveBlock": {
-      const at = indexOf(state.blocks, action.id)
-      const to = action.direction === "up" ? at - 1 : at + 1
-      if (at === -1 || to < 0 || to >= state.blocks.length) return state
-      return { ...state, blocks: arrayMove([...state.blocks], at, to) }
-    }
-
-    case "reorderBlocks": {
-      const from = indexOf(state.blocks, action.activeId)
-      const to = indexOf(state.blocks, action.overId)
-      if (from === -1 || to === -1 || from === to) return state
-      return { ...state, blocks: arrayMove([...state.blocks], from, to) }
-    }
   }
 }
 
-export type CoverLetterHandlers = {
+export type CoverLetterHandlers = BlockListHandlers<LetterBlock> & {
   readonly setSenderField: (field: SenderField, value: string) => void
   readonly setContact: (id: string, value: string) => void
   readonly setDate: (value: string) => void
   readonly setRecipientField: (field: RecipientField, value: string) => void
-  readonly updateBlock: (id: string, patch: Partial<LetterBlock>) => void
-  readonly addBlock: (blockType: LetterBlockType, afterId?: string) => void
-  readonly duplicateBlock: (id: string) => void
-  readonly removeBlock: (id: string) => void
-  readonly moveBlock: (id: string, direction: "up" | "down") => void
-  readonly reorderBlocks: (activeId: string, overId: string) => void
 }
 
 /**
- * Editable document controller. Owns the block-based {@link CoverLetterDocument}
- * and exposes granular handlers for inline field edits + block CRUD/reorder.
- * Kept reducer-based so every mutation is a pure, testable transition.
+ * Editable cover-letter controller. Composes the generic block-list engine
+ * ({@link useBlockList}) for the body sections and owns the letter-specific
+ * header fields (sender/date/recipient) in a small local reducer. The returned
+ * `document` recombines the two halves so consumers see one document as before.
  */
 export function useCoverLetterDocument(initial: CoverLetterDocument) {
-  const [document, dispatch] = useReducer(reducer, initial)
+  const [header, dispatch] = useReducer(headerReducer, {
+    sender: initial.sender,
+    date: initial.date,
+    recipient: initial.recipient,
+  })
+  const { blocks, blockHandlers } = useBlockList(LETTER_BLOCK_TYPES, initial.blocks)
+
+  const document: CoverLetterDocument = useMemo(() => ({ ...header, blocks }), [header, blocks])
 
   const handlers = useMemo<CoverLetterHandlers>(
     () => ({
+      ...blockHandlers,
       setSenderField: (field, value) => dispatch({ kind: "setSenderField", field, value }),
       setContact: (id, value) => dispatch({ kind: "setContact", id, value }),
       setDate: (value) => dispatch({ kind: "setDate", value }),
       setRecipientField: (field, value) => dispatch({ kind: "setRecipientField", field, value }),
-      updateBlock: (id, patch) => dispatch({ kind: "updateBlock", id, patch }),
-      addBlock: (blockType, afterId) => dispatch({ kind: "addBlock", blockType, afterId }),
-      duplicateBlock: (id) => dispatch({ kind: "duplicateBlock", id }),
-      removeBlock: (id) => dispatch({ kind: "removeBlock", id }),
-      moveBlock: (id, direction) => dispatch({ kind: "moveBlock", id, direction }),
-      reorderBlocks: (activeId, overId) => dispatch({ kind: "reorderBlocks", activeId, overId }),
     }),
-    []
+    [blockHandlers]
   )
 
   return { document, handlers }

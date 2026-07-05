@@ -1,10 +1,10 @@
-import { Mail, Phone, MapPin, Globe, Link2, LayoutTemplate, Palette, ListChecks, Sparkles, Columns2, UserRound, Minus, Hand, Heading, Pilcrow, PenLine, SquarePlus, type LucideIcon } from "lucide-react"
+import { Mail, Phone, MapPin, Globe, Link2, LayoutTemplate, Palette, ListChecks, Sparkles, Columns2, UserRound, Minus, Hand, Heading, Pilcrow, PenLine, SquarePlus } from "lucide-react"
+import type { BlockTypeMeta } from "@/components/document-editor"
 import type {
   CoverLetterDocument,
   EditorRailItem,
   EditorTemplate,
   LetterBlock,
-  LetterBlockType,
   StyleAccent,
   StyleSegmentOption,
   StyleToggle,
@@ -12,14 +12,6 @@ import type {
 } from "./types"
 
 const newId = () => crypto.randomUUID()
-
-/** Zoom bounds + step for the canvas viewport (1 = 100%). */
-export const ZOOM = {
-  min: 0.4,
-  max: 2.5,
-  step: 0.1,
-  default: 1,
-} as const
 
 export const EDITOR_RAIL_ITEMS: readonly EditorRailItem[] = [
   { id: "templates", icon: LayoutTemplate, labelKey: "rail.templates" },
@@ -102,21 +94,13 @@ export const STYLE_TOGGLES: readonly StyleToggle[] = [
 ]
 
 /** Block type registry — drives the "Add section" menu and the Sections panel. */
-export interface LetterBlockTypeMeta {
-  readonly type: LetterBlockType
-  readonly icon: LucideIcon
-  readonly labelKey: string
-  /** Factory for a fresh, empty block of this type. */
-  readonly make: () => LetterBlock
-}
-
-export const LETTER_BLOCK_TYPES: readonly LetterBlockTypeMeta[] = [
+export const LETTER_BLOCK_TYPES: readonly BlockTypeMeta<LetterBlock>[] = [
   { type: "greeting", icon: Hand, labelKey: "blocks.greeting", make: () => ({ id: newId(), type: "greeting", text: "" }) },
   { type: "subject", icon: Heading, labelKey: "blocks.subject", make: () => ({ id: newId(), type: "subject", text: "" }) },
   { type: "paragraph", icon: Pilcrow, labelKey: "blocks.paragraph", make: () => ({ id: newId(), type: "paragraph", text: "" }) },
   { type: "signoff", icon: PenLine, labelKey: "blocks.signoff", make: () => ({ id: newId(), type: "signoff", closing: "", signature: "" }) },
   { type: "custom", icon: SquarePlus, labelKey: "blocks.custom", make: () => ({ id: newId(), type: "custom", heading: "", text: "" }) },
-]
+] satisfies readonly BlockTypeMeta<LetterBlock>[]
 
 /** Sample document — placeholder until the editor is wired to real data. */
 export const SAMPLE_DOCUMENT: CoverLetterDocument = {

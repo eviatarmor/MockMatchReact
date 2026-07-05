@@ -3,43 +3,43 @@ import { useTranslation } from "react-i18next"
 import { Cloud } from "lucide-react"
 import { useNavbarSlots } from "@/hooks/use-navbar-slots"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useCanvasViewport } from "@/hooks/use-canvas-viewport"
 import { BreadcrumbName } from "./top-bar/breadcrumb-name"
 import { EditorBottomBar, EditorToolbarActions } from "./top-bar/editor-toolbar"
 import { EditorCanvas } from "./canvas/editor-canvas"
 import { EditorRail } from "./right-rail/editor-rail"
 import { MobileEditor } from "./mobile/mobile-editor"
-import { useCanvasViewport } from "@/hooks/use-canvas-viewport"
-import { useCoverLetterDocument } from "./hooks/use-cover-letter-document"
-import { EDITOR_TEMPLATES, SAMPLE_DOCUMENT } from "./constants"
+import { useResumeDocument } from "./hooks/use-resume-document"
+import { EDITOR_TEMPLATES, SAMPLE_RESUME } from "./constants"
 import type { EditorTemplateId } from "./types"
 
-export function CoverLetterEditorPageContent() {
-  const { t } = useTranslation("cover-letter-editor")
+export function ResumeEditorPageContent() {
+  const { t } = useTranslation("resume-editor")
   const isMobile = useIsMobile()
   const viewport = useCanvasViewport()
-  const { document, handlers } = useCoverLetterDocument(SAMPLE_DOCUMENT)
+  const { document, handlers } = useResumeDocument(SAMPLE_RESUME)
   const [templateId, setTemplateId] = useState<EditorTemplateId>("modern")
-  const [letterName, setLetterName] = useState(SAMPLE_DOCUMENT.sender.title)
+  const [resumeName, setResumeName] = useState(SAMPLE_RESUME.header.headline)
 
   const template = EDITOR_TEMPLATES.find((item) => item.id === templateId) ?? EDITOR_TEMPLATES[0]
 
   const crumb = useMemo(
     () => (
       <span className="flex items-center gap-2">
-        <BreadcrumbName value={letterName} onChange={setLetterName} />
+        <BreadcrumbName value={resumeName} onChange={setResumeName} />
         <span className="flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
           <Cloud className="size-3" />
           {t("toolbar.saved")}
         </span>
       </span>
     ),
-    [letterName, t]
+    [resumeName, t]
   )
   // The breadcrumb (and its inline editable name) is hidden below md, so on
   // mobile surface the editable title via the always-visible center slot.
   const center = useMemo(
-    () => (isMobile ? <BreadcrumbName value={letterName} onChange={setLetterName} /> : null),
-    [isMobile, letterName]
+    () => (isMobile ? <BreadcrumbName value={resumeName} onChange={setResumeName} /> : null),
+    [isMobile, resumeName]
   )
   const end = useMemo(() => <EditorToolbarActions />, [])
   useNavbarSlots({ crumb, center, end })

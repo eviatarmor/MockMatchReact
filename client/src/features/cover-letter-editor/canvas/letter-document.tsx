@@ -1,20 +1,15 @@
-import { Fragment, useMemo } from "react"
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core"
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
-import { EditableText, SectionInserter, createScaleModifier, type InserterItem } from "@/components/document-editor"
-import { LetterBlockView } from "./letter-block"
+import {
+  EditableText,
+  SectionedBody,
+  type BlockTypeMeta,
+  type SortableBlockLabels,
+} from "@/components/document-editor"
+import { BlockFields } from "./block-fields"
 import { LETTER_BLOCK_TYPES } from "../constants"
 import type { CoverLetterHandlers } from "../hooks/use-cover-letter-document"
-import type { CoverLetterDocument, EditorTemplate, LetterBlock, LetterBlockType } from "../types"
+import type { CoverLetterDocument, EditorTemplate, LetterBlock } from "../types"
 
 interface LetterDocumentProps {
   readonly document: CoverLetterDocument
@@ -160,44 +155,33 @@ function EditableBody({ blocks, template, handlers, onAiBlock, scale = 1 }: {
   readonly scale?: number
 }) {
   const { t } = useTranslation("cover-letter-editor")
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
-  const scaleModifier = useMemo(() => createScaleModifier(scale), [scale])
-
-  const inserterItems: InserterItem[] = LETTER_BLOCK_TYPES.map((meta) => ({
-    id: meta.type,
-    icon: meta.icon,
-    label: t(meta.labelKey),
-  }))
-
-  const onDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
-    if (over && active.id !== over.id) handlers.reorderBlocks(String(active.id), String(over.id))
+  const blockLabels: SortableBlockLabels = {
+    drag: t("blockToolbar.drag"),
+    ai: t("blockToolbar.ai"),
+    moveUp: t("blockToolbar.moveUp"),
+    moveDown: t("blockToolbar.moveDown"),
+    duplicate: t("blockToolbar.duplicate"),
+    delete: t("blockToolbar.delete"),
   }
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} modifiers={[scaleModifier]} onDragEnd={onDragEnd}>
-      <SortableContext items={blocks.map((b) => b.id)} strategy={verticalListSortingStrategy}>
-        <div className="flex flex-col">
-          {blocks.map((block, index) => (
-            <Fragment key={block.id}>
-              <LetterBlockView
-                block={block}
-                template={template}
-                index={index}
-                total={blocks.length}
-                handlers={handlers}
-                onAi={onAiBlock}
-              />
-              <SectionInserter
-                items={inserterItems}
-                addLabel={t("addSection")}
-                onAdd={(type) => handlers.addBlock(type as LetterBlockType, block.id)}
-              />
-            </Fragment>
-          ))}
-        </div>
-      </SortableContext>
-    </DndContext>
+    <SectionedBody
+      blocks={blocks}
+      handlers={handlers}
+      registry={LETTER_BLOCK_TYPES}
+      labelFor={(meta: BlockTypeMeta<LetterBlock>) => t(meta.labelKey)}
+      blockLabels={blockLabels}
+      addLabel={t("addSection")}
+      onAiBlock={onAiBlock}
+      scale={scale}
+      renderFields={(block) => (
+        <BlockFields
+          block={block}
+          template={template}
+          update={(patch) => handlers.updateBlock(block.id, patch)}
+        />
+      )}
+    />
   )
 }
 

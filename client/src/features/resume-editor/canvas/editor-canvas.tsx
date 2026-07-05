@@ -1,15 +1,15 @@
 import { createPortal } from "react-dom"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
-import { LetterDocument } from "./letter-document"
+import { ResumeDocumentView } from "./resume-document"
 import { ZOOM, useCanvasViewport } from "@/hooks/use-canvas-viewport"
-import type { CoverLetterHandlers } from "../hooks/use-cover-letter-document"
-import type { CoverLetterDocument, EditorTemplate } from "../types"
+import type { ResumeHandlers } from "../hooks/use-resume-document"
+import type { ResumeDocument, EditorTemplate } from "../types"
 
 interface EditorCanvasProps {
-  readonly document: CoverLetterDocument
+  readonly document: ResumeDocument
   readonly template: EditorTemplate
   readonly viewport: ReturnType<typeof useCanvasViewport>
-  readonly handlers: CoverLetterHandlers
+  readonly handlers: ResumeHandlers
   readonly onAiBlock?: (id: string) => void
 }
 
@@ -54,7 +54,7 @@ export function EditorCanvas({ document, template, viewport, handlers, onAiBlock
         }}
       >
         <div className="pt-24">
-          <LetterDocument document={document} template={template} handlers={handlers} onAiBlock={onAiBlock} scale={scale} />
+          <ResumeDocumentView document={document} template={template} handlers={handlers} onAiBlock={onAiBlock} scale={scale} />
         </div>
       </TransformComponent>
     </TransformWrapper>,
