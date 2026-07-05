@@ -2,12 +2,14 @@ import { createPortal } from "react-dom"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 import { ResumeDocumentView } from "./resume-document"
 import { ZOOM, useCanvasViewport } from "@/hooks/use-canvas-viewport"
+import type { ResolvedStyle } from "@/components/document-editor"
 import type { ResumeHandlers } from "../hooks/use-resume-document"
 import type { ResumeDocument, EditorTemplate } from "../types"
 
 interface EditorCanvasProps {
   readonly document: ResumeDocument
   readonly template: EditorTemplate
+  readonly style: ResolvedStyle
   readonly viewport: ReturnType<typeof useCanvasViewport>
   readonly handlers: ResumeHandlers
   readonly onAiBlock?: (id: string) => void
@@ -20,7 +22,7 @@ interface EditorCanvasProps {
  * navbar z-20) so the page visually slides underneath them. Pan/zoom is handled
  * by react-zoom-pan-pinch; the dotted grid is synced to the live transform.
  */
-export function EditorCanvas({ document, template, viewport, handlers, onAiBlock }: EditorCanvasProps) {
+export function EditorCanvas({ document, template, style, viewport, handlers, onAiBlock }: EditorCanvasProps) {
   const { ref, scale, offset, onTransform } = viewport
 
   // Clicking/dragging the canvas background starts a pan — drop focus + text
@@ -54,7 +56,7 @@ export function EditorCanvas({ document, template, viewport, handlers, onAiBlock
         }}
       >
         <div className="pt-24">
-          <ResumeDocumentView document={document} template={template} handlers={handlers} onAiBlock={onAiBlock} scale={scale} />
+          <ResumeDocumentView document={document} template={template} style={style} handlers={handlers} onAiBlock={onAiBlock} scale={scale} />
         </div>
       </TransformComponent>
     </TransformWrapper>,

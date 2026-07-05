@@ -8,9 +8,6 @@ import {
   Palette,
   ListChecks,
   Sparkles,
-  Columns2,
-  UserRound,
-  Minus,
   AlignLeft,
   Briefcase,
   GraduationCap,
@@ -34,7 +31,6 @@ import type {
   ResumeSection,
   StyleAccent,
   StyleSegmentOption,
-  StyleToggle,
   StyleTypeface,
 } from "./types"
 
@@ -52,29 +48,25 @@ export const EDITOR_TEMPLATES: readonly EditorTemplate[] = [
     id: "modern",
     nameKey: "templates.items.modern.name",
     descriptionKey: "templates.items.modern.description",
-    accentClass: "text-blue-600 dark:text-blue-500",
-    serif: false,
+    defaultStyle: { accent: "blue", typeface: "geist", heading: "accent", density: "normal" },
   },
   {
     id: "classic",
     nameKey: "templates.items.classic.name",
     descriptionKey: "templates.items.classic.description",
-    accentClass: "text-neutral-900 dark:text-neutral-100",
-    serif: true,
+    defaultStyle: { accent: "slate", typeface: "source-serif", heading: "underline", density: "normal" },
   },
   {
     id: "minimal",
     nameKey: "templates.items.minimal.name",
     descriptionKey: "templates.items.minimal.description",
-    accentClass: "text-neutral-500 dark:text-neutral-400",
-    serif: false,
+    defaultStyle: { accent: "slate", typeface: "geist", heading: "small-caps", density: "relaxed" },
   },
   {
     id: "technical",
     nameKey: "templates.items.technical.name",
     descriptionKey: "templates.items.technical.description",
-    accentClass: "text-teal-600 dark:text-teal-500",
-    serif: false,
+    defaultStyle: { accent: "teal", typeface: "mono", heading: "plain", density: "compact" },
   },
 ]
 
@@ -111,13 +103,6 @@ export const STYLE_DENSITIES: readonly StyleSegmentOption[] = [
   { id: "compact", labelKey: "style.densities.compact" },
   { id: "normal", labelKey: "style.densities.normal" },
   { id: "relaxed", labelKey: "style.densities.relaxed" },
-]
-
-/** Boolean layout features (icon + label + switch). */
-export const STYLE_TOGGLES: readonly StyleToggle[] = [
-  { id: "two-column", icon: Columns2, titleKey: "style.toggles.twoColumn.title", descriptionKey: "style.toggles.twoColumn.description" },
-  { id: "photo", icon: UserRound, titleKey: "style.toggles.photo.title", descriptionKey: "style.toggles.photo.description" },
-  { id: "accent-rule", icon: Minus, titleKey: "style.toggles.accentRule.title", descriptionKey: "style.toggles.accentRule.description" },
 ]
 
 /**

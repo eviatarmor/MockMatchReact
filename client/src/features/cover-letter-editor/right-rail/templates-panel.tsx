@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { resolveStyleClasses } from "@/components/document-editor"
 import { EDITOR_TEMPLATES } from "../constants"
 import type { EditorTemplate, EditorTemplateId } from "../types"
 
@@ -11,12 +12,12 @@ interface TemplatesPanelProps {
 
 /** Mini page preview rendered inside each template card. */
 function TemplatePreview({ template }: { readonly template: EditorTemplate }) {
-  const accentBg = template.accentClass.replace("text-", "bg-")
+  const accentBg = resolveStyleClasses(template.defaultStyle).accentBg
   return (
     <div className={cn("flex aspect-[3/4] flex-col gap-1.5 rounded-md bg-white p-3", template.id === "classic" && "items-center")}>
       <div className="h-2.5 w-2/3 rounded-sm bg-neutral-800" />
       <div className={cn("h-1.5 w-1/3 rounded-sm", accentBg)} />
-      <div className={cn("mt-1 h-[3px] w-full rounded-sm", template.id === "modern" ? accentBg : "bg-neutral-300")} />
+      <div className={cn("mt-1 h-[3px] w-full rounded-sm", accentBg)} />
       {Array.from({ length: 5 }).map((_, index) => (
         <div
           key={index}

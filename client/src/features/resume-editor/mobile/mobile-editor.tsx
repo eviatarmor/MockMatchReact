@@ -13,18 +13,20 @@ import { CSS } from "@dnd-kit/utilities"
 import { ChevronRight, GripVertical, UserRound, LayoutTemplate, Palette, Sparkles, type LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
-import { SpeedDial } from "@/components/document-editor"
+import { SpeedDial, type DocumentStyle, type ResolvedStyle } from "@/components/document-editor"
 import { RESUME_SECTION_TYPES } from "../constants"
 import { snippet } from "../section-snippet"
 import type { ResumeHandlers } from "../hooks/use-resume-document"
-import type { ResumeDocument, EditorTemplate, EditorTemplateId, ResumeSection } from "../types"
+import type { ResumeDocument, EditorTemplateId, ResumeSection } from "../types"
 import { MobileEditSheet } from "./mobile-edit-sheet"
 import { MobileCustomizeSheet, type CustomizePanel } from "./mobile-customize-sheet"
 import type { MobileRow } from "./mobile-rows"
 
 interface MobileEditorProps {
   readonly document: ResumeDocument
-  readonly template: EditorTemplate
+  readonly style: ResolvedStyle
+  readonly documentStyle: DocumentStyle
+  readonly onStyleChange: (patch: Partial<DocumentStyle>) => void
   readonly templateId: EditorTemplateId
   readonly onTemplateChange: (id: EditorTemplateId) => void
   readonly handlers: ResumeHandlers
@@ -97,7 +99,7 @@ function SectionRow({ section, onOpen }: { readonly section: ResumeSection; read
   )
 }
 
-export function MobileEditor({ document, template, templateId, onTemplateChange, handlers }: MobileEditorProps) {
+export function MobileEditor({ document, style, documentStyle, onStyleChange, templateId, onTemplateChange, handlers }: MobileEditorProps) {
   const { t } = useTranslation("resume-editor")
   const [activeRow, setActiveRow] = useState<MobileRow | null>(null)
   const [customizePanel, setCustomizePanel] = useState<CustomizePanel | null>(null)
@@ -169,7 +171,7 @@ export function MobileEditor({ document, template, templateId, onTemplateChange,
       <MobileEditSheet
         row={activeRow}
         document={document}
-        template={template}
+        style={style}
         handlers={handlers}
         onClose={() => setActiveRow(null)}
       />
@@ -178,6 +180,8 @@ export function MobileEditor({ document, template, templateId, onTemplateChange,
         onClose={() => setCustomizePanel(null)}
         activeTemplateId={templateId}
         onTemplateChange={onTemplateChange}
+        style={documentStyle}
+        onStyleChange={onStyleChange}
       />
     </div>
   )

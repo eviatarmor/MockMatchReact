@@ -4,6 +4,7 @@ import {
   EditableText,
   SectionedBody,
   type BlockTypeMeta,
+  type ResolvedStyle,
   type SortableBlockLabels,
 } from "@/components/document-editor"
 import { BlockFields } from "./block-fields"
@@ -15,6 +16,8 @@ import type { EditorTemplate, ResumeDocument, ResumeSection } from "../types"
 interface ResumeDocumentProps {
   readonly document: ResumeDocument
   readonly template: EditorTemplate
+  /** Resolved visual style (template default + user Style-panel overrides). */
+  readonly style: ResolvedStyle
   /** When provided the document is editable; otherwise it renders read-only. */
   readonly handlers?: ResumeHandlers
   readonly onAiBlock?: (id: string) => void
@@ -25,7 +28,7 @@ interface ResumeDocumentProps {
 const META = new Map(RESUME_SECTION_TYPES.map((m) => [m.type, m]))
 
 /** Editable name + headline + contacts header. */
-function DocumentHeader({ document, template, handlers }: Required<Pick<ResumeDocumentProps, "document" | "template">> & Pick<ResumeDocumentProps, "handlers">) {
+function DocumentHeader({ document, template, style, handlers }: Required<Pick<ResumeDocumentProps, "document" | "template" | "style">> & Pick<ResumeDocumentProps, "handlers">) {
   const { t } = useTranslation("resume-editor")
   const { header } = document
   const bind = (onChange?: (v: string) => void) => (handlers ? onChange : undefined)
@@ -48,7 +51,7 @@ function DocumentHeader({ document, template, handlers }: Required<Pick<ResumeDo
         onChange={bind((v) => handlers?.setHeaderField("headline", v))}
         placeholder={t("fields.headline")}
         ariaLabel={t("fields.headline")}
-        className={cn("mt-1 text-base font-medium", template.accentClass, template.id === "classic" && "text-center")}
+        className={cn("mt-1 text-base font-medium", style.accentText, template.id === "classic" && "text-center")}
       />
 
       <ul className={cn("mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-neutral-600", template.id === "classic" && "justify-center")}>
@@ -56,7 +59,7 @@ function DocumentHeader({ document, template, handlers }: Required<Pick<ResumeDo
           const Icon = contact.icon
           return (
             <li key={contact.id} className="flex items-center gap-1.5">
-              <Icon className={cn("size-3.5 shrink-0", template.accentClass)} />
+              <Icon className={cn("size-3.5 shrink-0", style.accentText)} />
               <EditableText
                 value={contact.value}
                 onChange={bind((v) => handlers?.setContact(contact.id, v))}
@@ -67,27 +70,27 @@ function DocumentHeader({ document, template, handlers }: Required<Pick<ResumeDo
         })}
       </ul>
 
-      <hr className={cn("mt-4 border-t-2", template.id === "modern" ? "border-blue-600" : "border-neutral-300")} />
+      <hr className={cn("mt-4 border-t-2", style.accentBorder)} />
     </header>
   )
 }
 
-/** The uppercase section-title label rendered above each section's content. */
-function SectionTitle({ section, template }: { readonly section: ResumeSection; readonly template: EditorTemplate }) {
+/** The section-title label rendered above each section's content. */
+function SectionTitle({ section, style }: { readonly section: ResumeSection; readonly style: ResolvedStyle }) {
   const { t } = useTranslation("resume-editor")
   const meta = META.get(section.type)
   const label = meta ? t(meta.labelKey) : section.type
-  return <p className={cn("mb-1.5 text-sm font-semibold uppercase tracking-wide", template.accentClass)}>{label}</p>
+  return <p className={cn("mb-1.5", style.headingClass)}>{label}</p>
 }
 
 /** Read-only render of the sections (previews / export). */
-function ReadOnlyBody({ document, template }: { readonly document: ResumeDocument; readonly template: EditorTemplate }) {
+function ReadOnlyBody({ document, style }: { readonly document: ResumeDocument; readonly style: ResolvedStyle }) {
   return (
-    <div className="flex flex-col gap-5">
+    <div className={cn("flex flex-col", style.sectionGap)}>
       {document.sections.map((section) => (
         <section key={section.id}>
-          <SectionTitle section={section} template={template} />
-          <p className="text-sm leading-relaxed text-neutral-700">{snippet(section)}</p>
+          <SectionTitle section={section} style={style} />
+          <p className={cn("text-sm text-neutral-700", style.bodyLeading)}>{snippet(section)}</p>
         </section>
       ))}
     </div>
@@ -100,7 +103,7 @@ function ReadOnlyBody({ document, template }: { readonly document: ResumeDocumen
  * stays a pure read-only render — reusable for previews, thumbnails, or a future
  * export pipeline. Fixed width (816px ≈ US Letter).
  */
-export function ResumeDocumentView({ document, template, handlers, onAiBlock, scale }: ResumeDocumentProps) {
+export function ResumeDocumentView({ document, template, style, handlers, onAiBlock, scale }: ResumeDocumentProps) {
   const { t } = useTranslation("resume-editor")
 
   const blockLabels: SortableBlockLabels = {
@@ -116,12 +119,12 @@ export function ResumeDocumentView({ document, template, handlers, onAiBlock, sc
     <article
       className={cn(
         "w-[816px] min-h-[1056px] shrink-0 bg-white px-24 py-20 text-neutral-800 shadow-2xl",
-        template.serif ? "font-serif" : "font-sans"
+        style.fontClass
       )}
     >
-      <DocumentHeader document={document} template={template} handlers={handlers} />
+      <DocumentHeader document={document} template={template} style={style} handlers={handlers} />
 
-      <div className="mt-6 text-[15px] leading-relaxed">
+      <div className={cn("mt-6 text-[15px]", style.bodyLeading)}>
         {handlers ? (
           <SectionedBody
             blocks={document.sections}
@@ -134,17 +137,17 @@ export function ResumeDocumentView({ document, template, handlers, onAiBlock, sc
             scale={scale}
             renderFields={(section) => (
               <div>
-                <SectionTitle section={section} template={template} />
+                <SectionTitle section={section} style={style} />
                 <BlockFields
                   block={section}
-                  template={template}
+                  style={style}
                   update={(patch) => handlers.updateBlock(section.id, patch)}
                 />
               </div>
             )}
           />
         ) : (
-          <ReadOnlyBody document={document} template={template} />
+          <ReadOnlyBody document={document} style={style} />
         )}
       </div>
     </article>

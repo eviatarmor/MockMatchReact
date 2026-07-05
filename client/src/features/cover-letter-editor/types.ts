@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react"
+import type { DocumentStyle } from "@/components/document-editor"
 
 /** A single contact entry rendered in the document header (icon + value). */
 export interface LetterContact {
@@ -75,14 +76,17 @@ export interface CoverLetterDocument {
 
 export type EditorTemplateId = "modern" | "classic" | "minimal" | "technical"
 
-/** Visual template definition — drives accent + typographic treatment. */
+/**
+ * Visual template definition. Carries the layout identity (`id` drives header
+ * centering / small-caps quirks) plus the {@link DocumentStyle} defaults it
+ * seeds — the Style panel then overrides any axis on top.
+ */
 export interface EditorTemplate {
   readonly id: EditorTemplateId
   readonly nameKey: string
   readonly descriptionKey: string
-  /** Tailwind text-color class for accent elements (name, headings, rules). */
-  readonly accentClass: string
-  readonly serif: boolean
+  /** Style axes this template seeds (accent/typeface/heading/density). */
+  readonly defaultStyle: DocumentStyle
 }
 
 /** Accent color swatch shown in the Style panel. */
@@ -105,14 +109,6 @@ export interface StyleTypeface {
 export interface StyleSegmentOption {
   readonly id: string
   readonly labelKey: string
-}
-
-/** Boolean style feature rendered as an icon + label + switch row. */
-export interface StyleToggle {
-  readonly id: string
-  readonly icon: LucideIcon
-  readonly titleKey: string
-  readonly descriptionKey: string
 }
 
 export type EditorPanelId = "templates" | "style" | "sections" | "ai"

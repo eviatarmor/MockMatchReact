@@ -52,11 +52,6 @@
       "compact": "Compact",
       "normal": "Normal",
       "relaxed": "Relaxed"
-    },
-    "toggles": {
-      "twoColumn": { "title": "Two-column layout", "description": "Sidebar for skills & education" },
-      "photo": { "title": "Profile photo", "description": "Show initials avatar in header" },
-      "accentRule": { "title": "Accent rule under header", "description": "Only with accent headings" }
     }
   },
   "sections": {

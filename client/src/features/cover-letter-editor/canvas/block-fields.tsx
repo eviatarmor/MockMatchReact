@@ -4,13 +4,14 @@ import {
   EditableText,
   RichTextField,
   type GrammarPopoverLabels,
+  type ResolvedStyle,
   type RichTextToolbarLabels,
 } from "@/components/document-editor"
-import type { EditorTemplate, LetterBlock } from "../types"
+import type { LetterBlock } from "../types"
 
 interface BlockFieldsProps {
   readonly block: LetterBlock
-  readonly template: EditorTemplate
+  readonly style: ResolvedStyle
   /** Patch the block in the document store. */
   readonly update: (patch: Partial<LetterBlock>) => void
   /**
@@ -27,12 +28,12 @@ interface BlockFieldsProps {
  * `SortableBlock` chrome by `SectionedBody`) and the mobile edit sheet, so the
  * field/editor logic lives in exactly one place.
  */
-export function BlockFields({ block, template, update, tone = "page" }: BlockFieldsProps) {
+export function BlockFields({ block, style, update, tone = "page" }: BlockFieldsProps) {
   const { t } = useTranslation("cover-letter-editor")
   // On the white page, text is fixed dark ink; on a themed surface it follows
   // the foreground token so it stays legible in light and dark mode.
   const strong = tone === "page" ? "text-neutral-900" : "text-foreground"
-  const headingClass = cn("text-sm font-semibold uppercase tracking-wide", template.accentClass)
+  const headingClass = style.headingClass
   const richLabels: RichTextToolbarLabels = {
     bold: t("richText.bold"),
     italic: t("richText.italic"),
@@ -110,7 +111,7 @@ export function BlockFields({ block, template, update, tone = "page" }: BlockFie
           onChange={(signature) => update({ signature })}
           placeholder={t("blockPlaceholders.signature")}
           ariaLabel={t("blockPlaceholders.signature")}
-          className={cn("text-lg font-semibold", strong, template.serif && "font-serif")}
+          className={cn("text-lg font-semibold", strong, style.serif && "font-serif")}
           grammar
           grammarLabels={grammarLabels}
         />

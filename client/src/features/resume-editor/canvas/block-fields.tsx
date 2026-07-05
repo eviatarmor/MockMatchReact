@@ -5,11 +5,11 @@ import {
   EditableText,
   RichTextField,
   type GrammarPopoverLabels,
+  type ResolvedStyle,
   type RichTextToolbarLabels,
 } from "@/components/document-editor"
 import type {
   BulletItem,
-  EditorTemplate,
   LanguageItem,
   ReferenceItem,
   ResumeSection,
@@ -18,7 +18,7 @@ import type {
 
 interface BlockFieldsProps {
   readonly block: ResumeSection
-  readonly template: EditorTemplate
+  readonly style: ResolvedStyle
   /** Patch the section in the document store. */
   readonly update: (patch: Partial<ResumeSection>) => void
   /**
@@ -77,11 +77,12 @@ function RemoveRowButton({ label, onClick }: { readonly label: string; readonly 
  * chrome by `SectionedBody`) and the mobile edit sheet, so the field/editor
  * logic lives in exactly one place.
  */
-export function BlockFields({ block, template, update, tone = "page" }: BlockFieldsProps) {
+export function BlockFields({ block, style, update, tone = "page" }: BlockFieldsProps) {
   const { t } = useTranslation("resume-editor")
   const strong = tone === "page" ? "text-neutral-900" : "text-foreground"
   const muted = tone === "page" ? "text-neutral-500" : "text-muted-foreground"
-  const headingClass = cn("text-sm font-semibold uppercase tracking-wide", template.accentClass)
+  const accentText = style.accentText
+  const headingClass = style.headingClass
 
   const richLabels: RichTextToolbarLabels = {
     bold: t("richText.bold"),
@@ -123,7 +124,7 @@ export function BlockFields({ block, template, update, tone = "page" }: BlockFie
     <div className="flex flex-col gap-1">
       {bullets.map((b) => (
         <div key={b.id} className="group/row flex items-start gap-1.5">
-          <span className={cn("mt-1.5 select-none", template.accentClass)}>•</span>
+          <span className={cn("mt-1.5 select-none", accentText)}>•</span>
           <div className="min-w-0 flex-1">
             <RichTextField
               value={b.text}
@@ -166,7 +167,7 @@ export function BlockFields({ block, template, update, tone = "page" }: BlockFie
             {dateRange(block.startDate, block.endDate, (startDate) => update({ startDate }), (endDate) => update({ endDate }))}
           </div>
           <div className={cn("flex flex-wrap items-baseline gap-x-2 text-sm", muted)}>
-            {field(block.company, (company) => update({ company }), t("fields.company"), cn("font-medium", template.accentClass))}
+            {field(block.company, (company) => update({ company }), t("fields.company"), cn("font-medium", accentText))}
             <span>·</span>
             {field(block.location, (location) => update({ location }), t("fields.location"))}
           </div>
@@ -182,7 +183,7 @@ export function BlockFields({ block, template, update, tone = "page" }: BlockFie
             {dateRange(block.startDate, block.endDate, (startDate) => update({ startDate }), (endDate) => update({ endDate }))}
           </div>
           <div className={cn("flex flex-wrap items-baseline gap-x-2 text-sm", muted)}>
-            {field(block.degree, (degree) => update({ degree }), t("fields.degree"), cn("font-medium", template.accentClass))}
+            {field(block.degree, (degree) => update({ degree }), t("fields.degree"), cn("font-medium", accentText))}
             <span>·</span>
             {field(block.field, (fieldValue) => update({ field: fieldValue }), t("fields.field"))}
             <span>·</span>
@@ -234,7 +235,7 @@ export function BlockFields({ block, template, update, tone = "page" }: BlockFie
         <div className="flex flex-col gap-1.5">
           <div className="flex flex-wrap items-baseline gap-x-2">
             {field(block.name, (name) => update({ name }), t("fields.projectName"), cn("text-base font-semibold", strong))}
-            {field(block.url, (url) => update({ url }), t("fields.url"), cn("text-xs", template.accentClass))}
+            {field(block.url, (url) => update({ url }), t("fields.url"), cn("text-xs", accentText))}
           </div>
           <RichTextField
             value={block.description}
@@ -258,7 +259,7 @@ export function BlockFields({ block, template, update, tone = "page" }: BlockFie
             {dateRange(block.startDate, block.endDate, (startDate) => update({ startDate }), (endDate) => update({ endDate }))}
           </div>
           <div className={cn("flex flex-wrap items-baseline gap-x-2 text-sm", muted)}>
-            {field(block.organization, (organization) => update({ organization }), t("fields.organization"), cn("font-medium", template.accentClass))}
+            {field(block.organization, (organization) => update({ organization }), t("fields.organization"), cn("font-medium", accentText))}
             <span>·</span>
             {field(block.location, (location) => update({ location }), t("fields.location"))}
           </div>
@@ -273,7 +274,7 @@ export function BlockFields({ block, template, update, tone = "page" }: BlockFie
             {field(block.title, (title) => update({ title }), t("fields.awardTitle"), cn("text-base font-semibold", strong))}
             {field(block.date, (date) => update({ date }), t("fields.date"), cn("text-xs", muted))}
           </div>
-          {field(block.issuer, (issuer) => update({ issuer }), t("fields.issuer"), cn("text-sm font-medium", template.accentClass))}
+          {field(block.issuer, (issuer) => update({ issuer }), t("fields.issuer"), cn("text-sm font-medium", accentText))}
           <RichTextField
             value={block.description}
             onChange={(description) => update({ description })}
@@ -295,7 +296,7 @@ export function BlockFields({ block, template, update, tone = "page" }: BlockFie
             {field(block.date, (date) => update({ date }), t("fields.date"), cn("text-xs", muted))}
           </div>
           <div className={cn("flex flex-wrap items-baseline gap-x-2 text-sm", muted)}>
-            {field(block.issuer, (issuer) => update({ issuer }), t("fields.issuer"), cn("font-medium", template.accentClass))}
+            {field(block.issuer, (issuer) => update({ issuer }), t("fields.issuer"), cn("font-medium", accentText))}
             {field(block.credentialId, (credentialId) => update({ credentialId }), t("fields.credentialId"))}
           </div>
         </div>
@@ -309,7 +310,7 @@ export function BlockFields({ block, template, update, tone = "page" }: BlockFie
             {field(block.date, (date) => update({ date }), t("fields.date"), cn("text-xs", muted))}
           </div>
           <div className={cn("flex flex-wrap items-baseline gap-x-2 text-sm", muted)}>
-            {field(block.publisher, (publisher) => update({ publisher }), t("fields.publisher"), cn("font-medium", template.accentClass))}
+            {field(block.publisher, (publisher) => update({ publisher }), t("fields.publisher"), cn("font-medium", accentText))}
             {field(block.url, (url) => update({ url }), t("fields.url"))}
           </div>
         </div>
@@ -339,7 +340,7 @@ export function BlockFields({ block, template, update, tone = "page" }: BlockFie
           <div className={cn("flex flex-wrap items-baseline gap-x-2 text-sm")}>
             {field(block.organization, (organization) => update({ organization }), t("fields.organization"), cn("text-base font-semibold", strong))}
             <span className={muted}>·</span>
-            {field(block.role, (role) => update({ role }), t("fields.role"), cn("font-medium", template.accentClass))}
+            {field(block.role, (role) => update({ role }), t("fields.role"), cn("font-medium", accentText))}
           </div>
           {field(block.date, (date) => update({ date }), t("fields.date"), cn("text-xs", muted))}
         </div>
@@ -380,7 +381,7 @@ export function BlockFields({ block, template, update, tone = "page" }: BlockFie
                 {field(r.relation, (relation) => commit(patchRow(items, r.id, { relation })), t("fields.refRelation"), cn("text-xs", muted))}
                 <RemoveRowButton label={t("rows.removeReference")} onClick={() => commit(removeRow(items, r.id))} />
               </div>
-              {field(r.contact, (contact) => commit(patchRow(items, r.id, { contact })), t("fields.refContact"), cn("text-sm", template.accentClass))}
+              {field(r.contact, (contact) => commit(patchRow(items, r.id, { contact })), t("fields.refContact"), cn("text-sm", accentText))}
             </div>
           ))}
           <AddRowButton label={t("rows.addReference")} onClick={() => commit(addRow(items, { id: newId(), name: "", relation: "", contact: "" }))} />

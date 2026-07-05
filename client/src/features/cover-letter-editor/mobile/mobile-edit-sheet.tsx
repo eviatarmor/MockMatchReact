@@ -13,14 +13,15 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { BlockFields } from "../canvas/block-fields"
 import { LETTER_BLOCK_TYPES } from "../constants"
+import type { ResolvedStyle } from "@/components/document-editor"
 import type { CoverLetterHandlers } from "../hooks/use-cover-letter-document"
-import type { CoverLetterDocument, EditorTemplate, LetterBlock } from "../types"
+import type { CoverLetterDocument, LetterBlock } from "../types"
 import type { MobileRow } from "./mobile-rows"
 
 interface MobileEditSheetProps {
   readonly row: MobileRow | null
   readonly document: CoverLetterDocument
-  readonly template: EditorTemplate
+  readonly style: ResolvedStyle
   readonly handlers: CoverLetterHandlers
   readonly onClose: () => void
 }
@@ -82,9 +83,9 @@ function DateBody({ document, handlers }: { readonly document: CoverLetterDocume
   )
 }
 
-function BlockBody({ block, template, handlers }: {
+function BlockBody({ block, style, handlers }: {
   readonly block: LetterBlock
-  readonly template: EditorTemplate
+  readonly style: ResolvedStyle
   readonly handlers: CoverLetterHandlers
 }) {
   // `tone="surface"` makes the editor text follow the theme `foreground` token
@@ -92,7 +93,7 @@ function BlockBody({ block, template, handlers }: {
   // sets the inherited color for fields that don't specify their own.
   return (
     <div className="rounded-lg border bg-muted/20 p-3 text-foreground">
-      <BlockFields block={block} template={template} update={(patch) => handlers.updateBlock(block.id, patch)} tone="surface" />
+      <BlockFields block={block} style={style} update={(patch) => handlers.updateBlock(block.id, patch)} tone="surface" />
     </div>
   )
 }
@@ -109,7 +110,7 @@ function useRowTitle(row: MobileRow | null, document: CoverLetterDocument): stri
   return meta ? t(meta.labelKey) : ""
 }
 
-export function MobileEditSheet({ row, document, template, handlers, onClose }: MobileEditSheetProps) {
+export function MobileEditSheet({ row, document, style, handlers, onClose }: MobileEditSheetProps) {
   const { t } = useTranslation("cover-letter-editor")
   const title = useRowTitle(row, document)
 
@@ -127,7 +128,7 @@ export function MobileEditSheet({ row, document, template, handlers, onClose }: 
             {row?.kind === "basic-info" && <BasicInfoBody document={document} handlers={handlers} />}
             {row?.kind === "recipient" && <RecipientBody document={document} handlers={handlers} />}
             {row?.kind === "date" && <DateBody document={document} handlers={handlers} />}
-            {block && <BlockBody block={block} template={template} handlers={handlers} />}
+            {block && <BlockBody block={block} style={style} handlers={handlers} />}
           </div>
         </ScrollArea>
 

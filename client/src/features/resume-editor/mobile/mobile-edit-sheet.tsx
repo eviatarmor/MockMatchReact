@@ -13,14 +13,15 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { BlockFields } from "../canvas/block-fields"
 import { RESUME_SECTION_TYPES } from "../constants"
+import type { ResolvedStyle } from "@/components/document-editor"
 import type { ResumeHandlers } from "../hooks/use-resume-document"
-import type { ResumeDocument, EditorTemplate, ResumeSection } from "../types"
+import type { ResumeDocument, ResumeSection } from "../types"
 import type { MobileRow } from "./mobile-rows"
 
 interface MobileEditSheetProps {
   readonly row: MobileRow | null
   readonly document: ResumeDocument
-  readonly template: EditorTemplate
+  readonly style: ResolvedStyle
   readonly handlers: ResumeHandlers
   readonly onClose: () => void
 }
@@ -61,16 +62,16 @@ function HeaderBody({ document, handlers }: { readonly document: ResumeDocument;
   )
 }
 
-function SectionBody({ section, template, handlers }: {
+function SectionBody({ section, style, handlers }: {
   readonly section: ResumeSection
-  readonly template: EditorTemplate
+  readonly style: ResolvedStyle
   readonly handlers: ResumeHandlers
 }) {
   // `tone="surface"` makes the editor text follow the theme `foreground` token
   // so it stays legible on the sheet in both light and dark mode.
   return (
     <div className="rounded-lg border bg-muted/20 p-3 text-foreground">
-      <BlockFields block={section} template={template} update={(patch) => handlers.updateBlock(section.id, patch)} tone="surface" />
+      <BlockFields block={section} style={style} update={(patch) => handlers.updateBlock(section.id, patch)} tone="surface" />
     </div>
   )
 }
@@ -85,7 +86,7 @@ function useRowTitle(row: MobileRow | null, document: ResumeDocument): string {
   return meta ? t(meta.labelKey) : ""
 }
 
-export function MobileEditSheet({ row, document, template, handlers, onClose }: MobileEditSheetProps) {
+export function MobileEditSheet({ row, document, style, handlers, onClose }: MobileEditSheetProps) {
   const { t } = useTranslation("resume-editor")
   const title = useRowTitle(row, document)
 
@@ -101,7 +102,7 @@ export function MobileEditSheet({ row, document, template, handlers, onClose }: 
         <ScrollArea className="min-h-0">
           <div className="p-4">
             {row?.kind === "header" && <HeaderBody document={document} handlers={handlers} />}
-            {section && <SectionBody section={section} template={template} handlers={handlers} />}
+            {section && <SectionBody section={section} style={style} handlers={handlers} />}
           </div>
         </ScrollArea>
 

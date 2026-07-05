@@ -7,6 +7,7 @@ import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/comp
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { EDITOR_RAIL_ITEMS } from "../constants"
+import type { DocumentStyle } from "@/components/document-editor"
 import type { ResumeHandlers } from "../hooks/use-resume-document"
 import type { ResumeDocument, EditorPanelId, EditorTemplateId } from "../types"
 import { TemplatesPanel } from "./templates-panel"
@@ -17,14 +18,18 @@ import { AiPanel } from "./ai-panel"
 interface EditorRailProps {
   readonly activeTemplateId: EditorTemplateId
   readonly onTemplateChange: (id: EditorTemplateId) => void
+  readonly style: DocumentStyle
+  readonly onStyleChange: (patch: Partial<DocumentStyle>) => void
   readonly document: ResumeDocument
   readonly handlers: ResumeHandlers
 }
 
-function PanelBody({ panel, activeTemplateId, onTemplateChange, document, handlers }: {
+function PanelBody({ panel, activeTemplateId, onTemplateChange, style, onStyleChange, document, handlers }: {
   readonly panel: EditorPanelId
   readonly activeTemplateId: EditorTemplateId
   readonly onTemplateChange: (id: EditorTemplateId) => void
+  readonly style: DocumentStyle
+  readonly onStyleChange: (patch: Partial<DocumentStyle>) => void
   readonly document: ResumeDocument
   readonly handlers: ResumeHandlers
 }) {
@@ -32,7 +37,7 @@ function PanelBody({ panel, activeTemplateId, onTemplateChange, document, handle
     case "templates":
       return <TemplatesPanel activeTemplateId={activeTemplateId} onSelect={onTemplateChange} />
     case "style":
-      return <StylePanel />
+      return <StylePanel style={style} onChange={onStyleChange} />
     case "sections":
       return <SectionsPanel sections={document.sections} handlers={handlers} />
     case "ai":
@@ -40,7 +45,7 @@ function PanelBody({ panel, activeTemplateId, onTemplateChange, document, handle
   }
 }
 
-export function EditorRail({ activeTemplateId, onTemplateChange, document, handlers }: EditorRailProps) {
+export function EditorRail({ activeTemplateId, onTemplateChange, style, onStyleChange, document, handlers }: EditorRailProps) {
   const { t } = useTranslation("resume-editor")
   const [activePanel, setActivePanel] = useState<EditorPanelId | null>("templates")
 
@@ -78,7 +83,7 @@ export function EditorRail({ activeTemplateId, onTemplateChange, document, handl
                 </div>
                 <ScrollArea className="min-h-0 flex-1">
                   <div className="px-4 py-4">
-                    <PanelBody panel={activePanel} activeTemplateId={activeTemplateId} onTemplateChange={onTemplateChange} document={document} handlers={handlers} />
+                    <PanelBody panel={activePanel} activeTemplateId={activeTemplateId} onTemplateChange={onTemplateChange} style={style} onStyleChange={onStyleChange} document={document} handlers={handlers} />
                   </div>
                 </ScrollArea>
               </div>

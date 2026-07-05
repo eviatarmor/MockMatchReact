@@ -4,6 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { TemplatesPanel } from "../right-rail/templates-panel"
 import { StylePanel } from "../right-rail/style-panel"
 import { AiPanel } from "../right-rail/ai-panel"
+import type { DocumentStyle } from "@/components/document-editor"
 import type { EditorTemplateId } from "../types"
 
 export type CustomizePanel = "templates" | "style" | "ai"
@@ -13,10 +14,12 @@ interface MobileCustomizeSheetProps {
   readonly onClose: () => void
   readonly activeTemplateId: EditorTemplateId
   readonly onTemplateChange: (id: EditorTemplateId) => void
+  readonly style: DocumentStyle
+  readonly onStyleChange: (patch: Partial<DocumentStyle>) => void
 }
 
 /** Mobile customise sheet: shows a single panel (templates / style / ai). */
-export function MobileCustomizeSheet({ panel, onClose, activeTemplateId, onTemplateChange }: MobileCustomizeSheetProps) {
+export function MobileCustomizeSheet({ panel, onClose, activeTemplateId, onTemplateChange, style, onStyleChange }: MobileCustomizeSheetProps) {
   const { t } = useTranslation("resume-editor")
 
   return (
@@ -29,7 +32,7 @@ export function MobileCustomizeSheet({ panel, onClose, activeTemplateId, onTempl
         <ScrollArea className="min-h-0">
           <div className="p-4">
             {panel === "templates" && <TemplatesPanel activeTemplateId={activeTemplateId} onSelect={onTemplateChange} />}
-            {panel === "style" && <StylePanel />}
+            {panel === "style" && <StylePanel style={style} onChange={onStyleChange} />}
             {panel === "ai" && <AiPanel />}
           </div>
         </ScrollArea>

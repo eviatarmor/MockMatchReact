@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { Cloud } from "lucide-react"
 import { useNavbarSlots } from "@/hooks/use-navbar-slots"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { resolveStyleClasses, type DocumentStyle } from "@/components/document-editor"
 import { BreadcrumbName } from "./top-bar/breadcrumb-name"
 import { EditorBottomBar, EditorToolbarActions } from "./top-bar/editor-toolbar"
 import { EditorCanvas } from "./canvas/editor-canvas"
@@ -20,8 +21,19 @@ export function CoverLetterEditorPageContent() {
   const { document, handlers } = useCoverLetterDocument(SAMPLE_DOCUMENT)
   const [templateId, setTemplateId] = useState<EditorTemplateId>("modern")
   const [letterName, setLetterName] = useState(SAMPLE_DOCUMENT.sender.title)
+  const [style, setStyle] = useState<DocumentStyle>(EDITOR_TEMPLATES[0].defaultStyle)
 
   const template = EDITOR_TEMPLATES.find((item) => item.id === templateId) ?? EDITOR_TEMPLATES[0]
+  const resolvedStyle = useMemo(() => resolveStyleClasses(style), [style])
+
+  // Selecting a template reseeds the style axes to that template's defaults; the
+  // Style panel then overrides any axis on top.
+  const selectTemplate = (id: EditorTemplateId) => {
+    setTemplateId(id)
+    const next = EDITOR_TEMPLATES.find((item) => item.id === id)
+    if (next) setStyle(next.defaultStyle)
+  }
+  const updateStyle = (patch: Partial<DocumentStyle>) => setStyle((prev) => ({ ...prev, ...patch }))
 
   const crumb = useMemo(
     () => (
@@ -48,9 +60,11 @@ export function CoverLetterEditorPageContent() {
     return (
       <MobileEditor
         document={document}
-        template={template}
+        style={resolvedStyle}
+        documentStyle={style}
+        onStyleChange={updateStyle}
         templateId={templateId}
-        onTemplateChange={setTemplateId}
+        onTemplateChange={selectTemplate}
         handlers={handlers}
       />
     )
@@ -58,11 +72,18 @@ export function CoverLetterEditorPageContent() {
 
   return (
     <div className="relative h-full min-h-0">
-      <EditorCanvas document={document} template={template} viewport={viewport} handlers={handlers} />
+      <EditorCanvas document={document} template={template} style={resolvedStyle} viewport={viewport} handlers={handlers} />
 
       <EditorBottomBar viewport={viewport} />
 
-      <EditorRail activeTemplateId={templateId} onTemplateChange={setTemplateId} document={document} handlers={handlers} />
+      <EditorRail
+        activeTemplateId={templateId}
+        onTemplateChange={selectTemplate}
+        style={style}
+        onStyleChange={updateStyle}
+        document={document}
+        handlers={handlers}
+      />
     </div>
   )
 }

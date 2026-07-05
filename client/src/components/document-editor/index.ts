@@ -15,3 +15,13 @@ export {
 export { useBlockList, type BlockListHandlers } from "./use-block-list"
 export { SectionedBody } from "./sectioned-body"
 export { SpeedDial, type SpeedDialAction } from "./speed-dial"
+export {
+  resolveStyleClasses,
+  isSerifTypeface,
+  type DocumentStyle,
+  type ResolvedStyle,
+  type StyleAccentId,
+  type StyleTypefaceId,
+  type StyleHeadingId,
+  type StyleDensityId,
+} from "./document-style"

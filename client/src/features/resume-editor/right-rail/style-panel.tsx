@@ -1,16 +1,25 @@
-import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
+import type {
+  DocumentStyle,
+  StyleAccentId,
+  StyleDensityId,
+  StyleHeadingId,
+  StyleTypefaceId,
+} from "@/components/document-editor"
 import {
   STYLE_ACCENTS,
   STYLE_TYPEFACES,
   STYLE_HEADINGS,
   STYLE_DENSITIES,
-  STYLE_TOGGLES,
 } from "../constants"
 import type { StyleSegmentOption } from "../types"
+
+interface StylePanelProps {
+  readonly style: DocumentStyle
+  readonly onChange: (patch: Partial<DocumentStyle>) => void
+}
 
 function Segmented({ options, value, onChange, columns }: {
   readonly options: readonly StyleSegmentOption[]
@@ -43,14 +52,9 @@ function Segmented({ options, value, onChange, columns }: {
   )
 }
 
-/** Visual styling controls (presentational — local state, not yet wired to the document). */
-export function StylePanel() {
+/** Visual styling controls — wired live to the document render. */
+export function StylePanel({ style, onChange }: StylePanelProps) {
   const { t } = useTranslation("resume-editor")
-  const [accent, setAccent] = useState(STYLE_ACCENTS[0].id)
-  const [typeface, setTypeface] = useState(STYLE_TYPEFACES[0].id)
-  const [heading, setHeading] = useState(STYLE_HEADINGS[0].id)
-  const [density, setDensity] = useState("normal")
-  const [toggles, setToggles] = useState<Record<string, boolean>>({})
 
   return (
     <div className="flex flex-col gap-6">
@@ -61,13 +65,13 @@ export function StylePanel() {
             <button
               key={option.id}
               type="button"
-              onClick={() => setAccent(option.id)}
+              onClick={() => onChange({ accent: option.id as StyleAccentId })}
               aria-label={option.id}
-              aria-pressed={accent === option.id}
+              aria-pressed={style.accent === option.id}
               className={cn(
                 "size-8 cursor-pointer rounded-full ring-offset-2 ring-offset-background transition-all hover:scale-110",
                 option.swatchClass,
-                accent === option.id && "ring-2 ring-ring"
+                style.accent === option.id && "ring-2 ring-ring"
               )}
             />
           ))}
@@ -78,12 +82,12 @@ export function StylePanel() {
         <Label className="text-sm font-semibold text-foreground">{t("style.typeface")}</Label>
         <div className="grid grid-cols-2 gap-2">
           {STYLE_TYPEFACES.map((option) => {
-            const isActive = typeface === option.id
+            const isActive = style.typeface === option.id
             return (
               <button
                 key={option.id}
                 type="button"
-                onClick={() => setTypeface(option.id)}
+                onClick={() => onChange({ typeface: option.id as StyleTypefaceId })}
                 aria-pressed={isActive}
                 className={cn(
                   "flex items-center gap-2.5 rounded-lg border p-2.5 text-left transition-colors",
@@ -105,34 +109,12 @@ export function StylePanel() {
 
       <section className="flex flex-col gap-2.5">
         <Label className="text-sm font-semibold text-foreground">{t("style.headings")}</Label>
-        <Segmented options={STYLE_HEADINGS} value={heading} onChange={setHeading} columns={4} />
+        <Segmented options={STYLE_HEADINGS} value={style.heading} onChange={(id) => onChange({ heading: id as StyleHeadingId })} columns={4} />
       </section>
 
       <section className="flex flex-col gap-2.5">
         <Label className="text-sm font-semibold text-foreground">{t("style.density")}</Label>
-        <Segmented options={STYLE_DENSITIES} value={density} onChange={setDensity} columns={3} />
-      </section>
-
-      <section className="flex flex-col gap-3 border-t border-border/60 pt-5">
-        {STYLE_TOGGLES.map((option) => {
-          const Icon = option.icon
-          return (
-            <div key={option.id} className="flex items-center gap-3">
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                <Icon className="size-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-foreground">{t(option.titleKey)}</p>
-                <p className="text-xs leading-snug text-muted-foreground">{t(option.descriptionKey)}</p>
-              </div>
-              <Switch
-                checked={Boolean(toggles[option.id])}
-                onCheckedChange={(checked) => setToggles((prev) => ({ ...prev, [option.id]: checked }))}
-                aria-label={t(option.titleKey)}
-              />
-            </div>
-          )
-        })}
+        <Segmented options={STYLE_DENSITIES} value={style.density} onChange={(id) => onChange({ density: id as StyleDensityId })} columns={3} />
       </section>
     </div>
   )
