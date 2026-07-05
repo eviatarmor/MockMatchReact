@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useState } from "react"
 import { useMutation } from "@tanstack/react-query"
-import { OTP_LENGTH, RESEND_COOLDOWN_SECONDS } from "@/features/verify-email/constants"
+import { OTP_LENGTH, RESEND_COOLDOWN_SECONDS } from "@/lib/auth/constants"
 
-export interface UseVerifyEmailFormResult {
+export interface UseOtpVerificationOptions {
+  readonly onVerify: (code: string) => Promise<void>
+  readonly onResend: () => Promise<void>
+}
+
+export interface UseOtpVerificationResult {
   readonly code: string
   readonly setCode: (code: string) => void
   readonly isSubmitting: boolean
@@ -13,23 +18,16 @@ export interface UseVerifyEmailFormResult {
   readonly onResend: () => void
 }
 
-// Dummy requests: no backend wired up yet.
-const verifyEmailRequest: (code: string) => Promise<void> = () =>
-  new Promise((resolve) => window.setTimeout(resolve, 600))
-
-const resendCodeRequest: () => Promise<void> = () =>
-  new Promise((resolve) => window.setTimeout(resolve, 400))
-
-export function useVerifyEmailForm(): UseVerifyEmailFormResult {
+export function useOtpVerification({ onVerify, onResend }: UseOtpVerificationOptions): UseOtpVerificationResult {
   const [code, setCode] = useState("")
   const [resendSecondsLeft, setResendSecondsLeft] = useState(RESEND_COOLDOWN_SECONDS)
 
   const { mutate: verify, isPending: isVerifying } = useMutation({
-    mutationFn: verifyEmailRequest,
+    mutationFn: onVerify,
   })
 
   const { mutate: resend, isPending: isResending } = useMutation({
-    mutationFn: resendCodeRequest,
+    mutationFn: onResend,
     onSuccess: () => setResendSecondsLeft(RESEND_COOLDOWN_SECONDS),
   })
 
@@ -50,7 +48,7 @@ export function useVerifyEmailForm(): UseVerifyEmailFormResult {
     verify(code)
   }, [verify, code, isComplete])
 
-  const onResend = useCallback(() => {
+  const handleResend = useCallback(() => {
     if (resendSecondsLeft > 0) return
     resend()
   }, [resend, resendSecondsLeft])
@@ -63,6 +61,6 @@ export function useVerifyEmailForm(): UseVerifyEmailFormResult {
     resendSecondsLeft,
     canResend: resendSecondsLeft <= 0,
     onSubmit,
-    onResend,
+    onResend: handleResend,
   }
 }

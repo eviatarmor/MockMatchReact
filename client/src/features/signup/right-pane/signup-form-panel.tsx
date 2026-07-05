@@ -1,16 +1,11 @@
 import { useTranslation } from "react-i18next"
-import { SignupCredentialsForm } from "@/features/signup/right-pane/signup-credentials-form"
-import { SignupFooterLinks } from "@/features/signup/right-pane/signup-footer-links"
+import { SignupStepper } from "@/features/signup/right-pane/signup-stepper"
 import { SocialAuthButtons } from "@/components/auth/social-auth-buttons"
 import { Separator } from "@/components/ui/separator"
-import { useSignupForm } from "@/features/signup/hooks/use-signup-form"
 import { useSocialAuth } from "@/hooks/use-social-auth"
 
 export function SignupFormPanel() {
   const { t } = useTranslation("signup")
-  const { form, isSubmitting, isPasswordVisible, togglePasswordVisibility, onSubmit } =
-    useSignupForm()
-
   const { pendingProvider, signInWithProvider } = useSocialAuth()
 
   return (
@@ -36,15 +31,7 @@ export function SignupFormPanel() {
           <Separator className="flex-1" />
         </div>
 
-        <SignupCredentialsForm
-          form={form}
-          isSubmitting={isSubmitting}
-          isPasswordVisible={isPasswordVisible}
-          onTogglePasswordVisibility={togglePasswordVisibility}
-          onSubmit={onSubmit}
-        />
-
-        <SignupFooterLinks />
+        <SignupStepper />
       </div>
     </div>
   )
