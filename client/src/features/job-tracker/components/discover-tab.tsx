@@ -3,7 +3,6 @@ import { useDetailPanel } from "@/hooks/use-detail-panel"
 import { DiscoverFilterBar } from "./discover-filter-bar"
 import { DiscoverJobCard } from "./discover-job-card"
 import { JobDetailsPanel } from "./job-details-panel"
-import { STRONG_MATCH_THRESHOLD } from "../constants"
 import type { DiscoverFilterKey, DiscoverJob, EmploymentType } from "../types"
 
 type SortOption = "bestMatch" | "newest" | "salary"
@@ -19,8 +18,6 @@ function matchesFilter(job: DiscoverJob, key: DiscoverFilterKey): boolean {
       return job.remoteType === "remote"
     case "new":
       return job.isNew
-    case "strongMatch":
-      return job.matchScore >= STRONG_MATCH_THRESHOLD
   }
 }
 

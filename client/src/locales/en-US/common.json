@@ -130,7 +130,6 @@
     "filters": {
       "remote": "Remote",
       "new": "New",
-      "strongMatch": "Strong match",
       "salary": "Salary",
       "employment": "Job type"
     },
@@ -262,7 +261,6 @@
     "filters": {
       "remote": "Remote",
       "new": "New",
-      "strongMatch": "Strong match",
       "salary": "Salary",
       "employment": "Job type"
     },

@@ -1,4 +1,4 @@
-import { Globe, Target, DollarSign, Briefcase, ChevronDown } from "lucide-react"
+import { Globe, DollarSign, Briefcase, ChevronDown } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
@@ -32,7 +32,6 @@ interface DiscoverFilterBarProps {
 
 const FILTER_PILLS: ReadonlyArray<{ key: DiscoverFilterKey; icon: LucideIcon }> = [
   { key: "remote", icon: Globe },
-  { key: "strongMatch", icon: Target },
 ]
 
 const SORT_OPTIONS: SortOption[] = ["bestMatch", "newest", "salary"]

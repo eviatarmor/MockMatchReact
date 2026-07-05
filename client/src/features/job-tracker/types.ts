@@ -6,7 +6,7 @@ export type EmploymentType = "fullTime" | "partTime" | "contract" | "internship"
 
 export type MatchTier = "strong" | "good" | "fair"
 
-export type DiscoverFilterKey = "remote" | "new" | "strongMatch"
+export type DiscoverFilterKey = "remote" | "new"
 
 export interface JobSkillTag {
   readonly label: string

@@ -28,7 +28,7 @@ interface SpeedDialProps {
 export function SpeedDial({ actions, openLabel }: SpeedDialProps) {
   return (
     <SpeedDialRoot side="top" className="fixed bottom-6 right-6 z-40">
-      <SpeedDialTrigger aria-label={openLabel} className="size-14 [&_svg]:size-6 [&_svg]:transition-transform data-[state=open]:[&_svg]:rotate-45">
+      <SpeedDialTrigger aria-label={openLabel} className="size-12 [&_svg]:size-7 [&_svg]:transition-transform data-[state=open]:[&_svg]:rotate-45">
         <Plus />
       </SpeedDialTrigger>
       <SpeedDialContent>

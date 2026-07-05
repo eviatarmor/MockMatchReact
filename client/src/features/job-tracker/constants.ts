@@ -1,7 +1,5 @@
 import type { DiscoverJob, EmploymentType, MatchTier, TrackedJob, TrackingStatus } from "./types"
 
-export const STRONG_MATCH_THRESHOLD = 90
-
 export const MATCH_TIER_TEXT_CLASS: Record<MatchTier, string> = {
   strong: "text-emerald-600",
   good: "text-blue-600",
