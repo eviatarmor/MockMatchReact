@@ -11,7 +11,7 @@ import { BlockFields } from "./block-fields"
 import { RESUME_SECTION_TYPES } from "../constants"
 import { snippet } from "../section-snippet"
 import type { ResumeHandlers } from "../hooks/use-resume-document"
-import type { EditorTemplate, ResumeDocument, ResumeSection } from "../types"
+import type { EditorTemplate, ResumeDocument, ResumeSection, TemplateLayoutId } from "../types"
 
 interface ResumeDocumentProps {
   readonly document: ResumeDocument
@@ -27,50 +27,112 @@ interface ResumeDocumentProps {
 
 const META = new Map(RESUME_SECTION_TYPES.map((m) => [m.type, m]))
 
-/** Editable name + headline + contacts header. */
-function DocumentHeader({ document, template, style, handlers }: Required<Pick<ResumeDocumentProps, "document" | "template" | "style">> & Pick<ResumeDocumentProps, "handlers">) {
+type HeaderChildProps = Required<Pick<ResumeDocumentProps, "document" | "template" | "style">> &
+  Pick<ResumeDocumentProps, "handlers">
+
+/** Per-layout header treatments, keyed off `template.layout`. */
+const HEADER_STYLE: Record<
+  TemplateLayoutId,
+  {
+    readonly wrap?: string
+    readonly name?: string
+    readonly headline?: string
+    readonly contactList?: string
+    /** How the header is separated from the body: accent rule, plain rule, or nothing. */
+    readonly rule?: "accent" | "plain" | "none"
+  }
+> = {
+  standard: { rule: "accent" },
+  centered: { wrap: "text-center", name: "text-center", headline: "text-center", contactList: "justify-center", rule: "accent" },
+  caps: { name: "text-3xl font-semibold uppercase tracking-[0.2em]", rule: "none" },
+  grid: { name: "text-3xl", rule: "plain" },
+  executive: { name: "text-5xl", rule: "accent" },
+  compact: { name: "text-3xl", rule: "plain" },
+  banner: {}, // rendered specially below
+  editorial: { name: "text-5xl font-semibold", rule: "accent" },
+  elegant: { wrap: "text-center", name: "text-center uppercase tracking-[0.15em]", headline: "text-center", contactList: "justify-center", rule: "accent" },
+}
+
+/** Editable name + headline (shared across every header layout). */
+function HeaderIdentity({ document, style, handlers, nameClass, headlineClass }: HeaderChildProps & { readonly nameClass?: string; readonly headlineClass?: string }) {
   const { t } = useTranslation("resume-editor")
   const { header } = document
   const bind = (onChange?: (v: string) => void) => (handlers ? onChange : undefined)
-
   return (
-    <header className={cn(template.id === "classic" && "text-center")}>
+    <>
       <EditableText
         value={header.name}
         onChange={bind((v) => handlers?.setHeaderField("name", v))}
         placeholder={t("fields.name")}
         ariaLabel={t("fields.name")}
-        className={cn(
-          "text-4xl font-bold tracking-tight text-neutral-900",
-          template.id === "minimal" && "text-3xl font-semibold uppercase tracking-[0.2em]",
-          template.id === "classic" && "text-center"
-        )}
+        className={cn("text-4xl font-bold tracking-tight text-neutral-900", nameClass)}
       />
       <EditableText
         value={header.headline}
         onChange={bind((v) => handlers?.setHeaderField("headline", v))}
         placeholder={t("fields.headline")}
         ariaLabel={t("fields.headline")}
-        className={cn("mt-1 text-base font-medium", style.accentText, template.id === "classic" && "text-center")}
+        className={cn("mt-1 text-base font-medium", style.accentText, headlineClass)}
       />
+    </>
+  )
+}
 
-      <ul className={cn("mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-neutral-600", template.id === "classic" && "justify-center")}>
-        {header.contacts.map((contact) => {
-          const Icon = contact.icon
-          return (
-            <li key={contact.id} className="flex items-center gap-1.5">
-              <Icon className={cn("size-3.5 shrink-0", style.accentText)} />
-              <EditableText
-                value={contact.value}
-                onChange={bind((v) => handlers?.setContact(contact.id, v))}
-                ariaLabel={contact.id}
-              />
-            </li>
-          )
-        })}
-      </ul>
+/** Editable contact list. */
+function HeaderContacts({ document, style, handlers, className }: HeaderChildProps & { readonly className?: string }) {
+  const { header } = document
+  const bind = (onChange?: (v: string) => void) => (handlers ? onChange : undefined)
+  return (
+    <ul className={cn("flex flex-wrap gap-x-5 gap-y-1 text-sm text-neutral-600", className)}>
+      {header.contacts.map((contact) => {
+        const Icon = contact.icon
+        return (
+          <li key={contact.id} className="flex items-center gap-1.5">
+            <Icon className={cn("size-3.5 shrink-0", style.accentText)} />
+            <EditableText
+              value={contact.value}
+              onChange={bind((v) => handlers?.setContact(contact.id, v))}
+              ariaLabel={contact.id}
+            />
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
 
-      <hr className={cn("mt-4 border-t-2", style.accentBorder)} />
+/**
+ * Editable header. Switches on `template.layout` to pick a header treatment while
+ * keeping the body a single ATS-safe column. Most layouts share one flow (identity
+ * → contacts → separator rule); `banner` and `sidebar` are structurally distinct.
+ */
+function DocumentHeader(props: HeaderChildProps) {
+  const { template, style } = props
+  const layout = template.layout
+
+  if (layout === "banner") {
+    return (
+      <header>
+        <div className={cn("-mx-24 -mt-20 mb-4 px-24 py-10", style.accentBg)}>
+          <HeaderIdentity {...props} nameClass="text-white" headlineClass="!text-white/90" />
+        </div>
+        <HeaderContacts {...props} />
+        <hr className={cn("mt-4 border-t-2", style.accentBorder)} />
+      </header>
+    )
+  }
+
+  const s = HEADER_STYLE[layout]
+  const rule =
+    s.rule === "none" ? null : (
+      <hr className={cn("mt-4 border-t-2", s.rule === "plain" ? "border-neutral-300" : style.accentBorder)} />
+    )
+
+  return (
+    <header className={s.wrap}>
+      <HeaderIdentity {...props} nameClass={s.name} headlineClass={s.headline} />
+      <HeaderContacts {...props} className={cn("mt-3", s.contactList)} />
+      {rule}
     </header>
   )
 }

@@ -12,15 +12,12 @@ export function snippet(section: ResumeSection): string {
     case "summary":
       return stripHtml(section.text)
     case "experience":
-      return [section.role, section.company].filter(Boolean).join(" · ")
     case "education":
-      return [section.degree, section.school].filter(Boolean).join(" · ")
-    case "skills":
-      return section.groups.map((g) => g.name).filter(Boolean).join(", ")
     case "projects":
-      return section.name
     case "volunteering":
-      return [section.role, section.organization].filter(Boolean).join(" · ")
+      return section.entries.map((e) => [e.title, e.org].filter(Boolean).join(" · ")).filter(Boolean).join("  •  ")
+    case "skills":
+      return section.items.map((s) => s.text).filter(Boolean).join(", ")
     case "awards":
       return section.title
     case "certifications":

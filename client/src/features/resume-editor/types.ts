@@ -15,7 +15,7 @@ export interface ResumeHeader {
   readonly contacts: readonly ResumeContactEntry[]
 }
 
-/** A stably-keyed rich-text line — used for bullet lists (holds Lexical HTML). */
+/** A stably-keyed rich-text line — used for flat tag lists (holds plain text). */
 export interface BulletItem {
   readonly id: string
   readonly text: string
@@ -52,56 +52,49 @@ export interface SummarySection extends ResumeSectionBase {
   readonly text: string
 }
 
-export interface ExperienceSection extends ResumeSectionBase {
-  readonly type: "experience"
-  readonly role: string
-  readonly company: string
+/**
+ * A single dated entry inside a grouped section. `bullets` holds Lexical HTML —
+ * the user decides bullets vs. paragraphs. Not every field applies to every
+ * section (e.g. projects have `url`, jobs have `company`); unused fields stay "".
+ */
+export interface SectionEntry {
+  readonly id: string
+  /** Primary heading line (role / degree / project name). */
+  readonly title: string
+  /** Secondary org line (company / school / organization). */
+  readonly org: string
   readonly location: string
+  readonly url: string
   readonly startDate: string
   readonly endDate: string
-  readonly current: boolean
-  readonly bullets: readonly BulletItem[]
+  /** Rich-text body (Lexical HTML). */
+  readonly bullets: string
+}
+
+export interface ExperienceSection extends ResumeSectionBase {
+  readonly type: "experience"
+  readonly entries: readonly SectionEntry[]
 }
 
 export interface EducationSection extends ResumeSectionBase {
   readonly type: "education"
-  readonly school: string
-  readonly degree: string
-  readonly field: string
-  readonly location: string
-  readonly startDate: string
-  readonly endDate: string
-  readonly bullets: readonly BulletItem[]
-}
-
-/** A named group of skill tags (e.g. "Languages", "Tools"). */
-export interface SkillGroup {
-  readonly id: string
-  readonly name: string
-  readonly items: readonly BulletItem[]
+  readonly entries: readonly SectionEntry[]
 }
 
 export interface SkillsSection extends ResumeSectionBase {
   readonly type: "skills"
-  readonly groups: readonly SkillGroup[]
+  /** Flat list of skill tags — no groups. */
+  readonly items: readonly BulletItem[]
 }
 
 export interface ProjectsSection extends ResumeSectionBase {
   readonly type: "projects"
-  readonly name: string
-  readonly url: string
-  readonly description: string
-  readonly bullets: readonly BulletItem[]
+  readonly entries: readonly SectionEntry[]
 }
 
 export interface VolunteeringSection extends ResumeSectionBase {
   readonly type: "volunteering"
-  readonly organization: string
-  readonly role: string
-  readonly location: string
-  readonly startDate: string
-  readonly endDate: string
-  readonly bullets: readonly BulletItem[]
+  readonly entries: readonly SectionEntry[]
 }
 
 export interface AwardsSection extends ResumeSectionBase {
@@ -199,15 +192,50 @@ export interface ResumeDocument {
   readonly sections: readonly ResumeSection[]
 }
 
-export type EditorTemplateId = "modern" | "classic" | "minimal" | "technical"
+export type EditorTemplateId =
+  | "modern"
+  | "classic"
+  | "minimal"
+  | "technical"
+  | "executive"
+  | "compact"
+  | "banner"
+  | "editorial"
+  | "elegant"
 
 /**
- * Visual template definition. Carries the layout identity (`id` drives header
- * centering / small-caps quirks) plus the {@link DocumentStyle} defaults it
- * seeds — the Style panel then overrides any axis on top.
+ * Header/structure treatment a template applies on top of the shared single-column
+ * body. Layouts stay ATS-safe (single text column) — they vary the header block
+ * and the name/contact placement only.
+ * - `standard`   — left-aligned name over an accent rule (Modern).
+ * - `centered`   — centered name + contacts, serif rules (Classic).
+ * - `caps`       — airy uppercase name, no rules (Minimal).
+ * - `grid`       — tight mono header, plain rules (Technical).
+ * - `executive`  — large name, contacts on a divider row under a heavy rule.
+ * - `compact`    — dense header, name + contacts on one baseline.
+ * - `banner`     — full-width accent color band behind the name/headline.
+ * - `editorial`  — oversized serif name with a thin accent underline.
+ * - `elegant`    — centered small-caps name with an accent hairline frame.
+ */
+export type TemplateLayoutId =
+  | "standard"
+  | "centered"
+  | "caps"
+  | "grid"
+  | "executive"
+  | "compact"
+  | "banner"
+  | "editorial"
+  | "elegant"
+
+/**
+ * Visual template definition. Carries the {@link TemplateLayoutId} that drives the
+ * header/structure treatment plus the {@link DocumentStyle} defaults it seeds — the
+ * Style panel then overrides any style axis on top.
  */
 export interface EditorTemplate {
   readonly id: EditorTemplateId
+  readonly layout: TemplateLayoutId
   readonly nameKey: string
   readonly descriptionKey: string
   /** Style axes this template seeds (accent/typeface/heading/density). */

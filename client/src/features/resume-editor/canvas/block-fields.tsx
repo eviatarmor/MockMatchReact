@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import { Plus, X } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
@@ -8,12 +9,13 @@ import {
   type ResolvedStyle,
   type RichTextToolbarLabels,
 } from "@/components/document-editor"
+import { newEntry } from "../constants"
 import type {
   BulletItem,
   LanguageItem,
   ReferenceItem,
   ResumeSection,
-  SkillGroup,
+  SectionEntry,
 } from "../types"
 
 interface BlockFieldsProps {
@@ -110,7 +112,7 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
     />
   )
 
-  /** Section heading + a compact date range row (start – end). */
+  /** A compact date range (start – end). */
   const dateRange = (start: string, end: string, onStart: (v: string) => void, onEnd: (v: string) => void) => (
     <div className={cn("flex items-center gap-1 text-xs", muted)}>
       {field(start, onStart, t("fields.startDate"))}
@@ -119,28 +121,71 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
     </div>
   )
 
-  /** Bullet list editor (rich text rows, add + remove). */
-  const bulletList = (bullets: readonly BulletItem[], commit: (next: BulletItem[]) => void) => (
-    <div className="flex flex-col gap-1">
-      {bullets.map((b) => (
-        <div key={b.id} className="group/row flex items-start gap-1.5">
-          <span className={cn("mt-1.5 select-none", accentText)}>•</span>
-          <div className="min-w-0 flex-1">
-            <RichTextField
-              value={b.text}
-              onChange={(text) => commit(patchRow(bullets, b.id, { text }))}
-              placeholder={t("fields.bullet")}
-              ariaLabel={t("fields.bullet")}
-              className="leading-relaxed"
-              labels={richLabels}
-              grammar
-              grammarLabels={grammarLabels}
-            />
+  /**
+   * A title line with its date pushed to the far right on the same baseline —
+   * "University of Minnesota ———— May 2011". Used at the top of every entry.
+   */
+  const titleRow = (title: ReactNode, date: ReactNode) => (
+    <div className="flex items-baseline justify-between gap-x-3">
+      <div className="min-w-0 flex-1">{title}</div>
+      <div className="w-40 shrink-0 text-right">{date}</div>
+    </div>
+  )
+
+  /**
+   * The free-form body for a grouped entry. A single Lexical rich-text field —
+   * the user decides bullets vs. paragraphs (toolbar list button), like the cover
+   * letter editor.
+   */
+  const bodyField = (value: string, onChange: (html: string) => void) => (
+    <RichTextField
+      value={value}
+      onChange={onChange}
+      placeholder={t("fields.bullet")}
+      ariaLabel={t("fields.bullet")}
+      className="leading-relaxed"
+      labels={richLabels}
+      grammar
+      grammarLabels={grammarLabels}
+    />
+  )
+
+  /**
+   * A grouped list of dated entries (jobs, degrees, projects, volunteering roles).
+   * Each entry: title + date on one baseline, an org/location line, then a rich
+   * body. `+ add` appends a blank entry; each entry can be removed on hover.
+   * `showUrl` swaps the org/location line for a project-style name + URL treatment.
+   */
+  const entryList = (
+    entries: readonly SectionEntry[],
+    commit: (next: SectionEntry[]) => void,
+    opts: { readonly titlePh: string; readonly orgPh: string; readonly showUrl?: boolean }
+  ) => (
+    <div className="flex flex-col gap-4">
+      {entries.map((e) => {
+        const set = (patch: Partial<SectionEntry>) => commit(patchRow(entries, e.id, patch))
+        return (
+          <div key={e.id} className="group/row flex flex-col gap-1.5">
+            <div className="flex items-start gap-1.5">
+              <div className="min-w-0 flex-1">
+                {titleRow(
+                  field(e.title, (title) => set({ title }), opts.titlePh, cn("text-base font-semibold", strong)),
+                  dateRange(e.startDate, e.endDate, (startDate) => set({ startDate }), (endDate) => set({ endDate }))
+                )}
+                <div className={cn("flex flex-wrap items-baseline gap-x-3 text-sm", muted)}>
+                  {field(e.org, (org) => set({ org }), opts.orgPh, cn("font-medium", accentText))}
+                  {opts.showUrl
+                    ? field(e.url, (url) => set({ url }), t("fields.url"), cn("text-xs", accentText))
+                    : field(e.location, (location) => set({ location }), t("fields.location"))}
+                </div>
+              </div>
+              <RemoveRowButton label={t("rows.removeEntry")} onClick={() => commit(removeRow(entries, e.id))} />
+            </div>
+            {bodyField(e.bullets, (bullets) => set({ bullets }))}
           </div>
-          <RemoveRowButton label={t("rows.removeBullet")} onClick={() => commit(removeRow(bullets, b.id))} />
-        </div>
-      ))}
-      <AddRowButton label={t("rows.addBullet")} onClick={() => commit(addRow(bullets, { id: newId(), text: "" }))} />
+        )
+      })}
+      <AddRowButton label={t("rows.addEntry")} onClick={() => commit(addRow(entries, newEntry()))} />
     </div>
   )
 
@@ -160,120 +205,60 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
       )
 
     case "experience":
-      return (
-        <div className="flex flex-col gap-1.5">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-            {field(block.role, (role) => update({ role }), t("fields.role"), cn("text-base font-semibold", strong))}
-            {dateRange(block.startDate, block.endDate, (startDate) => update({ startDate }), (endDate) => update({ endDate }))}
-          </div>
-          <div className={cn("flex flex-wrap items-baseline gap-x-2 text-sm", muted)}>
-            {field(block.company, (company) => update({ company }), t("fields.company"), cn("font-medium", accentText))}
-            <span>·</span>
-            {field(block.location, (location) => update({ location }), t("fields.location"))}
-          </div>
-          {bulletList(block.bullets, (bullets) => update({ bullets }))}
-        </div>
-      )
+      return entryList(block.entries, (entries) => update({ entries }), {
+        titlePh: t("fields.role"),
+        orgPh: t("fields.company"),
+      })
 
     case "education":
-      return (
-        <div className="flex flex-col gap-1.5">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-            {field(block.school, (school) => update({ school }), t("fields.school"), cn("text-base font-semibold", strong))}
-            {dateRange(block.startDate, block.endDate, (startDate) => update({ startDate }), (endDate) => update({ endDate }))}
-          </div>
-          <div className={cn("flex flex-wrap items-baseline gap-x-2 text-sm", muted)}>
-            {field(block.degree, (degree) => update({ degree }), t("fields.degree"), cn("font-medium", accentText))}
-            <span>·</span>
-            {field(block.field, (fieldValue) => update({ field: fieldValue }), t("fields.field"))}
-            <span>·</span>
-            {field(block.location, (location) => update({ location }), t("fields.location"))}
-          </div>
-          {bulletList(block.bullets, (bullets) => update({ bullets }))}
-        </div>
-      )
+      return entryList(block.entries, (entries) => update({ entries }), {
+        titlePh: t("fields.degree"),
+        orgPh: t("fields.school"),
+      })
 
     case "skills": {
-      const groups = block.groups
-      const commit = (next: SkillGroup[]) => update({ groups: next })
+      const items = block.items
+      const commit = (next: BulletItem[]) => update({ items: next })
       return (
-        <div className="flex flex-col gap-2.5">
-          {groups.map((g) => (
-            <div key={g.id} className="group/row flex flex-col gap-1">
-              <div className="flex items-center gap-1.5">
-                {field(g.name, (name) => commit(patchRow(groups, g.id, { name })), t("fields.skillGroup"), cn("text-sm font-semibold", strong))}
-                <RemoveRowButton label={t("rows.removeGroup")} onClick={() => commit(removeRow(groups, g.id))} />
-              </div>
-              <div className="flex flex-wrap items-center gap-1.5">
-                {g.items.map((it) => (
-                  <span key={it.id} className="group/tag inline-flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">
-                    {field(it.text, (text) => commit(patchRow(groups, g.id, { items: patchRow(g.items, it.id, { text }) })), t("fields.skill"))}
-                    <button
-                      type="button"
-                      aria-label={t("rows.removeSkill")}
-                      onClick={() => commit(patchRow(groups, g.id, { items: removeRow(g.items, it.id) }))}
-                      className="pan-ignore text-neutral-400 opacity-0 transition-opacity hover:text-rose-500 group-hover/tag:opacity-100"
-                    >
-                      <X className="size-3" />
-                    </button>
-                  </span>
-                ))}
-                <AddRowButton
-                  label={t("rows.addSkill")}
-                  onClick={() => commit(patchRow(groups, g.id, { items: addRow(g.items, { id: newId(), text: "" }) }))}
-                />
-              </div>
-            </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          {items.map((it) => (
+            <span key={it.id} className="group/tag inline-flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">
+              {field(it.text, (text) => commit(patchRow(items, it.id, { text })), t("fields.skill"))}
+              <button
+                type="button"
+                aria-label={t("rows.removeSkill")}
+                onClick={() => commit(removeRow(items, it.id))}
+                className="pan-ignore text-neutral-400 opacity-0 transition-opacity hover:text-rose-500 group-hover/tag:opacity-100"
+              >
+                <X className="size-3" />
+              </button>
+            </span>
           ))}
-          <AddRowButton label={t("rows.addGroup")} onClick={() => commit(addRow(groups, { id: newId(), name: "", items: [] }))} />
+          <AddRowButton label={t("rows.addSkill")} onClick={() => commit(addRow(items, { id: newId(), text: "" }))} />
         </div>
       )
     }
 
     case "projects":
-      return (
-        <div className="flex flex-col gap-1.5">
-          <div className="flex flex-wrap items-baseline gap-x-2">
-            {field(block.name, (name) => update({ name }), t("fields.projectName"), cn("text-base font-semibold", strong))}
-            {field(block.url, (url) => update({ url }), t("fields.url"), cn("text-xs", accentText))}
-          </div>
-          <RichTextField
-            value={block.description}
-            onChange={(description) => update({ description })}
-            placeholder={t("fields.description")}
-            ariaLabel={t("fields.description")}
-            className="text-sm leading-relaxed"
-            labels={richLabels}
-            grammar
-            grammarLabels={grammarLabels}
-          />
-          {bulletList(block.bullets, (bullets) => update({ bullets }))}
-        </div>
-      )
+      return entryList(block.entries, (entries) => update({ entries }), {
+        titlePh: t("fields.projectName"),
+        orgPh: t("fields.organization"),
+        showUrl: true,
+      })
 
     case "volunteering":
-      return (
-        <div className="flex flex-col gap-1.5">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-            {field(block.role, (role) => update({ role }), t("fields.role"), cn("text-base font-semibold", strong))}
-            {dateRange(block.startDate, block.endDate, (startDate) => update({ startDate }), (endDate) => update({ endDate }))}
-          </div>
-          <div className={cn("flex flex-wrap items-baseline gap-x-2 text-sm", muted)}>
-            {field(block.organization, (organization) => update({ organization }), t("fields.organization"), cn("font-medium", accentText))}
-            <span>·</span>
-            {field(block.location, (location) => update({ location }), t("fields.location"))}
-          </div>
-          {bulletList(block.bullets, (bullets) => update({ bullets }))}
-        </div>
-      )
+      return entryList(block.entries, (entries) => update({ entries }), {
+        titlePh: t("fields.role"),
+        orgPh: t("fields.organization"),
+      })
 
     case "awards":
       return (
         <div className="flex flex-col gap-1">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-            {field(block.title, (title) => update({ title }), t("fields.awardTitle"), cn("text-base font-semibold", strong))}
-            {field(block.date, (date) => update({ date }), t("fields.date"), cn("text-xs", muted))}
-          </div>
+          {titleRow(
+            field(block.title, (title) => update({ title }), t("fields.awardTitle"), cn("text-base font-semibold", strong)),
+            field(block.date, (date) => update({ date }), t("fields.date"), cn("text-xs", muted))
+          )}
           {field(block.issuer, (issuer) => update({ issuer }), t("fields.issuer"), cn("text-sm font-medium", accentText))}
           <RichTextField
             value={block.description}
@@ -291,10 +276,10 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
     case "certifications":
       return (
         <div className="flex flex-col gap-1">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-            {field(block.name, (name) => update({ name }), t("fields.certName"), cn("text-base font-semibold", strong))}
-            {field(block.date, (date) => update({ date }), t("fields.date"), cn("text-xs", muted))}
-          </div>
+          {titleRow(
+            field(block.name, (name) => update({ name }), t("fields.certName"), cn("text-base font-semibold", strong)),
+            field(block.date, (date) => update({ date }), t("fields.date"), cn("text-xs", muted))
+          )}
           <div className={cn("flex flex-wrap items-baseline gap-x-2 text-sm", muted)}>
             {field(block.issuer, (issuer) => update({ issuer }), t("fields.issuer"), cn("font-medium", accentText))}
             {field(block.credentialId, (credentialId) => update({ credentialId }), t("fields.credentialId"))}
@@ -305,10 +290,10 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
     case "publications":
       return (
         <div className="flex flex-col gap-1">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-            {field(block.title, (title) => update({ title }), t("fields.pubTitle"), cn("text-base font-semibold", strong))}
-            {field(block.date, (date) => update({ date }), t("fields.date"), cn("text-xs", muted))}
-          </div>
+          {titleRow(
+            field(block.title, (title) => update({ title }), t("fields.pubTitle"), cn("text-base font-semibold", strong)),
+            field(block.date, (date) => update({ date }), t("fields.date"), cn("text-xs", muted))
+          )}
           <div className={cn("flex flex-wrap items-baseline gap-x-2 text-sm", muted)}>
             {field(block.publisher, (publisher) => update({ publisher }), t("fields.publisher"), cn("font-medium", accentText))}
             {field(block.url, (url) => update({ url }), t("fields.url"))}
@@ -335,15 +320,13 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
     }
 
     case "affiliations":
-      return (
-        <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-          <div className={cn("flex flex-wrap items-baseline gap-x-2 text-sm")}>
-            {field(block.organization, (organization) => update({ organization }), t("fields.organization"), cn("text-base font-semibold", strong))}
-            <span className={muted}>·</span>
-            {field(block.role, (role) => update({ role }), t("fields.role"), cn("font-medium", accentText))}
-          </div>
-          {field(block.date, (date) => update({ date }), t("fields.date"), cn("text-xs", muted))}
-        </div>
+      return titleRow(
+        <div className="flex flex-wrap items-baseline gap-x-2 text-sm">
+          {field(block.organization, (organization) => update({ organization }), t("fields.organization"), cn("text-base font-semibold", strong))}
+          <span className={muted}>·</span>
+          {field(block.role, (role) => update({ role }), t("fields.role"), cn("font-medium", accentText))}
+        </div>,
+        field(block.date, (date) => update({ date }), t("fields.date"), cn("text-xs", muted))
       )
 
     case "hobbies": {

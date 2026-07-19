@@ -29,12 +29,25 @@ import type {
   EditorTemplate,
   ResumeDocument,
   ResumeSection,
+  SectionEntry,
   StyleAccent,
   StyleSegmentOption,
   StyleTypeface,
 } from "./types"
 
 const newId = () => crypto.randomUUID()
+
+/** A blank grouped entry (job / degree / project / volunteering role). */
+export const newEntry = (): SectionEntry => ({
+  id: newId(),
+  title: "",
+  org: "",
+  location: "",
+  url: "",
+  startDate: "",
+  endDate: "",
+  bullets: "",
+})
 
 export const EDITOR_RAIL_ITEMS: readonly EditorRailItem[] = [
   { id: "templates", icon: LayoutTemplate, labelKey: "rail.templates" },
@@ -46,27 +59,66 @@ export const EDITOR_RAIL_ITEMS: readonly EditorRailItem[] = [
 export const EDITOR_TEMPLATES: readonly EditorTemplate[] = [
   {
     id: "modern",
+    layout: "standard",
     nameKey: "templates.items.modern.name",
     descriptionKey: "templates.items.modern.description",
     defaultStyle: { accent: "blue", typeface: "geist", heading: "accent", density: "normal" },
   },
   {
     id: "classic",
+    layout: "centered",
     nameKey: "templates.items.classic.name",
     descriptionKey: "templates.items.classic.description",
     defaultStyle: { accent: "slate", typeface: "source-serif", heading: "underline", density: "normal" },
   },
   {
     id: "minimal",
+    layout: "caps",
     nameKey: "templates.items.minimal.name",
     descriptionKey: "templates.items.minimal.description",
     defaultStyle: { accent: "slate", typeface: "geist", heading: "small-caps", density: "relaxed" },
   },
   {
     id: "technical",
+    layout: "grid",
     nameKey: "templates.items.technical.name",
     descriptionKey: "templates.items.technical.description",
     defaultStyle: { accent: "teal", typeface: "mono", heading: "plain", density: "compact" },
+  },
+  {
+    id: "executive",
+    layout: "executive",
+    nameKey: "templates.items.executive.name",
+    descriptionKey: "templates.items.executive.description",
+    defaultStyle: { accent: "slate", typeface: "newsreader", heading: "underline", density: "normal" },
+  },
+  {
+    id: "compact",
+    layout: "compact",
+    nameKey: "templates.items.compact.name",
+    descriptionKey: "templates.items.compact.description",
+    defaultStyle: { accent: "indigo", typeface: "geist", heading: "plain", density: "compact" },
+  },
+  {
+    id: "banner",
+    layout: "banner",
+    nameKey: "templates.items.banner.name",
+    descriptionKey: "templates.items.banner.description",
+    defaultStyle: { accent: "blue", typeface: "geist", heading: "accent", density: "normal" },
+  },
+  {
+    id: "editorial",
+    layout: "editorial",
+    nameKey: "templates.items.editorial.name",
+    descriptionKey: "templates.items.editorial.description",
+    defaultStyle: { accent: "rose", typeface: "newsreader", heading: "plain", density: "relaxed" },
+  },
+  {
+    id: "elegant",
+    layout: "elegant",
+    nameKey: "templates.items.elegant.name",
+    descriptionKey: "templates.items.elegant.description",
+    defaultStyle: { accent: "purple", typeface: "source-serif", heading: "small-caps", density: "relaxed" },
   },
 ]
 
@@ -117,31 +169,31 @@ export const RESUME_SECTION_TYPES: readonly BlockTypeMeta<ResumeSection>[] = [
     type: "experience",
     icon: Briefcase,
     labelKey: "sections.experience",
-    make: () => ({ id: newId(), type: "experience", role: "", company: "", location: "", startDate: "", endDate: "", current: false, bullets: [{ id: newId(), text: "" }] }),
+    make: () => ({ id: newId(), type: "experience", entries: [newEntry()] }),
   },
   {
     type: "education",
     icon: GraduationCap,
     labelKey: "sections.education",
-    make: () => ({ id: newId(), type: "education", school: "", degree: "", field: "", location: "", startDate: "", endDate: "", bullets: [] }),
+    make: () => ({ id: newId(), type: "education", entries: [newEntry()] }),
   },
   {
     type: "skills",
     icon: Wrench,
     labelKey: "sections.skills",
-    make: () => ({ id: newId(), type: "skills", groups: [{ id: newId(), name: "", items: [{ id: newId(), text: "" }] }] }),
+    make: () => ({ id: newId(), type: "skills", items: [{ id: newId(), text: "" }] }),
   },
   {
     type: "projects",
     icon: FolderGit2,
     labelKey: "sections.projects",
-    make: () => ({ id: newId(), type: "projects", name: "", url: "", description: "", bullets: [{ id: newId(), text: "" }] }),
+    make: () => ({ id: newId(), type: "projects", entries: [newEntry()] }),
   },
   {
     type: "volunteering",
     icon: HeartHandshake,
     labelKey: "sections.volunteering",
-    make: () => ({ id: newId(), type: "volunteering", organization: "", role: "", location: "", startDate: "", endDate: "", bullets: [] }),
+    make: () => ({ id: newId(), type: "volunteering", entries: [newEntry()] }),
   },
   { type: "awards", icon: Trophy, labelKey: "sections.awards", make: () => ({ id: newId(), type: "awards", title: "", issuer: "", date: "", description: "" }) },
   { type: "certifications", icon: BadgeCheck, labelKey: "sections.certifications", make: () => ({ id: newId(), type: "certifications", name: "", issuer: "", date: "", credentialId: "" }) },
@@ -185,34 +237,56 @@ export const SAMPLE_RESUME: ResumeDocument = {
     {
       id: "exp1",
       type: "experience",
-      role: "Senior Product Designer",
-      company: "Acme Analytics",
-      location: "San Francisco, CA",
-      startDate: "2021",
-      endDate: "Present",
-      current: true,
-      bullets: [
-        { id: "b1", text: "Drove the end-to-end redesign of the analytics suite, cutting time-to-insight in half." },
-        { id: "b2", text: "Built a 60-component design system adopted across four product teams." },
+      entries: [
+        {
+          id: "e1",
+          title: "Senior Product Designer",
+          org: "Acme Analytics",
+          location: "San Francisco, CA",
+          url: "",
+          startDate: "2021",
+          endDate: "Present",
+          bullets:
+            "<ul class=\"list-disc pl-5\"><li>Drove the end-to-end redesign of the analytics suite, cutting time-to-insight in half.</li><li>Built a 60-component design system adopted across four product teams.</li></ul>",
+        },
+        {
+          id: "e2",
+          title: "Product Designer",
+          org: "Northwind Labs",
+          location: "Remote",
+          url: "",
+          startDate: "2018",
+          endDate: "2021",
+          bullets:
+            "<ul class=\"list-disc pl-5\"><li>Shipped the mobile onboarding flow, raising week-one retention 22%.</li></ul>",
+        },
       ],
     },
     {
       id: "edu1",
       type: "education",
-      school: "Rhode Island School of Design",
-      degree: "BFA",
-      field: "Graphic Design",
-      location: "Providence, RI",
-      startDate: "2013",
-      endDate: "2017",
-      bullets: [],
+      entries: [
+        {
+          id: "ed1",
+          title: "BFA, Graphic Design",
+          org: "Rhode Island School of Design",
+          location: "Providence, RI",
+          url: "",
+          startDate: "2013",
+          endDate: "2017",
+          bullets: "",
+        },
+      ],
     },
     {
       id: "skills1",
       type: "skills",
-      groups: [
-        { id: "g1", name: "Design", items: [{ id: "s1", text: "Figma" }, { id: "s2", text: "Prototyping" }, { id: "s3", text: "Design systems" }] },
-        { id: "g2", name: "Research", items: [{ id: "s4", text: "Usability testing" }, { id: "s5", text: "Surveys" }] },
+      items: [
+        { id: "s1", text: "Figma" },
+        { id: "s2", text: "Prototyping" },
+        { id: "s3", text: "Design systems" },
+        { id: "s4", text: "Usability testing" },
+        { id: "s5", text: "Surveys" },
       ],
     },
   ],

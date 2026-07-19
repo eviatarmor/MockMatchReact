@@ -26,7 +26,12 @@
       "modern": { "name": "Modern", "description": "Bold name, accent headings" },
       "classic": { "name": "Classic", "description": "Centered, serif, rule lines" },
       "minimal": { "name": "Minimal", "description": "Airy, small caps, no rules" },
-      "technical": { "name": "Technical", "description": "Mono accents, tight grid" }
+      "technical": { "name": "Technical", "description": "Mono accents, tight grid" },
+      "executive": { "name": "Executive", "description": "Large serif name, bold rule" },
+      "compact": { "name": "Compact", "description": "Dense, plain headings" },
+      "banner": { "name": "Banner", "description": "Accent color header band" },
+      "editorial": { "name": "Editorial", "description": "Oversized name, airy" },
+      "elegant": { "name": "Elegant", "description": "Centered small caps, serif" }
     }
   },
   "style": {
@@ -107,11 +112,10 @@
     "startDate": "Start",
     "endDate": "End",
     "date": "Date",
-    "bullet": "Describe an accomplishment…",
+    "bullet": "Describe your work — use the toolbar to add bullets…",
     "school": "School",
     "degree": "Degree",
     "field": "Field of study",
-    "skillGroup": "Group name",
     "skill": "Skill",
     "projectName": "Project name",
     "url": "URL",
@@ -131,10 +135,8 @@
     "customHeading": "Section heading"
   },
   "rows": {
-    "addBullet": "Add bullet",
-    "removeBullet": "Remove bullet",
-    "addGroup": "Add group",
-    "removeGroup": "Remove group",
+    "addEntry": "Add entry",
+    "removeEntry": "Remove entry",
     "addSkill": "Add skill",
     "removeSkill": "Remove skill",
     "addLanguage": "Add language",
