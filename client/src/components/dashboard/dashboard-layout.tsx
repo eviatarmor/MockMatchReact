@@ -19,13 +19,13 @@ export function DashboardLayout() {
       <SidebarProvider>
         <DetailPanelProvider>
           <AppSidebar />
-          <SidebarInset className="m-4 md:ml-0 min-w-0 gap-4 bg-transparent shadow-none transition-[margin] duration-200 ease-linear">
+          <SidebarInset className="min-w-0 bg-muted/40">
             <NavbarSlotsProvider>
               <DashboardNavbar />
               <div
                 className={cn(
                   "flex min-w-0 flex-1 flex-col min-h-0",
-                  !fullBleed && "rounded-xl border bg-background p-4 shadow-sm"
+                  !fullBleed && "px-6 py-6"
                 )}
               >
                 <Outlet />
