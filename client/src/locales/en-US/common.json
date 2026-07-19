@@ -351,6 +351,9 @@
     "views": {
       "list": "List view",
       "kanban": "Kanban view"
+    },
+    "kanban": {
+      "empty": "No applications"
     }
   },
   "applicationDetail": {

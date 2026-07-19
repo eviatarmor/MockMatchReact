@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
-import { SearchBar } from "@/components/dashboard/search-bar"
+import { TableToolbar } from "@/components/dashboard/table-toolbar"
 import { TemplateBrowserSection } from "@/components/templates/template-browser-section"
 import { ResumeTable } from "./components/resume-table"
 import { MOCK_RESUMES, MOCK_TEMPLATES, TEMPLATE_CATEGORIES } from "./constants"
@@ -33,6 +33,11 @@ export function ResumeLabPageContent() {
         <DashboardPageHeader
           title={t("resumeLab.title")}
           description={t("resumeLab.description")}
+        />
+        <TableToolbar
+          searchPlaceholder={t("dashboard.search.resumes")}
+          search={search}
+          onSearchChange={setSearch}
           actions={
             <>
               <Button
@@ -52,11 +57,6 @@ export function ResumeLabPageContent() {
               </Button>
             </>
           }
-        />
-        <SearchBar
-          placeholder={t("dashboard.search.resumes")}
-          value={search}
-          onChange={setSearch}
         />
         <ResumeTable resumes={filteredResumes} />
         <Separator className="my-2" />

@@ -23,6 +23,6 @@
   },
   "registries": {
     "@shadcn-space": "https://shadcnspace.com/r/{name}.json",
-    "@diceui": "https://diceui.com/r/{style}/{name}.json"
+    "@diceui": "https://diceui.com/r/default/{name}.json"
   }
 }

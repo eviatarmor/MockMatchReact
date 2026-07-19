@@ -4,7 +4,7 @@ import { Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
-import { SearchBar } from "@/components/dashboard/search-bar"
+import { TableToolbar } from "@/components/dashboard/table-toolbar"
 import { TrackingTab } from "./components/tracking-tab"
 import { TrackingKanban } from "./components/tracking-kanban"
 import { ApplicationsViewToggle } from "./components/applications-view-toggle"
@@ -34,30 +34,28 @@ export function ApplicationsPageContent() {
         <DashboardPageHeader
           title={t("applications.title")}
           description={t("applications.description")}
+        />
+        <TableToolbar
+          searchPlaceholder={t("dashboard.search.applications")}
+          search={search}
+          onSearchChange={setSearch}
           actions={
-            <AddJobDialog
-              trigger={
-                <Button
-                  variant="default"
-                  className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
-                >
-                  <Upload className="size-4" />
-                  <span className="hidden sm:inline">{t("dashboard.actions.importJob")}</span>
-                </Button>
-              }
-            />
+            <>
+              <AddJobDialog
+                trigger={
+                  <Button
+                    variant="default"
+                    className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
+                  >
+                    <Upload className="size-4" />
+                    <span className="hidden sm:inline">{t("dashboard.actions.importJob")}</span>
+                  </Button>
+                }
+              />
+              <ApplicationsViewToggle view={view} onChange={setView} />
+            </>
           }
         />
-        <div className="flex items-center gap-2">
-          <SearchBar
-            placeholder={t("dashboard.search.applications")}
-            value={search}
-            onChange={setSearch}
-          />
-          <div className="ml-auto">
-            <ApplicationsViewToggle view={view} onChange={setView} />
-          </div>
-        </div>
         {view === "list" ? (
           <TrackingTab jobs={filteredJobs} />
         ) : (

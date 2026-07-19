@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
-import { SearchBar } from "@/components/dashboard/search-bar"
+import { TableToolbar } from "@/components/dashboard/table-toolbar"
 import { TemplateBrowserSection } from "@/components/templates/template-browser-section"
 import { CoverLetterTable } from "./components/cover-letter-table"
 import { MOCK_COVER_LETTERS, MOCK_TEMPLATES, TEMPLATE_CATEGORIES } from "./constants"
@@ -31,6 +31,11 @@ export function CoverLettersPageContent() {
         <DashboardPageHeader
           title={t("coverLetters.title")}
           description={t("coverLetters.description")}
+        />
+        <TableToolbar
+          searchPlaceholder={t("dashboard.search.coverLetters")}
+          search={search}
+          onSearchChange={setSearch}
           actions={
             <>
               <Button
@@ -49,11 +54,6 @@ export function CoverLettersPageContent() {
               </Button>
             </>
           }
-        />
-        <SearchBar
-          placeholder={t("dashboard.search.coverLetters")}
-          value={search}
-          onChange={setSearch}
         />
         <CoverLetterTable coverLetters={filteredLetters} />
         <Separator className="my-2" />

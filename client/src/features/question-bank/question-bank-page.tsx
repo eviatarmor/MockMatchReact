@@ -4,7 +4,7 @@ import { Bookmark, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
-import { SearchBar } from "@/components/dashboard/search-bar"
+import { TableToolbar } from "@/components/dashboard/table-toolbar"
 import { QuestionBankFilters } from "./components/question-bank-filters"
 import { QuestionBankTable } from "./components/question-bank-table"
 import { MOCK_QUESTIONS } from "./constants"
@@ -41,18 +41,6 @@ export function QuestionBankPageContent() {
         <DashboardPageHeader
           title={t("questionBank.title")}
           description={t("questionBank.description")}
-          actions={
-            <>
-              <Button variant="outline" className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer">
-                <Bookmark className="size-4" />
-                <span className="hidden sm:inline">{t("questionBank.actions.saved")}</span>
-              </Button>
-              <Button variant="default" className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer">
-                <Plus className="size-4" />
-                <span className="hidden sm:inline">{t("questionBank.actions.newPracticeSet")}</span>
-              </Button>
-            </>
-          }
         />
 
         <div className="flex flex-1 gap-4 min-h-0">
@@ -70,11 +58,23 @@ export function QuestionBankPageContent() {
           </aside>
 
           <div className="flex flex-1 flex-col gap-3 min-w-0">
-            <SearchBar
-              placeholder={t("questionBank.searchPlaceholder")}
-              value={search}
-              onChange={setSearch}
-              className="max-w-full sm:max-w-xs"
+            <TableToolbar
+              searchPlaceholder={t("questionBank.searchPlaceholder")}
+              search={search}
+              onSearchChange={setSearch}
+              searchClassName="max-w-full sm:max-w-xs"
+              actions={
+                <>
+                  <Button variant="outline" className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer">
+                    <Bookmark className="size-4" />
+                    <span className="hidden sm:inline">{t("questionBank.actions.saved")}</span>
+                  </Button>
+                  <Button variant="default" className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer">
+                    <Plus className="size-4" />
+                    <span className="hidden sm:inline">{t("questionBank.actions.newPracticeSet")}</span>
+                  </Button>
+                </>
+              }
             />
             <QuestionBankTable questions={filtered} />
           </div>
