@@ -1,6 +1,5 @@
 import type { ReactNode } from "react"
 import { useNavbarSlots } from "@/hooks/use-navbar-slots"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { NotificationBell } from "./notification-bell"
 import { FeedbackButton } from "./feedback-button"
 import { NavbarHelpButton } from "./navbar-help-button"
@@ -27,15 +26,15 @@ export function DashboardPageShell({
     ),
   })
 
+  // No own ScrollArea: DashboardLayout already wraps the outlet in one.
+  // A second (unbounded) scroller here breaks position:sticky and scroll-spy.
   return (
     <div className="flex flex-1 flex-col gap-4 min-h-0">
-      <ScrollArea className="flex-1 min-h-0">
-        {children ?? (
-          <div className="flex h-[calc(100vh-12rem)] items-center justify-center rounded-xl border border-dashed border-muted/50 p-6">
-            <h1 className="text-xl font-medium text-muted-foreground">{title}</h1>
-          </div>
-        )}
-      </ScrollArea>
+      {children ?? (
+        <div className="flex h-[calc(100vh-12rem)] items-center justify-center rounded-xl border border-dashed border-muted/50 p-6">
+          <h1 className="text-xl font-medium text-muted-foreground">{title}</h1>
+        </div>
+      )}
     </div>
   )
 }
