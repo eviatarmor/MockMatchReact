@@ -42,7 +42,7 @@ export function EditorCanvas({ document, template, style, viewport, handlers, on
       centerOnInit
       limitToBounds={false}
       doubleClick={{ disabled: true }}
-      wheel={{ step: 0.06 }}
+      wheel={{ disabled: true }}
       panning={{ excluded: ["pan-ignore"] }}
       onPanningStart={clearEditing}
       onTransform={onTransform}

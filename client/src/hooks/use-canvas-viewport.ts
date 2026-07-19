@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import type { ReactZoomPanPinchRef } from "react-zoom-pan-pinch"
 
 /** Zoom bounds + step for the canvas viewport (1 = 100%). */
@@ -40,6 +40,42 @@ export function useCanvasViewport() {
   const zoomIn = useCallback(() => ref.current?.zoomIn(), [])
   const zoomOut = useCallback(() => ref.current?.zoomOut(), [])
   const resetView = useCallback(() => ref.current?.resetTransform(), [])
+
+  // Fixed-step, cursor-anchored wheel zoom. react-zoom-pan-pinch's built-in
+  // wheel scales by raw deltaY magnitude, which overshoots wildly on trackpads
+  // and hi-res mice; here one wheel event = one ZOOM.step, direction only.
+  //
+  // Attached as a NON-passive native listener (React's synthetic onWheel is
+  // passive, so preventDefault there is ignored and the page still scrolls).
+  useEffect(() => {
+    let raf = 0
+    let wrapper: HTMLDivElement | null = null
+
+    const onWheel = (e: WheelEvent) => {
+      const api = ref.current
+      if (!api) return
+      e.preventDefault()
+
+      // One event = one fixed step, direction only. Delegate the actual
+      // zoom (bounds + centring) to the library so it stays consistent with
+      // the toolbar buttons.
+      if (e.deltaY < 0) api.zoomIn(ZOOM.step, 120)
+      else api.zoomOut(ZOOM.step, 120)
+    }
+
+    // wrapperComponent mounts after the first paint — wait for it via rAF.
+    const attach = () => {
+      wrapper = ref.current?.instance.wrapperComponent ?? null
+      if (wrapper) wrapper.addEventListener("wheel", onWheel, { passive: false })
+      else raf = requestAnimationFrame(attach)
+    }
+    attach()
+
+    return () => {
+      cancelAnimationFrame(raf)
+      wrapper?.removeEventListener("wheel", onWheel)
+    }
+  }, [])
 
   return {
     ref,
