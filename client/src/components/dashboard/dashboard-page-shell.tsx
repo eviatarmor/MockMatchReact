@@ -31,7 +31,7 @@ export function DashboardPageShell({
     <div className="flex flex-1 flex-col gap-4 min-h-0">
       <ScrollArea className="flex-1 min-h-0">
         {children ?? (
-          <div className="flex h-[calc(100vh-9rem)] items-center justify-center rounded-xl border border-dashed border-muted/50 p-6">
+          <div className="flex h-[calc(100vh-12rem)] items-center justify-center rounded-xl border border-dashed border-muted/50 p-6">
             <h1 className="text-xl font-medium text-muted-foreground">{title}</h1>
           </div>
         )}

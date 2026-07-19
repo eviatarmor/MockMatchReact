@@ -1,4 +1,3 @@
-import { createPortal } from "react-dom"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 import { ResumeDocumentView } from "./resume-document"
 import { ZOOM, useCanvasViewport } from "@/hooks/use-canvas-viewport"
@@ -16,11 +15,12 @@ interface EditorCanvasProps {
 }
 
 /**
- * Full-viewport, pan-and-zoomable document background.
+ * Pan-and-zoomable document canvas that fills its editor container.
  *
- * Rendered into a fixed z-0 layer behind the app chrome (sidebars z-10,
- * navbar z-20) so the page visually slides underneath them. Pan/zoom is handled
- * by react-zoom-pan-pinch; the dotted grid is synced to the live transform.
+ * Rendered as an absolute inset-0 layer inside the editor's relative content
+ * area (so it stays within the rounded content card, below the navbar and right
+ * rail). Pan/zoom is handled by react-zoom-pan-pinch; the dotted grid is synced
+ * to the live transform.
  */
 export function EditorCanvas({ document, template, style, viewport, handlers, onAiBlock }: EditorCanvasProps) {
   const { ref, scale, offset, onTransform } = viewport
@@ -33,7 +33,7 @@ export function EditorCanvas({ document, template, style, viewport, handlers, on
     window.getSelection()?.removeAllRanges()
   }
 
-  return createPortal(
+  return (
     <TransformWrapper
       ref={ref}
       initialScale={ZOOM.default}
@@ -48,18 +48,17 @@ export function EditorCanvas({ document, template, style, viewport, handlers, on
       onTransform={onTransform}
     >
       <TransformComponent
-        wrapperClass="!fixed !inset-0 !z-0 !h-svh !w-screen cursor-grab bg-neutral-100 active:cursor-grabbing dark:bg-neutral-950 [--dot:var(--color-neutral-300)] dark:[--dot:var(--color-neutral-600)]"
+        wrapperClass="!absolute !inset-0 !z-0 !h-full !w-full cursor-grab bg-neutral-100 active:cursor-grabbing dark:bg-neutral-950 [--dot:var(--color-neutral-300)] dark:[--dot:var(--color-neutral-600)]"
         wrapperStyle={{
           backgroundImage: "radial-gradient(circle, var(--dot) 1px, transparent 1px)",
           backgroundSize: `${24 * scale}px ${24 * scale}px`,
           backgroundPosition: `${offset.x}px ${offset.y}px`,
         }}
       >
-        <div className="pt-24">
+        <div className="pt-12">
           <ResumeDocumentView document={document} template={template} style={style} handlers={handlers} onAiBlock={onAiBlock} scale={scale} />
         </div>
       </TransformComponent>
-    </TransformWrapper>,
-    window.document.body
+    </TransformWrapper>
   )
 }

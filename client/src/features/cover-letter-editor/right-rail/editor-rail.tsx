@@ -53,7 +53,7 @@ export function EditorRail({ activeTemplateId, onTemplateChange, style, onStyleC
 
   return (
     <TooltipProvider delay={300}>
-      <div className="fixed right-0 bottom-0 top-14 z-10 flex overflow-hidden border-l bg-sidebar text-sidebar-foreground">
+      <div className="absolute inset-y-0 right-0 z-10 flex overflow-hidden border-l bg-background text-foreground">
 
         <AnimatePresence initial={false}>
           {activePanel && (
