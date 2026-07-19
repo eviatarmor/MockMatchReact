@@ -2,13 +2,12 @@ import { useTranslation } from "react-i18next"
 import { History } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { BADGE_TONES } from "@/components/data/badge-tones"
 import type { ActivityRow, ActivityStatus } from "../types"
 
-function statusClasses(status: ActivityStatus): string {
-  if (status === "submitted")   return BADGE_TONES.emerald
-  if (status === "needsReview") return BADGE_TONES.amber
-  return ""
+function statusVariant(status: ActivityStatus): "default" | "secondary" | "outline" {
+  if (status === "submitted")   return "default"
+  if (status === "needsReview") return "secondary"
+  return "outline"
 }
 
 interface AutofillActivityTableProps {
@@ -52,7 +51,7 @@ export function AutofillActivityTable({ rows }: AutofillActivityTableProps) {
                 <td className="py-3 pr-6 text-sm text-muted-foreground">{row.date}</td>
                 <td className="py-3 pr-6 text-sm">{row.fieldsFilled}</td>
                 <td className="py-3">
-                  <Badge variant="outline" className={statusClasses(row.status)}>
+                  <Badge variant={statusVariant(row.status)}>
                     {t(`autofill.activity.status.${row.status}`)}
                   </Badge>
                 </td>

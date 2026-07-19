@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge"
 import { useTranslation } from "react-i18next"
 import { ToneBadge } from "@/components/data/tone-badge"
 import type { QuestionStatus } from "../types"
@@ -10,10 +9,7 @@ interface QuestionStatusBadgeProps {
 export function QuestionStatusBadge({ status }: QuestionStatusBadgeProps) {
   const { t } = useTranslation("common")
   const label = t(`questionBank.status.${status}`)
+  const tone = status === "mastered" ? "positive" : "muted"
 
-  if (status === "mastered") {
-    return <ToneBadge tone="emerald">{label}</ToneBadge>
-  }
-
-  return <Badge variant="secondary">{label}</Badge>
+  return <ToneBadge tone={tone}>{label}</ToneBadge>
 }

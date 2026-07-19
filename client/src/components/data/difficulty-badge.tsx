@@ -1,13 +1,13 @@
 import { useTranslation } from "react-i18next"
 import { ToneBadge } from "./tone-badge"
-import type { BadgeTone } from "./badge-tones"
+import type { BadgeTone } from "./tone-badge"
 
 type Difficulty = "easy" | "medium" | "hard"
 
 const DIFFICULTY_TONES: Record<Difficulty, BadgeTone> = {
-  easy: "emerald",
-  medium: "amber",
-  hard: "red",
+  easy: "positive",
+  medium: "warning",
+  hard: "critical",
 }
 
 interface DifficultyBadgeProps {

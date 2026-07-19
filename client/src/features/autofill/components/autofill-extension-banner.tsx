@@ -2,7 +2,6 @@ import { useTranslation } from "react-i18next"
 import { Zap, Check } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { BADGE_TONES } from "@/components/data/badge-tones"
 
 const BROWSERS = [
   { id: "chrome",  labelKey: "autofill.extension.chrome",  active: true  },
@@ -30,7 +29,7 @@ export function AutofillExtensionBanner() {
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-base font-semibold">{t("autofill.extension.name")}</span>
-              <Badge variant="outline" className={BADGE_TONES.emerald}>
+              <Badge variant="default">
                 {t("autofill.extension.status")}
               </Badge>
               <span className="text-xs text-muted-foreground">v2.4.1</span>
@@ -38,28 +37,21 @@ export function AutofillExtensionBanner() {
             <p className="text-sm text-muted-foreground max-w-md">{t("autofill.extension.description")}</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {BROWSERS.map((b) => (
-                <span
-                  key={b.id}
-                  className={`flex items-center gap-1 text-xs px-2.5 py-1 rounded-full border ${
-                    b.active
-                      ? BADGE_TONES.emerald
-                      : "border-border text-muted-foreground"
-                  }`}
-                >
+                <Badge key={b.id} variant={b.active ? "default" : "outline"}>
                   {b.active && <Check className="size-3" />}
                   {t(b.labelKey)}
-                </span>
+                </Badge>
               ))}
             </div>
           </div>
         </div>
 
         <div className="flex shrink-0 flex-col gap-2">
-          <Button className="h-8 gap-1.5 cursor-pointer">
+          <Button className="cursor-pointer">
             <Check className="size-4" />
             {t("autofill.extension.addedToChrome")}
           </Button>
-          <Button variant="outline" className="h-8 gap-1.5 cursor-pointer">
+          <Button variant="outline" className="cursor-pointer">
             {t("autofill.extension.manage")}
           </Button>
         </div>

@@ -40,14 +40,7 @@ export function BillingHistorySection() {
                   <TableCell className="text-muted-foreground">{invoice.date}</TableCell>
                   <TableCell className="tabular-nums">{invoice.amount}</TableCell>
                   <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={
-                        invoice.status === "paid"
-                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                          : "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400"
-                      }
-                    >
+                    <Badge variant={invoice.status === "paid" ? "default" : "secondary"}>
                       {t(`history.status.${invoice.status}`)}
                     </Badge>
                   </TableCell>

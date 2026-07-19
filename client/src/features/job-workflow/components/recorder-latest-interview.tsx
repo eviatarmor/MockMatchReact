@@ -2,7 +2,6 @@ import { useTranslation } from "react-i18next"
 import { FileText, Play, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { BADGE_TONES } from "@/components/data/badge-tones"
 import { LATEST_INTERVIEW, KEY_MOMENTS } from "../constants"
 
 export function RecorderLatestInterview() {
@@ -21,7 +20,7 @@ export function RecorderLatestInterview() {
             {iv.company} · {iv.role} · {iv.date} · {iv.durationMin} min
           </p>
         </div>
-        <Badge variant="outline" className={`shrink-0 ${BADGE_TONES.emerald}`}>
+        <Badge variant="default">
           {iv.tone}
         </Badge>
       </div>
@@ -61,7 +60,7 @@ export function RecorderLatestInterview() {
         <span className="text-sm font-semibold">{t("recorder.latest.topicsCovered")}</span>
         <div className="flex flex-wrap gap-1.5">
           {iv.topics.map((topic) => (
-            <Badge key={topic} variant="outline" className="font-normal text-muted-foreground">{topic}</Badge>
+            <Badge key={topic} variant="outline">{topic}</Badge>
           ))}
         </div>
       </div>
@@ -80,16 +79,16 @@ export function RecorderLatestInterview() {
       </div>
 
       <div className="flex items-center gap-2 pt-1">
-        <Button variant="outline" className="h-8 gap-1.5 cursor-pointer">
-          <FileText className="size-3.5" />
+        <Button variant="outline" className="cursor-pointer">
+          <FileText />
           {t("recorder.latest.transcript")}
         </Button>
-        <Button variant="outline" className="h-8 gap-1.5 cursor-pointer">
-          <Play className="size-3.5" />
+        <Button variant="outline" className="cursor-pointer">
+          <Play />
           {t("recorder.latest.replay")}
         </Button>
-        <Button className="h-8 gap-1.5 cursor-pointer">
-          <Sparkles className="size-3.5" />
+        <Button className="cursor-pointer">
+          <Sparkles />
           {t("recorder.latest.drillWeakSpots")}
         </Button>
       </div>

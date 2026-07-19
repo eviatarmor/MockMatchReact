@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Badge } from "@/components/ui/badge"
 import { ProgressRing } from "@/components/data/progress-ring"
-import { BADGE_TONES } from "@/components/data/badge-tones"
 
 interface ReadinessScoreRingProps {
   readonly score: number
@@ -28,7 +27,7 @@ export function ReadinessScoreRing({ score, delta }: ReadinessScoreRingProps) {
 
       <div className="flex flex-col gap-2">
         <p className="text-sm font-semibold text-muted-foreground">{t("readiness.overallLabel")}</p>
-        <Badge variant="outline" className={`w-fit ${BADGE_TONES.amber}`}>
+        <Badge variant="secondary">
           {t("readiness.almostReady")}
         </Badge>
         <p className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">

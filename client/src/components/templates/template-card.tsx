@@ -8,6 +8,7 @@ interface TemplateCardProps {
   readonly template: TemplateItem
   // i18n key prefix, e.g. "resumeLab.templates"
   readonly translationPrefix: string
+  readonly onPreview?: (template: TemplateItem) => void
 }
 
 const AVATAR_COLORS = [
@@ -24,7 +25,7 @@ function avatarColor(id: string) {
   return AVATAR_COLORS[index]
 }
 
-export function TemplateCard({ template, translationPrefix }: TemplateCardProps) {
+export function TemplateCard({ template, translationPrefix, onPreview }: TemplateCardProps) {
   const { t } = useTranslation("common")
 
   return (
@@ -35,7 +36,7 @@ export function TemplateCard({ template, translationPrefix }: TemplateCardProps)
         >
           {template.avatarText}
         </div>
-        <Badge variant="outline" className="font-normal text-muted-foreground">
+        <Badge variant="outline">
           {t(`${translationPrefix}.categories.${template.category}`)}
         </Badge>
       </div>
@@ -56,6 +57,7 @@ export function TemplateCard({ template, translationPrefix }: TemplateCardProps)
           size="icon"
           className="h-8 w-8 shrink-0 cursor-pointer"
           aria-label={t(`${translationPrefix}.preview`)}
+          onClick={() => onPreview?.(template)}
         >
           <Eye className="size-4" />
         </Button>

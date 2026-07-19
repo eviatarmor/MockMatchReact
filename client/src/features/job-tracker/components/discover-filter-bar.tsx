@@ -73,7 +73,7 @@ export function DiscoverFilterBar({
             key={key}
             variant={activeFilters.has(key) ? "default" : "outline"}
             size="sm"
-            className="h-8 gap-1.5 rounded-full cursor-pointer"
+            className="gap-1.5 cursor-pointer"
             onClick={() => onToggleFilter(key)}
           >
             <Icon className="size-3.5" />
@@ -87,7 +87,7 @@ export function DiscoverFilterBar({
               <Button
                 variant={minSalary > 0 ? "default" : "outline"}
                 size="sm"
-                className="h-8 gap-1.5 rounded-full cursor-pointer"
+                className="gap-1.5 cursor-pointer"
               />
             }
           >
@@ -119,7 +119,7 @@ export function DiscoverFilterBar({
               <Button
                 variant={employmentTypes.size > 0 ? "default" : "outline"}
                 size="sm"
-                className="h-8 max-w-56 gap-1.5 rounded-full cursor-pointer"
+                className="max-w-56 gap-1.5 cursor-pointer"
               />
             }
           >
@@ -145,14 +145,14 @@ export function DiscoverFilterBar({
 
       <div className="flex items-center gap-2">
         <span className="text-sm text-muted-foreground">{t("jobTracker.sort.label")}</span>
-        <div className="flex items-center rounded-full border bg-muted/30 p-0.5">
+        <div className="flex items-center rounded-lg border bg-muted/30 p-0.5">
           {SORT_OPTIONS.map((option) => (
             <button
               key={option}
               type="button"
               onClick={() => onSortChange(option)}
               className={cn(
-                "rounded-full px-3 py-1 text-sm font-medium transition-colors cursor-pointer",
+                "rounded-md px-3 py-1 text-sm font-medium transition-colors cursor-pointer",
                 sort === option
                   ? "bg-background text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"

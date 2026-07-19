@@ -1,22 +1,24 @@
 import { useState } from "react"
 import { ArrowRight } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
 import { TemplateCard } from "./template-card"
-import { TemplateBrowserDialog } from "./template-browser-dialog"
+import { TemplatePreviewDialog } from "./template-preview-dialog"
 import type { TemplateItem } from "./types"
 
 interface TemplateBrowserSectionProps {
   readonly items: readonly TemplateItem[]
-  readonly categories: readonly string[]
   // i18n key prefix, e.g. "resumeLab.templates"
   readonly translationPrefix: string
+  readonly browseAllTo: string
   readonly featuredCount?: number
 }
 
-// Featured template grid + "browse all" dialog. Shared by resume and cover-letter labs.
-export function TemplateBrowserSection({ items, categories, translationPrefix, featuredCount = 5 }: TemplateBrowserSectionProps) {
+// Featured template grid + link to the full "browse all templates" page. Shared by resume and cover-letter labs.
+export function TemplateBrowserSection({ items, translationPrefix, browseAllTo, featuredCount = 5 }: TemplateBrowserSectionProps) {
   const { t } = useTranslation("common")
-  const [dialogOpen, setDialogOpen] = useState(false)
+  const navigate = useNavigate()
+  const [previewTemplate, setPreviewTemplate] = useState<TemplateItem | null>(null)
   const featuredTemplates = items.slice(0, featuredCount)
 
   return (
@@ -28,7 +30,7 @@ export function TemplateBrowserSection({ items, categories, translationPrefix, f
         </div>
         <button
           type="button"
-          onClick={() => setDialogOpen(true)}
+          onClick={() => navigate(browseAllTo)}
           className="flex shrink-0 items-center gap-1 text-sm font-medium text-primary hover:underline cursor-pointer"
         >
           {t(`${translationPrefix}.browseAll`)}
@@ -38,15 +40,18 @@ export function TemplateBrowserSection({ items, categories, translationPrefix, f
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {featuredTemplates.map((template) => (
-          <TemplateCard key={template.id} template={template} translationPrefix={translationPrefix} />
+          <TemplateCard
+            key={template.id}
+            template={template}
+            translationPrefix={translationPrefix}
+            onPreview={setPreviewTemplate}
+          />
         ))}
       </div>
 
-      <TemplateBrowserDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        items={items}
-        categories={categories}
+      <TemplatePreviewDialog
+        template={previewTemplate}
+        onOpenChange={(open) => !open && setPreviewTemplate(null)}
         translationPrefix={translationPrefix}
       />
     </div>

@@ -8,7 +8,7 @@ import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-heade
 import { TableToolbar } from "@/components/dashboard/table-toolbar"
 import { TemplateBrowserSection } from "@/components/templates/template-browser-section"
 import { CoverLetterTable } from "./components/cover-letter-table"
-import { MOCK_COVER_LETTERS, MOCK_TEMPLATES, TEMPLATE_CATEGORIES } from "./constants"
+import { MOCK_COVER_LETTERS, MOCK_TEMPLATES } from "./constants"
 
 export function CoverLettersPageContent() {
   const { t } = useTranslation("common")
@@ -57,7 +57,7 @@ export function CoverLettersPageContent() {
         />
         <CoverLetterTable coverLetters={filteredLetters} />
         <Separator className="my-2" />
-        <TemplateBrowserSection items={MOCK_TEMPLATES} categories={TEMPLATE_CATEGORIES} translationPrefix="coverLetters.templates" />
+        <TemplateBrowserSection items={MOCK_TEMPLATES} translationPrefix="coverLetters.templates" browseAllTo="/cover-letters/templates" />
       </div>
     </DashboardPageShell>
   )

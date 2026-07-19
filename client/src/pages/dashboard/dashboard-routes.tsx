@@ -3,8 +3,10 @@ import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { DashboardRoutePage } from "@/pages/dashboard/dashboard-placeholder-page";
 import { ResumeLabPage } from "@/pages/dashboard/resume-lab-page";
 import { ResumeEditorPage } from "@/pages/dashboard/resume-editor-page";
+import { ResumeTemplatesPage } from "@/pages/dashboard/resume-templates-page";
 import { CoverLettersPage } from "@/pages/dashboard/cover-letters-page";
 import { CoverLetterEditorPage } from "@/pages/dashboard/cover-letter-editor-page";
+import { CoverLetterTemplatesPage } from "@/pages/dashboard/cover-letter-templates-page";
 import { DiscoverPage } from "@/pages/dashboard/discover-page";
 import { ApplicationsPage } from "@/pages/dashboard/applications-page";
 import { ApplicationDetailPage } from "@/pages/dashboard/application-detail-page";
@@ -42,7 +44,9 @@ export function dashboardRoutes() {
   return (
     <Route element={<DashboardLayout />}>
       <Route path="applications/:jobId" element={<ApplicationDetailPage />} />
+      <Route path="cover-letters/templates" element={<CoverLetterTemplatesPage />} />
       <Route path="cover-letters/:letterId" element={<CoverLetterEditorPage />} />
+      <Route path="resume-lab/templates" element={<ResumeTemplatesPage />} />
       <Route path="resumes/:resumeId" element={<ResumeEditorPage />} />
       {DASHBOARD_ROUTES.map(({ path, titleKey }) => {
         if (path === "resume-lab") {

@@ -16,7 +16,8 @@ export function DashboardLayout() {
   // Editor routes run a focused variant: icon rail only (no wide section-nav),
   // and the canvas fills the content card edge-to-edge (no scroll/padding).
   const isEditor = Boolean(
-    matchPath("/cover-letters/:letterId", pathname) ||
+    (matchPath("/cover-letters/:letterId", pathname) &&
+      !matchPath("/cover-letters/templates", pathname)) ||
       matchPath("/resumes/:resumeId", pathname)
   )
 

@@ -1,11 +1,11 @@
 import { useTranslation } from "react-i18next"
 import { ToneBadge } from "@/components/data/tone-badge"
-import type { BadgeTone } from "@/components/data/badge-tones"
+import type { BadgeTone } from "@/components/data/tone-badge"
 import type { ExerciseStatus } from "../types"
 
 const STATUS_TONES: Record<Exclude<ExerciseStatus, "notStarted">, BadgeTone> = {
-  mastered: "emerald",
-  inProgress: "amber",
+  mastered: "positive",
+  inProgress: "warning",
 }
 
 interface AssessmentStatusBadgeProps {

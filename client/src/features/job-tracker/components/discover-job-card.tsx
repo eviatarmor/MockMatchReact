@@ -38,7 +38,7 @@ export function DiscoverJobCard({ job, onViewDetails }: DiscoverJobCardProps) {
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-foreground">{job.title}</span>
               {job.isNew && (
-                <Badge className="h-5 rounded-full bg-blue-600 text-white">New</Badge>
+                <Badge variant="default">{t("jobTracker.filters.new")}</Badge>
               )}
             </div>
             <span className="text-sm text-muted-foreground">{job.company}</span>
@@ -116,12 +116,6 @@ export function DiscoverJobCard({ job, onViewDetails }: DiscoverJobCardProps) {
           <Badge
             key={skill.label}
             variant={skill.matched ? "secondary" : "outline"}
-            className={cn(
-              "rounded-full",
-              skill.matched
-                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400"
-                : "text-muted-foreground"
-            )}
           >
             {skill.matched ? "✓ " : "− "}
             {skill.label}

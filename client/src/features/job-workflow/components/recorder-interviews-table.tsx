@@ -2,13 +2,12 @@ import { useTranslation } from "react-i18next"
 import { History } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { BADGE_TONES } from "@/components/data/badge-tones"
 import type { RecordedInterview } from "../types"
 
-function statusClasses(status: RecordedInterview["status"]): string {
-  if (status === "analyzed")   return BADGE_TONES.emerald
-  if (status === "processing") return BADGE_TONES.amber
-  return ""
+function statusVariant(status: RecordedInterview["status"]): "default" | "secondary" | "outline" {
+  if (status === "analyzed")   return "default"
+  if (status === "processing") return "secondary"
+  return "outline"
 }
 
 interface RecorderInterviewsTableProps {
@@ -56,7 +55,7 @@ export function RecorderInterviewsTable({ rows }: RecorderInterviewsTableProps) 
                 <td className="py-3 pr-6 text-sm">{row.talkRatio}%</td>
                 <td className="py-3 pr-6 text-sm">{row.status === "processing" ? "—" : row.insightCount}</td>
                 <td className="py-3">
-                  <Badge variant="outline" className={statusClasses(row.status)}>
+                  <Badge variant={statusVariant(row.status)}>
                     {t(`recorder.table.status.${row.status}`)}
                   </Badge>
                 </td>

@@ -2,7 +2,6 @@ import { useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Shuffle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import {
   Select,
   SelectContent,
@@ -78,22 +77,24 @@ export function AssessmentsPageContent() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Badge
+          <Button
             variant={domain === "all" ? "default" : "outline"}
+            size="sm"
             className="cursor-pointer"
             onClick={() => setDomain("all")}
           >
             {t("assessments.domains.all")}
-          </Badge>
+          </Button>
           {ASSESSMENT_DOMAINS.map((d) => (
-            <Badge
+            <Button
               key={d}
               variant={domain === d ? "default" : "outline"}
+              size="sm"
               className="cursor-pointer"
               onClick={() => setDomain(d)}
             >
               {t(`assessments.domains.${d}`)}
-            </Badge>
+            </Button>
           ))}
         </div>
 

@@ -61,7 +61,7 @@ export function TrackingSummaryCards({ jobs, activeFilter, onFilterChange }: Tra
             <span className="text-2xl font-bold text-foreground">{count}</span>
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground">{t("jobTracker.summary.last7days")}</span>
-              <Badge className={cn("text-muted-foreground", isUp ? "bg-emerald-400/10" : "bg-rose-400/10")}>
+              <Badge variant={isUp ? "secondary" : "destructive"}>
                 {isUp ? "+" : ""}
                 {trend}%
                 <TrendIcon className="size-3.5" />
