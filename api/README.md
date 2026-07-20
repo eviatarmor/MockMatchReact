@@ -31,22 +31,42 @@ Copy `.env.example` → `.env` (requires Postgres + Redis from `infra/`).
 - Client: `client/src/lib/trpc` via `@trpc/react-query`
 - Procedures: `auth.requestOtp`, `auth.verifyOtp`, `auth.refresh`, `auth.logout`, `auth.me`, `questions.list` (stub)
 
-### Auth (email OTP)
+### Auth (email OTP) — stateless
 
 1. `auth.requestOtp` — `{ purpose: "login", email }` or `{ purpose: "signup", email, fullName, agreeToTerms }`
 2. Email via **nodemailer** (SMTP_* env, or json transport + logs when SMTP empty)
-3. `auth.verifyOtp` — `{ email, code, purpose }` → JWT access + refresh + user
-4. Dev stub code: **`OTP_STUB_CODE=000000`** (empty → random 6-digit)
+3. `auth.verifyOtp` — `{ email, code, purpose }` → sets HttpOnly cookies (access + refresh)
+4. Dev stub code: **`OTP_STUB_CODE=000000`** (empty → random 6-digit). **Forbidden in production.**
 
-Tokens stored client-side in `localStorage` (`mockmatch.auth`).
+**Where state lives**
 
-## Event-driven path → AWS
+| Item | Store |
+|------|--------|
+| Access JWT | Client cookie — verified in-process (no DB) |
+| Refresh token hash | **Redis** (TTL + revoke; any replica) |
+| OTP challenge | **Redis** (TTL) |
+| `users` / `oauth_accounts` | **Postgres** |
 
-| Local | Later |
-|-------|--------|
-| Redis + BullMQ | SQS (+ DLQ) / EventBridge |
+LinkedIn OAuth secrets: `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`, `LINKEDIN_REDIRECT_URI` (routes still stub until wired).
+
+Schema ER diagram: `npm run db:schema:mermaid` → `api/docs/schema.md`.
+
+### Docker / K8s
+
+```bash
+docker build -f api/Dockerfile -t mockmatch-api .
+```
+
+Probes: `GET /health` (liveness), `GET /ready` (Postgres + Redis).  
+Production stack: `infra/terraform/` (DOKS + GCP Secret Manager).
+
+## Event-driven path
+
+| Local | Production |
+|-------|------------|
+| Redis + BullMQ | DO managed Valkey + same BullMQ |
 | Outbox table | Same pattern; relay task |
-| Postgres Docker | RDS + pgvector |
-| Worker process | Separate ECS service |
+| Postgres Docker | DO managed Postgres (private VPC) |
+| Worker process | DOKS `worker` Deployment |
 
-Domain events live in `src/events/`. Publish via `EventBus`; never dual-write without outbox for critical side effects.
+Domain events live in `src/events/`. Publish via `EventBus`.

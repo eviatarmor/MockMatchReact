@@ -8,6 +8,13 @@
       "when": 1784549626405,
       "tag": "0000_classy_frightful_four",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1784600000000,
+      "tag": "0001_drop_ephemeral_auth_tables",
+      "breakpoints": true
     }
   ]
 }

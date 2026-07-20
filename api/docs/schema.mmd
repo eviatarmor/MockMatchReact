@@ -1,0 +1,33 @@
+erDiagram
+  oauth_accounts {
+    uuid id PK
+    uuid user_id
+    text provider
+    text provider_user_id
+    timestamp_with_time_zone created_at
+  }
+  outbox_events {
+    uuid id PK
+    text type
+    jsonb payload
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone processed_at
+  }
+  questions {
+    uuid id PK
+    text title
+    question_domain domain
+    question_difficulty difficulty
+    text company
+    text body
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+  }
+  users {
+    uuid id PK
+    text email
+    text full_name
+    timestamp_with_time_zone created_at
+    timestamp_with_time_zone updated_at
+  }
+  oauth_accounts }o--|| users : "fk"

@@ -1,51 +1,30 @@
-# Infra (local Docker)
+# Infra
 
-PostgreSQL (pgvector + pgaudit) and Redis (BullMQ).
+## Local (Docker Compose)
 
-Drizzle Studio runs on the host via `npm run dev` (or `npm run dev:studio`), not in Docker.
-
-## Prerequisites
-
-- Docker Desktop with **Linux containers**
-- Ports free: `5432`, `6379`
-
-## Up / down
-
-From repo root:
+PostgreSQL (pgvector + pgaudit) and Redis for development.
 
 ```bash
+# from repo root
 npm run infra:up
 npm run infra:down
 ```
-
-Or:
-
-```bash
-docker compose -f infra/docker-compose.yml up -d
-docker compose -f infra/docker-compose.yml down
-```
-
-## Connection strings
 
 ```
 DATABASE_URL=postgresql://mockmatch:mockmatch@localhost:5432/mockmatch
 REDIS_URL=redis://localhost:6379
 ```
 
-## Extensions
+Init SQL runs only on first volume create. Re-init: `docker compose -f infra/docker-compose.yml down -v`.
 
-Init script enables `vector`, `pgaudit`, `pgcrypto`.  
-`pgaudit` needs `shared_preload_libraries=pgaudit` (set in `postgres/Dockerfile` CMD).
+API / worker / Drizzle Studio run on the host (`npm run dev`, etc.) — not in Compose.
 
-**Note:** Init SQL runs only on first volume create. To re-init, `docker compose down -v` (destroys data).
+## Production (Terraform)
 
-## API / worker / Studio
+See **[terraform/README.md](./terraform/README.md)**.
 
-Not containerized — run on host:
+- DigitalOcean: VPC, managed Postgres, managed Valkey, DOKS, DOCR, ingress LB  
+- GCP: Secret Manager (+ SA for External Secrets)  
+- Stateless API: OTP + refresh token hashes in Valkey; identity in Postgres  
 
-```bash
-npm run dev          # client + api + Drizzle Studio
-npm run dev:api
-npm run dev:worker
-npm run dev:studio   # Drizzle Studio only → https://local.drizzle.studio
-```
+K8s workload conventions / future WebSocket notes: **[k8s/README.md](./k8s/README.md)**.

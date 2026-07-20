@@ -17,7 +17,8 @@
     "start:worker": "node dist/worker.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:schema:mermaid": "tsx scripts/generate-schema-mermaid.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",

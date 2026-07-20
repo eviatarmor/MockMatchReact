@@ -1,11 +1,19 @@
-import { and, desc, eq, gt, isNull } from "drizzle-orm"
+import { eq } from "drizzle-orm"
 import { TRPCError } from "@trpc/server"
 import type { RequestOtpInput, VerifyOtpInput } from "@mockmatch/schemas"
 import { env } from "../../config/env.js"
 import type { Database } from "../../db/client.js"
-import { otpChallenges, refreshTokens } from "../../db/schema/auth.js"
 import { users } from "../../db/schema/users.js"
 import type { EventBus } from "../../events/bus.js"
+import {
+  deleteOtpChallenge,
+  getOtpChallenge,
+  getRefreshToken,
+  incrementOtpAttempts,
+  revokeRefreshToken,
+  setOtpChallenge,
+  storeRefreshToken,
+} from "../../lib/auth-store.js"
 import { generateOtpCode, hashToken, normalizeEmail, safeEqualHex } from "../../lib/crypto.js"
 import { sendOtpEmail } from "../../lib/email.js"
 import {
@@ -15,7 +23,7 @@ import {
 } from "../../lib/jwt.js"
 import { logger } from "../../lib/logger.js"
 
-const REFRESH_TTL_MS = 30 * 24 * 60 * 60 * 1000
+const REFRESH_TTL_SECONDS = 30 * 24 * 60 * 60
 
 export interface AuthTokens {
   accessToken: string
@@ -53,29 +61,22 @@ export async function requestOtp(
     })
   }
 
-  const code = generateOtpCode(env.OTP_STUB_CODE || undefined)
+  const stub =
+    env.NODE_ENV === "production" ? undefined : env.OTP_STUB_CODE || undefined
+  const code = generateOtpCode(stub)
   const codeHash = hashToken(code)
-  const expiresAt = new Date(Date.now() + env.OTP_TTL_MINUTES * 60 * 1000)
+  const ttlSeconds = env.OTP_TTL_MINUTES * 60
 
-  // Invalidate prior open challenges for this email+purpose
-  await db
-    .update(otpChallenges)
-    .set({ consumedAt: new Date() })
-    .where(
-      and(
-        eq(otpChallenges.email, email),
-        eq(otpChallenges.purpose, purpose),
-        isNull(otpChallenges.consumedAt)
-      )
-    )
-
-  await db.insert(otpChallenges).values({
+  await setOtpChallenge(
     email,
     purpose,
-    fullName: purpose === "signup" ? input.fullName.trim() : null,
-    codeHash,
-    expiresAt,
-  })
+    {
+      codeHash,
+      purpose,
+      fullName: purpose === "signup" ? input.fullName.trim() : null,
+    },
+    ttlSeconds
+  )
 
   await sendOtpEmail({ to: email, code, purpose })
 
@@ -84,7 +85,7 @@ export async function requestOtp(
     payload: { email },
   })
 
-  if (env.OTP_STUB_CODE) {
+  if (stub) {
     logger.info({ email, purpose, stubCode: code }, "otp issued (stub code mode)")
   } else {
     logger.info({ email, purpose }, "otp issued")
@@ -101,15 +102,7 @@ export async function verifyOtp(
   const email = normalizeEmail(input.email)
   const purpose = input.purpose
 
-  const challenge = await db.query.otpChallenges.findFirst({
-    where: and(
-      eq(otpChallenges.email, email),
-      eq(otpChallenges.purpose, purpose),
-      isNull(otpChallenges.consumedAt),
-      gt(otpChallenges.expiresAt, new Date())
-    ),
-    orderBy: [desc(otpChallenges.createdAt)],
-  })
+  const challenge = await getOtpChallenge(email, purpose)
 
   if (!challenge) {
     throw new TRPCError({
@@ -119,10 +112,7 @@ export async function verifyOtp(
   }
 
   if (challenge.attempts >= env.OTP_MAX_ATTEMPTS) {
-    await db
-      .update(otpChallenges)
-      .set({ consumedAt: new Date() })
-      .where(eq(otpChallenges.id, challenge.id))
+    await deleteOtpChallenge(email, purpose)
     throw new TRPCError({
       code: "TOO_MANY_REQUESTS",
       message: "Too many attempts. Request a new code.",
@@ -133,20 +123,14 @@ export async function verifyOtp(
   const valid = safeEqualHex(inputHash, challenge.codeHash)
 
   if (!valid) {
-    await db
-      .update(otpChallenges)
-      .set({ attempts: challenge.attempts + 1 })
-      .where(eq(otpChallenges.id, challenge.id))
+    await incrementOtpAttempts(email, purpose)
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "Invalid verification code.",
     })
   }
 
-  await db
-    .update(otpChallenges)
-    .set({ consumedAt: new Date() })
-    .where(eq(otpChallenges.id, challenge.id))
+  await deleteOtpChallenge(email, purpose)
 
   let user =
     (await db.query.users.findFirst({
@@ -176,11 +160,7 @@ export async function verifyOtp(
     })
   }
 
-  const tokens = await issueTokens(db, {
-    id: user.id,
-    email: user.email,
-    fullName: user.fullName,
-  })
+  const tokens = await issueTokens(user)
 
   await bus.publish({
     type: "auth.user_signed_in",
@@ -190,21 +170,22 @@ export async function verifyOtp(
   return tokens
 }
 
-async function issueTokens(
-  db: Database,
-  user: { id: string; email: string; fullName: string | null }
-): Promise<AuthTokens> {
+async function issueTokens(user: {
+  id: string
+  email: string
+  fullName: string | null
+}): Promise<AuthTokens> {
   const accessToken = await signAccessToken({
     userId: user.id,
     email: user.email,
   })
   const refreshToken = await signRefreshToken({ userId: user.id })
 
-  await db.insert(refreshTokens).values({
-    userId: user.id,
-    tokenHash: hashToken(refreshToken),
-    expiresAt: new Date(Date.now() + REFRESH_TTL_MS),
-  })
+  await storeRefreshToken(
+    hashToken(refreshToken),
+    user.id,
+    REFRESH_TTL_SECONDS
+  )
 
   return {
     accessToken,
@@ -232,16 +213,9 @@ export async function refreshSession(
   }
 
   const tokenHash = hashToken(refreshToken)
-  const stored = await db.query.refreshTokens.findFirst({
-    where: and(
-      eq(refreshTokens.tokenHash, tokenHash),
-      eq(refreshTokens.userId, payload.sub),
-      isNull(refreshTokens.revokedAt),
-      gt(refreshTokens.expiresAt, new Date())
-    ),
-  })
+  const stored = await getRefreshToken(tokenHash)
 
-  if (!stored) {
+  if (!stored || stored.userId !== payload.sub) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "Refresh token revoked or expired.",
@@ -258,13 +232,10 @@ export async function refreshSession(
     })
   }
 
-  // Rotate refresh token
-  await db
-    .update(refreshTokens)
-    .set({ revokedAt: new Date() })
-    .where(eq(refreshTokens.id, stored.id))
+  // Rotate: revoke old hash then issue new pair (shared Redis → all replicas)
+  await revokeRefreshToken(tokenHash)
 
-  return issueTokens(db, {
+  return issueTokens({
     id: user.id,
     email: user.email,
     fullName: user.fullName,
@@ -272,7 +243,7 @@ export async function refreshSession(
 }
 
 export async function logout(
-  db: Database,
+  _db: Database,
   refreshToken: string | undefined
 ): Promise<{ ok: true }> {
   if (!refreshToken) return { ok: true }
@@ -283,11 +254,6 @@ export async function logout(
     return { ok: true }
   }
 
-  const tokenHash = hashToken(refreshToken)
-  await db
-    .update(refreshTokens)
-    .set({ revokedAt: new Date() })
-    .where(and(eq(refreshTokens.tokenHash, tokenHash), isNull(refreshTokens.revokedAt)))
-
+  await revokeRefreshToken(hashToken(refreshToken))
   return { ok: true }
 }

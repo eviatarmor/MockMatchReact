@@ -1,0 +1,14 @@
+**/node_modules
+**/dist
+**/.git
+**/graphify-out
+client/node_modules
+**/*.md
+!api/docs/schema.md
+.env
+**/.env
+**/.env.*
+infra/terraform/.terraform
+infra/terraform/*.tfstate*
+**/*.log
+client/dist

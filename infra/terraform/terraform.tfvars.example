@@ -1,0 +1,24 @@
+# Copy to terraform.tfvars (gitignored) or export env vars.
+# DO token: export DIGITALOCEAN_TOKEN=...  (provider also accepts do_token)
+
+gcp_project   = "your-gcp-project-id"
+gcp_region    = "us-central1"
+do_region     = "nyc3"
+domain        = "app.example.com"
+environment   = "prod"
+project_name  = "mockmatch"
+
+# SSH / admin (edge droplet only)
+admin_cidrs = ["203.0.113.10/32"]
+
+doks_node_size = "s-2vcpu-4gb"
+doks_min_nodes = 2
+doks_max_nodes = 5
+
+# After first image push to DOCR:
+# api_image = "registry.digitalocean.com/mockmatch-prod/mockmatch-api:latest"
+
+linkedin_client_id     = ""
+linkedin_client_secret = ""
+
+create_dns_records = false
