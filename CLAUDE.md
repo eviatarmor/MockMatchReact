@@ -28,14 +28,15 @@ Don't start the dev server or open browser devtools yourself. Instead, ask the u
 
 Run from repo root:
 ```bash
-npm run dev          # client + api (concurrently)
+npm run dev          # client + api + Drizzle Studio (concurrently)
 npm run dev:client   # vite only
 npm run dev:api      # Hono + tRPC API
 npm run dev:worker   # BullMQ workers
+npm run dev:studio   # drizzle-kit studio only
 npm run infra:up     # Postgres + Redis
 npm run infra:down
-npm run infra:tools  # + Drizzle Studio profile
 ```
+
 
 Run from `client/`:
 ```bash
@@ -73,7 +74,7 @@ No test runner is configured yet.
 - Shared Zod DTOs: `@mockmatch/schemas`
 
 **Infra** (`infra/`)
-- docker-compose: postgres (pgvector + pgaudit), redis, drizzle-studio (profile `tools`)
+- docker-compose: postgres (pgvector + pgaudit), redis (Drizzle Studio via `npm run dev` / `dev:studio`)
 
 ### Path aliases (`@/*` → `client/src/*`)
 - `@/features` — feature modules (route content, panels, hooks, types, constants)

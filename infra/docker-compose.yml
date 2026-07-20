@@ -36,23 +36,6 @@ services:
       timeout: 3s
       retries: 10
 
-  drizzle-studio:
-    profiles: ["tools"]
-    build:
-      context: ./drizzle-studio
-      dockerfile: Dockerfile
-    container_name: mockmatch-drizzle-studio
-    restart: unless-stopped
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-mockmatch}:${POSTGRES_PASSWORD:-mockmatch}@postgres:5432/${POSTGRES_DB:-mockmatch}
-    ports:
-      - "${DRIZZLE_STUDIO_PORT:-4983}:4983"
-    volumes:
-      - ..:/workspace:ro
-    depends_on:
-      postgres:
-        condition: service_healthy
-
 volumes:
   pgdata:
   redisdata:
