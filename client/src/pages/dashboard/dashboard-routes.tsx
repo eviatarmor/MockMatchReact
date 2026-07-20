@@ -1,4 +1,5 @@
 import { Route } from "react-router-dom";
+import { RequireAuth } from "@/components/auth/require-auth";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { DashboardRoutePage } from "@/pages/dashboard/dashboard-placeholder-page";
 import { ResumeLabPage } from "@/pages/dashboard/resume-lab-page";
@@ -42,60 +43,62 @@ const DASHBOARD_ROUTES = [
 
 export function dashboardRoutes() {
   return (
-    <Route element={<DashboardLayout />}>
-      <Route path="applications/:jobId" element={<ApplicationDetailPage />} />
-      <Route path="cover-letters/templates" element={<CoverLetterTemplatesPage />} />
-      <Route path="cover-letters/:letterId" element={<CoverLetterEditorPage />} />
-      <Route path="resume-lab/templates" element={<ResumeTemplatesPage />} />
-      <Route path="resumes/:resumeId" element={<ResumeEditorPage />} />
-      {DASHBOARD_ROUTES.map(({ path, titleKey }) => {
-        if (path === "resume-lab") {
-          return <Route key={path} path={path} element={<ResumeLabPage />} />;
-        }
-        if (path === "cover-letters") {
-          return <Route key={path} path={path} element={<CoverLettersPage />} />;
-        }
-        if (path === "discover") {
-          return <Route key={path} path={path} element={<DiscoverPage />} />;
-        }
-        if (path === "applications") {
-          return <Route key={path} path={path} element={<ApplicationsPage />} />;
-        }
-        if (path === "account-settings") {
-          return <Route key={path} path={path} element={<AccountSettingsPage />} />;
-        }
-        if (path === "billing") {
-          return <Route key={path} path={path} element={<BillingPage />} />;
-        }
-        if (path === "simulations") {
-          return <Route key={path} path={path} element={<SimulationsPage />} />;
-        }
-        if (path === "assessments") {
-          return <Route key={path} path={path} element={<AssessmentsPage />} />;
-        }
-        if (path === "question-bank") {
-          return <Route key={path} path={path} element={<QuestionBankPage />} />;
-        }
-        if (path === "readiness") {
-          return <Route key={path} path={path} element={<ReadinessPage />} />;
-        }
-        if (path === "performance") {
-          return <Route key={path} path={path} element={<PerformancePage />} />;
-        }
-        if (path === "autofill") {
-          return <Route key={path} path={path} element={<AutofillPage />} />;
-        }
-        if (path === "job-workflow") {
-          return <Route key={path} path={path} element={<JobWorkflowPage />} />;
-        }
-        if (path === "interview-recorder") {
-          return <Route key={path} path={path} element={<InterviewRecorderPage />} />;
-        }
-        if (path === "privacy") {
-          return <Route key={path} path={path} element={<PrivacyPage />} />;
-        }
-        return <Route key={path} path={path} element={<DashboardRoutePage path={path} titleKey={titleKey} />} />;
-      })}
+    <Route element={<RequireAuth />}>
+      <Route element={<DashboardLayout />}>
+        <Route path="applications/:jobId" element={<ApplicationDetailPage />} />
+        <Route path="cover-letters/templates" element={<CoverLetterTemplatesPage />} />
+        <Route path="cover-letters/:letterId" element={<CoverLetterEditorPage />} />
+        <Route path="resume-lab/templates" element={<ResumeTemplatesPage />} />
+        <Route path="resumes/:resumeId" element={<ResumeEditorPage />} />
+        {DASHBOARD_ROUTES.map(({ path, titleKey }) => {
+          if (path === "resume-lab") {
+            return <Route key={path} path={path} element={<ResumeLabPage />} />;
+          }
+          if (path === "cover-letters") {
+            return <Route key={path} path={path} element={<CoverLettersPage />} />;
+          }
+          if (path === "discover") {
+            return <Route key={path} path={path} element={<DiscoverPage />} />;
+          }
+          if (path === "applications") {
+            return <Route key={path} path={path} element={<ApplicationsPage />} />;
+          }
+          if (path === "account-settings") {
+            return <Route key={path} path={path} element={<AccountSettingsPage />} />;
+          }
+          if (path === "billing") {
+            return <Route key={path} path={path} element={<BillingPage />} />;
+          }
+          if (path === "simulations") {
+            return <Route key={path} path={path} element={<SimulationsPage />} />;
+          }
+          if (path === "assessments") {
+            return <Route key={path} path={path} element={<AssessmentsPage />} />;
+          }
+          if (path === "question-bank") {
+            return <Route key={path} path={path} element={<QuestionBankPage />} />;
+          }
+          if (path === "readiness") {
+            return <Route key={path} path={path} element={<ReadinessPage />} />;
+          }
+          if (path === "performance") {
+            return <Route key={path} path={path} element={<PerformancePage />} />;
+          }
+          if (path === "autofill") {
+            return <Route key={path} path={path} element={<AutofillPage />} />;
+          }
+          if (path === "job-workflow") {
+            return <Route key={path} path={path} element={<JobWorkflowPage />} />;
+          }
+          if (path === "interview-recorder") {
+            return <Route key={path} path={path} element={<InterviewRecorderPage />} />;
+          }
+          if (path === "privacy") {
+            return <Route key={path} path={path} element={<PrivacyPage />} />;
+          }
+          return <Route key={path} path={path} element={<DashboardRoutePage path={path} titleKey={titleKey} />} />;
+        })}
+      </Route>
     </Route>
   );
 }

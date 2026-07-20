@@ -19,7 +19,13 @@ export function TrpcProvider({
       links: [
         httpBatchLink({
           url: `${getApiBaseUrl()}/trpc`,
-          // credentials: "include" when cookie-based refresh lands
+          // Send HttpOnly auth cookies on every request (cross-origin localhost OK with CORS credentials).
+          fetch(url, options) {
+            return fetch(url, {
+              ...options,
+              credentials: "include",
+            })
+          },
         }),
       ],
     })

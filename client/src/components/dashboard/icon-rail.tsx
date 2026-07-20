@@ -1,6 +1,8 @@
 import { useTranslation } from "react-i18next"
 import { Link, useNavigate } from "react-router-dom"
+import { useQueryClient } from "@tanstack/react-query"
 import { cn } from "@/lib/utils"
+import { forceLogout } from "@/lib/auth/session-guard"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { UserMenu, initials } from "@/components/ui/user-menu"
@@ -28,6 +30,7 @@ interface IconRailProps {
 export function IconRail({ activeSectionId, onNavigate }: IconRailProps) {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const user = MOCK_USER
 
   return (
@@ -87,6 +90,9 @@ export function IconRail({ activeSectionId, onNavigate }: IconRailProps) {
           label: t(USER_MENU_LOGOUT.labelKey),
           icon: USER_MENU_LOGOUT.icon,
           destructive: USER_MENU_LOGOUT.destructive,
+          onSelect: () => {
+            void forceLogout(queryClient)
+          },
         }}
         triggerRender={
           <button type="button" className="mt-1 flex cursor-pointer items-center justify-center rounded-full" aria-label={user.name} />

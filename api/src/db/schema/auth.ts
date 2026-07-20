@@ -11,6 +11,10 @@ import { users } from "./users.js"
 export const otpChallenges = pgTable("otp_challenges", {
   id: uuid("id").defaultRandom().primaryKey(),
   email: text("email").notNull(),
+  /** login | signup */
+  purpose: text("purpose").notNull(),
+  /** Signup only — applied when OTP verifies */
+  fullName: text("full_name"),
   codeHash: text("code_hash").notNull(),
   attempts: integer("attempts").notNull().default(0),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
@@ -18,6 +22,7 @@ export const otpChallenges = pgTable("otp_challenges", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => [
   index("otp_challenges_email_idx").on(table.email),
+  index("otp_challenges_email_purpose_idx").on(table.email, table.purpose),
 ])
 
 export const refreshTokens = pgTable("refresh_tokens", {

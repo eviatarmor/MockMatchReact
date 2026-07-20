@@ -13,6 +13,20 @@ const envSchema = z.object({
   REDIS_URL: z.string().min(1),
   JWT_ACCESS_SECRET: z.string().min(8),
   JWT_REFRESH_SECRET: z.string().min(8),
+  /** Fixed OTP for local/dev. Empty string → random 6-digit code. */
+  OTP_STUB_CODE: z
+    .string()
+    .default("000000")
+    .refine((value) => value === "" || /^\d{6}$/.test(value), {
+      message: "OTP_STUB_CODE must be empty or a 6-digit string",
+    }),
+  OTP_TTL_MINUTES: z.coerce.number().int().positive().default(10),
+  OTP_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
+  SMTP_HOST: z.string().optional().default(""),
+  SMTP_PORT: z.coerce.number().int().positive().default(587),
+  SMTP_USER: z.string().optional().default(""),
+  SMTP_PASS: z.string().optional().default(""),
+  SMTP_FROM: z.string().optional().default("MockMatch <noreply@mockmatch.local>"),
   OPENROUTER_API_KEY: z.string().optional().default(""),
   AWS_REGION: z.string().default("us-east-1"),
   AWS_S3_BUCKET: z.string().optional().default(""),

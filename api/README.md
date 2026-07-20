@@ -29,7 +29,16 @@ Copy `.env.example` → `.env` (requires Postgres + Redis from `infra/`).
 
 - Router export: `@mockmatch/api/router` → `AppRouter` type
 - Client: `client/src/lib/trpc` via `@trpc/react-query`
-- Procedures: `auth.*`, `questions.*` (mostly `NOT_IMPLEMENTED`)
+- Procedures: `auth.requestOtp`, `auth.verifyOtp`, `auth.refresh`, `auth.logout`, `auth.me`, `questions.list` (stub)
+
+### Auth (email OTP)
+
+1. `auth.requestOtp` — `{ purpose: "login", email }` or `{ purpose: "signup", email, fullName, agreeToTerms }`
+2. Email via **nodemailer** (SMTP_* env, or json transport + logs when SMTP empty)
+3. `auth.verifyOtp` — `{ email, code, purpose }` → JWT access + refresh + user
+4. Dev stub code: **`OTP_STUB_CODE=000000`** (empty → random 6-digit)
+
+Tokens stored client-side in `localStorage` (`mockmatch.auth`).
 
 ## Event-driven path → AWS
 

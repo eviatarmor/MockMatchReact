@@ -1,53 +1,77 @@
-import { z } from "zod"
 import { TRPCError } from "@trpc/server"
-import { loginSchema } from "@mockmatch/schemas"
+import {
+  requestOtpSchema,
+  refreshTokenSchema,
+  verifyOtpSchema,
+} from "@mockmatch/schemas"
+import {
+  clearAuthCookies,
+  getRefreshTokenFromCookie,
+  setAuthCookies,
+} from "../../lib/cookies.js"
 import { publicProcedure, protectedProcedure, router } from "../../trpc/trpc.js"
+import {
+  logout,
+  refreshSession,
+  requestOtp,
+  verifyOtp,
+} from "./service.js"
 
-const verifyOtpSchema = z.object({
-  email: z.string().email(),
-  code: z.string().length(6),
-})
-
-/**
- * Auth procedures — stubs only. Wire OTP, JWT issue, and email in a later PR.
- */
 export const authRouter = router({
   requestOtp: publicProcedure
-    .input(loginSchema)
-    .mutation(async () => {
-      throw new TRPCError({
-        code: "NOT_IMPLEMENTED",
-        message: "auth.requestOtp not implemented yet",
-      })
+    .input(requestOtpSchema)
+    .mutation(async ({ ctx, input }) => {
+      return requestOtp(ctx.db, ctx.bus, input)
     }),
 
   verifyOtp: publicProcedure
     .input(verifyOtpSchema)
-    .mutation(async () => {
-      throw new TRPCError({
-        code: "NOT_IMPLEMENTED",
-        message: "auth.verifyOtp not implemented yet",
-      })
+    .mutation(async ({ ctx, input }) => {
+      const tokens = await verifyOtp(ctx.db, ctx.bus, input)
+      setAuthCookies(ctx.hono, tokens)
+      // Tokens live in HttpOnly cookies only — never return them to JS.
+      return { user: tokens.user }
     }),
 
-  refresh: publicProcedure.mutation(async () => {
-    throw new TRPCError({
-      code: "NOT_IMPLEMENTED",
-      message: "auth.refresh not implemented yet",
-    })
-  }),
+  refresh: publicProcedure
+    .input(refreshTokenSchema.optional())
+    .mutation(async ({ ctx, input }) => {
+      const refreshToken =
+        input?.refreshToken ?? getRefreshTokenFromCookie(ctx.hono)
+      if (!refreshToken) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "No refresh token.",
+        })
+      }
+      const tokens = await refreshSession(ctx.db, refreshToken)
+      setAuthCookies(ctx.hono, tokens)
+      return { user: tokens.user }
+    }),
 
-  logout: publicProcedure.mutation(async () => {
-    throw new TRPCError({
-      code: "NOT_IMPLEMENTED",
-      message: "auth.logout not implemented yet",
-    })
-  }),
+  logout: publicProcedure
+    .input(refreshTokenSchema.optional())
+    .mutation(async ({ ctx, input }) => {
+      const refreshToken =
+        input?.refreshToken ?? getRefreshTokenFromCookie(ctx.hono)
+      const result = await logout(ctx.db, refreshToken)
+      clearAuthCookies(ctx.hono)
+      return result
+    }),
 
   me: protectedProcedure.query(async ({ ctx }) => {
+    const user = await ctx.db.query.users.findFirst({
+      where: (table, { eq }) => eq(table.id, ctx.user.id),
+    })
+
+    if (!user) {
+      throw new TRPCError({ code: "UNAUTHORIZED", message: "User not found." })
+    }
+
     return {
-      id: ctx.user.id,
-      email: ctx.user.email,
+      id: user.id,
+      email: user.email,
+      fullName: user.fullName,
     }
   }),
 })

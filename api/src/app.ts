@@ -28,7 +28,7 @@ export function createApp() {
     trpcServer({
       router: appRouter,
       // @hono/trpc-server types context as Record<string, unknown>
-      createContext: async (opts) => createContext(opts),
+      createContext: async (opts, c) => createContext(opts, c),
     })
   )
 

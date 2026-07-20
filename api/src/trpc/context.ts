@@ -1,7 +1,9 @@
+import type { Context as HonoContext } from "hono"
 import type { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch"
 import { db, type Database } from "../db/client.js"
 import { createBullMqEventBus } from "../events/bullmq-bus.js"
 import type { EventBus } from "../events/bus.js"
+import { getAccessTokenFromCookie } from "../lib/cookies.js"
 import { verifyAccessToken } from "../lib/jwt.js"
 
 export interface AuthUser {
@@ -13,6 +15,8 @@ export interface Context extends Record<string, unknown> {
   db: Database
   bus: EventBus
   user: AuthUser | null
+  /** Hono request context — used to read/set HttpOnly auth cookies. */
+  hono: HonoContext
 }
 
 const bus = createBullMqEventBus()
@@ -23,9 +27,12 @@ function extractBearerToken(authorization: string | null): string | null {
 }
 
 export async function createContext(
-  opts: FetchCreateContextFnOptions
+  opts: FetchCreateContextFnOptions,
+  hono: HonoContext
 ): Promise<Context> {
-  const token = extractBearerToken(opts.req.headers.get("authorization"))
+  const cookieToken = getAccessTokenFromCookie(hono)
+  const headerToken = extractBearerToken(opts.req.headers.get("authorization"))
+  const token = cookieToken || headerToken
   let user: AuthUser | null = null
 
   if (token) {
@@ -37,5 +44,5 @@ export async function createContext(
     }
   }
 
-  return { db, bus, user }
+  return { db, bus, user, hono }
 }

@@ -1,10 +1,11 @@
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { QueryClientProvider } from "@tanstack/react-query"
 
 import "./index.css"
 import "./lib/i18n"
+import { queryClient } from "./lib/query-client"
 import { ThemeProvider } from "./components/theme-provider"
 import { Toaster } from "./components/ui/sonner"
 import { TrpcProvider } from "./lib/trpc/provider"
@@ -12,8 +13,6 @@ import { HomePage } from "./pages/home-page"
 import { LoginPage } from "./pages/login-page"
 import { SignupPage } from "./pages/signup-page"
 import { dashboardRoutes } from "./pages/dashboard/dashboard-routes"
-
-const queryClient = new QueryClient()
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
