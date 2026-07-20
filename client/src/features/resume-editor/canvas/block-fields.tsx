@@ -112,12 +112,24 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
     />
   )
 
+  /** A content-width field — sizes to its text so short values don't stretch. */
+  const autoField = (value: string, onChange: (v: string) => void, ph: string, className?: string) => (
+    <EditableText
+      value={value}
+      onChange={onChange}
+      placeholder={ph}
+      ariaLabel={ph}
+      className={className}
+      autoSize
+    />
+  )
+
   /** A compact date range (start – end). */
   const dateRange = (start: string, end: string, onStart: (v: string) => void, onEnd: (v: string) => void) => (
-    <div className={cn("flex items-center gap-1 text-xs", muted)}>
-      {field(start, onStart, t("fields.startDate"))}
+    <div className={cn("flex items-baseline justify-end gap-1 text-xs", muted)}>
+      {autoField(start, onStart, t("fields.startDate"))}
       <span>–</span>
-      {field(end, onEnd, t("fields.endDate"))}
+      {autoField(end, onEnd, t("fields.endDate"))}
     </div>
   )
 
@@ -128,7 +140,7 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
   const titleRow = (title: ReactNode, date: ReactNode) => (
     <div className="flex items-baseline justify-between gap-x-3">
       <div className="min-w-0 flex-1">{title}</div>
-      <div className="w-40 shrink-0 text-right">{date}</div>
+      <div className="shrink-0 text-right">{date}</div>
     </div>
   )
 

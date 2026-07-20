@@ -43,18 +43,17 @@ export function QuestionBankPageContent() {
           description={t("questionBank.description")}
         />
 
-        <div className="flex flex-1 gap-4 min-h-0">
-          <aside className="hidden w-44 shrink-0 lg:block">
-            <div className="sticky top-20">
-              <QuestionBankFilters
-                selectedDomains={selectedDomains}
-                selectedDifficulties={selectedDifficulties}
-                selectedStatuses={selectedStatuses}
-                onDomainToggle={(d) => toggle(selectedDomains, d, setSelectedDomains)}
-                onDifficultyToggle={(d) => toggle(selectedDifficulties, d, setSelectedDifficulties)}
-                onStatusToggle={(s) => toggle(selectedStatuses, s, setSelectedStatuses)}
-              />
-            </div>
+        <div className="flex flex-1 items-start gap-4 min-h-0">
+          {/* Sticky vs DashboardLayout ScrollArea; top offset keeps filters off the card edge. */}
+          <aside className="sticky top-[10px] hidden w-44 shrink-0 self-start lg:block">
+            <QuestionBankFilters
+              selectedDomains={selectedDomains}
+              selectedDifficulties={selectedDifficulties}
+              selectedStatuses={selectedStatuses}
+              onDomainToggle={(d) => toggle(selectedDomains, d, setSelectedDomains)}
+              onDifficultyToggle={(d) => toggle(selectedDifficulties, d, setSelectedDifficulties)}
+              onStatusToggle={(s) => toggle(selectedStatuses, s, setSelectedStatuses)}
+            />
           </aside>
 
           <div className="flex flex-1 flex-col gap-3 min-w-0">

@@ -15,6 +15,13 @@ interface EditableTextProps {
   /** Enable Harper grammar checking. Requires `grammarLabels`. */
   readonly grammar?: boolean
   readonly grammarLabels?: GrammarPopoverLabels
+  /**
+   * Shrink a single-line field to its content width (instead of `w-full`), so
+   * short values like dates don't stretch and leave a gap. Uses a CSS grid
+   * mirror — no `field-sizing`, works in every browser. Ignored for
+   * `multiline` and grammar-enabled fields (which need the overlay layout).
+   */
+  readonly autoSize?: boolean
 }
 
 /**
@@ -38,6 +45,7 @@ export function EditableText({
   ariaLabel,
   grammar,
   grammarLabels,
+  autoSize,
 }: EditableTextProps) {
   const ref = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
   const grammarOn = Boolean(grammar && grammarLabels && !readOnly && onChange)
@@ -103,13 +111,36 @@ export function EditableText({
       value={value}
       placeholder={placeholder}
       aria-label={ariaLabel}
+      // `size={1}` drops the input's ~20ch intrinsic min-width so, in autoSize
+      // mode, the grid cell collapses to the mirror's content width.
+      size={autoSize && !multiline && !overlay ? 1 : undefined}
       onChange={(event) => onChange(event.target.value)}
       onKeyDown={(event) => {
         if (event.key === "Enter") event.currentTarget.blur()
       }}
-      className={cn(base, className)}
+      className={cn(base, autoSize && !overlay && "col-start-1 row-start-1 min-w-0", className)}
     />
   )
+
+  // Content-width single-line field: a CSS-grid mirror sizes the input to its
+  // text (or placeholder). The invisible mirror shares the input's typography
+  // (via `className`) and horizontal box (px-0.5) so widths line up exactly.
+  if (autoSize && !multiline && !overlay) {
+    return (
+      <span className="inline-grid">
+        <span
+          aria-hidden
+          className={cn(
+            "pointer-events-none invisible col-start-1 row-start-1 whitespace-pre px-0.5",
+            className
+          )}
+        >
+          {value || placeholder || ""}
+        </span>
+        {field}
+      </span>
+    )
+  }
 
   // Only introduce the positioning wrapper when there's an overlay to host —
   // bare fields keep their original inline/flex layout untouched.

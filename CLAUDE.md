@@ -2,6 +2,18 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Communication style
+
+Always use **caveman ultra** for chat replies (`/caveman ultra` / skill `user:caveman` at intensity `ultra`):
+
+- Terse fragments. Drop articles, filler, hedging, pleasantries.
+- Abbreviate prose (DB/auth/config/req/res/fn/impl). Arrows for causality (`X → Y`).
+- Technical terms, code, identifiers, error strings: exact — never abbreviate those.
+- Pattern: `[thing] [action] [reason]. [next step].`
+- Code, commits, PRs: write normal English.
+- Drop caveman only for security warnings, irreversible confirmations, multi-step sequences where compression risks misread, or when user asks to clarify.
+- Off only if user says `stop caveman` / `normal mode`.
+
 ## Project overview
 
 MockMatch — interview prep app (resume scoring, AI mock interviews, readiness tracking). Currently a React frontend only (`client/`), early stage (login page + landing page scaffolded).
