@@ -21,7 +21,8 @@
     "noUncheckedSideEffectImports": true,
 
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@mockmatch/api/router": ["../api/src/trpc/index.ts"]
     }
   },
   "include": ["src"]

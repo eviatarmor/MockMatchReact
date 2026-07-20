@@ -16,9 +16,9 @@ Always use **caveman ultra** for chat replies (`/caveman ultra` / skill `user:ca
 
 ## Project overview
 
-MockMatch — interview prep app (resume scoring, AI mock interviews, readiness tracking). Currently a React frontend only (`client/`), early stage (login page + landing page scaffolded).
+MockMatch — interview prep app (resume scoring, AI mock interviews, readiness tracking). Monorepo: React client + Hono/tRPC API scaffold + Docker infra.
 
-This is an npm workspaces monorepo. Root `package.json` has no deps of its own; all app code lives in `client/`.
+Workspaces: `client/`, `api/`, `packages/*`. Local infra: `infra/` (Postgres+pgvector+pgaudit, Redis, optional Drizzle Studio).
 
 ## Testing UI changes
 
@@ -28,7 +28,13 @@ Don't start the dev server or open browser devtools yourself. Instead, ask the u
 
 Run from repo root:
 ```bash
-npm run dev          # starts client dev server via workspaces
+npm run dev          # client + api (concurrently)
+npm run dev:client   # vite only
+npm run dev:api      # Hono + tRPC API
+npm run dev:worker   # BullMQ workers
+npm run infra:up     # Postgres + Redis
+npm run infra:down
+npm run infra:tools  # + Drizzle Studio profile
 ```
 
 Run from `client/`:
@@ -39,16 +45,35 @@ npm run preview      # preview production build
 npm run lint         # eslint
 ```
 
+Run from `api/`:
+```bash
+npm run dev          # tsx watch HTTP server
+npm run dev:worker   # tsx watch workers
+npm run db:generate  # drizzle-kit generate
+npm run db:migrate
+npm run db:studio
+```
+
 No test runner is configured yet.
 
 ## Architecture
 
 ### Stack
+**Client**
 - Vite + React 19, TypeScript (strict)
-- react-router-dom for client-side routing
+- react-router-dom, TanStack Query, tRPC client (`@/lib/trpc`)
 - Tailwind CSS v4 (`@tailwindcss/postcss`, `src/index.css`)
 - shadcn/ui (`style: base-nova`, neutral base color, lucide icons) — config in `client/components.json`
 - ESLint: `@eslint/js` + `typescript-eslint` + `eslint-plugin-react-hooks` + `eslint-plugin-react-refresh` + `eslint-plugin-sonarjs`
+
+**API** (`api/`)
+- Hono + tRPC (`/trpc/*`), health on plain HTTP
+- Drizzle ORM + PostgreSQL; BullMQ + Redis (event bus)
+- jose (JWT), OpenRouter SDK, AWS S3 SDK (stubs)
+- Shared Zod DTOs: `@mockmatch/schemas`
+
+**Infra** (`infra/`)
+- docker-compose: postgres (pgvector + pgaudit), redis, drizzle-studio (profile `tools`)
 
 ### Path aliases (`@/*` → `client/src/*`)
 - `@/features` — feature modules (route content, panels, hooks, types, constants)
@@ -93,7 +118,7 @@ Exception: small self-contained UI animations (e.g. `ReadinessSummaryCard`'s rol
 
 ### Component conventions
 - No semicolons in `.tsx`/`.ts` files within `features/`, `components/`, `hooks/`, `lib/` (existing code is unsemicoloned; `src/main.tsx` and other entry files still use semicolons — match the surrounding file).
-- No backend/API wired up yet — form submissions are stubbed (e.g. `useLoginForm.handleSubmit` uses a dummy timeout).
+- API scaffold exists (`api/`) with tRPC stubs; client forms still use dummy timeouts until auth is wired to `trpc.auth.*`.
 
 ### UI components — shadcnspace first
 All new UI must come from **shadcnspace** (`mcp__shadcnspace-mcp__*` — `searchBlocks`/`listComponents` then `getBlockInstall`, installed via `npx shadcn@latest add @shadcn-space/<name>`) into `components/shadcn-space/<category>/`. Only fall back to plain **shadcn/ui** (`npx shadcn@latest add <component>` into `components/ui/`) when no shadcnspace equivalent exists. Do not hand-roll custom UI primitives (e.g. a bespoke `animated-text` component) when a shadcnspace/shadcn block covers it — `components/shadcn-space/animated-text/animated-text-04.tsx` (rolling text) is the pattern used by `ReadinessSummaryCard`.

@@ -1,9 +1,18 @@
 # dependencies
 node_modules/
 client/node_modules/
+api/node_modules/
+
+# builds
+dist/
+api/dist/
+client/dist/
 
 # env files
-.env*
+.env
+.env.*
+!.env.example
+!**/.env.example
 
 # misc
 .DS_Store

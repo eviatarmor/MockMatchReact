@@ -7,6 +7,10 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "./src"),
+      "@mockmatch/api/router": path.resolve(
+        import.meta.dirname,
+        "../api/src/trpc/index.ts"
+      ),
     },
   },
 })

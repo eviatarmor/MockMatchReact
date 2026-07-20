@@ -1,2 +1,2 @@
-export * from "./auth/login"
-export * from "./auth/signup"
+export * from "./auth/login.js"
+export * from "./auth/signup.js"

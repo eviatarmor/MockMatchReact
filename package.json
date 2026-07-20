@@ -3,10 +3,17 @@
   "private": true,
   "workspaces": [
     "client",
+    "api",
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -n client -c cyan \"npm:dev --workspace=client\""
+    "dev": "concurrently -n client,api -c cyan,magenta \"npm:dev --workspace=client\" \"npm:dev --workspace=@mockmatch/api\"",
+    "dev:client": "npm run dev --workspace=client",
+    "dev:api": "npm run dev --workspace=@mockmatch/api",
+    "dev:worker": "npm run dev:worker --workspace=@mockmatch/api",
+    "infra:up": "docker compose -f infra/docker-compose.yml up -d",
+    "infra:down": "docker compose -f infra/docker-compose.yml down",
+    "infra:tools": "docker compose -f infra/docker-compose.yml --profile tools up -d"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",
