@@ -65,7 +65,10 @@ function ResumeEditorLoaded({
     () => (isMobile ? <BreadcrumbName value={session.resumeName} onChange={session.setResumeName} /> : null),
     [isMobile, session.resumeName, session.setResumeName]
   )
-  const end = useMemo(() => <EditorToolbarActions />, [])
+  const end = useMemo(
+    () => <EditorToolbarActions resumeId={seed.id} title={session.resumeName} />,
+    [seed.id, session.resumeName]
+  )
   useNavbarSlots({ crumb, center, end })
 
   if (isMobile) {

@@ -1,7 +1,10 @@
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { Minus, Plus, Undo2, Redo2, Share2, Download } from "lucide-react"
+import { Minus, Plus, Undo2, Redo2, Share2, Download, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { downloadDocumentPdf, pdfFilename } from "@/lib/export-document-pdf"
 import type { useCanvasViewport } from "@/hooks/use-canvas-viewport"
 
 interface EditorBottomBarProps {
@@ -58,17 +61,46 @@ export function EditorBottomBar({ viewport }: EditorBottomBarProps) {
   )
 }
 
+interface EditorToolbarActionsProps {
+  readonly letterId: string
+  readonly title: string
+}
+
 /** End navbar slot: share + export. */
-export function EditorToolbarActions() {
+export function EditorToolbarActions({ letterId, title }: EditorToolbarActionsProps) {
   const { t } = useTranslation("cover-letter-editor")
+  const [exporting, setExporting] = useState(false)
+
+  const onExport = async () => {
+    if (exporting) return
+    setExporting(true)
+    try {
+      await downloadDocumentPdf({
+        kind: "cover-letter",
+        id: letterId,
+        filename: pdfFilename(title, "cover-letter"),
+      })
+      toast.success(t("toolbar.exportSuccess"))
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t("toolbar.exportError"))
+    } finally {
+      setExporting(false)
+    }
+  }
 
   return (
     <div className="flex items-center gap-1.5">
       <Button variant="ghost" size="icon" className="size-8 cursor-pointer text-muted-foreground" aria-label={t("toolbar.share")}>
         <Share2 className="size-4" />
       </Button>
-      <Button size="sm" className="h-8 cursor-pointer gap-1.5">
-        <Download className="size-4" />
+      <Button
+        size="sm"
+        className="h-8 cursor-pointer gap-1.5"
+        onClick={() => void onExport()}
+        disabled={exporting}
+        aria-busy={exporting}
+      >
+        {exporting ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
         <span className="hidden sm:inline">{t("toolbar.exportPdf")}</span>
       </Button>
     </div>

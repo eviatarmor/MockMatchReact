@@ -10,7 +10,6 @@ import {
 import { BlockFields } from "./block-fields"
 import { resolveContactIcon } from "@/lib/contact-icons"
 import { RESUME_SECTION_TYPES } from "../constants"
-import { snippet } from "../section-snippet"
 import type { ResumeHandlers } from "../hooks/use-resume-document"
 import type { EditorTemplate, ResumeDocument, ResumeSection, TemplateLayoutId } from "../types"
 
@@ -24,6 +23,8 @@ interface ResumeDocumentProps {
   readonly onAiBlock?: (id: string) => void
   /** Current canvas zoom — used to correct drag math under the CSS transform. */
   readonly scale?: number
+  /** Drop page shadow (print / PDF export). */
+  readonly print?: boolean
 }
 
 const META = new Map(RESUME_SECTION_TYPES.map((m) => [m.type, m]))
@@ -146,14 +147,17 @@ function SectionTitle({ section, style }: { readonly section: ResumeSection; rea
   return <p className={cn("mb-1.5", style.headingClass)}>{label}</p>
 }
 
-/** Read-only render of the sections (previews / export). */
+/**
+ * Job-ready read-only body — same section layout as the editor, without chrome.
+ * Uses {@link BlockFields} with no `update` so fields render as static text/HTML.
+ */
 function ReadOnlyBody({ document, style }: { readonly document: ResumeDocument; readonly style: ResolvedStyle }) {
   return (
     <div className={cn("flex flex-col", style.sectionGap)}>
       {document.sections.map((section) => (
         <section key={section.id}>
           <SectionTitle section={section} style={style} />
-          <p className={cn("text-sm text-neutral-700", style.bodyLeading)}>{snippet(section)}</p>
+          <BlockFields block={section} style={style} />
         </section>
       ))}
     </div>
@@ -163,10 +167,18 @@ function ReadOnlyBody({ document, style }: { readonly document: ResumeDocument; 
 /**
  * A4 résumé page. Renders a {@link ResumeDocument}; pass `handlers` to make every
  * field inline-editable and the sections drag-reorderable. Without `handlers` it
- * stays a pure read-only render — reusable for previews, thumbnails, or a future
- * export pipeline. Fixed width (816px ≈ US Letter).
+ * stays a pure read-only render — reusable for previews, print, and PDF export.
+ * Fixed width (816px ≈ US Letter).
  */
-export function ResumeDocumentView({ document, template, style, handlers, onAiBlock, scale }: ResumeDocumentProps) {
+export function ResumeDocumentView({
+  document,
+  template,
+  style,
+  handlers,
+  onAiBlock,
+  scale,
+  print = false,
+}: ResumeDocumentProps) {
   const { t } = useTranslation("resume-editor")
 
   const blockLabels: SortableBlockLabels = {
@@ -181,7 +193,8 @@ export function ResumeDocumentView({ document, template, style, handlers, onAiBl
   return (
     <article
       className={cn(
-        "w-[816px] min-h-[1056px] shrink-0 bg-white px-24 py-20 text-neutral-800 shadow-2xl",
+        "w-[816px] min-h-[1056px] shrink-0 bg-white px-24 py-20 text-neutral-800",
+        !print && "shadow-2xl",
         style.fontClass
       )}
     >

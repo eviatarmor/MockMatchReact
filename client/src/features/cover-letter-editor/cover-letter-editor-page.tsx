@@ -68,7 +68,10 @@ function CoverLetterEditorLoaded({
       ) : null,
     [isMobile, session.letterName, session.setLetterName]
   )
-  const end = useMemo(() => <EditorToolbarActions />, [])
+  const end = useMemo(
+    () => <EditorToolbarActions letterId={seed.id} title={session.letterName} />,
+    [seed.id, session.letterName]
+  )
   useNavbarSlots({ crumb, center, end })
 
   if (isMobile) {

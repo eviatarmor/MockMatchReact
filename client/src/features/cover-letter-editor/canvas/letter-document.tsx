@@ -23,6 +23,8 @@ interface LetterDocumentProps {
   readonly onAiBlock?: (id: string) => void
   /** Current canvas zoom — used to correct drag math under the CSS transform. */
   readonly scale?: number
+  /** Drop page shadow (print / PDF export). */
+  readonly print?: boolean
 }
 
 /** Prose fields hold HTML (Lexical output); render it as such in read-only mode. */
@@ -193,13 +195,22 @@ function EditableBody({ blocks, style, handlers, onAiBlock, scale = 1 }: {
  * A4 cover-letter page. Renders a {@link CoverLetterDocument}; pass `handlers`
  * to make every field inline-editable and the body blocks drag-reorderable.
  * Without `handlers` it stays a pure read-only render — reusable for previews,
- * thumbnails, or a future export pipeline. Fixed width (816px ≈ US Letter).
+ * print, and PDF export. Fixed width (816px ≈ US Letter).
  */
-export function LetterDocument({ document, template, style, handlers, onAiBlock, scale }: LetterDocumentProps) {
+export function LetterDocument({
+  document,
+  template,
+  style,
+  handlers,
+  onAiBlock,
+  scale,
+  print = false,
+}: LetterDocumentProps) {
   return (
     <article
       className={cn(
-        "w-[816px] min-h-[1056px] shrink-0 bg-white px-24 py-20 text-neutral-800 shadow-2xl",
+        "w-[816px] min-h-[1056px] shrink-0 bg-white px-24 py-20 text-neutral-800",
+        !print && "shadow-2xl",
         style.fontClass
       )}
     >

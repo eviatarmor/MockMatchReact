@@ -19,6 +19,9 @@ Env notes:
 - `DATABASE_URL`, `REDIS_URL`, JWT secrets required
 - Stripe optional locally: leave `STRIPE_*` empty → Free plan + credits UI still works; top-up disabled
 - Local Stripe webhooks (when keys set): `stripe listen --forward-to localhost:3000/billing/webhook`
+- PDF export (resume/cover letter): install Chromium once — `cd api && npx playwright install chromium`
+  - API opens `${APP_URL}/resumes/:id/print` (or cover-letters) headless with a short-lived access cookie
+  - Client must be reachable at `APP_URL` (default `http://localhost:5173`) while exporting
 
 ## Schema ER diagram
 

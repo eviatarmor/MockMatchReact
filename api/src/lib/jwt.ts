@@ -5,6 +5,8 @@ const accessSecret = new TextEncoder().encode(env.JWT_ACCESS_SECRET)
 const refreshSecret = new TextEncoder().encode(env.JWT_REFRESH_SECRET)
 
 const ACCESS_TTL = "15m"
+/** Short-lived access JWT for headless print/PDF capture. */
+const PRINT_ACCESS_TTL = "2m"
 const REFRESH_TTL = "30d"
 
 export interface AccessTokenPayload extends JWTPayload {
@@ -21,13 +23,23 @@ export interface RefreshTokenPayload extends JWTPayload {
 export async function signAccessToken(input: {
   userId: string
   email: string
+  /** Override default 15m access TTL (e.g. short-lived print capture). */
+  expiresIn?: string
 }): Promise<string> {
   return new SignJWT({ email: input.email, type: "access" })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(input.userId)
     .setIssuedAt()
-    .setExpirationTime(ACCESS_TTL)
+    .setExpirationTime(input.expiresIn ?? ACCESS_TTL)
     .sign(accessSecret)
+}
+
+/** Mint a short-lived access JWT for Playwright print/PDF capture. */
+export async function signPrintAccessToken(input: {
+  userId: string
+  email: string
+}): Promise<string> {
+  return signAccessToken({ ...input, expiresIn: PRINT_ACCESS_TTL })
 }
 
 export async function signRefreshToken(input: {

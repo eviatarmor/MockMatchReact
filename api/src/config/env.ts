@@ -51,6 +51,13 @@ const envSchema = z
     STRIPE_PRICE_CREDITS_1000: z.string().optional().default(""),
     /** Free-tier AI credit grant when credit_account is first created. */
     FREE_CREDIT_GRANT: z.coerce.number().int().nonnegative().default(0),
+    /**
+     * Optional path to Chromium for Playwright PDF export.
+     * Leave empty to use Playwright's bundled browser.
+     */
+    PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: z.string().optional().default(""),
+    /** Headless print page wait + PDF timeout (ms). */
+    PDF_EXPORT_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
   })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV === "production" && data.OTP_STUB_CODE !== "") {

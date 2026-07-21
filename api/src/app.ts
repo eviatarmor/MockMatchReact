@@ -5,6 +5,7 @@ import { env } from "./config/env.js"
 import { healthRoutes } from "./modules/health/routes.js"
 import { oauthRoutes } from "./modules/auth/oauth-routes.js"
 import { billingWebhookRoutes } from "./modules/billing/webhook-routes.js"
+import { exportRoutes } from "./modules/export/routes.js"
 import { createContext } from "./trpc/context.js"
 import { appRouter } from "./trpc/router.js"
 
@@ -25,6 +26,8 @@ export function createApp() {
   app.route("/auth/oauth", oauthRoutes)
   // Stripe webhooks need raw body for signature verification (not tRPC).
   app.route("/billing", billingWebhookRoutes)
+  // Binary PDF download (Playwright → print page).
+  app.route("/export", exportRoutes)
 
   app.use(
     "/trpc/*",

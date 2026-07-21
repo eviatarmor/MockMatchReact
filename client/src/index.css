@@ -135,3 +135,42 @@
     @apply font-sans;
   }
 }
+
+/* Bare print preview routes — allow vertical scroll (app shell uses overflow-hidden). */
+html:has(.print-surface),
+body:has(.print-surface),
+body:has(.print-surface) #root {
+  height: auto;
+  min-height: 100%;
+  overflow: auto;
+}
+
+/* Document print / PDF export — US Letter, no app chrome. */
+@media print {
+  @page {
+    size: letter;
+    margin: 0;
+  }
+
+  html,
+  body,
+  #root {
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  body {
+    overflow: visible !important;
+  }
+
+  .print-surface {
+    min-height: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+  }
+
+  .print-surface article {
+    box-shadow: none !important;
+  }
+}

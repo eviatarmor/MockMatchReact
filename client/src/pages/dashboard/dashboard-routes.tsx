@@ -4,9 +4,11 @@ import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { DashboardRoutePage } from "@/pages/dashboard/dashboard-placeholder-page";
 import { ResumeLabPage } from "@/pages/dashboard/resume-lab-page";
 import { ResumeEditorPage } from "@/pages/dashboard/resume-editor-page";
+import { ResumePrintPage } from "@/pages/dashboard/resume-print-page";
 import { ResumeTemplatesPage } from "@/pages/dashboard/resume-templates-page";
 import { CoverLettersPage } from "@/pages/dashboard/cover-letters-page";
 import { CoverLetterEditorPage } from "@/pages/dashboard/cover-letter-editor-page";
+import { CoverLetterPrintPage } from "@/pages/dashboard/cover-letter-print-page";
 import { CoverLetterTemplatesPage } from "@/pages/dashboard/cover-letter-templates-page";
 import { DiscoverPage } from "@/pages/dashboard/discover-page";
 import { ApplicationsPage } from "@/pages/dashboard/applications-page";
@@ -44,6 +46,10 @@ const DASHBOARD_ROUTES = [
 export function dashboardRoutes() {
   return (
     <Route element={<RequireAuth />}>
+      {/* Bare print surfaces — no dashboard chrome (PDF export + human preview). */}
+      <Route path="resumes/:resumeId/print" element={<ResumePrintPage />} />
+      <Route path="cover-letters/:letterId/print" element={<CoverLetterPrintPage />} />
+
       <Route element={<DashboardLayout />}>
         <Route path="applications/:jobId" element={<ApplicationDetailPage />} />
         <Route path="cover-letters/templates" element={<CoverLetterTemplatesPage />} />
