@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  security-events: write
+
+jobs:
+  # Fallow codebase intelligence — PR delta gate + full report on main.
+  fallow:
+    name: Fallow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history for --changed-since / PR base detection
+          fetch-depth: 0
+
+      # PRs: fail only on findings introduced by the changeset
+      - name: Fallow audit (new issues only)
+        if: github.event_name == 'pull_request'
+        uses: fallow-rs/fallow@v3
+        with:
+          command: audit
+          gate: new-only
+          fail-on-issues: true
+          auto-changed-since: true
+          comment: true
+          review-comments: true
+          review-guidance: true
+          annotations: true
+          score: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      # Main pushes: full dead-code + dupes + health report (non-blocking until cleaned)
+      - name: Fallow full analysis
+        if: github.event_name == 'push'
+        uses: fallow-rs/fallow@v3
+        with:
+          fail-on-issues: false
+          format: sarif
+          score: true
+          annotations: true
+
+      - name: Upload Fallow SARIF
+        if: github.event_name == 'push' && always()
+        uses: github/codeql-action/upload-sarif@v3
+        continue-on-error: true
+        with:
+          sarif_file: fallow-results.sarif
+          category: fallow
+
+  quality:
+    name: Typecheck · Lint · Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck API
+        run: npm run typecheck --workspace=@mockmatch/api
+
+      - name: Typecheck client
+        run: npm run typecheck --workspace=client
+
+      - name: Lint client
+        run: npm run lint --workspace=client
+
+      - name: Build client
+        run: npm run build --workspace=client
+        env:
+          # Build does not need a live API; keep a stable default for any URL reads.
+          VITE_API_URL: http://localhost:3000

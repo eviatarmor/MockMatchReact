@@ -14,7 +14,13 @@
     "dev:studio": "npm run db:studio --workspace=@mockmatch/api",
     "infra:up": "docker compose -f infra/docker-compose.yml up -d",
     "infra:down": "docker compose -f infra/docker-compose.yml down",
-    "db:schema:mermaid": "npm run db:schema:mermaid --workspace=@mockmatch/api"
+    "db:schema:mermaid": "npm run db:schema:mermaid --workspace=@mockmatch/api",
+    "typecheck": "npm run typecheck --workspace=@mockmatch/api && npm run typecheck --workspace=client",
+    "lint": "npm run lint --workspace=client",
+    "build": "npm run build --workspace=client",
+    "fallow": "fallow dead-code && fallow dupes && fallow health",
+    "fallow:audit": "fallow audit",
+    "ci": "npm run typecheck && npm run lint && npm run build && npm run fallow:audit"
   },
   "devDependencies": {
     "concurrently": "^9.1.0",

@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom"
 import { NAV_SECTIONS } from "@/components/dashboard/constants"
 
 /** First sidebar item — default landing after `/`. */
-const DEFAULT_APP_PATH = NAV_SECTIONS[0].items[0].href
+const DEFAULT_APP_PATH = NAV_SECTIONS[0]?.items[0]?.href ?? "/resume-lab"
 
 /**
  * `/` always redirects into the app. Unauthenticated users hit RequireAuth
