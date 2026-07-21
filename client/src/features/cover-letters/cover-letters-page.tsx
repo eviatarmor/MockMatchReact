@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { Mail, Plus, Upload } from "lucide-react"
+import { Loader2, Mail, Plus, Upload } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
@@ -11,6 +11,7 @@ import { TemplateBrowserSection } from "@/components/templates/template-browser-
 import { EntityEmptyState } from "@/components/data/entity-empty-state"
 import { EntityListStates } from "@/components/data/entity-list-states"
 import { EntityTablePagination } from "@/components/data/entity-table-pagination"
+import { useImportDocumentPdf } from "@/hooks/use-import-document-pdf"
 import { trpc } from "@/lib/trpc"
 import { CoverLetterTable } from "./components/cover-letter-table"
 import { useCoverLettersList } from "./hooks/use-cover-letters-list"
@@ -38,6 +39,8 @@ export function CoverLettersPageContent() {
     },
     onError: () => toast.error(t("coverLetters.table.toast.deleteFailed")),
   })
+
+  const pdfImport = useImportDocumentPdf("cover-letter")
 
   const handleDelete = (letter: CoverLetterItem) => {
     deleteLetter.mutate({ id: letter.id })
@@ -82,18 +85,29 @@ export function CoverLettersPageContent() {
           onSearchChange={list.setSearch}
           actions={
             <>
+              <input {...pdfImport.fileInput} />
               <Button
                 variant="outline"
                 className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
-                disabled
+                disabled={pdfImport.isPending}
+                onClick={pdfImport.openPicker}
+                aria-busy={pdfImport.isPending}
               >
-                <Upload className="size-4" />
-                <span className="hidden sm:inline">{t("dashboard.actions.importCoverLetter")}</span>
+                {pdfImport.isPending ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Upload className="size-4" />
+                )}
+                <span className="hidden sm:inline">
+                  {pdfImport.isPending
+                    ? t("dashboard.import.importing")
+                    : t("dashboard.actions.importCoverLetter")}
+                </span>
               </Button>
               <Button
                 variant="default"
                 className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
-                disabled={createLetter.isPending}
+                disabled={createLetter.isPending || pdfImport.isPending}
                 onClick={() => createLetter.mutate({})}
               >
                 <Plus className="size-4" />

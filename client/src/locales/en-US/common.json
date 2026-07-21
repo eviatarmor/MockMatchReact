@@ -67,6 +67,11 @@
       "startAssessment": "Start assessment",
       "addProfile": "Add profile"
     },
+    "import": {
+      "importing": "Importing…",
+      "invalidType": "Please choose a PDF file",
+      "tooLarge": "PDF must be under 5 MB"
+    },
     "pagination": {
       "summary": "Page {{page}} of {{totalPages}} · {{total}} total",
       "prev": "Previous",
@@ -122,7 +127,9 @@
       "toast": {
         "deleted": "Resume deleted",
         "deleteFailed": "Could not delete resume",
-        "createFailed": "Could not create resume"
+        "createFailed": "Could not create resume",
+        "importSuccess": "Resume imported",
+        "importFailed": "Could not import resume PDF"
       }
     },
     "templates": {
@@ -276,7 +283,9 @@
       "toast": {
         "deleted": "Cover letter deleted",
         "deleteFailed": "Could not delete cover letter",
-        "createFailed": "Could not create cover letter"
+        "createFailed": "Could not create cover letter",
+        "importSuccess": "Cover letter imported",
+        "importFailed": "Could not import cover letter PDF"
       }
     },
     "templates": {

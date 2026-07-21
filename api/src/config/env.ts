@@ -32,6 +32,14 @@ const envSchema = z
     SMTP_PASS: z.string().optional().default(""),
     SMTP_FROM: z.string().optional().default("MockMatch <noreply@mockmatch.local>"),
     OPENROUTER_API_KEY: z.string().optional().default(""),
+    /**
+     * Cheap OpenRouter model for PDF → structured JSON import.
+     * Default: Google Gemini 2.0 Flash Lite (low cost, solid extraction).
+     */
+    OPENROUTER_IMPORT_MODEL: z
+      .string()
+      .min(1)
+      .default("google/gemini-2.0-flash-lite-001"),
     AWS_REGION: z.string().default("us-east-1"),
     AWS_S3_BUCKET: z.string().optional().default(""),
     AWS_ACCESS_KEY_ID: z.string().optional().default(""),

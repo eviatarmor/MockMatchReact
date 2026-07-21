@@ -13,6 +13,7 @@ import {
   listOwnedDocuments,
   type OwnedDocumentTable,
 } from "../../lib/owned-document-store.js"
+import { importCoverLetterFromPdf } from "../../lib/document-import.js"
 import {
   blankCoverLetterDocument,
   DEFAULT_STYLE,
@@ -122,6 +123,20 @@ export async function updateCoverLetter(
   }
 
   return toDetail(row)
+}
+
+/** Create a draft cover letter from a PDF via cheap OpenRouter extraction. */
+export async function importCoverLetterFromPdfFile(
+  db: Database,
+  userId: string,
+  input: { filename: string; pdfBase64: string }
+) {
+  const parsed = await importCoverLetterFromPdf(input)
+  return createCoverLetter(db, userId, {
+    title: parsed.title,
+    company: parsed.company ?? null,
+    document: parsed.document,
+  })
 }
 
 export async function deleteCoverLetter(

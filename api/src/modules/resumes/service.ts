@@ -13,6 +13,7 @@ import {
   listOwnedDocuments,
   type OwnedDocumentTable,
 } from "../../lib/owned-document-store.js"
+import { importResumeFromPdf } from "../../lib/document-import.js"
 import {
   blankResumeDocument,
   DEFAULT_STYLE,
@@ -137,4 +138,18 @@ export async function updateResume(
 
 export async function deleteResume(db: Database, userId: string, id: string) {
   return deleteOwnedDocument(db, table, userId, id, NOT_FOUND)
+}
+
+/** Create a draft resume from a PDF via cheap OpenRouter extraction. */
+export async function importResumeFromPdfFile(
+  db: Database,
+  userId: string,
+  input: { filename: string; pdfBase64: string }
+) {
+  const parsed = await importResumeFromPdf(input)
+  return createResume(db, userId, {
+    title: parsed.title,
+    targetRole: parsed.targetRole ?? null,
+    document: parsed.document,
+  })
 }

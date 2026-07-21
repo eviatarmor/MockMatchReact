@@ -1,4 +1,5 @@
 import {
+  documentImportPdfInputSchema,
   resumeCreateInputSchema,
   resumeIdInputSchema,
   resumeListInputSchema,
@@ -9,6 +10,7 @@ import {
   createResume,
   deleteResume,
   getResume,
+  importResumeFromPdfFile,
   listResumes,
   updateResume,
 } from "./service.js"
@@ -30,6 +32,13 @@ export const resumesRouter = router({
     .input(resumeCreateInputSchema.optional())
     .mutation(async ({ ctx, input }) => {
       return createResume(ctx.db, ctx.user.id, input ?? {})
+    }),
+
+  /** PDF → structured resume via cheap OpenRouter model. */
+  importPdf: protectedProcedure
+    .input(documentImportPdfInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      return importResumeFromPdfFile(ctx.db, ctx.user.id, input)
     }),
 
   update: protectedProcedure
