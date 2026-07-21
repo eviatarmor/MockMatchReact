@@ -1,10 +1,13 @@
 import type { LucideIcon } from "lucide-react"
+import type { ContactIconKey } from "@mockmatch/schemas"
 import type { DocumentStyle } from "@/components/document-editor"
+
+export type ResumeContactIconKey = ContactIconKey
 
 /** A single contact entry rendered in the resume header (icon + value). */
 export interface ResumeContactEntry {
   readonly id: string
-  readonly icon: LucideIcon
+  readonly iconKey: ResumeContactIconKey
   readonly value: string
 }
 

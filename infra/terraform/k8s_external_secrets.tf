@@ -112,6 +112,26 @@ resource "kubernetes_manifest" "external_secret_app" {
           secretKey = "API_URL"
           remoteRef = { key = local.secret_ids.api_url }
         },
+        {
+          secretKey = "STRIPE_SECRET_KEY"
+          remoteRef = { key = local.secret_ids.stripe_secret_key }
+        },
+        {
+          secretKey = "STRIPE_WEBHOOK_SECRET"
+          remoteRef = { key = local.secret_ids.stripe_webhook_secret }
+        },
+        {
+          secretKey = "STRIPE_PRICE_CREDITS_100"
+          remoteRef = { key = local.secret_ids.stripe_price_credits_100 }
+        },
+        {
+          secretKey = "STRIPE_PRICE_CREDITS_500"
+          remoteRef = { key = local.secret_ids.stripe_price_credits_500 }
+        },
+        {
+          secretKey = "STRIPE_PRICE_CREDITS_1000"
+          remoteRef = { key = local.secret_ids.stripe_price_credits_1000 }
+        },
       ]
     }
   }

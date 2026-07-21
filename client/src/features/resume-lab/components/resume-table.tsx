@@ -5,9 +5,11 @@ import type { ResumeItem } from "../types"
 
 interface ResumeTableProps {
   readonly resumes: ResumeItem[]
+  readonly onDelete: (resume: ResumeItem) => void
+  readonly deletingId?: string | null
 }
 
-export function ResumeTable({ resumes }: ResumeTableProps) {
+export function ResumeTable({ resumes, onDelete, deletingId }: ResumeTableProps) {
   const { t } = useTranslation("common")
 
   const columns: EntityTableColumn[] = [
@@ -19,9 +21,14 @@ export function ResumeTable({ resumes }: ResumeTableProps) {
   ]
 
   return (
-    <EntityTable columns={columns} isEmpty={resumes.length === 0} emptyMessage="No resumes found">
+    <EntityTable columns={columns} isEmpty={false} emptyMessage="">
       {resumes.map((resume) => (
-        <ResumeTableRow key={resume.id} resume={resume} />
+        <ResumeTableRow
+          key={resume.id}
+          resume={resume}
+          onDelete={() => onDelete(resume)}
+          isDeleting={deletingId === resume.id}
+        />
       ))}
     </EntityTable>
   )

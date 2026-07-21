@@ -6,7 +6,7 @@
 # from repo root
 npm run infra:up                    # Postgres + Redis
 cp api/.env.example api/.env        # if needed
-cd api && npm run db:migrate        # includes 0001 drop ephemeral auth tables
+cd api && npm run db:migrate        # through 0004 account prefs + credits/billing
 npm run dev                         # client + api + studio
 # or:
 npm run dev:api
@@ -17,6 +17,8 @@ Env notes:
 - `OTP_STUB_CODE=000000` OK in development
 - Redis required for login/signup/refresh (not optional)
 - `DATABASE_URL`, `REDIS_URL`, JWT secrets required
+- Stripe optional locally: leave `STRIPE_*` empty → Free plan + credits UI still works; top-up disabled
+- Local Stripe webhooks (when keys set): `stripe listen --forward-to localhost:3000/billing/webhook`
 
 ## Schema ER diagram
 

@@ -9,10 +9,11 @@ import { UserMenu, initials } from "@/components/ui/user-menu"
 import { AppLogo } from "@/components/icons/app-logo"
 import {
   NAV_SECTIONS,
-  MOCK_USER,
   USER_MENU_ACTIONS,
   USER_MENU_LOGOUT,
 } from "@/components/dashboard/constants"
+import { getUser } from "@/lib/auth/session"
+import { trpc } from "@/lib/trpc"
 
 const USER_MENU_ROUTES: Record<string, string> = {
   "userMenu.accountSettings": "/account-settings",
@@ -31,7 +32,18 @@ export function IconRail({ activeSectionId, onNavigate }: IconRailProps) {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const user = MOCK_USER
+  const me = trpc.auth.me.useQuery(undefined, { staleTime: 60_000 })
+  const sessionUser = getUser()
+  const user = {
+    name:
+      me.data?.fullName ||
+      sessionUser?.fullName ||
+      me.data?.email ||
+      sessionUser?.email ||
+      t("appName"),
+    email: me.data?.email || sessionUser?.email || "",
+    avatarUrl: undefined as string | undefined,
+  }
 
   return (
     <nav className="flex w-14 shrink-0 flex-col items-center gap-1 bg-sidebar py-3 text-sidebar-foreground">

@@ -1,6 +1,5 @@
 import { User, Palette, Mic, Globe, Shield } from "lucide-react"
 import type {
-  AccountSettingsForm,
   NavItem,
   SelectOption,
   ThemeOption,
@@ -58,13 +57,3 @@ export const COUNTRY_DIALECT_KEY: Record<Country, string> = {
 }
 
 export const AUTO_SAVE_DEBOUNCE_MS = 1000
-
-// Mock current user — no backend wired up yet.
-export const MOCK_ACCOUNT: AccountSettingsForm & { email: string; fullName: string } = {
-  fullName: "Jordan Avery",
-  email: "jordan.avery@example.com",
-  voiceProfile: "mellow",
-  country: "US",
-  dateFormat: "MM/DD/YYYY",
-  timeFormat: "12h",
-}

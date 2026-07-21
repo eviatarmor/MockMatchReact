@@ -21,4 +21,11 @@ doks_max_nodes = 5
 linkedin_client_id     = ""
 linkedin_client_secret = ""
 
+# Stripe (PCI: Checkout + Portal only; no card data in app)
+stripe_secret_key          = ""
+stripe_webhook_secret      = ""
+stripe_price_credits_100   = ""
+stripe_price_credits_500   = ""
+stripe_price_credits_1000  = ""
+
 create_dns_records = false

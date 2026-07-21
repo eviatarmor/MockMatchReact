@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { SectionShell } from "@/components/layout/section-shell"
+import { trpc } from "@/lib/trpc"
 
 interface DataActionCardProps {
   readonly icon: ReactNode
@@ -14,9 +15,18 @@ interface DataActionCardProps {
   readonly description: string
   readonly buttonLabel: string
   readonly onAction: () => void
+  readonly pending?: boolean
 }
 
-function DataActionCard({ icon, iconClassName, label, description, buttonLabel, onAction }: DataActionCardProps) {
+function DataActionCard({
+  icon,
+  iconClassName,
+  label,
+  description,
+  buttonLabel,
+  onAction,
+  pending,
+}: DataActionCardProps) {
   return (
     <Card>
       <CardContent className="flex items-start gap-3">
@@ -28,7 +38,13 @@ function DataActionCard({ icon, iconClassName, label, description, buttonLabel, 
             <span className="text-sm font-medium text-foreground">{label}</span>
             <span className="text-xs text-muted-foreground">{description}</span>
           </div>
-          <Button variant="outline" size="sm" className="w-fit cursor-pointer" onClick={onAction}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-fit cursor-pointer"
+            disabled={pending}
+            onClick={onAction}
+          >
             {buttonLabel}
           </Button>
         </div>
@@ -40,11 +56,23 @@ function DataActionCard({ icon, iconClassName, label, description, buttonLabel, 
 export function DataSection() {
   const { t } = useTranslation("privacy")
 
-  // Both stubbed — no backend wired up yet.
-  const requestExport = () =>
-    toast.success(t("toast.exportTitle"), { description: t("toast.exportDescription") })
-  const clearHistory = () =>
-    toast.success(t("toast.clearedTitle"), { description: t("toast.clearedDescription") })
+  const requestExport = trpc.account.requestDataExport.useMutation({
+    onSuccess: () => {
+      toast.success(t("toast.exportTitle"), { description: t("toast.exportDescription") })
+    },
+    onError: () => {
+      toast.error(t("toast.saveErrorTitle"))
+    },
+  })
+
+  const clearHistory = trpc.account.clearInterviewHistory.useMutation({
+    onSuccess: () => {
+      toast.success(t("toast.clearedTitle"), { description: t("toast.clearedDescription") })
+    },
+    onError: () => {
+      toast.error(t("toast.saveErrorTitle"))
+    },
+  })
 
   return (
     <SectionShell heading={t("data.heading")} description={t("data.description")}>
@@ -55,7 +83,8 @@ export function DataSection() {
           label={t("data.export.label")}
           description={t("data.export.description")}
           buttonLabel={t("data.export.button")}
-          onAction={requestExport}
+          pending={requestExport.isPending}
+          onAction={() => requestExport.mutate()}
         />
         <DataActionCard
           icon={<Ban className="size-4" />}
@@ -63,7 +92,8 @@ export function DataSection() {
           label={t("data.clearHistory.label")}
           description={t("data.clearHistory.description")}
           buttonLabel={t("data.clearHistory.button")}
-          onAction={clearHistory}
+          pending={clearHistory.isPending}
+          onAction={() => clearHistory.mutate()}
         />
       </div>
     </SectionShell>

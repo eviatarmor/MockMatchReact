@@ -10,6 +10,7 @@ import {
   getOtpChallenge,
   getRefreshToken,
   incrementOtpAttempts,
+  revokeAllRefreshTokens,
   revokeRefreshToken,
   setOtpChallenge,
   storeRefreshToken,
@@ -255,5 +256,11 @@ export async function logout(
   }
 
   await revokeRefreshToken(hashToken(refreshToken))
+  return { ok: true }
+}
+
+/** Revoke every refresh token for the user (all devices). */
+export async function logoutAll(userId: string): Promise<{ ok: true }> {
+  await revokeAllRefreshTokens(userId)
   return { ok: true }
 }

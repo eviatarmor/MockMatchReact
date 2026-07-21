@@ -58,7 +58,8 @@ export function PaymentCardVisual({
   const [flipped, setFlipped] = useState(false)
   const [showBalance, setShowBalance] = useState(false)
 
-  const maskedNumber = showBalance ? `4921  3847  2910  ${last4}` : `4921 •••• •••• ${last4}`
+  // PCI: display last4 only — never invent or store a full PAN in the client.
+  const maskedNumber = `••••  ••••  ••••  ${last4}`
 
   return (
     <div className="flex flex-col gap-4 items-center justify-center p-2 w-full">

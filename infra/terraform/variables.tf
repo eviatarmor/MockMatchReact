@@ -79,6 +79,38 @@ variable "redis_size" {
   default     = "db-s-1vcpu-1gb"
 }
 
+variable "stripe_secret_key" {
+  type        = string
+  description = "Stripe secret key (sk_live_… / sk_test_…). Never commit real values."
+  sensitive   = true
+  default     = ""
+}
+
+variable "stripe_webhook_secret" {
+  type        = string
+  description = "Stripe webhook signing secret (whsec_…)"
+  sensitive   = true
+  default     = ""
+}
+
+variable "stripe_price_credits_100" {
+  type        = string
+  description = "Stripe Price ID for 100-credit top-up pack"
+  default     = ""
+}
+
+variable "stripe_price_credits_500" {
+  type        = string
+  description = "Stripe Price ID for 500-credit top-up pack"
+  default     = ""
+}
+
+variable "stripe_price_credits_1000" {
+  type        = string
+  description = "Stripe Price ID for 1000-credit top-up pack"
+  default     = ""
+}
+
 variable "linkedin_client_id" {
   type        = string
   description = "LinkedIn OAuth client id (empty until portal setup)"

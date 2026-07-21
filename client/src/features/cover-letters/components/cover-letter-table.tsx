@@ -5,9 +5,15 @@ import type { CoverLetterItem } from "../types"
 
 interface CoverLetterTableProps {
   readonly coverLetters: CoverLetterItem[]
+  readonly onDelete: (coverLetter: CoverLetterItem) => void
+  readonly deletingId?: string | null
 }
 
-export function CoverLetterTable({ coverLetters }: CoverLetterTableProps) {
+export function CoverLetterTable({
+  coverLetters,
+  onDelete,
+  deletingId,
+}: CoverLetterTableProps) {
   const { t } = useTranslation("common")
 
   const columns: EntityTableColumn[] = [
@@ -18,9 +24,14 @@ export function CoverLetterTable({ coverLetters }: CoverLetterTableProps) {
   ]
 
   return (
-    <EntityTable columns={columns} isEmpty={coverLetters.length === 0} emptyMessage="No cover letters found">
+    <EntityTable columns={columns} isEmpty={false} emptyMessage="">
       {coverLetters.map((coverLetter) => (
-        <CoverLetterTableRow key={coverLetter.id} coverLetter={coverLetter} />
+        <CoverLetterTableRow
+          key={coverLetter.id}
+          coverLetter={coverLetter}
+          onDelete={() => onDelete(coverLetter)}
+          isDeleting={deletingId === coverLetter.id}
+        />
       ))}
     </EntityTable>
   )

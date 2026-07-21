@@ -1,34 +1,76 @@
-import { useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { Upload, Plus } from "lucide-react"
+import { FileText, Plus, Upload } from "lucide-react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
 import { TableToolbar } from "@/components/dashboard/table-toolbar"
 import { TemplateBrowserSection } from "@/components/templates/template-browser-section"
+import { EntityEmptyState } from "@/components/data/entity-empty-state"
+import { EntityListStates } from "@/components/data/entity-list-states"
+import { EntityTablePagination } from "@/components/data/entity-table-pagination"
+import { trpc } from "@/lib/trpc"
 import { ResumeTable } from "./components/resume-table"
-import { MOCK_RESUMES, MOCK_TEMPLATES } from "./constants"
+import { useResumesList } from "./hooks/use-resumes-list"
+import { MOCK_TEMPLATES } from "./constants"
+import type { ResumeItem } from "./types"
 
 export function ResumeLabPageContent() {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
-  const [search, setSearch] = useState("")
+  const utils = trpc.useUtils()
+  const list = useResumesList()
 
-  const filteredResumes = useMemo(
-    () => MOCK_RESUMES.filter(
-      (r) =>
-        r.title.toLowerCase().includes(search.toLowerCase()) ||
-        (r.targetRole && r.targetRole.toLowerCase().includes(search.toLowerCase()))
-    ),
-    [search]
+  const createResume = trpc.resumes.create.useMutation({
+    onSuccess: (resume) => {
+      utils.resumes.list.invalidate().catch(() => {})
+      navigate(`/resumes/${resume.id}`)
+    },
+    onError: () => toast.error(t("resumeLab.table.toast.createFailed")),
+  })
+
+  const deleteResume = trpc.resumes.delete.useMutation({
+    onSuccess: () => {
+      toast.success(t("resumeLab.table.toast.deleted"))
+      utils.resumes.list.invalidate().catch(() => {})
+    },
+    onError: () => toast.error(t("resumeLab.table.toast.deleteFailed")),
+  })
+
+  const handleDelete = (resume: ResumeItem) => {
+    deleteResume.mutate({ id: resume.id })
+  }
+
+  const emptyState = (
+    <EntityEmptyState
+      icon={FileText}
+      title={
+        list.hasActiveSearch
+          ? t("resumeLab.table.emptySearchTitle")
+          : t("resumeLab.table.emptyTitle")
+      }
+      description={
+        list.hasActiveSearch
+          ? t("resumeLab.table.emptySearchDescription")
+          : t("resumeLab.table.emptyDescription")
+      }
+      action={
+        list.hasActiveSearch
+          ? undefined
+          : {
+              label: t("dashboard.actions.newResume"),
+              icon: Plus,
+              pending: createResume.isPending,
+              onClick: () => createResume.mutate({}),
+            }
+      }
+    />
   )
 
   return (
-    <DashboardPageShell
-      title={t("resumeLab.title")}
-    >
+    <DashboardPageShell title={t("resumeLab.title")}>
       <div className="flex flex-col gap-3">
         <DashboardPageHeader
           title={t("resumeLab.title")}
@@ -36,13 +78,14 @@ export function ResumeLabPageContent() {
         />
         <TableToolbar
           searchPlaceholder={t("dashboard.search.resumes")}
-          search={search}
-          onSearchChange={setSearch}
+          search={list.search}
+          onSearchChange={list.setSearch}
           actions={
             <>
               <Button
                 variant="outline"
                 className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
+                disabled
               >
                 <Upload className="size-4" />
                 <span className="hidden sm:inline">{t("dashboard.actions.importResume")}</span>
@@ -50,7 +93,8 @@ export function ResumeLabPageContent() {
               <Button
                 variant="default"
                 className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
-                onClick={() => navigate("/resumes/new")}
+                disabled={createResume.isPending}
+                onClick={() => createResume.mutate({})}
               >
                 <Plus className="size-4" />
                 <span className="hidden sm:inline">{t("dashboard.actions.newResume")}</span>
@@ -58,9 +102,35 @@ export function ResumeLabPageContent() {
             </>
           }
         />
-        <ResumeTable resumes={filteredResumes} />
+
+        <EntityListStates
+          isError={list.isError}
+          isLoading={list.isLoading}
+          isEmpty={list.isEmpty}
+          errorMessage={t("resumeLab.table.loadError")}
+          loadingMessage={t("resumeLab.table.loading")}
+          emptyState={emptyState}
+        >
+          <ResumeTable
+            resumes={list.items}
+            onDelete={handleDelete}
+            deletingId={deleteResume.isPending ? deleteResume.variables?.id : null}
+          />
+          <EntityTablePagination
+            page={list.page}
+            totalPages={list.totalPages}
+            total={list.total}
+            onPageChange={list.setPage}
+            disabled={list.isFetching}
+          />
+        </EntityListStates>
+
         <Separator className="my-2" />
-        <TemplateBrowserSection items={MOCK_TEMPLATES} translationPrefix="resumeLab.templates" browseAllTo="/resume-lab/templates" />
+        <TemplateBrowserSection
+          items={MOCK_TEMPLATES}
+          translationPrefix="resumeLab.templates"
+          browseAllTo="/resume-lab/templates"
+        />
       </div>
     </DashboardPageShell>
   )

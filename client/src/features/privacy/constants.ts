@@ -20,7 +20,7 @@ export const COOKIE_TOGGLES: readonly ToggleOption[] = [
 
 export const PRIVACY_AUTO_SAVE_DEBOUNCE_MS = 1000
 
-// Mock current preferences — no backend wired up yet.
+/** Form defaults before account.get resolves. */
 export const MOCK_PRIVACY: PrivacyForm = {
   allowLocationMetadata: true,
   allowImproveApp: true,

@@ -12,6 +12,7 @@ import {
 import { publicProcedure, protectedProcedure, router } from "../../trpc/trpc.js"
 import {
   logout,
+  logoutAll,
   refreshSession,
   requestOtp,
   verifyOtp,
@@ -58,6 +59,12 @@ export const authRouter = router({
       clearAuthCookies(ctx.hono)
       return result
     }),
+
+  logoutAll: protectedProcedure.mutation(async ({ ctx }) => {
+    const result = await logoutAll(ctx.user.id)
+    clearAuthCookies(ctx.hono)
+    return result
+  }),
 
   me: protectedProcedure.query(async ({ ctx }) => {
     const user = await ctx.db.query.users.findFirst({

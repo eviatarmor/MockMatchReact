@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
+import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -14,6 +16,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { SectionShell } from "@/components/layout/section-shell"
+import { forceLogout } from "@/lib/auth/session-guard"
+import { clearUser } from "@/lib/auth/session"
+import { trpc } from "@/lib/trpc"
 
 interface ActionRowProps {
   readonly title: string
@@ -40,9 +45,18 @@ interface ConfirmButtonProps {
   readonly confirmLabel: string
   readonly destructive?: boolean
   readonly onConfirm: () => void
+  readonly pending?: boolean
 }
 
-function ConfirmButton({ trigger, title, message, confirmLabel, destructive, onConfirm }: ConfirmButtonProps) {
+function ConfirmButton({
+  trigger,
+  title,
+  message,
+  confirmLabel,
+  destructive,
+  onConfirm,
+  pending,
+}: ConfirmButtonProps) {
   const { t } = useTranslation("account-settings")
   const [open, setOpen] = useState(false)
 
@@ -61,6 +75,7 @@ function ConfirmButton({ trigger, title, message, confirmLabel, destructive, onC
           <Button
             variant={destructive ? "destructive" : "default"}
             className="cursor-pointer"
+            disabled={pending}
             onClick={() => {
               setOpen(false)
               onConfirm()
@@ -76,11 +91,45 @@ function ConfirmButton({ trigger, title, message, confirmLabel, destructive, onC
 
 export function AccountAccessSection() {
   const { t } = useTranslation("account-settings")
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
-  // All stubbed — no backend wired up yet.
-  const signOut = () => toast.success(t("toast.signedOut"))
-  const signOutEverywhere = () => toast.success(t("toast.signedOutEverywhere"))
-  const deleteAccount = () => toast.success(t("toast.accountDeleted"))
+  const logoutAll = trpc.auth.logoutAll.useMutation()
+  const deleteAccount = trpc.account.delete.useMutation()
+
+  const signOut = () => {
+    void forceLogout(queryClient).then(() => {
+      toast.success(t("toast.signedOut"))
+    })
+  }
+
+  const signOutEverywhere = () => {
+    logoutAll.mutate(undefined, {
+      onSuccess: () => {
+        clearUser()
+        queryClient.clear()
+        toast.success(t("toast.signedOutEverywhere"))
+        navigate("/login", { replace: true })
+      },
+      onError: () => {
+        toast.error(t("toast.saveErrorTitle"))
+      },
+    })
+  }
+
+  const onDeleteAccount = () => {
+    deleteAccount.mutate(undefined, {
+      onSuccess: () => {
+        clearUser()
+        queryClient.clear()
+        toast.success(t("toast.accountDeleted"))
+        navigate("/login", { replace: true })
+      },
+      onError: () => {
+        toast.error(t("toast.saveErrorTitle"))
+      },
+    })
+  }
 
   return (
     <SectionShell heading={t("account.heading")} description={t("account.description")}>
@@ -103,10 +152,15 @@ export function AccountAccessSection() {
             description={t("account.signOutEverywhere.description")}
             action={
               <ConfirmButton
-                trigger={<Button variant="outline" className="cursor-pointer">{t("account.signOutEverywhere.button")}</Button>}
+                trigger={
+                  <Button variant="outline" className="cursor-pointer" disabled={logoutAll.isPending}>
+                    {t("account.signOutEverywhere.button")}
+                  </Button>
+                }
                 title={t("account.signOutEverywhere.confirmTitle")}
                 message={t("account.signOutEverywhere.confirmMessage")}
                 confirmLabel={t("account.signOutEverywhere.button")}
+                pending={logoutAll.isPending}
                 onConfirm={signOutEverywhere}
               />
             }
@@ -119,12 +173,21 @@ export function AccountAccessSection() {
             description={t("account.deleteAccount.description")}
             action={
               <ConfirmButton
-                trigger={<Button variant="destructive" className="cursor-pointer">{t("account.deleteAccount.button")}</Button>}
+                trigger={
+                  <Button
+                    variant="destructive"
+                    className="cursor-pointer"
+                    disabled={deleteAccount.isPending}
+                  >
+                    {t("account.deleteAccount.button")}
+                  </Button>
+                }
                 title={t("account.deleteAccount.confirmTitle")}
                 message={t("account.deleteAccount.confirmMessage")}
                 confirmLabel={t("account.deleteAccount.button")}
                 destructive
-                onConfirm={deleteAccount}
+                pending={deleteAccount.isPending}
+                onConfirm={onDeleteAccount}
               />
             }
           />

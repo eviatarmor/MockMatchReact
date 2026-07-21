@@ -43,6 +43,14 @@ const envSchema = z
     LINKEDIN_CLIENT_ID: z.string().optional().default(""),
     LINKEDIN_CLIENT_SECRET: z.string().optional().default(""),
     LINKEDIN_REDIRECT_URI: z.string().optional().default(""),
+    /** Stripe (optional in local dev — billing summary still works). */
+    STRIPE_SECRET_KEY: z.string().optional().default(""),
+    STRIPE_WEBHOOK_SECRET: z.string().optional().default(""),
+    STRIPE_PRICE_CREDITS_100: z.string().optional().default(""),
+    STRIPE_PRICE_CREDITS_500: z.string().optional().default(""),
+    STRIPE_PRICE_CREDITS_1000: z.string().optional().default(""),
+    /** Free-tier AI credit grant when credit_account is first created. */
+    FREE_CREDIT_GRANT: z.coerce.number().int().nonnegative().default(0),
   })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV === "production" && data.OTP_STUB_CODE !== "") {
@@ -67,6 +75,17 @@ const envSchema = z
           message: "JWT_REFRESH_SECRET must be at least 32 characters in production",
         })
       }
+    }
+    const hasAnyPrice =
+      data.STRIPE_PRICE_CREDITS_100 !== "" ||
+      data.STRIPE_PRICE_CREDITS_500 !== "" ||
+      data.STRIPE_PRICE_CREDITS_1000 !== ""
+    if (hasAnyPrice && data.STRIPE_SECRET_KEY === "") {
+      ctx.addIssue({
+        code: "custom",
+        path: ["STRIPE_SECRET_KEY"],
+        message: "STRIPE_SECRET_KEY is required when credit price IDs are set",
+      })
     }
   })
 

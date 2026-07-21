@@ -4,6 +4,8 @@
     "back": "Back to cover letters",
     "subtitle": "Cover Letters · {{company}}",
     "saved": "Saved",
+    "saving": "Saving…",
+    "saveError": "Save failed",
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
     "resetZoom": "Reset zoom",
@@ -13,6 +15,10 @@
     "share": "Share",
     "exportPdf": "Export PDF"
   },
+  "loading": "Loading cover letter…",
+  "loadError": "Could not load this cover letter.",
+  "notFound": "Cover letter not found.",
+  "backToList": "Back to Cover Letters",
   "rail": {
     "templates": "Templates",
     "style": "Style",

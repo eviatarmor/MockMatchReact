@@ -3,6 +3,8 @@
   "toolbar": {
     "back": "Back to resumes",
     "saved": "Saved",
+    "saving": "Saving…",
+    "saveError": "Save failed",
     "zoomIn": "Zoom in",
     "zoomOut": "Zoom out",
     "resetZoom": "Reset zoom",
@@ -12,6 +14,11 @@
     "share": "Share",
     "exportPdf": "Export PDF"
   },
+  "loading": "Loading resume…",
+  "loadError": "Could not load this resume.",
+  "notFound": "Resume not found.",
+  "backToLab": "Back to Resume Lab",
+
   "rail": {
     "templates": "Templates",
     "style": "Style",

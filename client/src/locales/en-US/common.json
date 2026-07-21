@@ -66,6 +66,11 @@
       "startSimulation": "Start simulation",
       "startAssessment": "Start assessment",
       "addProfile": "Add profile"
+    },
+    "pagination": {
+      "summary": "Page {{page}} of {{totalPages}} · {{total}} total",
+      "prev": "Previous",
+      "next": "Next"
     }
   },
   "resumeLab": {
@@ -100,6 +105,24 @@
         "export": "Export",
         "duplicate": "Duplicate",
         "delete": "Delete"
+      },
+      "empty": "No resumes found",
+      "emptyTitle": "No resumes yet",
+      "emptyDescription": "Create your first resume to start tailoring for roles and tracking ATS readiness.",
+      "emptySearchTitle": "No matching resumes",
+      "emptySearchDescription": "Try a different search term, or clear the search to see all resumes.",
+      "loading": "Loading resumes…",
+      "loadError": "Could not load resumes. Try again.",
+      "deleteConfirm": {
+        "title": "Delete resume?",
+        "message": "“{{title}}” will be permanently deleted. This cannot be undone.",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      },
+      "toast": {
+        "deleted": "Resume deleted",
+        "deleteFailed": "Could not delete resume",
+        "createFailed": "Could not create resume"
       }
     },
     "templates": {
@@ -236,6 +259,24 @@
         "export": "Export",
         "duplicate": "Duplicate",
         "delete": "Delete"
+      },
+      "empty": "No cover letters found",
+      "emptyTitle": "No cover letters yet",
+      "emptyDescription": "Write your first cover letter and tailor it for each application.",
+      "emptySearchTitle": "No matching cover letters",
+      "emptySearchDescription": "Try a different search term, or clear the search to see all cover letters.",
+      "loading": "Loading cover letters…",
+      "loadError": "Could not load cover letters. Try again.",
+      "deleteConfirm": {
+        "title": "Delete cover letter?",
+        "message": "“{{title}}” will be permanently deleted. This cannot be undone.",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      },
+      "toast": {
+        "deleted": "Cover letter deleted",
+        "deleteFailed": "Could not delete cover letter",
+        "createFailed": "Could not create cover letter"
       }
     },
     "templates": {

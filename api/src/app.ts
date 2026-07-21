@@ -4,6 +4,7 @@ import { trpcServer } from "@hono/trpc-server"
 import { env } from "./config/env.js"
 import { healthRoutes } from "./modules/health/routes.js"
 import { oauthRoutes } from "./modules/auth/oauth-routes.js"
+import { billingWebhookRoutes } from "./modules/billing/webhook-routes.js"
 import { createContext } from "./trpc/context.js"
 import { appRouter } from "./trpc/router.js"
 
@@ -22,6 +23,8 @@ export function createApp() {
 
   app.route("/", healthRoutes)
   app.route("/auth/oauth", oauthRoutes)
+  // Stripe webhooks need raw body for signature verification (not tRPC).
+  app.route("/billing", billingWebhookRoutes)
 
   app.use(
     "/trpc/*",

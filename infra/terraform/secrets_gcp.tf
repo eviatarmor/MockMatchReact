@@ -10,14 +10,19 @@ resource "random_password" "jwt_refresh" {
 
 locals {
   secret_ids = {
-    database_url          = "${var.project_name}-${var.environment}-database-url"
-    redis_url             = "${var.project_name}-${var.environment}-redis-url"
-    jwt_access_secret     = "${var.project_name}-${var.environment}-jwt-access"
-    jwt_refresh_secret    = "${var.project_name}-${var.environment}-jwt-refresh"
-    linkedin_client_id    = "${var.project_name}-${var.environment}-linkedin-client-id"
+    database_url           = "${var.project_name}-${var.environment}-database-url"
+    redis_url              = "${var.project_name}-${var.environment}-redis-url"
+    jwt_access_secret      = "${var.project_name}-${var.environment}-jwt-access"
+    jwt_refresh_secret     = "${var.project_name}-${var.environment}-jwt-refresh"
+    linkedin_client_id     = "${var.project_name}-${var.environment}-linkedin-client-id"
     linkedin_client_secret = "${var.project_name}-${var.environment}-linkedin-client-secret"
-    app_url               = "${var.project_name}-${var.environment}-app-url"
-    api_url               = "${var.project_name}-${var.environment}-api-url"
+    app_url                = "${var.project_name}-${var.environment}-app-url"
+    api_url                = "${var.project_name}-${var.environment}-api-url"
+    stripe_secret_key      = "${var.project_name}-${var.environment}-stripe-secret-key"
+    stripe_webhook_secret  = "${var.project_name}-${var.environment}-stripe-webhook-secret"
+    stripe_price_credits_100  = "${var.project_name}-${var.environment}-stripe-price-credits-100"
+    stripe_price_credits_500  = "${var.project_name}-${var.environment}-stripe-price-credits-500"
+    stripe_price_credits_1000 = "${var.project_name}-${var.environment}-stripe-price-credits-1000"
   }
 
   app_url = "https://${var.domain}"
@@ -79,4 +84,29 @@ resource "google_secret_manager_secret_version" "app_url" {
 resource "google_secret_manager_secret_version" "api_url" {
   secret      = google_secret_manager_secret.secrets["api_url"].id
   secret_data = local.api_url
+}
+
+resource "google_secret_manager_secret_version" "stripe_secret_key" {
+  secret      = google_secret_manager_secret.secrets["stripe_secret_key"].id
+  secret_data = var.stripe_secret_key != "" ? var.stripe_secret_key : "UNSET"
+}
+
+resource "google_secret_manager_secret_version" "stripe_webhook_secret" {
+  secret      = google_secret_manager_secret.secrets["stripe_webhook_secret"].id
+  secret_data = var.stripe_webhook_secret != "" ? var.stripe_webhook_secret : "UNSET"
+}
+
+resource "google_secret_manager_secret_version" "stripe_price_credits_100" {
+  secret      = google_secret_manager_secret.secrets["stripe_price_credits_100"].id
+  secret_data = var.stripe_price_credits_100 != "" ? var.stripe_price_credits_100 : "UNSET"
+}
+
+resource "google_secret_manager_secret_version" "stripe_price_credits_500" {
+  secret      = google_secret_manager_secret.secrets["stripe_price_credits_500"].id
+  secret_data = var.stripe_price_credits_500 != "" ? var.stripe_price_credits_500 : "UNSET"
+}
+
+resource "google_secret_manager_secret_version" "stripe_price_credits_1000" {
+  secret      = google_secret_manager_secret.secrets["stripe_price_credits_1000"].id
+  secret_data = var.stripe_price_credits_1000 != "" ? var.stripe_price_credits_1000 : "UNSET"
 }

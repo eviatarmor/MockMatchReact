@@ -7,6 +7,7 @@ import {
   type ResolvedStyle,
   type SortableBlockLabels,
 } from "@/components/document-editor"
+import { resolveContactIcon } from "@/lib/contact-icons"
 import { BlockFields } from "./block-fields"
 import { LETTER_BLOCK_TYPES } from "../constants"
 import type { CoverLetterHandlers } from "../hooks/use-cover-letter-document"
@@ -85,7 +86,7 @@ function DocumentHeader({ document, template, style, handlers }: Required<Pick<L
 
         <ul className={cn("mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-neutral-600", template.id === "classic" && "justify-center")}>
           {sender.contacts.map((contact) => {
-            const Icon = contact.icon
+            const Icon = resolveContactIcon(contact.iconKey)
             return (
               <li key={contact.id} className="flex items-center gap-1.5">
                 <Icon className={cn("size-3.5 shrink-0", style.accentText)} />

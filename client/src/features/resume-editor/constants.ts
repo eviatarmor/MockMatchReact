@@ -1,9 +1,4 @@
 import {
-  Mail,
-  Phone,
-  MapPin,
-  Globe,
-  Link2,
   LayoutTemplate,
   Palette,
   ListChecks,
@@ -215,17 +210,52 @@ export const RESUME_SECTION_TYPES: readonly BlockTypeMeta<ResumeSection>[] = [
   { type: "custom", icon: SquarePlus, labelKey: "sections.custom", make: () => ({ id: newId(), type: "custom", heading: "", text: "" }) },
 ] satisfies readonly BlockTypeMeta<ResumeSection>[]
 
-/** Sample document — placeholder until the editor is wired to real data. */
+/** Blank starter — used when creating a new resume (and as load fallback). */
+export function createBlankResumeDocument(): ResumeDocument {
+  return {
+    header: {
+      name: "",
+      headline: "",
+      contacts: [
+        { id: "email", iconKey: "mail", value: "" },
+        { id: "phone", iconKey: "phone", value: "" },
+        { id: "location", iconKey: "mapPin", value: "" },
+        { id: "website", iconKey: "globe", value: "" },
+        { id: "linkedin", iconKey: "link", value: "" },
+      ],
+    },
+    sections: [
+      { id: newId(), type: "summary", text: "" },
+      {
+        id: newId(),
+        type: "experience",
+        entries: [newEntry()],
+      },
+      {
+        id: newId(),
+        type: "education",
+        entries: [newEntry()],
+      },
+      {
+        id: newId(),
+        type: "skills",
+        items: [{ id: newId(), text: "" }],
+      },
+    ],
+  }
+}
+
+/** Demo document for local preview; production create uses blank + API defaults. */
 export const SAMPLE_RESUME: ResumeDocument = {
   header: {
     name: "Dana Rivera",
     headline: "Senior Product Designer",
     contacts: [
-      { id: "email", icon: Mail, value: "dana.rivera@email.com" },
-      { id: "phone", icon: Phone, value: "(415) 555-0148" },
-      { id: "location", icon: MapPin, value: "San Francisco, CA" },
-      { id: "website", icon: Globe, value: "dana.design" },
-      { id: "linkedin", icon: Link2, value: "in/danarivera" },
+      { id: "email", iconKey: "mail", value: "dana.rivera@email.com" },
+      { id: "phone", iconKey: "phone", value: "(415) 555-0148" },
+      { id: "location", iconKey: "mapPin", value: "San Francisco, CA" },
+      { id: "website", iconKey: "globe", value: "dana.design" },
+      { id: "linkedin", iconKey: "link", value: "in/danarivera" },
     ],
   },
   sections: [

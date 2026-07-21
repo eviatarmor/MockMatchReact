@@ -1,7 +1,7 @@
 {
   "documentTitle": "Billing — MockMatch",
   "title": "Billing",
-  "description": "Manage your plan, payment method, and review past invoices.",
+  "description": "Free plan with credit top-ups for AI features. Card details stay with Stripe.",
   "nav": {
     "usage": "Usage",
     "payment": "Payment",
@@ -9,15 +9,14 @@
   },
   "usage": {
     "heading": "Usage",
-    "description": "Your current plan and remaining interview-prep credits.",
+    "description": "Your free plan and interview-prep credits. Top up when you need paid AI features.",
     "currentPlan": "Current plan",
-    "renewsOn": "Renews on {{date}}",
-    "managePlan": "Manage plan",
+    "freeHint": "No subscription required. Buy credits for AI features that cost money.",
     "plans": {
-      "pro": "Pro"
+      "free": "Free"
     },
     "price": {
-      "pro": "$29 / month"
+      "free": "Pay as you go"
     },
     "credits": {
       "heading": "Credits",
@@ -29,24 +28,36 @@
       "mockInterviews": "Mock interviews",
       "resumeScans": "Resume scans",
       "coverLetters": "Cover letters"
-    }
+    },
+    "packsHeading": "Credit packs",
+    "packCredits": "{{count}} credits",
+    "buyPack": "Buy",
+    "stripeNotConfigured": "Credit top-ups are not configured on this environment yet.",
+    "packsUnavailable": "No credit packs are available right now.",
+    "loadError": "Could not load billing data."
   },
   "payment": {
     "heading": "Payment method",
-    "description": "The card we charge for your subscription and credit top-ups.",
+    "description": "Cards are collected and stored by Stripe — MockMatch only sees last four digits for display.",
     "creditsLabel": "Credits left",
     "creditsValue": "{{count}} credits",
     "flipHint": "Click card to flip",
+    "pciNote": "We never store full card numbers or CVC on MockMatch servers (PCI SAQ A).",
+    "emptyTitle": "No card on file",
+    "emptyDescription": "Add a payment method in Stripe’s secure portal, or buy credits — Checkout will collect the card safely.",
     "detailsHeading": "Billing details",
     "name": "Name",
     "email": "Email",
     "address": "Address",
     "country": "Country",
-    "update": "Update payment method"
+    "update": "Update payment method",
+    "addViaStripe": "Manage in Stripe",
+    "buyToAddCard": "Buy credits"
   },
   "history": {
     "heading": "Billing history",
-    "description": "Download receipts for your past invoices.",
+    "description": "Receipts for credit top-ups and other Stripe charges.",
+    "empty": "No invoices yet. Top up credits to see history here.",
     "columns": {
       "invoice": "Invoice",
       "date": "Date",
@@ -56,13 +67,16 @@
     },
     "status": {
       "paid": "Paid",
-      "pending": "Pending"
+      "pending": "Pending",
+      "open": "Open",
+      "void": "Void",
+      "uncollectible": "Uncollectible",
+      "draft": "Draft"
     },
     "download": "Download"
   },
   "toast": {
-    "planManaged": "Plan management isn't available yet",
-    "paymentUpdated": "Payment method update isn't available yet",
-    "receiptDownloaded": "Downloading receipt for {{invoice}}"
+    "checkoutError": "Could not start checkout",
+    "portalError": "Could not open billing portal"
   }
 }

@@ -1,10 +1,11 @@
 import type { LucideIcon } from "lucide-react"
+import type { ContactIconKey } from "@mockmatch/schemas"
 import type { DocumentStyle } from "@/components/document-editor"
 
 /** A single contact entry rendered in the document header (icon + value). */
 export interface LetterContact {
   readonly id: string
-  readonly icon: LucideIcon
+  readonly iconKey: ContactIconKey
   readonly value: string
 }
 
