@@ -39,6 +39,7 @@
     "pino": "^9.7.0",
     "playwright": "^1.61.1",
     "stripe": "^17.7.0",
+    "unpdf": "^1.6.2",
     "zod": "^4.4.3"
   },
   "devDependencies": {

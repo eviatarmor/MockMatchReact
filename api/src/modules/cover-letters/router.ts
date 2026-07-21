@@ -3,12 +3,14 @@ import {
   coverLetterIdInputSchema,
   coverLetterListInputSchema,
   coverLetterUpdateInputSchema,
+  documentImportPdfInputSchema,
 } from "@mockmatch/schemas"
 import { protectedProcedure, router } from "../../trpc/trpc.js"
 import {
   createCoverLetter,
   deleteCoverLetter,
   getCoverLetter,
+  importCoverLetterFromPdfFile,
   listCoverLetters,
   updateCoverLetter,
 } from "./service.js"
@@ -30,6 +32,13 @@ export const coverLettersRouter = router({
     .input(coverLetterCreateInputSchema.optional())
     .mutation(async ({ ctx, input }) => {
       return createCoverLetter(ctx.db, ctx.user.id, input ?? {})
+    }),
+
+  /** PDF → structured cover letter via cheap OpenRouter model. */
+  importPdf: protectedProcedure
+    .input(documentImportPdfInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      return importCoverLetterFromPdfFile(ctx.db, ctx.user.id, input)
     }),
 
   update: protectedProcedure
