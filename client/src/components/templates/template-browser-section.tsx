@@ -12,10 +12,19 @@ interface TemplateBrowserSectionProps {
   readonly translationPrefix: string
   readonly browseAllTo: string
   readonly featuredCount?: number
+  readonly onUse?: (template: TemplateItem) => void
+  readonly pendingId?: string | null
 }
 
 // Featured template grid + link to the full "browse all templates" page. Shared by resume and cover-letter labs.
-export function TemplateBrowserSection({ items, translationPrefix, browseAllTo, featuredCount = 5 }: TemplateBrowserSectionProps) {
+export function TemplateBrowserSection({
+  items,
+  translationPrefix,
+  browseAllTo,
+  featuredCount = 5,
+  onUse,
+  pendingId = null,
+}: TemplateBrowserSectionProps) {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
   const [previewTemplate, setPreviewTemplate] = useState<TemplateItem | null>(null)
@@ -45,6 +54,8 @@ export function TemplateBrowserSection({ items, translationPrefix, browseAllTo, 
             template={template}
             translationPrefix={translationPrefix}
             onPreview={setPreviewTemplate}
+            onUse={onUse}
+            isUsing={pendingId === template.id}
           />
         ))}
       </div>
@@ -53,6 +64,8 @@ export function TemplateBrowserSection({ items, translationPrefix, browseAllTo, 
         template={previewTemplate}
         onOpenChange={(open) => !open && setPreviewTemplate(null)}
         translationPrefix={translationPrefix}
+        onUse={onUse}
+        isUsing={previewTemplate ? pendingId === previewTemplate.id : false}
       />
     </div>
   )

@@ -22,4 +22,5 @@ export interface CoverLetterTemplate {
   readonly category: CoverLetterTemplateCategory
   readonly description: string
   readonly avatarText: string
+  readonly country?: "US" | "UK" | "AU"
 }

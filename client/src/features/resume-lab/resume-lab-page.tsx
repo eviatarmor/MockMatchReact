@@ -12,10 +12,11 @@ import { EntityEmptyState } from "@/components/data/entity-empty-state"
 import { EntityListStates } from "@/components/data/entity-list-states"
 import { EntityTablePagination } from "@/components/data/entity-table-pagination"
 import { useImportDocumentPdf } from "@/hooks/use-import-document-pdf"
+import { useStartFromTemplate } from "@/hooks/use-start-from-template"
 import { trpc } from "@/lib/trpc"
 import { ResumeTable } from "./components/resume-table"
 import { useResumesList } from "./hooks/use-resumes-list"
-import { MOCK_TEMPLATES } from "./constants"
+import { TEMPLATE_BROWSER_ITEMS } from "./constants"
 import type { ResumeItem } from "./types"
 
 export function ResumeLabPageContent() {
@@ -41,6 +42,7 @@ export function ResumeLabPageContent() {
   })
 
   const pdfImport = useImportDocumentPdf("resume")
+  const templateStart = useStartFromTemplate("resume")
 
   const handleDelete = (resume: ResumeItem) => {
     deleteResume.mutate({ id: resume.id })
@@ -141,9 +143,11 @@ export function ResumeLabPageContent() {
 
         <Separator className="my-2" />
         <TemplateBrowserSection
-          items={MOCK_TEMPLATES}
+          items={TEMPLATE_BROWSER_ITEMS}
           translationPrefix="resumeLab.templates"
           browseAllTo="/resume-lab/templates"
+          pendingId={templateStart.pendingId}
+          onUse={(template) => templateStart.startFromTemplate(template.id)}
         />
       </div>
     </DashboardPageShell>

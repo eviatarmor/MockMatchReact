@@ -24,4 +24,5 @@ export interface ResumeTemplate {
   readonly category: ResumeTemplateCategory
   readonly description: string
   readonly avatarText: string
+  readonly country?: "US" | "UK" | "AU"
 }

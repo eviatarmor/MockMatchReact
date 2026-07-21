@@ -134,15 +134,27 @@
     },
     "templates": {
       "title": "Start from a template",
-      "description": "Role- and company-tuned starting points, pre-loaded with the right sections and keywords.",
+      "description": "50 role templates for major US, UK, and Australian employers — pre-loaded sections and keywords.",
       "browseAll": "Browse all",
-      "browseTitle": "Browse templates",
+      "browseTitle": "Browse resume templates",
       "browseBackLink": "Back to Resume Lab",
-      "browseDescription": "Search and filter role- and company-tuned resume templates.",
-      "searchPlaceholder": "Search templates...",
+      "browseDescription": "{{count}} role templates for big employers in the US, UK, and Australia. Filter by market or industry.",
+      "searchPlaceholder": "Search role or company...",
       "useTemplate": "Use template",
       "preview": "Preview",
+      "previewTarget": "Target employer",
+      "previewHint": "Creates a draft resume with sample content tailored to this role and employer format. Replace the sample details with your own.",
       "noResults": "No templates found",
+      "toast": {
+        "created": "Resume created from template",
+        "createFailed": "Could not create resume from template"
+      },
+      "countries": {
+        "all": "All markets",
+        "US": "United States",
+        "UK": "United Kingdom",
+        "AU": "Australia"
+      },
       "categories": {
         "all": "All",
         "tech": "Tech",
@@ -290,15 +302,27 @@
     },
     "templates": {
       "title": "Start from a template",
-      "description": "Role- and company-tuned starting points, pre-loaded with the right tone and structure.",
+      "description": "50 cover letter templates for major US, UK, and Australian employers — role-tuned tone and structure.",
       "browseAll": "Browse all",
-      "browseTitle": "Browse templates",
+      "browseTitle": "Browse cover letter templates",
       "browseBackLink": "Back to Cover Letters",
-      "browseDescription": "Search and filter role- and company-tuned cover letter templates.",
-      "searchPlaceholder": "Search templates...",
+      "browseDescription": "{{count}} cover letter templates for big employers in the US, UK, and Australia. Filter by market or industry.",
+      "searchPlaceholder": "Search role or company...",
       "useTemplate": "Use template",
       "preview": "Preview",
+      "previewTarget": "Target employer",
+      "previewHint": "Creates a draft cover letter with sample narrative tailored to this role and employer. Replace the sample details with your own.",
       "noResults": "No templates found",
+      "toast": {
+        "created": "Cover letter created from template",
+        "createFailed": "Could not create cover letter from template"
+      },
+      "countries": {
+        "all": "All markets",
+        "US": "United States",
+        "UK": "United Kingdom",
+        "AU": "Australia"
+      },
       "categories": {
         "all": "All",
         "tech": "Tech",

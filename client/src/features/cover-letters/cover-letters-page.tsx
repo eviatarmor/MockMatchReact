@@ -12,10 +12,11 @@ import { EntityEmptyState } from "@/components/data/entity-empty-state"
 import { EntityListStates } from "@/components/data/entity-list-states"
 import { EntityTablePagination } from "@/components/data/entity-table-pagination"
 import { useImportDocumentPdf } from "@/hooks/use-import-document-pdf"
+import { useStartFromTemplate } from "@/hooks/use-start-from-template"
 import { trpc } from "@/lib/trpc"
 import { CoverLetterTable } from "./components/cover-letter-table"
 import { useCoverLettersList } from "./hooks/use-cover-letters-list"
-import { MOCK_TEMPLATES } from "./constants"
+import { TEMPLATE_BROWSER_ITEMS } from "./constants"
 import type { CoverLetterItem } from "./types"
 
 export function CoverLettersPageContent() {
@@ -41,6 +42,7 @@ export function CoverLettersPageContent() {
   })
 
   const pdfImport = useImportDocumentPdf("cover-letter")
+  const templateStart = useStartFromTemplate("cover-letter")
 
   const handleDelete = (letter: CoverLetterItem) => {
     deleteLetter.mutate({ id: letter.id })
@@ -141,9 +143,11 @@ export function CoverLettersPageContent() {
 
         <Separator className="my-2" />
         <TemplateBrowserSection
-          items={MOCK_TEMPLATES}
+          items={TEMPLATE_BROWSER_ITEMS}
           translationPrefix="coverLetters.templates"
           browseAllTo="/cover-letters/templates"
+          pendingId={templateStart.pendingId}
+          onUse={(template) => templateStart.startFromTemplate(template.id)}
         />
       </div>
     </DashboardPageShell>
