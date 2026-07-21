@@ -7,4 +7,6 @@ export interface TemplateItem {
   readonly description: string
   readonly avatarText: string
   readonly category: string
+  /** Target market flag for big-employer templates (US / UK / AU). */
+  readonly country?: "US" | "UK" | "AU"
 }

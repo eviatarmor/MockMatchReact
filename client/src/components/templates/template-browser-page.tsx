@@ -15,27 +15,42 @@ interface TemplateBrowserPageProps {
   // i18n key prefix, e.g. "resumeLab.templates"
   readonly translationPrefix: string
   readonly backTo: string
+  readonly onUse?: (template: TemplateItem) => void
+  readonly pendingId?: string | null
 }
 
-export function TemplateBrowserPage({ items, categories, translationPrefix, backTo }: TemplateBrowserPageProps) {
+export function TemplateBrowserPage({
+  items,
+  categories,
+  translationPrefix,
+  backTo,
+  onUse,
+  pendingId = null,
+}: TemplateBrowserPageProps) {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
   const [query, setQuery] = useState("")
   const [activeCategory, setActiveCategory] = useState<string>("all")
+  const [activeCountry, setActiveCountry] = useState<string>("all")
   const [previewTemplate, setPreviewTemplate] = useState<TemplateItem | null>(null)
 
   const filteredTemplates = useMemo(() => {
     const needle = query.trim().toLowerCase()
     return items.filter((template) => {
       const matchesCategory = activeCategory === "all" || template.category === activeCategory
+      const matchesCountry =
+        activeCountry === "all" || template.country === activeCountry
       const matchesQuery =
         needle.length === 0 ||
         template.title.toLowerCase().includes(needle) ||
-        template.company.toLowerCase().includes(needle)
+        template.company.toLowerCase().includes(needle) ||
+        template.description.toLowerCase().includes(needle)
 
-      return matchesCategory && matchesQuery
+      return matchesCategory && matchesCountry && matchesQuery
     })
-  }, [items, query, activeCategory])
+  }, [items, query, activeCategory, activeCountry])
+
+  const countries = ["US", "UK", "AU"] as const
 
   return (
     <DashboardPageShell title={t(`${translationPrefix}.browseTitle`)}>
@@ -52,11 +67,13 @@ export function TemplateBrowserPage({ items, categories, translationPrefix, back
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
             {t(`${translationPrefix}.browseTitle`)}
           </h1>
-          <p className="text-sm text-muted-foreground">{t(`${translationPrefix}.browseDescription`)}</p>
+          <p className="text-sm text-muted-foreground">
+            {t(`${translationPrefix}.browseDescription`, { count: items.length })}
+          </p>
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative sm:w-64 sm:shrink-0">
+        <div className="flex flex-col gap-3">
+          <div className="relative sm:w-72 sm:shrink-0">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={query}
@@ -66,7 +83,29 @@ export function TemplateBrowserPage({ items, categories, translationPrefix, back
             />
           </div>
 
-          <div className="flex flex-wrap gap-2 sm:justify-end">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={activeCountry === "all" ? "default" : "outline"}
+              size="sm"
+              className="cursor-pointer"
+              onClick={() => setActiveCountry("all")}
+            >
+              {t(`${translationPrefix}.countries.all`)}
+            </Button>
+            {countries.map((country) => (
+              <Button
+                key={country}
+                variant={activeCountry === country ? "default" : "outline"}
+                size="sm"
+                className="cursor-pointer"
+                onClick={() => setActiveCountry(country)}
+              >
+                {t(`${translationPrefix}.countries.${country}`)}
+              </Button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-2">
             <Button
               variant={activeCategory === "all" ? "default" : "outline"}
               size="sm"
@@ -97,6 +136,8 @@ export function TemplateBrowserPage({ items, categories, translationPrefix, back
                 template={template}
                 translationPrefix={translationPrefix}
                 onPreview={setPreviewTemplate}
+                onUse={onUse}
+                isUsing={pendingId === template.id}
               />
             ))}
           </div>
@@ -111,6 +152,8 @@ export function TemplateBrowserPage({ items, categories, translationPrefix, back
         template={previewTemplate}
         onOpenChange={(open) => !open && setPreviewTemplate(null)}
         translationPrefix={translationPrefix}
+        onUse={onUse}
+        isUsing={previewTemplate ? pendingId === previewTemplate.id : false}
       />
     </DashboardPageShell>
   )

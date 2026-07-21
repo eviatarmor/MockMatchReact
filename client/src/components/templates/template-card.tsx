@@ -1,4 +1,4 @@
-import { Eye, Plus } from "lucide-react"
+import { Eye, Loader2, Plus } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -9,6 +9,8 @@ interface TemplateCardProps {
   // i18n key prefix, e.g. "resumeLab.templates"
   readonly translationPrefix: string
   readonly onPreview?: (template: TemplateItem) => void
+  readonly onUse?: (template: TemplateItem) => void
+  readonly isUsing?: boolean
 }
 
 const AVATAR_COLORS = [
@@ -25,31 +27,49 @@ function avatarColor(id: string) {
   return AVATAR_COLORS[index]
 }
 
-export function TemplateCard({ template, translationPrefix, onPreview }: TemplateCardProps) {
+export function TemplateCard({
+  template,
+  translationPrefix,
+  onPreview,
+  onUse,
+  isUsing = false,
+}: TemplateCardProps) {
   const { t } = useTranslation("common")
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border bg-card p-4 shadow-sm">
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between gap-2">
         <div
           className={`flex size-9 shrink-0 items-center justify-center rounded-lg text-sm font-semibold select-none ${avatarColor(template.id)}`}
         >
           {template.avatarText}
         </div>
-        <Badge variant="outline">
-          {t(`${translationPrefix}.categories.${template.category}`)}
-        </Badge>
+        <div className="flex flex-wrap justify-end gap-1">
+          {template.country ? (
+            <Badge variant="secondary" className="font-normal">
+              {template.country}
+            </Badge>
+          ) : null}
+          <Badge variant="outline">
+            {t(`${translationPrefix}.categories.${template.category}`)}
+          </Badge>
+        </div>
       </div>
 
       <div className="flex flex-col gap-1">
         <span className="text-sm font-semibold text-foreground">{template.title}</span>
         <span className="text-sm text-primary">{template.company}</span>
-        <span className="text-xs text-muted-foreground">{template.description}</span>
+        <span className="text-xs text-muted-foreground line-clamp-3">{template.description}</span>
       </div>
 
       <div className="mt-auto flex items-center gap-2">
-        <Button className="h-8 flex-1 gap-1.5 cursor-pointer">
-          <Plus className="size-4" />
+        <Button
+          className="h-8 flex-1 gap-1.5 cursor-pointer"
+          disabled={isUsing || !onUse}
+          onClick={() => onUse?.(template)}
+          aria-busy={isUsing}
+        >
+          {isUsing ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
           {t(`${translationPrefix}.useTemplate`)}
         </Button>
         <Button
@@ -58,6 +78,7 @@ export function TemplateCard({ template, translationPrefix, onPreview }: Templat
           className="h-8 w-8 shrink-0 cursor-pointer"
           aria-label={t(`${translationPrefix}.preview`)}
           onClick={() => onPreview?.(template)}
+          disabled={isUsing}
         >
           <Eye className="size-4" />
         </Button>
