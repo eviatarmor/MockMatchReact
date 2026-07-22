@@ -42,16 +42,9 @@ export function TemplateCard({
         >
           {template.avatarText}
         </div>
-        <div className="flex flex-wrap justify-end gap-1">
-          {template.country ? (
-            <Badge variant="secondary" className="font-normal">
-              {template.country}
-            </Badge>
-          ) : null}
-          <Badge variant="outline">
-            {t(`${translationPrefix}.categories.${template.category}`)}
-          </Badge>
-        </div>
+        <Badge variant="outline">
+          {t(`${translationPrefix}.categories.${template.category}`)}
+        </Badge>
       </div>
 
       <div className="flex flex-col gap-1">

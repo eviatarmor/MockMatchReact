@@ -13,7 +13,7 @@ export const TEMPLATE_CATEGORIES: ResumeTemplateCategory[] = [
   "legal",
 ]
 
-/** 50 role templates for major US / UK / AU employers. */
+/** 50 role templates for top employers. */
 export const MOCK_TEMPLATES: ResumeTemplate[] = getResumeRoleTemplates().map((t) => ({
   id: t.id,
   title: t.title,

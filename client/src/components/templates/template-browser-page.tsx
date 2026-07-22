@@ -30,25 +30,20 @@ export function TemplateBrowserPage({
   const navigate = useNavigate()
   const [query, setQuery] = useState("")
   const [activeCategory, setActiveCategory] = useState<string>("all")
-  const [activeCountry, setActiveCountry] = useState<string>("all")
 
   const filteredTemplates = useMemo(() => {
     const needle = query.trim().toLowerCase()
     return items.filter((template) => {
       const matchesCategory = activeCategory === "all" || template.category === activeCategory
-      const matchesCountry =
-        activeCountry === "all" || template.country === activeCountry
       const matchesQuery =
         needle.length === 0 ||
         template.title.toLowerCase().includes(needle) ||
         template.company.toLowerCase().includes(needle) ||
         template.description.toLowerCase().includes(needle)
 
-      return matchesCategory && matchesCountry && matchesQuery
+      return matchesCategory && matchesQuery
     })
-  }, [items, query, activeCategory, activeCountry])
-
-  const countries = ["US", "UK", "AU"] as const
+  }, [items, query, activeCategory])
 
   return (
     <DashboardPageShell title={t(`${translationPrefix}.browseTitle`)}>
@@ -70,8 +65,8 @@ export function TemplateBrowserPage({
           </p>
         </div>
 
-        <div className="flex flex-col gap-3">
-          <div className="relative sm:w-72 sm:shrink-0">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          <div className="relative w-full sm:w-72 sm:shrink-0">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={query}
@@ -81,29 +76,7 @@ export function TemplateBrowserPage({
             />
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant={activeCountry === "all" ? "default" : "outline"}
-              size="sm"
-              className="cursor-pointer"
-              onClick={() => setActiveCountry("all")}
-            >
-              {t(`${translationPrefix}.countries.all`)}
-            </Button>
-            {countries.map((country) => (
-              <Button
-                key={country}
-                variant={activeCountry === country ? "default" : "outline"}
-                size="sm"
-                className="cursor-pointer"
-                onClick={() => setActiveCountry(country)}
-              >
-                {t(`${translationPrefix}.countries.${country}`)}
-              </Button>
-            ))}
-          </div>
-
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
             <Button
               variant={activeCategory === "all" ? "default" : "outline"}
               size="sm"

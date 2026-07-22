@@ -13,7 +13,7 @@ export const TEMPLATE_CATEGORIES: CoverLetterTemplateCategory[] = [
   "legal",
 ]
 
-/** 50 cover-letter role templates paired to the same US / UK / AU employers. */
+/** 50 cover-letter role templates paired to the same top employers. */
 export const MOCK_TEMPLATES: CoverLetterTemplate[] = getCoverLetterRoleTemplates().map(
   (t) => ({
     id: t.id,
