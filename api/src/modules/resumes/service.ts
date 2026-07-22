@@ -140,6 +140,26 @@ export async function deleteResume(db: Database, userId: string, id: string) {
   return deleteOwnedDocument(db, table, userId, id, NOT_FOUND)
 }
 
+/** Clone a resume the user owns into a new draft with a "(Copy)" title. */
+export async function duplicateResume(db: Database, userId: string, id: string) {
+  const source = await getResume(db, userId, id)
+  return createResume(db, userId, {
+    title: withCopySuffix(source.title),
+    targetRole: source.targetRole,
+    company: source.company,
+    templateId: source.templateId as ResumeCreateInput["templateId"],
+    style: source.style as ResumeCreateInput["style"],
+    document: structuredClone(source.document) as ResumeCreateInput["document"],
+  })
+}
+
+function withCopySuffix(title: string): string {
+  const suffix = " (Copy)"
+  const max = 200
+  if (title.length + suffix.length <= max) return `${title}${suffix}`
+  return `${title.slice(0, max - suffix.length)}${suffix}`
+}
+
 /** Create a draft resume from a PDF via cheap OpenRouter extraction. */
 export async function importResumeFromPdfFile(
   db: Database,

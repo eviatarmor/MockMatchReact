@@ -10,10 +10,22 @@ import type { ResumeItem } from "../types"
 interface ResumeTableRowProps {
   readonly resume: ResumeItem
   readonly onDelete: () => void
+  readonly onExport: () => void
+  readonly onDuplicate: () => void
   readonly isDeleting?: boolean
+  readonly isExporting?: boolean
+  readonly isDuplicating?: boolean
 }
 
-export function ResumeTableRow({ resume, onDelete, isDeleting }: ResumeTableRowProps) {
+export function ResumeTableRow({
+  resume,
+  onDelete,
+  onExport,
+  onDuplicate,
+  isDeleting,
+  isExporting,
+  isDuplicating,
+}: ResumeTableRowProps) {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
   const avatarClass = avatarClassFor(resume.avatarText)
@@ -56,7 +68,11 @@ export function ResumeTableRow({ resume, onDelete, isDeleting }: ResumeTableRowP
           entityTitle={resume.title}
           onOpen={openEditor}
           onDelete={onDelete}
+          onExport={onExport}
+          onDuplicate={onDuplicate}
           isDeleting={isDeleting}
+          isExporting={isExporting}
+          isDuplicating={isDuplicating}
         />
       </td>
     </tr>

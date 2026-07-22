@@ -25,7 +25,11 @@ interface EntityRowActionsProps {
   readonly entityTitle: string
   readonly onOpen: () => void
   readonly onDelete: () => void
+  readonly onExport?: () => void
+  readonly onDuplicate?: () => void
   readonly isDeleting?: boolean
+  readonly isExporting?: boolean
+  readonly isDuplicating?: boolean
   /** Extra menu items rendered before export/duplicate (optional). */
   readonly extraItems?: ReactNode
 }
@@ -38,12 +42,17 @@ export function EntityRowActions({
   entityTitle,
   onOpen,
   onDelete,
+  onExport,
+  onDuplicate,
   isDeleting,
+  isExporting,
+  isDuplicating,
   extraItems,
 }: EntityRowActionsProps) {
   const { t } = useTranslation("common")
   const [confirmOpen, setConfirmOpen] = useState(false)
   const key = (suffix: string) => `${translationPrefix}.${suffix}`
+  const busy = Boolean(isDeleting || isExporting || isDuplicating)
 
   return (
     <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
@@ -54,7 +63,7 @@ export function EntityRowActions({
               variant="ghost"
               size="icon"
               className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
-              disabled={isDeleting}
+              disabled={busy}
             />
           }
         >
@@ -70,11 +79,19 @@ export function EntityRowActions({
             {t(key("rowActions.edit"))}
           </DropdownMenuItem>
           {extraItems}
-          <DropdownMenuItem className="cursor-pointer" disabled>
+          <DropdownMenuItem
+            className="cursor-pointer"
+            disabled={!onExport || isExporting}
+            onClick={onExport}
+          >
             <Download />
             {t(key("rowActions.export"))}
           </DropdownMenuItem>
-          <DropdownMenuItem className="cursor-pointer" disabled>
+          <DropdownMenuItem
+            className="cursor-pointer"
+            disabled={!onDuplicate || isDuplicating}
+            onClick={onDuplicate}
+          >
             <Copy />
             {t(key("rowActions.duplicate"))}
           </DropdownMenuItem>

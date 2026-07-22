@@ -139,6 +139,31 @@ export async function importCoverLetterFromPdfFile(
   })
 }
 
+/** Clone a cover letter the user owns into a new draft with a "(Copy)" title. */
+export async function duplicateCoverLetter(
+  db: Database,
+  userId: string,
+  id: string
+) {
+  const source = await getCoverLetter(db, userId, id)
+  return createCoverLetter(db, userId, {
+    title: withCopySuffix(source.title),
+    company: source.company,
+    templateId: source.templateId as CoverLetterCreateInput["templateId"],
+    style: source.style as CoverLetterCreateInput["style"],
+    document: structuredClone(
+      source.document
+    ) as CoverLetterCreateInput["document"],
+  })
+}
+
+function withCopySuffix(title: string): string {
+  const suffix = " (Copy)"
+  const max = 200
+  if (title.length + suffix.length <= max) return `${title}${suffix}`
+  return `${title.slice(0, max - suffix.length)}${suffix}`
+}
+
 export async function deleteCoverLetter(
   db: Database,
   userId: string,

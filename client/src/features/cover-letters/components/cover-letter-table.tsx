@@ -6,13 +6,21 @@ import type { CoverLetterItem } from "../types"
 interface CoverLetterTableProps {
   readonly coverLetters: CoverLetterItem[]
   readonly onDelete: (coverLetter: CoverLetterItem) => void
+  readonly onExport: (coverLetter: CoverLetterItem) => void
+  readonly onDuplicate: (coverLetter: CoverLetterItem) => void
   readonly deletingId?: string | null
+  readonly exportingId?: string | null
+  readonly duplicatingId?: string | null
 }
 
 export function CoverLetterTable({
   coverLetters,
   onDelete,
+  onExport,
+  onDuplicate,
   deletingId,
+  exportingId,
+  duplicatingId,
 }: CoverLetterTableProps) {
   const { t } = useTranslation("common")
 
@@ -30,7 +38,11 @@ export function CoverLetterTable({
           key={coverLetter.id}
           coverLetter={coverLetter}
           onDelete={() => onDelete(coverLetter)}
+          onExport={() => onExport(coverLetter)}
+          onDuplicate={() => onDuplicate(coverLetter)}
           isDeleting={deletingId === coverLetter.id}
+          isExporting={exportingId === coverLetter.id}
+          isDuplicating={duplicatingId === coverLetter.id}
         />
       ))}
     </EntityTable>

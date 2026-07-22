@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { FileText, Loader2, Plus, Upload } from "lucide-react"
@@ -13,6 +14,7 @@ import { EntityListStates } from "@/components/data/entity-list-states"
 import { EntityTablePagination } from "@/components/data/entity-table-pagination"
 import { useImportDocumentPdf } from "@/hooks/use-import-document-pdf"
 import { useStartFromTemplate } from "@/hooks/use-start-from-template"
+import { downloadDocumentPdf, pdfFilename } from "@/lib/export-document-pdf"
 import { trpc } from "@/lib/trpc"
 import { ResumeTable } from "./components/resume-table"
 import { useResumesList } from "./hooks/use-resumes-list"
@@ -24,6 +26,7 @@ export function ResumeLabPageContent() {
   const navigate = useNavigate()
   const utils = trpc.useUtils()
   const list = useResumesList()
+  const [exportingId, setExportingId] = useState<string | null>(null)
 
   const createResume = trpc.resumes.create.useMutation({
     onSuccess: (resume) => {
@@ -41,11 +44,42 @@ export function ResumeLabPageContent() {
     onError: () => toast.error(t("resumeLab.table.toast.deleteFailed")),
   })
 
+  const duplicateResume = trpc.resumes.duplicate.useMutation({
+    onSuccess: () => {
+      toast.success(t("resumeLab.table.toast.duplicated"))
+      utils.resumes.list.invalidate().catch(() => {})
+    },
+    onError: () => toast.error(t("resumeLab.table.toast.duplicateFailed")),
+  })
+
   const pdfImport = useImportDocumentPdf("resume")
   const templateStart = useStartFromTemplate("resume")
 
   const handleDelete = (resume: ResumeItem) => {
     deleteResume.mutate({ id: resume.id })
+  }
+
+  const handleExport = async (resume: ResumeItem) => {
+    if (exportingId) return
+    setExportingId(resume.id)
+    try {
+      await downloadDocumentPdf({
+        kind: "resume",
+        id: resume.id,
+        filename: pdfFilename(resume.title, "resume"),
+      })
+      toast.success(t("resumeLab.table.toast.exportSuccess"))
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : t("resumeLab.table.toast.exportFailed")
+      )
+    } finally {
+      setExportingId(null)
+    }
+  }
+
+  const handleDuplicate = (resume: ResumeItem) => {
+    duplicateResume.mutate({ id: resume.id })
   }
 
   const emptyState = (
@@ -130,7 +164,13 @@ export function ResumeLabPageContent() {
           <ResumeTable
             resumes={list.items}
             onDelete={handleDelete}
+            onExport={(resume) => void handleExport(resume)}
+            onDuplicate={handleDuplicate}
             deletingId={deleteResume.isPending ? deleteResume.variables?.id : null}
+            exportingId={exportingId}
+            duplicatingId={
+              duplicateResume.isPending ? duplicateResume.variables?.id : null
+            }
           />
           <EntityTablePagination
             page={list.page}

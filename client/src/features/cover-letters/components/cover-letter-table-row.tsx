@@ -9,13 +9,21 @@ import type { CoverLetterItem } from "../types"
 interface CoverLetterTableRowProps {
   readonly coverLetter: CoverLetterItem
   readonly onDelete: () => void
+  readonly onExport: () => void
+  readonly onDuplicate: () => void
   readonly isDeleting?: boolean
+  readonly isExporting?: boolean
+  readonly isDuplicating?: boolean
 }
 
 export function CoverLetterTableRow({
   coverLetter,
   onDelete,
+  onExport,
+  onDuplicate,
   isDeleting,
+  isExporting,
+  isDuplicating,
 }: CoverLetterTableRowProps) {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
@@ -58,7 +66,11 @@ export function CoverLetterTableRow({
           entityTitle={coverLetter.title}
           onOpen={openEditor}
           onDelete={onDelete}
+          onExport={onExport}
+          onDuplicate={onDuplicate}
           isDeleting={isDeleting}
+          isExporting={isExporting}
+          isDuplicating={isDuplicating}
         />
       </td>
     </tr>

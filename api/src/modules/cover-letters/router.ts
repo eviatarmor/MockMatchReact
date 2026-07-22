@@ -9,6 +9,7 @@ import { protectedProcedure, router } from "../../trpc/trpc.js"
 import {
   createCoverLetter,
   deleteCoverLetter,
+  duplicateCoverLetter,
   getCoverLetter,
   importCoverLetterFromPdfFile,
   listCoverLetters,
@@ -45,6 +46,12 @@ export const coverLettersRouter = router({
     .input(coverLetterUpdateInputSchema)
     .mutation(async ({ ctx, input }) => {
       return updateCoverLetter(ctx.db, ctx.user.id, input)
+    }),
+
+  duplicate: protectedProcedure
+    .input(coverLetterIdInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      return duplicateCoverLetter(ctx.db, ctx.user.id, input.id)
     }),
 
   delete: protectedProcedure

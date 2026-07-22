@@ -9,6 +9,7 @@ import { protectedProcedure, router } from "../../trpc/trpc.js"
 import {
   createResume,
   deleteResume,
+  duplicateResume,
   getResume,
   importResumeFromPdfFile,
   listResumes,
@@ -45,6 +46,12 @@ export const resumesRouter = router({
     .input(resumeUpdateInputSchema)
     .mutation(async ({ ctx, input }) => {
       return updateResume(ctx.db, ctx.user.id, input)
+    }),
+
+  duplicate: protectedProcedure
+    .input(resumeIdInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      return duplicateResume(ctx.db, ctx.user.id, input.id)
     }),
 
   delete: protectedProcedure

@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { Loader2, Mail, Plus, Upload } from "lucide-react"
@@ -13,6 +14,7 @@ import { EntityListStates } from "@/components/data/entity-list-states"
 import { EntityTablePagination } from "@/components/data/entity-table-pagination"
 import { useImportDocumentPdf } from "@/hooks/use-import-document-pdf"
 import { useStartFromTemplate } from "@/hooks/use-start-from-template"
+import { downloadDocumentPdf, pdfFilename } from "@/lib/export-document-pdf"
 import { trpc } from "@/lib/trpc"
 import { CoverLetterTable } from "./components/cover-letter-table"
 import { useCoverLettersList } from "./hooks/use-cover-letters-list"
@@ -24,6 +26,7 @@ export function CoverLettersPageContent() {
   const navigate = useNavigate()
   const utils = trpc.useUtils()
   const list = useCoverLettersList()
+  const [exportingId, setExportingId] = useState<string | null>(null)
 
   const createLetter = trpc.coverLetters.create.useMutation({
     onSuccess: (letter) => {
@@ -41,11 +44,44 @@ export function CoverLettersPageContent() {
     onError: () => toast.error(t("coverLetters.table.toast.deleteFailed")),
   })
 
+  const duplicateLetter = trpc.coverLetters.duplicate.useMutation({
+    onSuccess: () => {
+      toast.success(t("coverLetters.table.toast.duplicated"))
+      utils.coverLetters.list.invalidate().catch(() => {})
+    },
+    onError: () => toast.error(t("coverLetters.table.toast.duplicateFailed")),
+  })
+
   const pdfImport = useImportDocumentPdf("cover-letter")
   const templateStart = useStartFromTemplate("cover-letter")
 
   const handleDelete = (letter: CoverLetterItem) => {
     deleteLetter.mutate({ id: letter.id })
+  }
+
+  const handleExport = async (letter: CoverLetterItem) => {
+    if (exportingId) return
+    setExportingId(letter.id)
+    try {
+      await downloadDocumentPdf({
+        kind: "cover-letter",
+        id: letter.id,
+        filename: pdfFilename(letter.title, "cover-letter"),
+      })
+      toast.success(t("coverLetters.table.toast.exportSuccess"))
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("coverLetters.table.toast.exportFailed")
+      )
+    } finally {
+      setExportingId(null)
+    }
+  }
+
+  const handleDuplicate = (letter: CoverLetterItem) => {
+    duplicateLetter.mutate({ id: letter.id })
   }
 
   const emptyState = (
@@ -130,7 +166,13 @@ export function CoverLettersPageContent() {
           <CoverLetterTable
             coverLetters={list.items}
             onDelete={handleDelete}
+            onExport={(letter) => void handleExport(letter)}
+            onDuplicate={handleDuplicate}
             deletingId={deleteLetter.isPending ? deleteLetter.variables?.id : null}
+            exportingId={exportingId}
+            duplicatingId={
+              duplicateLetter.isPending ? duplicateLetter.variables?.id : null
+            }
           />
           <EntityTablePagination
             page={list.page}
