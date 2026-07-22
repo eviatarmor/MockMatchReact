@@ -3,11 +3,8 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { $getRoot, $isTextNode, $createRangeSelection, $setSelection, type LexicalNode } from "lexical"
 import { useGrammar } from "./use-grammar"
 import { GrammarPopover, type GrammarPopoverLabels } from "./grammar-popover"
+import { GRAMMAR_SQUIGGLE, GRAMMAR_SQUIGGLE_SIZE } from "./squiggle"
 import type { GrammarIssue } from "@/lib/grammar/harper"
-
-/** Red wavy squiggle, tiled under a grammar issue. */
-const SQUIGGLE =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='4'%3E%3Cpath d='M0 3 Q1.5 0 3 3 T6 3' stroke='%23ef4444' fill='none' stroke-width='1'/%3E%3C/svg%3E\")"
 
 interface DomTextMap {
   readonly text: string
@@ -166,8 +163,8 @@ export function LexicalGrammarPlugin({ enabled = true, labels }: LexicalGrammarP
               top: rect.top,
               width: rect.width,
               height: rect.height,
-              backgroundImage: SQUIGGLE,
-              backgroundSize: "6px 4px",
+              backgroundImage: GRAMMAR_SQUIGGLE,
+              backgroundSize: GRAMMAR_SQUIGGLE_SIZE,
             }}
             onClick={(event) => {
               const r = event.currentTarget.getBoundingClientRect()

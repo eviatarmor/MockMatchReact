@@ -2,9 +2,12 @@ import { useState } from "react"
 import type { DocumentStyle } from "@/components/document-editor"
 import { parseDocumentStyle } from "@/lib/parse-document-style"
 import { EDITOR_TEMPLATES } from "../constants"
+import { parseResumeDocument } from "../lib/parse-resume-document"
 import type { EditorTemplateId, ResumeDocument } from "../types"
 import { useResumeDocument } from "./use-resume-document"
 import { useResumeAutosave, type SaveStatus } from "./use-resume-autosave"
+
+export { parseResumeDocument }
 
 interface SessionSeed {
   readonly id: string
@@ -60,7 +63,3 @@ export function parseEditorTemplateId(value: string): EditorTemplateId {
 }
 
 export { parseDocumentStyle }
-
-export function parseResumeDocument(value: unknown): ResumeDocument {
-  return value as ResumeDocument
-}

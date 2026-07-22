@@ -24,6 +24,28 @@ interface EditableTextProps {
   readonly autoSize?: boolean
 }
 
+/** Print/export static text. Empty → null. Stacked fields use block; autoSize stays inline. */
+function ReadOnlyText({
+  value,
+  multiline,
+  autoSize,
+  className,
+}: {
+  readonly value: string
+  readonly multiline?: boolean
+  readonly autoSize?: boolean
+  readonly className?: string
+}) {
+  if (!value?.trim()) return null
+  if (multiline) {
+    return <p className={cn("whitespace-pre-wrap", className)}>{value}</p>
+  }
+  // Full-width fields must be block so stacked headers (name → headline)
+  // don't run onto one line. autoSize fields stay inline (date ranges).
+  const Tag = autoSize ? "span" : "div"
+  return <Tag className={className}>{value}</Tag>
+}
+
 /**
  * Inline text editor styled to be invisible until focused — it inherits the
  * surrounding typography via `className` so it reads as document text, not a
@@ -36,7 +58,7 @@ interface EditableTextProps {
  * Document-agnostic — reuse for résumés, letters, or any editable document.
  */
 export function EditableText({
-  value,
+  value: valueProp,
   onChange,
   readOnly,
   multiline,
@@ -47,6 +69,8 @@ export function EditableText({
   grammarLabels,
   autoSize,
 }: EditableTextProps) {
+  // Coerce so missing API fields never throw on `.slice` / controlled inputs.
+  const value = valueProp ?? ""
   const ref = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
   const grammarOn = Boolean(grammar && grammarLabels && !readOnly && onChange)
   const issues = useGrammar(value, grammarOn)
@@ -74,9 +98,9 @@ export function EditableText({
   }, [])
 
   if (readOnly || !onChange) {
-    if (!value) return null
-    const Tag = multiline ? "p" : "span"
-    return <Tag className={cn(multiline && "whitespace-pre-wrap", className)}>{value}</Tag>
+    return (
+      <ReadOnlyText value={value} multiline={multiline} autoSize={autoSize} className={className} />
+    )
   }
 
   const base =

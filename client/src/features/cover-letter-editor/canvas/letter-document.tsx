@@ -27,42 +27,29 @@ interface LetterDocumentProps {
   readonly print?: boolean
 }
 
-/** Prose fields hold HTML (Lexical output); render it as such in read-only mode. */
-function Html({ html, className }: { readonly html: string; readonly className?: string }) {
-  return <div className={cn("whitespace-pre-wrap", className)} dangerouslySetInnerHTML={{ __html: html }} />
-}
-
-/** Read-only render of a single body block (previews, export, non-edit mode). */
-function ReadOnlyBlock({ block, style }: { readonly block: LetterBlock; readonly style: ResolvedStyle }) {
-  switch (block.type) {
-    case "greeting":
-      return <Html html={block.text} className="font-medium text-neutral-900" />
-    case "paragraph":
-      return <Html html={block.text} className={cn("text-justify", style.bodyLeading)} />
-    case "subject":
-      return <p className="font-semibold text-neutral-900">{block.text}</p>
-    case "signoff":
-      return (
-        <div className="flex flex-col gap-4">
-          <Html html={block.closing} />
-          <p className={cn("text-lg font-semibold text-neutral-900", style.serif && "font-serif")}>{block.signature}</p>
-        </div>
-      )
-    case "custom":
-      return (
-        <div className="flex flex-col gap-1.5">
-          <p className={style.headingClass}>{block.heading}</p>
-          <Html html={block.text} className={style.bodyLeading} />
-        </div>
-      )
-  }
-}
-
-/** Editable sender + recipient header. */
+/** Editable sender + recipient header. Print skips empty fields/rows. */
 function DocumentHeader({ document, template, style, handlers }: Required<Pick<LetterDocumentProps, "document" | "template" | "style">> & Pick<LetterDocumentProps, "handlers">) {
   const { t } = useTranslation("cover-letter-editor")
   const { sender, recipient } = document
   const bind = (onChange?: (v: string) => void) => (handlers ? onChange : undefined)
+  const grammarOn = Boolean(handlers)
+  const grammarLabels = {
+    apply: t("grammar.apply"),
+    noSuggestions: t("grammar.noSuggestions"),
+    dismiss: t("grammar.dismiss"),
+  }
+  const contacts = handlers
+    ? sender.contacts
+    : sender.contacts.filter((c) => c.value.trim())
+  const addressLines = handlers
+    ? recipient.addressLines
+    : recipient.addressLines?.filter((line) => line.trim())
+  const showRecipient =
+    Boolean(handlers) ||
+    Boolean(recipient.name?.trim()) ||
+    Boolean(recipient.title?.trim()) ||
+    Boolean(recipient.company.trim()) ||
+    Boolean(addressLines && addressLines.length > 0)
 
   return (
     <>
@@ -84,23 +71,27 @@ function DocumentHeader({ document, template, style, handlers }: Required<Pick<L
           placeholder={t("fields.title")}
           ariaLabel={t("fields.title")}
           className={cn("mt-1 text-base font-medium", style.accentText, template.id === "classic" && "text-center")}
+          grammar={grammarOn}
+          grammarLabels={grammarLabels}
         />
 
-        <ul className={cn("mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-neutral-600", template.id === "classic" && "justify-center")}>
-          {sender.contacts.map((contact) => {
-            const Icon = resolveContactIcon(contact.iconKey)
-            return (
-              <li key={contact.id} className="flex items-center gap-1.5">
-                <Icon className={cn("size-3.5 shrink-0", style.accentText)} />
-                <EditableText
-                  value={contact.value}
-                  onChange={bind((v) => handlers?.setContact(contact.id, v))}
-                  ariaLabel={contact.id}
-                />
-              </li>
-            )
-          })}
-        </ul>
+        {contacts.length > 0 ? (
+          <ul className={cn("mt-3 flex flex-wrap gap-x-5 gap-y-1 text-sm text-neutral-600", template.id === "classic" && "justify-center")}>
+            {contacts.map((contact) => {
+              const Icon = resolveContactIcon(contact.iconKey)
+              return (
+                <li key={contact.id} className="flex items-center gap-1.5">
+                  <Icon className={cn("size-3.5 shrink-0", style.accentText)} />
+                  <EditableText
+                    value={contact.value}
+                    onChange={bind((v) => handlers?.setContact(contact.id, v))}
+                    ariaLabel={contact.id}
+                  />
+                </li>
+              )
+            })}
+          </ul>
+        ) : null}
 
         <hr className={cn("mt-4 border-t-2", style.accentBorder)} />
       </header>
@@ -112,41 +103,52 @@ function DocumentHeader({ document, template, style, handlers }: Required<Pick<L
         className="mt-8 text-[15px] text-neutral-500"
       />
 
-      <address className="mt-6 flex flex-col not-italic text-neutral-700">
-        <EditableText
-          value={recipient.name ?? ""}
-          onChange={bind((v) => handlers?.setRecipientField("name", v))}
-          placeholder={t("fields.recipientName")}
-          ariaLabel={t("fields.recipientName")}
-          className="font-medium text-neutral-900"
-        />
-        <EditableText
-          value={recipient.title ?? ""}
-          onChange={bind((v) => handlers?.setRecipientField("title", v))}
-          placeholder={t("fields.recipientTitle")}
-          ariaLabel={t("fields.recipientTitle")}
-        />
-        <EditableText
-          value={recipient.company}
-          onChange={bind((v) => handlers?.setRecipientField("company", v))}
-          placeholder={t("fields.company")}
-          ariaLabel={t("fields.company")}
-          className="font-medium text-neutral-900"
-        />
-        {recipient.addressLines?.map((line) => (
-          <p key={line}>{line}</p>
-        ))}
-      </address>
+      {showRecipient ? (
+        <address className="mt-6 flex flex-col not-italic text-neutral-700">
+          <EditableText
+            value={recipient.name ?? ""}
+            onChange={bind((v) => handlers?.setRecipientField("name", v))}
+            placeholder={t("fields.recipientName")}
+            ariaLabel={t("fields.recipientName")}
+            className="font-medium text-neutral-900"
+            grammar={grammarOn}
+            grammarLabels={grammarLabels}
+          />
+          <EditableText
+            value={recipient.title ?? ""}
+            onChange={bind((v) => handlers?.setRecipientField("title", v))}
+            placeholder={t("fields.recipientTitle")}
+            ariaLabel={t("fields.recipientTitle")}
+            grammar={grammarOn}
+            grammarLabels={grammarLabels}
+          />
+          <EditableText
+            value={recipient.company}
+            onChange={bind((v) => handlers?.setRecipientField("company", v))}
+            placeholder={t("fields.company")}
+            ariaLabel={t("fields.company")}
+            className="font-medium text-neutral-900"
+            grammar={grammarOn}
+            grammarLabels={grammarLabels}
+          />
+          {addressLines?.map((line, index) => (
+            <p key={`${index}-${line}`}>{line}</p>
+          ))}
+        </address>
+      ) : null}
     </>
   )
 }
 
-/** Read-only body block list (previews / export). */
+/**
+ * Read-only body — same fields as the editor via {@link BlockFields}, no chrome.
+ * Empty blocks are omitted entirely.
+ */
 function ReadOnlyBody({ blocks, style }: { readonly blocks: readonly LetterBlock[]; readonly style: ResolvedStyle }) {
   return (
     <div className={cn("flex flex-col", style.sectionGap)}>
       {blocks.map((block) => (
-        <ReadOnlyBlock key={block.id} block={block} style={style} />
+        <BlockFields key={block.id} block={block} style={style} />
       ))}
     </div>
   )

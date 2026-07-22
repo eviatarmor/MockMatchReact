@@ -9,14 +9,14 @@ import {
   type ResolvedStyle,
   type RichTextToolbarLabels,
 } from "@/components/document-editor"
-import { newEntry } from "../constants"
+import { sectionIsEmpty } from "../section-snippet"
 import type {
   BulletItem,
   LanguageItem,
   ReferenceItem,
   ResumeSection,
-  SectionEntry,
 } from "../types"
+import { EntryListFields } from "./entry-list-fields"
 
 interface BlockFieldsProps {
   readonly block: ResumeSection
@@ -45,6 +45,11 @@ function patchRow<T extends { id: string }>(rows: readonly T[], id: string, patc
 }
 function removeRow<T extends { id: string }>(rows: readonly T[], id: string): T[] {
   return rows.filter((r) => r.id !== id)
+}
+
+/** Visible text in plain fields (print skips blanks). */
+function hasText(value: string | null | undefined): boolean {
+  return Boolean(value?.trim())
 }
 
 /** A small "+ add" affordance shared by every nested row list. */
@@ -82,6 +87,9 @@ function RemoveRowButton({ label, onClick }: { readonly label: string; readonly 
  * chrome by `SectionedBody`) and the mobile edit sheet, so the field/editor
  * logic lives in exactly one place.
  */
+// Large per-section switch (print empty-field filtering included) — complexity
+// lives in the type matrix, not nested control flow that can be simplified.
+// eslint-disable-next-line sonarjs/cognitive-complexity -- section switch
 export function BlockFields({ block, style, update, tone = "page" }: BlockFieldsProps) {
   const { t } = useTranslation("resume-editor")
   const editable = typeof update === "function"
@@ -89,6 +97,9 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
   const muted = tone === "page" ? "text-neutral-500" : "text-muted-foreground"
   const accentText = style.accentText
   const headingClass = style.headingClass
+
+  // Print/export: omit fully empty sections (title handled by ReadOnlyBody).
+  if (!editable && sectionIsEmpty(block)) return null
 
   const richLabels: RichTextToolbarLabels = {
     bold: t("richText.bold"),
@@ -118,38 +129,9 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
       placeholder={editable ? ph : undefined}
       ariaLabel={ph}
       className={className}
+      grammar={editable}
+      grammarLabels={grammarLabels}
     />
-  )
-
-  /** A content-width field — sizes to its text so short values don't stretch. */
-  const autoField = (
-    value: string,
-    onChange: ((v: string) => void) | undefined,
-    ph: string,
-    className?: string
-  ) => (
-    <EditableText
-      value={value}
-      onChange={editable ? onChange : undefined}
-      placeholder={editable ? ph : undefined}
-      ariaLabel={ph}
-      className={className}
-      autoSize
-    />
-  )
-
-  /** A compact date range (start – end). */
-  const dateRange = (
-    start: string,
-    end: string,
-    onStart: ((v: string) => void) | undefined,
-    onEnd: ((v: string) => void) | undefined
-  ) => (
-    <div className={cn("flex items-baseline justify-end gap-1 text-xs", muted)}>
-      {autoField(start, onStart, t("fields.startDate"))}
-      {(start || end || editable) && <span>–</span>}
-      {autoField(end, onEnd, t("fields.endDate"))}
-    </div>
   )
 
   /**
@@ -160,67 +142,6 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
     <div className="flex items-baseline justify-between gap-x-3">
       <div className="min-w-0 flex-1">{title}</div>
       <div className="shrink-0 text-right">{date}</div>
-    </div>
-  )
-
-  /**
-   * The free-form body for a grouped entry. A single Lexical rich-text field —
-   * the user decides bullets vs. paragraphs (toolbar list button), like the cover
-   * letter editor.
-   */
-  const bodyField = (value: string, onChange?: (html: string) => void) => (
-    <RichTextField
-      value={value}
-      onChange={editable ? onChange : undefined}
-      placeholder={editable ? t("fields.bullet") : undefined}
-      ariaLabel={t("fields.bullet")}
-      className="leading-relaxed"
-      labels={richLabels}
-      grammar={editable}
-      grammarLabels={grammarLabels}
-    />
-  )
-
-  /**
-   * A grouped list of dated entries (jobs, degrees, projects, volunteering roles).
-   * Each entry: title + date on one baseline, an org/location line, then a rich
-   * body. `+ add` appends a blank entry; each entry can be removed on hover.
-   * `showUrl` swaps the org/location line for a project-style name + URL treatment.
-   */
-  const entryList = (
-    entries: readonly SectionEntry[],
-    commit: (next: SectionEntry[]) => void,
-    opts: { readonly titlePh: string; readonly orgPh: string; readonly showUrl?: boolean }
-  ) => (
-    <div className="flex flex-col gap-4">
-      {entries.map((e) => {
-        const set = (patch: Partial<SectionEntry>) => commit(patchRow(entries, e.id, patch))
-        return (
-          <div key={e.id} className="group/row flex flex-col gap-1.5">
-            <div className="flex items-start gap-1.5">
-              <div className="min-w-0 flex-1">
-                {titleRow(
-                  field(e.title, (title) => set({ title }), opts.titlePh, cn("text-base font-semibold", strong)),
-                  dateRange(e.startDate, e.endDate, (startDate) => set({ startDate }), (endDate) => set({ endDate }))
-                )}
-                <div className={cn("flex flex-wrap items-baseline gap-x-3 text-sm", muted)}>
-                  {field(e.org, (org) => set({ org }), opts.orgPh, cn("font-medium", accentText))}
-                  {opts.showUrl
-                    ? field(e.url, (url) => set({ url }), t("fields.url"), cn("text-xs", accentText))
-                    : field(e.location, (location) => set({ location }), t("fields.location"))}
-                </div>
-              </div>
-              {editable ? (
-                <RemoveRowButton label={t("rows.removeEntry")} onClick={() => commit(removeRow(entries, e.id))} />
-              ) : null}
-            </div>
-            {bodyField(e.bullets, (bullets) => set({ bullets }))}
-          </div>
-        )
-      })}
-      {editable ? (
-        <AddRowButton label={t("rows.addEntry")} onClick={() => commit(addRow(entries, newEntry()))} />
-      ) : null}
     </div>
   )
 
@@ -240,23 +161,42 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
       )
 
     case "experience":
-      return entryList(block.entries, (entries) => update?.({ entries }), {
-        titlePh: t("fields.role"),
-        orgPh: t("fields.company"),
-      })
+      return (
+        <EntryListFields
+          entries={"entries" in block ? block.entries : []}
+          commit={(entries) => update?.({ entries })}
+          editable={editable}
+          style={style}
+          tone={tone}
+          titlePh={t("fields.role")}
+          orgPh={t("fields.company")}
+          richLabels={richLabels}
+          grammarLabels={grammarLabels}
+        />
+      )
 
     case "education":
-      return entryList(block.entries, (entries) => update?.({ entries }), {
-        titlePh: t("fields.degree"),
-        orgPh: t("fields.school"),
-      })
+      return (
+        <EntryListFields
+          entries={"entries" in block ? block.entries : []}
+          commit={(entries) => update?.({ entries })}
+          editable={editable}
+          style={style}
+          tone={tone}
+          titlePh={t("fields.degree")}
+          orgPh={t("fields.school")}
+          richLabels={richLabels}
+          grammarLabels={grammarLabels}
+        />
+      )
 
     case "skills": {
-      const items = block.items
+      const items = Array.isArray(block.items) ? block.items : []
       const commit = (next: BulletItem[]) => update?.({ items: next })
+      const visible = editable ? items : items.filter((it) => hasText(it.text))
       return (
         <div className="flex flex-wrap items-center gap-1.5">
-          {items.map((it) => (
+          {visible.map((it) => (
             <span key={it.id} className="group/tag inline-flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">
               {field(it.text, (text) => commit(patchRow(items, it.id, { text })), t("fields.skill"))}
               {editable ? (
@@ -279,17 +219,35 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
     }
 
     case "projects":
-      return entryList(block.entries, (entries) => update?.({ entries }), {
-        titlePh: t("fields.projectName"),
-        orgPh: t("fields.organization"),
-        showUrl: true,
-      })
+      return (
+        <EntryListFields
+          entries={"entries" in block ? block.entries : []}
+          commit={(entries) => update?.({ entries })}
+          editable={editable}
+          style={style}
+          tone={tone}
+          titlePh={t("fields.projectName")}
+          orgPh={t("fields.organization")}
+          showUrl
+          richLabels={richLabels}
+          grammarLabels={grammarLabels}
+        />
+      )
 
     case "volunteering":
-      return entryList(block.entries, (entries) => update?.({ entries }), {
-        titlePh: t("fields.role"),
-        orgPh: t("fields.organization"),
-      })
+      return (
+        <EntryListFields
+          entries={"entries" in block ? block.entries : []}
+          commit={(entries) => update?.({ entries })}
+          editable={editable}
+          style={style}
+          tone={tone}
+          titlePh={t("fields.role")}
+          orgPh={t("fields.organization")}
+          richLabels={richLabels}
+          grammarLabels={grammarLabels}
+        />
+      )
 
     case "awards":
       return (
@@ -341,20 +299,28 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
       )
 
     case "languages": {
-      const items = block.items
+      const items = Array.isArray(block.items) ? block.items : []
       const commit = (next: LanguageItem[]) => update?.({ items: next })
+      const visible = editable
+        ? items
+        : items.filter((l) => hasText(l.name) || hasText(l.proficiency))
       return (
         <div className="flex flex-col gap-1.5">
-          {items.map((l) => (
-            <div key={l.id} className="group/row flex items-baseline gap-2">
-              {field(l.name, (name) => commit(patchRow(items, l.id, { name })), t("fields.language"), cn("text-sm font-medium", strong))}
-              <span className={muted}>—</span>
-              {field(l.proficiency, (proficiency) => commit(patchRow(items, l.id, { proficiency })), t("fields.proficiency"), cn("text-sm", muted))}
-              {editable ? (
-                <RemoveRowButton label={t("rows.removeLanguage")} onClick={() => commit(removeRow(items, l.id))} />
-              ) : null}
-            </div>
-          ))}
+          {visible.map((l) => {
+            const showDash = editable || (hasText(l.name) && hasText(l.proficiency))
+            return (
+              <div key={l.id} className="group/row flex items-baseline gap-2">
+                {(editable || hasText(l.name)) &&
+                  field(l.name, (name) => commit(patchRow(items, l.id, { name })), t("fields.language"), cn("text-sm font-medium", strong))}
+                {showDash ? <span className={muted}>—</span> : null}
+                {(editable || hasText(l.proficiency)) &&
+                  field(l.proficiency, (proficiency) => commit(patchRow(items, l.id, { proficiency })), t("fields.proficiency"), cn("text-sm", muted))}
+                {editable ? (
+                  <RemoveRowButton label={t("rows.removeLanguage")} onClick={() => commit(removeRow(items, l.id))} />
+                ) : null}
+              </div>
+            )
+          })}
           {editable ? (
             <AddRowButton label={t("rows.addLanguage")} onClick={() => commit(addRow(items, { id: newId(), name: "", proficiency: "" }))} />
           ) : null}
@@ -362,22 +328,27 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
       )
     }
 
-    case "affiliations":
+    case "affiliations": {
+      const showDot = editable || (hasText(block.organization) && hasText(block.role))
       return titleRow(
         <div className="flex flex-wrap items-baseline gap-x-2 text-sm">
-          {field(block.organization, (organization) => update?.({ organization }), t("fields.organization"), cn("text-base font-semibold", strong))}
-          <span className={muted}>·</span>
-          {field(block.role, (role) => update?.({ role }), t("fields.role"), cn("font-medium", accentText))}
+          {(editable || hasText(block.organization)) &&
+            field(block.organization, (organization) => update?.({ organization }), t("fields.organization"), cn("text-base font-semibold", strong))}
+          {showDot ? <span className={muted}>·</span> : null}
+          {(editable || hasText(block.role)) &&
+            field(block.role, (role) => update?.({ role }), t("fields.role"), cn("font-medium", accentText))}
         </div>,
         field(block.date, (date) => update?.({ date }), t("fields.date"), cn("text-xs", muted))
       )
+    }
 
     case "hobbies": {
-      const items = block.items
+      const items = Array.isArray(block.items) ? block.items : []
       const commit = (next: BulletItem[]) => update?.({ items: next })
+      const visible = editable ? items : items.filter((h) => hasText(h.text))
       return (
         <div className="flex flex-wrap items-center gap-1.5">
-          {items.map((h) => (
+          {visible.map((h) => (
             <span key={h.id} className="group/tag inline-flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">
               {field(h.text, (text) => commit(patchRow(items, h.id, { text })), t("fields.hobby"))}
               {editable ? (
@@ -400,11 +371,14 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
     }
 
     case "references": {
-      const items = block.items
+      const items = Array.isArray(block.items) ? block.items : []
       const commit = (next: ReferenceItem[]) => update?.({ items: next })
+      const visible = editable
+        ? items
+        : items.filter((r) => hasText(r.name) || hasText(r.relation) || hasText(r.contact))
       return (
         <div className="flex flex-col gap-2">
-          {items.map((r) => (
+          {visible.map((r) => (
             <div key={r.id} className="group/row flex flex-col gap-0.5">
               <div className="flex items-baseline gap-2">
                 {field(r.name, (name) => commit(patchRow(items, r.id, { name })), t("fields.refName"), cn("text-sm font-semibold", strong))}

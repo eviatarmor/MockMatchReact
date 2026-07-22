@@ -12,6 +12,7 @@ import { ListNode, ListItemNode } from "@lexical/list"
 import { LinkNode } from "@lexical/link"
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html"
 import { $getRoot, $insertNodes, $setSelection, type LexicalEditor } from "lexical"
+import { isBlankHtml } from "@/lib/blank-html"
 import { cn } from "@/lib/utils"
 import { FloatingTextToolbar, type RichTextToolbarLabels } from "./rich-text-toolbar"
 import { LexicalGrammarPlugin } from "./grammar/lexical-grammar-plugin"
@@ -85,7 +86,7 @@ function seedFromHtml(editor: LexicalEditor, html: string) {
  * reuse for résumés, letters, or any editable prose.
  */
 export function RichTextField({
-  value,
+  value: valueProp,
   onChange,
   readOnly,
   placeholder,
@@ -95,8 +96,9 @@ export function RichTextField({
   grammar,
   grammarLabels,
 }: RichTextFieldProps) {
+  const value = valueProp ?? ""
   if (readOnly || !onChange) {
-    if (!value) return null
+    if (isBlankHtml(value)) return null
     return <div className={cn("whitespace-pre-wrap", className)} dangerouslySetInnerHTML={{ __html: value }} />
   }
 

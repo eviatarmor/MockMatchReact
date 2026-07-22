@@ -10,6 +10,7 @@ import {
 import { BlockFields } from "./block-fields"
 import { resolveContactIcon } from "@/lib/contact-icons"
 import { RESUME_SECTION_TYPES } from "../constants"
+import { sectionIsEmpty } from "../section-snippet"
 import type { ResumeHandlers } from "../hooks/use-resume-document"
 import type { EditorTemplate, ResumeDocument, ResumeSection, TemplateLayoutId } from "../types"
 
@@ -60,6 +61,12 @@ function HeaderIdentity({ document, style, handlers, nameClass, headlineClass }:
   const { t } = useTranslation("resume-editor")
   const { header } = document
   const bind = (onChange?: (v: string) => void) => (handlers ? onChange : undefined)
+  const grammarLabels = {
+    apply: t("grammar.apply"),
+    noSuggestions: t("grammar.noSuggestions"),
+    dismiss: t("grammar.dismiss"),
+  }
+  const grammarOn = Boolean(handlers)
   return (
     <>
       <EditableText
@@ -75,18 +82,23 @@ function HeaderIdentity({ document, style, handlers, nameClass, headlineClass }:
         placeholder={t("fields.headline")}
         ariaLabel={t("fields.headline")}
         className={cn("mt-1 text-base font-medium", style.accentText, headlineClass)}
+        grammar={grammarOn}
+        grammarLabels={grammarLabels}
       />
     </>
   )
 }
 
-/** Editable contact list. */
+/** Editable contact list. Print skips empty contact rows (no orphan icons). */
 function HeaderContacts({ document, style, handlers, className }: HeaderChildProps & { readonly className?: string }) {
   const { header } = document
   const bind = (onChange?: (v: string) => void) => (handlers ? onChange : undefined)
+  const allContacts = Array.isArray(header.contacts) ? header.contacts : []
+  const contacts = handlers ? allContacts : allContacts.filter((c) => c.value.trim())
+  if (contacts.length === 0) return null
   return (
     <ul className={cn("flex flex-wrap gap-x-5 gap-y-1 text-sm text-neutral-600", className)}>
-      {header.contacts.map((contact) => {
+      {contacts.map((contact) => {
         const Icon = resolveContactIcon(contact.iconKey)
         return (
           <li key={contact.id} className="flex items-center gap-1.5">
@@ -150,16 +162,21 @@ function SectionTitle({ section, style }: { readonly section: ResumeSection; rea
 /**
  * Job-ready read-only body — same section layout as the editor, without chrome.
  * Uses {@link BlockFields} with no `update` so fields render as static text/HTML.
+ * Fully empty sections (including title) are omitted from print/export.
  */
 function ReadOnlyBody({ document, style }: { readonly document: ResumeDocument; readonly style: ResolvedStyle }) {
+  const sections = Array.isArray(document.sections) ? document.sections : []
   return (
     <div className={cn("flex flex-col", style.sectionGap)}>
-      {document.sections.map((section) => (
-        <section key={section.id}>
-          <SectionTitle section={section} style={style} />
-          <BlockFields block={section} style={style} />
-        </section>
-      ))}
+      {sections.map((section) => {
+        if (sectionIsEmpty(section)) return null
+        return (
+          <section key={section.id}>
+            <SectionTitle section={section} style={style} />
+            <BlockFields block={section} style={style} />
+          </section>
+        )
+      })}
     </div>
   )
 }
@@ -203,7 +220,7 @@ export function ResumeDocumentView({
       <div className={cn("mt-6 text-[15px]", style.bodyLeading)}>
         {handlers ? (
           <SectionedBody
-            blocks={document.sections}
+            blocks={Array.isArray(document.sections) ? document.sections : []}
             handlers={handlers}
             registry={RESUME_SECTION_TYPES}
             labelFor={(meta: BlockTypeMeta<ResumeSection>) => t(meta.labelKey)}

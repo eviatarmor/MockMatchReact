@@ -2,6 +2,7 @@ import { Fragment, useState } from "react"
 import { cn } from "@/lib/utils"
 import type { GrammarIssue } from "@/lib/grammar/harper"
 import { GrammarPopover, type GrammarPopoverLabels } from "./grammar-popover"
+import { GRAMMAR_SQUIGGLE, GRAMMAR_SQUIGGLE_SIZE } from "./squiggle"
 
 interface TextGrammarOverlayProps {
   readonly text: string
@@ -20,9 +21,10 @@ interface ActivePopover {
 
 /**
  * A transparent mirror of a text field's content, laid exactly over it, that
- * draws wavy underlines beneath grammar issues. The mirror is click-through
- * (`pointer-events-none`) except on the marks, so typing/selection still hit the
- * real field underneath while a mark can be clicked to open its suggestions.
+ * draws the same thin SVG squiggle as Lexical under grammar issues. The mirror
+ * is click-through (`pointer-events-none`) except on the marks, so typing/
+ * selection still hit the real field underneath while a mark can be clicked
+ * to open its suggestions.
  *
  * Alignment relies on the overlay sharing the field's typography (`className`)
  * and structural padding, so callers must pass the same `className`.
@@ -61,7 +63,11 @@ export function TextGrammarOverlay({ text, issues, multiline, className, labels,
             <span
               // Offsets make a stable enough key for transient marks.
               key={`${segment.issue.start}-${segment.issue.end}`}
-              className="pointer-events-auto cursor-pointer underline decoration-red-500 decoration-wavy decoration-2 [text-decoration-skip-ink:none]"
+              className="pointer-events-auto cursor-pointer bg-bottom bg-repeat-x"
+              style={{
+                backgroundImage: GRAMMAR_SQUIGGLE,
+                backgroundSize: GRAMMAR_SQUIGGLE_SIZE,
+              }}
               onClick={(event) => {
                 const rect = event.currentTarget.getBoundingClientRect()
                 setActive({

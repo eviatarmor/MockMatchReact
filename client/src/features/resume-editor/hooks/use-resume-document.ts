@@ -17,7 +17,9 @@ function headerReducer(state: ResumeHeader, action: HeaderAction): ResumeHeader 
     case "setContact":
       return {
         ...state,
-        contacts: state.contacts.map((c) => (c.id === action.id ? { ...c, value: action.value } : c)),
+        contacts: (state.contacts ?? []).map((c) =>
+          c.id === action.id ? { ...c, value: action.value } : c
+        ),
       }
   }
 }
