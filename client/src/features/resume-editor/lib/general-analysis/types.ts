@@ -32,6 +32,11 @@ export interface AnalysisFinding {
   readonly message?: string
   readonly sectionId?: string
   readonly entryId?: string
+  /**
+   * Selector key for click-to-focus — matches `data-analysis-target` on canvas.
+   * Examples: `header:name`, `header:contact:mail`, section UUID, `entry:{id}:title`.
+   */
+  readonly focusTarget?: string
   /** Optional location label key under `analysis.locations.*`. */
   readonly locationKey?: string
 }

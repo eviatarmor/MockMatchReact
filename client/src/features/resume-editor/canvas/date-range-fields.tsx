@@ -15,6 +15,7 @@ export function DateRangeFields({
   muted,
   startPh,
   endPh,
+  analysisTarget,
 }: {
   readonly start: string
   readonly end: string
@@ -24,13 +25,17 @@ export function DateRangeFields({
   readonly muted: string
   readonly startPh: string
   readonly endPh: string
+  readonly analysisTarget?: string
 }) {
   const startFilled = hasText(start)
   const endFilled = hasText(end)
   if (!editable && !startFilled && !endFilled) return null
   const showDash = editable || (startFilled && endFilled)
   return (
-    <div className={cn("flex items-baseline justify-end gap-1 text-xs", muted)}>
+    <div
+      className={cn("flex items-baseline justify-end gap-1 text-xs", muted)}
+      {...(analysisTarget ? { "data-analysis-target": analysisTarget } : {})}
+    >
       {(editable || startFilled) && (
         <EditableText
           value={start}

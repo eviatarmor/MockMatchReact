@@ -1,14 +1,11 @@
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { CheckCircle2, ClipboardCheck, Loader2 } from "lucide-react"
-import {
-  Progress,
-  ProgressIndicator,
-  ProgressTrack,
-} from "@/components/ui/progress"
+import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
 import { useGeneralAnalysis } from "../hooks/use-general-analysis"
 import {
+  focusAnalysisTarget,
   scoreBand,
   SEVERITY_ORDER,
   type AnalysisFinding,
@@ -52,10 +49,11 @@ function scoreTone(score: number): string {
   return "text-rose-600 dark:text-rose-400"
 }
 
-function progressBarClass(score: number): string {
-  if (score >= 85) return "bg-emerald-500"
-  if (score >= 70) return "bg-amber-500"
-  return "bg-rose-500"
+/** Color the single Progress indicator (Progress always owns its own track). */
+function progressIndicatorTone(score: number): string {
+  if (score >= 85) return "[&_[data-slot=progress-indicator]]:bg-emerald-500"
+  if (score >= 70) return "[&_[data-slot=progress-indicator]]:bg-amber-500"
+  return "[&_[data-slot=progress-indicator]]:bg-rose-500"
 }
 
 function FindingRow({ finding }: { readonly finding: AnalysisFinding }) {
@@ -68,32 +66,47 @@ function FindingRow({ finding }: { readonly finding: AnalysisFinding }) {
   const location = finding.locationKey
     ? t(`analysis.locations.${finding.locationKey}`)
     : null
+  const canFocus = Boolean(finding.focusTarget)
 
   return (
-    <li
-      className={cn(
-        "flex items-start gap-2 rounded-lg border px-2.5 py-2",
-        SEVERITY_CARD[finding.severity]
-      )}
-    >
-      <span
-        className={cn("mt-1.5 size-1.5 shrink-0 rounded-full", SEVERITY_DOT[finding.severity])}
-        aria-hidden
-      />
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium leading-snug text-foreground">{message}</p>
-        <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
-          <span className={cn("font-medium", SEVERITY_LABEL[finding.severity])}>
-            {t(`analysis.severity.${finding.severity}`)}
-          </span>
-          {location && (
-            <>
-              <span aria-hidden>·</span>
-              <span>{location}</span>
-            </>
-          )}
-        </p>
-      </div>
+    <li>
+      <button
+        type="button"
+        disabled={!canFocus}
+        onClick={() => focusAnalysisTarget(finding.focusTarget)}
+        className={cn(
+          "flex w-full items-start gap-2 rounded-lg border px-2.5 py-2 text-left transition-colors",
+          SEVERITY_CARD[finding.severity],
+          canFocus
+            ? "cursor-pointer hover:brightness-[0.98] active:brightness-[0.96] dark:hover:brightness-110"
+            : "cursor-default opacity-90"
+        )}
+      >
+        <span
+          className={cn("mt-1.5 size-1.5 shrink-0 rounded-full", SEVERITY_DOT[finding.severity])}
+          aria-hidden
+        />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium leading-snug text-foreground">{message}</p>
+          <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
+            <span className={cn("font-medium", SEVERITY_LABEL[finding.severity])}>
+              {t(`analysis.severity.${finding.severity}`)}
+            </span>
+            {location && (
+              <>
+                <span aria-hidden>·</span>
+                <span>{location}</span>
+              </>
+            )}
+            {canFocus && (
+              <>
+                <span aria-hidden>·</span>
+                <span>{t("analysis.clickToFocus")}</span>
+              </>
+            )}
+          </p>
+        </div>
+      </button>
     </li>
   )
 }
@@ -141,11 +154,10 @@ export function GeneralAnalysisPanel({ document }: GeneralAnalysisPanelProps) {
           </div>
         </div>
 
-        <Progress value={score} className="gap-0">
-          <ProgressTrack className="h-1">
-            <ProgressIndicator className={cn("transition-all", progressBarClass(score))} />
-          </ProgressTrack>
-        </Progress>
+        {/* One track only — Progress always renders its own track; don't nest another. */}
+        <div className={cn("w-full", progressIndicatorTone(score))}>
+          <Progress value={score} className="w-full gap-0" />
+        </div>
 
         {totalIssues > 0 && (
           <div className="flex flex-wrap gap-1">

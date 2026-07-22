@@ -103,7 +103,6 @@
     "list": "Bullet list",
     "link": "Link",
     "clear": "Clear formatting",
-    "grammar": "Check grammar",
     "linkPrompt": "Enter a URL"
   },
   "grammar": {
@@ -208,6 +207,7 @@
     },
     "empty": "No issues found — nice work.",
     "linting": "Checking writing…",
+    "clickToFocus": "Click to edit",
     "issueCount_one": "{{count}} issue",
     "issueCount_other": "{{count}} issues",
     "findings": {

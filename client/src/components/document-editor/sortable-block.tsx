@@ -34,6 +34,7 @@ export function SortableBlock({ id, labels, children, canMoveUp, canMoveDown, ..
   return (
     <div
       ref={setNodeRef}
+      data-analysis-target={id}
       // Translate only — never scaleX/scaleY. The vertical sort strategy would
       // otherwise squish the dragged block to match the block it hovers over.
       style={{ transform: transform ? CSS.Translate.toString(transform) : undefined, transition }}

@@ -59,6 +59,10 @@ function sectionEmptyOrMissing(
   return matches.every(sectionIsEmpty)
 }
 
+function firstSectionId(sections: readonly ResumeSection[], type: ResumeSection["type"]): string | undefined {
+  return sections.find((s) => s.type === type)?.id
+}
+
 function entryHasContent(e: SectionEntry): boolean {
   return (
     hasText(e.title) ||
@@ -73,39 +77,81 @@ function entryHasContent(e: SectionEntry): boolean {
 
 function checkHeader(doc: ResumeDocument, out: AnalysisFinding[]) {
   if (!hasText(doc.header.name)) {
-    out.push(finding("missing_name", "critical", { locationKey: "header" }))
+    out.push(
+      finding("missing_name", "critical", {
+        locationKey: "header",
+        focusTarget: "header:name",
+      })
+    )
   }
 
   const email = contactValue(doc, "mail")
   if (!email) {
-    out.push(finding("missing_email", "high", { locationKey: "contact" }))
+    out.push(
+      finding("missing_email", "high", {
+        locationKey: "contact",
+        focusTarget: "header:contact:mail",
+      })
+    )
   } else if (!EMAIL_RE.test(email)) {
-    out.push(finding("invalid_email", "high", { locationKey: "contact" }))
+    out.push(
+      finding("invalid_email", "high", {
+        locationKey: "contact",
+        focusTarget: "header:contact:mail",
+      })
+    )
   }
 
   const phone = contactValue(doc, "phone")
   if (!phone) {
-    out.push(finding("missing_phone", "high", { locationKey: "contact" }))
+    out.push(
+      finding("missing_phone", "high", {
+        locationKey: "contact",
+        focusTarget: "header:contact:phone",
+      })
+    )
   } else {
     const digits = phone.replace(/\D/g, "")
     if (digits.length < PHONE_MIN_DIGITS) {
-      out.push(finding("invalid_phone", "medium", { locationKey: "contact" }))
+      out.push(
+        finding("invalid_phone", "medium", {
+          locationKey: "contact",
+          focusTarget: "header:contact:phone",
+        })
+      )
     }
   }
 
   if (!contactValue(doc, "mapPin")) {
-    out.push(finding("missing_location", "medium", { locationKey: "contact" }))
+    out.push(
+      finding("missing_location", "medium", {
+        locationKey: "contact",
+        focusTarget: "header:contact:mapPin",
+      })
+    )
   }
 
   if (!contactValue(doc, "link")) {
-    out.push(finding("missing_linkedin", "low", { locationKey: "contact" }))
+    out.push(
+      finding("missing_linkedin", "low", {
+        locationKey: "contact",
+        focusTarget: "header:contact:link",
+      })
+    )
   }
 }
 
 function checkSummary(doc: ResumeDocument, out: AnalysisFinding[]) {
   const summaries = allOfType(doc.sections, "summary") as SummarySection[]
   if (summaries.length === 0 || summaries.every(sectionIsEmpty)) {
-    out.push(finding("missing_summary", "medium", { locationKey: "summary" }))
+    const sid = firstSectionId(doc.sections, "summary")
+    out.push(
+      finding("missing_summary", "medium", {
+        locationKey: "summary",
+        sectionId: sid,
+        focusTarget: sid ?? undefined,
+      })
+    )
     return
   }
   for (const s of summaries) {
@@ -117,6 +163,7 @@ function checkSummary(doc: ResumeDocument, out: AnalysisFinding[]) {
           id: `summary_too_short:${s.id}`,
           sectionId: s.id,
           locationKey: "summary",
+          focusTarget: s.id,
         })
       )
     }
@@ -126,11 +173,19 @@ function checkSummary(doc: ResumeDocument, out: AnalysisFinding[]) {
 function checkExperience(doc: ResumeDocument, out: AnalysisFinding[]) {
   const sections = allOfType(doc.sections, "experience") as ExperienceSection[]
   if (sectionEmptyOrMissing(doc.sections, "experience")) {
-    out.push(finding("missing_experience", "critical", { locationKey: "experience" }))
+    const sid = firstSectionId(doc.sections, "experience")
+    out.push(
+      finding("missing_experience", "critical", {
+        locationKey: "experience",
+        sectionId: sid,
+        focusTarget: sid,
+      })
+    )
     return
   }
 
   let anyMetrics = false
+  let firstBulletTarget: string | undefined
   for (const section of sections) {
     for (const e of section.entries) {
       if (!entryHasContent(e)) continue
@@ -144,6 +199,7 @@ function checkExperience(doc: ResumeDocument, out: AnalysisFinding[]) {
             sectionId: section.id,
             entryId: e.id,
             locationKey: "experience",
+            focusTarget: missingTitle ? `entry:${e.id}:title` : `entry:${e.id}:org`,
           })
         )
       }
@@ -157,6 +213,7 @@ function checkExperience(doc: ResumeDocument, out: AnalysisFinding[]) {
             sectionId: section.id,
             entryId: e.id,
             locationKey: "experience",
+            focusTarget: `entry:${e.id}:dates`,
           })
         )
       }
@@ -168,24 +225,38 @@ function checkExperience(doc: ResumeDocument, out: AnalysisFinding[]) {
             sectionId: section.id,
             entryId: e.id,
             locationKey: "experience",
+            focusTarget: `entry:${e.id}:bullets`,
           })
         )
       }
 
       const bulletText = stripHtml(e.bullets)
       if (HAS_DIGIT.test(bulletText)) anyMetrics = true
+      if (!firstBulletTarget) firstBulletTarget = `entry:${e.id}:bullets`
     }
   }
 
   if (!anyMetrics) {
-    out.push(finding("no_metrics_in_experience", "low", { locationKey: "experience" }))
+    out.push(
+      finding("no_metrics_in_experience", "low", {
+        locationKey: "experience",
+        focusTarget: firstBulletTarget ?? firstSectionId(doc.sections, "experience"),
+      })
+    )
   }
 }
 
 function checkEducation(doc: ResumeDocument, out: AnalysisFinding[]) {
   const sections = allOfType(doc.sections, "education") as EducationSection[]
   if (sectionEmptyOrMissing(doc.sections, "education")) {
-    out.push(finding("missing_education", "critical", { locationKey: "education" }))
+    const sid = firstSectionId(doc.sections, "education")
+    out.push(
+      finding("missing_education", "critical", {
+        locationKey: "education",
+        sectionId: sid,
+        focusTarget: sid,
+      })
+    )
     return
   }
 
@@ -199,6 +270,7 @@ function checkEducation(doc: ResumeDocument, out: AnalysisFinding[]) {
             sectionId: section.id,
             entryId: e.id,
             locationKey: "education",
+            focusTarget: !hasText(e.title) ? `entry:${e.id}:title` : `entry:${e.id}:org`,
           })
         )
       }
@@ -209,7 +281,14 @@ function checkEducation(doc: ResumeDocument, out: AnalysisFinding[]) {
 function checkSkills(doc: ResumeDocument, out: AnalysisFinding[]) {
   const sections = allOfType(doc.sections, "skills") as SkillsSection[]
   if (sectionEmptyOrMissing(doc.sections, "skills")) {
-    out.push(finding("missing_skills", "high", { locationKey: "skills" }))
+    const sid = firstSectionId(doc.sections, "skills")
+    out.push(
+      finding("missing_skills", "high", {
+        locationKey: "skills",
+        sectionId: sid,
+        focusTarget: sid,
+      })
+    )
     return
   }
 
@@ -220,9 +299,12 @@ function checkSkills(doc: ResumeDocument, out: AnalysisFinding[]) {
     }
   }
   if (count > 0 && count < SKILLS_MIN_COUNT) {
+    const sid = firstSectionId(doc.sections, "skills")
     out.push(
       finding("thin_skills", "low", {
         locationKey: "skills",
+        sectionId: sid,
+        focusTarget: sid,
         messageParams: { count, min: SKILLS_MIN_COUNT },
       })
     )

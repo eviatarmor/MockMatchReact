@@ -22,6 +22,8 @@ interface EditableTextProps {
    * `multiline` and grammar-enabled fields (which need the overlay layout).
    */
   readonly autoSize?: boolean
+  /** Marks the field for analysis click-to-focus (`data-analysis-target`). */
+  readonly analysisTarget?: string
 }
 
 /** Print/export static text. Empty → null. Stacked fields use block; autoSize stays inline. */
@@ -68,12 +70,14 @@ export function EditableText({
   grammar,
   grammarLabels,
   autoSize,
+  analysisTarget,
 }: EditableTextProps) {
   // Coerce so missing API fields never throw on `.slice` / controlled inputs.
   const value = valueProp ?? ""
   const ref = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
   const grammarOn = Boolean(grammar && grammarLabels && !readOnly && onChange)
   const issues = useGrammar(value, grammarOn)
+  const targetProps = analysisTarget ? { "data-analysis-target": analysisTarget } : undefined
 
   useLayoutEffect(() => {
     const el = ref.current
@@ -127,6 +131,7 @@ export function EditableText({
       aria-label={ariaLabel}
       onChange={(event) => onChange(event.target.value)}
       className={cn(base, "block resize-none overflow-hidden whitespace-pre-wrap", className)}
+      {...targetProps}
     />
   ) : (
     <input
@@ -143,6 +148,7 @@ export function EditableText({
         if (event.key === "Enter") event.currentTarget.blur()
       }}
       className={cn(base, autoSize && !overlay && "col-start-1 row-start-1 min-w-0", className)}
+      {...targetProps}
     />
   )
 

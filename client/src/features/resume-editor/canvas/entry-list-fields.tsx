@@ -81,7 +81,8 @@ export function EntryListFields({
     value: string,
     onChange: ((v: string) => void) | undefined,
     ph: string,
-    className?: string
+    className?: string,
+    analysisTarget?: string
   ): ReactNode => (
     <EditableText
       value={value ?? ""}
@@ -91,6 +92,7 @@ export function EntryListFields({
       className={className}
       grammar={editable}
       grammarLabels={grammarLabels}
+      analysisTarget={analysisTarget}
     />
   )
 
@@ -109,7 +111,8 @@ export function EntryListFields({
                       e.title ?? "",
                       (title) => set({ title }),
                       titlePh,
-                      cn("text-base font-semibold", strong)
+                      cn("text-base font-semibold", strong),
+                      `entry:${e.id}:title`
                     )}
                   </div>
                   <div className="shrink-0 text-right">
@@ -122,11 +125,12 @@ export function EntryListFields({
                       muted={muted}
                       startPh={t("fields.startDate")}
                       endPh={t("fields.endDate")}
+                      analysisTarget={`entry:${e.id}:dates`}
                     />
                   </div>
                 </div>
                 <div className={cn("flex flex-col text-sm", muted)}>
-                  {field(e.org ?? "", (org) => set({ org }), orgPh, cn("font-medium", accentText))}
+                  {field(e.org ?? "", (org) => set({ org }), orgPh, cn("font-medium", accentText), `entry:${e.id}:org`)}
                   {showUrl
                     ? field(e.url ?? "", (url) => set({ url }), t("fields.url"), cn("text-xs", accentText))
                     : field(e.location ?? "", (location) => set({ location }), t("fields.location"))}
@@ -152,6 +156,7 @@ export function EntryListFields({
               labels={richLabels}
               grammar={editable}
               grammarLabels={grammarLabels}
+              analysisTarget={`entry:${e.id}:bullets`}
             />
           </div>
         )

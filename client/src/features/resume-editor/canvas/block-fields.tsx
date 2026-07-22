@@ -108,7 +108,6 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
     list: t("richText.list"),
     link: t("richText.link"),
     clear: t("richText.clear"),
-    grammar: t("richText.grammar"),
     linkPrompt: t("richText.linkPrompt"),
   }
   const grammarLabels: GrammarPopoverLabels = {
@@ -157,6 +156,7 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
           labels={richLabels}
           grammar={editable}
           grammarLabels={grammarLabels}
+          analysisTarget={block.id}
         />
       )
 

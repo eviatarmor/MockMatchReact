@@ -75,6 +75,7 @@ function HeaderIdentity({ document, style, handlers, nameClass, headlineClass }:
         placeholder={t("fields.name")}
         ariaLabel={t("fields.name")}
         className={cn("text-4xl font-bold tracking-tight text-neutral-900", nameClass)}
+        analysisTarget="header:name"
       />
       <EditableText
         value={header.headline}
@@ -84,6 +85,7 @@ function HeaderIdentity({ document, style, handlers, nameClass, headlineClass }:
         className={cn("mt-1 text-base font-medium", style.accentText, headlineClass)}
         grammar={grammarOn}
         grammarLabels={grammarLabels}
+        analysisTarget="header:headline"
       />
     </>
   )
@@ -107,6 +109,7 @@ function HeaderContacts({ document, style, handlers, className }: HeaderChildPro
               value={contact.value}
               onChange={bind((v) => handlers?.setContact(contact.id, v))}
               ariaLabel={contact.id}
+              analysisTarget={`header:contact:${contact.iconKey}`}
             />
           </li>
         )

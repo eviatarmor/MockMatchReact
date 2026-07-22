@@ -19,3 +19,4 @@ export {
   sortFindings,
 } from "./score"
 export { grammarFindingsFromIssues } from "./grammar"
+export { focusAnalysisTarget } from "./focus"

@@ -30,6 +30,8 @@ interface RichTextFieldProps {
   /** Enable Harper grammar checking. Requires `grammarLabels`. */
   readonly grammar?: boolean
   readonly grammarLabels?: GrammarPopoverLabels
+  /** Marks the field for analysis click-to-focus (`data-analysis-target`). */
+  readonly analysisTarget?: string
 }
 
 const theme = {
@@ -95,6 +97,7 @@ export function RichTextField({
   labels,
   grammar,
   grammarLabels,
+  analysisTarget,
 }: RichTextFieldProps) {
   const value = valueProp ?? ""
   if (readOnly || !onChange) {
@@ -119,7 +122,7 @@ export function RichTextField({
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      <div className="relative">
+      <div className="relative" {...(analysisTarget ? { "data-analysis-target": analysisTarget } : {})}>
         <RichTextPlugin
           contentEditable={
             <ContentEditable

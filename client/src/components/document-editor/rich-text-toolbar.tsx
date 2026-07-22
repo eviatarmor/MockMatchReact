@@ -12,7 +12,7 @@ import {
 import { INSERT_UNORDERED_LIST_COMMAND } from "@lexical/list"
 import { TOGGLE_LINK_COMMAND } from "@lexical/link"
 import { mergeRegister } from "@lexical/utils"
-import { Bold, Italic, Underline, List, Link, RemoveFormatting, SpellCheck } from "lucide-react"
+import { Bold, Italic, Underline, List, Link, RemoveFormatting } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export interface RichTextToolbarLabels {
@@ -22,7 +22,6 @@ export interface RichTextToolbarLabels {
   readonly list: string
   readonly link: string
   readonly clear: string
-  readonly grammar: string
   readonly linkPrompt: string
 }
 
@@ -172,10 +171,6 @@ export function FloatingTextToolbar({ labels }: { readonly labels: RichTextToolb
       </ToolbarButton>
       <ToolbarButton label={labels.clear} onClick={clearFormatting}>
         <RemoveFormatting className="size-4" />
-      </ToolbarButton>
-      <span className="mx-0.5 h-5 w-px bg-neutral-200 dark:bg-white/15" />
-      <ToolbarButton label={labels.grammar} onClick={() => { /* grammar — intentionally not implemented yet */ }}>
-        <SpellCheck className="size-4" />
       </ToolbarButton>
     </div>,
     document.body

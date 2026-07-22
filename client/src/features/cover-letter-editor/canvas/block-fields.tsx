@@ -78,7 +78,6 @@ function useFieldCtx(
       list: t("richText.list"),
       link: t("richText.link"),
       clear: t("richText.clear"),
-      grammar: t("richText.grammar"),
       linkPrompt: t("richText.linkPrompt"),
     },
     grammarLabels: {
