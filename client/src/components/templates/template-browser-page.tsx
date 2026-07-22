@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { TemplateCard } from "./template-card"
-import { TemplatePreviewDialog } from "./template-preview-dialog"
 import type { TemplateItem } from "./types"
 
 interface TemplateBrowserPageProps {
@@ -32,7 +31,6 @@ export function TemplateBrowserPage({
   const [query, setQuery] = useState("")
   const [activeCategory, setActiveCategory] = useState<string>("all")
   const [activeCountry, setActiveCountry] = useState<string>("all")
-  const [previewTemplate, setPreviewTemplate] = useState<TemplateItem | null>(null)
 
   const filteredTemplates = useMemo(() => {
     const needle = query.trim().toLowerCase()
@@ -135,7 +133,6 @@ export function TemplateBrowserPage({
                 key={template.id}
                 template={template}
                 translationPrefix={translationPrefix}
-                onPreview={setPreviewTemplate}
                 onUse={onUse}
                 isUsing={pendingId === template.id}
               />
@@ -147,14 +144,6 @@ export function TemplateBrowserPage({
           </div>
         )}
       </div>
-
-      <TemplatePreviewDialog
-        template={previewTemplate}
-        onOpenChange={(open) => !open && setPreviewTemplate(null)}
-        translationPrefix={translationPrefix}
-        onUse={onUse}
-        isUsing={previewTemplate ? pendingId === previewTemplate.id : false}
-      />
     </DashboardPageShell>
   )
 }

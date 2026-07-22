@@ -141,9 +141,6 @@
       "browseDescription": "{{count}} role templates for big employers in the US, UK, and Australia. Filter by market or industry.",
       "searchPlaceholder": "Search role or company...",
       "useTemplate": "Use template",
-      "preview": "Preview",
-      "previewTarget": "Target employer",
-      "previewHint": "Creates a draft resume with sample content tailored to this role and employer format. Replace the sample details with your own.",
       "noResults": "No templates found",
       "toast": {
         "created": "Resume created from template",
@@ -309,9 +306,6 @@
       "browseDescription": "{{count}} cover letter templates for big employers in the US, UK, and Australia. Filter by market or industry.",
       "searchPlaceholder": "Search role or company...",
       "useTemplate": "Use template",
-      "preview": "Preview",
-      "previewTarget": "Target employer",
-      "previewHint": "Creates a draft cover letter with sample narrative tailored to this role and employer. Replace the sample details with your own.",
       "noResults": "No templates found",
       "toast": {
         "created": "Cover letter created from template",

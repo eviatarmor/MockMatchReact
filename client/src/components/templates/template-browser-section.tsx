@@ -1,9 +1,7 @@
-import { useState } from "react"
 import { ArrowRight } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { TemplateCard } from "./template-card"
-import { TemplatePreviewDialog } from "./template-preview-dialog"
 import type { TemplateItem } from "./types"
 
 interface TemplateBrowserSectionProps {
@@ -27,7 +25,6 @@ export function TemplateBrowserSection({
 }: TemplateBrowserSectionProps) {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
-  const [previewTemplate, setPreviewTemplate] = useState<TemplateItem | null>(null)
   const featuredTemplates = items.slice(0, featuredCount)
 
   return (
@@ -53,20 +50,11 @@ export function TemplateBrowserSection({
             key={template.id}
             template={template}
             translationPrefix={translationPrefix}
-            onPreview={setPreviewTemplate}
             onUse={onUse}
             isUsing={pendingId === template.id}
           />
         ))}
       </div>
-
-      <TemplatePreviewDialog
-        template={previewTemplate}
-        onOpenChange={(open) => !open && setPreviewTemplate(null)}
-        translationPrefix={translationPrefix}
-        onUse={onUse}
-        isUsing={previewTemplate ? pendingId === previewTemplate.id : false}
-      />
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { Eye, Loader2, Plus } from "lucide-react"
+import { Loader2, Plus } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -8,7 +8,6 @@ interface TemplateCardProps {
   readonly template: TemplateItem
   // i18n key prefix, e.g. "resumeLab.templates"
   readonly translationPrefix: string
-  readonly onPreview?: (template: TemplateItem) => void
   readonly onUse?: (template: TemplateItem) => void
   readonly isUsing?: boolean
 }
@@ -30,7 +29,6 @@ function avatarColor(id: string) {
 export function TemplateCard({
   template,
   translationPrefix,
-  onPreview,
   onUse,
   isUsing = false,
 }: TemplateCardProps) {
@@ -64,23 +62,13 @@ export function TemplateCard({
 
       <div className="mt-auto flex items-center gap-2">
         <Button
-          className="h-8 flex-1 gap-1.5 cursor-pointer"
+          className="h-8 w-full gap-1.5 cursor-pointer"
           disabled={isUsing || !onUse}
           onClick={() => onUse?.(template)}
           aria-busy={isUsing}
         >
           {isUsing ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
           {t(`${translationPrefix}.useTemplate`)}
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-8 w-8 shrink-0 cursor-pointer"
-          aria-label={t(`${translationPrefix}.preview`)}
-          onClick={() => onPreview?.(template)}
-          disabled={isUsing}
-        >
-          <Eye className="size-4" />
         </Button>
       </div>
     </div>
