@@ -99,6 +99,7 @@ function GreetingFields({ block, ctx }: { readonly block: GreetingBlock; readonl
       labels={ctx.richLabels}
       grammar={ctx.editable}
       grammarLabels={ctx.grammarLabels}
+      analysisTarget={block.id}
     />
   )
 }
@@ -114,6 +115,7 @@ function ParagraphFields({ block, ctx }: { readonly block: ParagraphBlock; reado
       labels={ctx.richLabels}
       grammar={ctx.editable}
       grammarLabels={ctx.grammarLabels}
+      analysisTarget={block.id}
     />
   )
 }
@@ -128,6 +130,7 @@ function SubjectFields({ block, ctx }: { readonly block: SubjectBlock; readonly 
       className={cn("font-semibold", ctx.strong)}
       grammar={ctx.editable}
       grammarLabels={ctx.grammarLabels}
+      analysisTarget={block.id}
     />
   )
 }
@@ -143,6 +146,7 @@ function SignoffFields({ block, ctx }: { readonly block: SignoffBlock; readonly 
         labels={ctx.richLabels}
         grammar={ctx.editable}
         grammarLabels={ctx.grammarLabels}
+        analysisTarget={`block:${block.id}:closing`}
       />
       <EditableText
         value={block.signature}
@@ -152,6 +156,7 @@ function SignoffFields({ block, ctx }: { readonly block: SignoffBlock; readonly 
         className={cn("text-lg font-semibold", ctx.strong, ctx.serif && "font-serif")}
         grammar={ctx.editable}
         grammarLabels={ctx.grammarLabels}
+        analysisTarget={`block:${block.id}:signature`}
       />
     </div>
   )
@@ -168,6 +173,7 @@ function CustomFields({ block, ctx }: { readonly block: CustomBlock; readonly ct
         className={ctx.headingClass}
         grammar={ctx.editable}
         grammarLabels={ctx.grammarLabels}
+        analysisTarget={`block:${block.id}:heading`}
       />
       <RichTextField
         value={block.text}
@@ -178,6 +184,7 @@ function CustomFields({ block, ctx }: { readonly block: CustomBlock; readonly ct
         labels={ctx.richLabels}
         grammar={ctx.editable}
         grammarLabels={ctx.grammarLabels}
+        analysisTarget={block.id}
       />
     </div>
   )

@@ -13,6 +13,7 @@ import type { CoverLetterDocument, EditorPanelId, EditorTemplateId } from "../ty
 import { TemplatesPanel } from "./templates-panel"
 import { StylePanel } from "./style-panel"
 import { SectionsPanel } from "./sections-panel"
+import { GeneralAnalysisPanel } from "./general-analysis-panel"
 import { AiPanel } from "./ai-panel"
 
 interface EditorRailProps {
@@ -40,6 +41,8 @@ function PanelBody({ panel, activeTemplateId, onTemplateChange, style, onStyleCh
       return <StylePanel style={style} onChange={onStyleChange} />
     case "sections":
       return <SectionsPanel blocks={document.blocks} handlers={handlers} />
+    case "analysis":
+      return <GeneralAnalysisPanel document={document} />
     case "ai":
       return <AiPanel />
   }

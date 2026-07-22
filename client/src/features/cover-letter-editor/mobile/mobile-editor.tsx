@@ -10,7 +10,7 @@ import {
 } from "@dnd-kit/core"
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { ChevronRight, GripVertical, UserRound, Building2, CalendarDays, LayoutTemplate, Palette, Sparkles, type LucideIcon } from "lucide-react"
+import { ChevronRight, GripVertical, UserRound, Building2, CalendarDays, LayoutTemplate, Palette, ClipboardCheck, Sparkles, type LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 import { LETTER_BLOCK_TYPES } from "../constants"
@@ -182,6 +182,7 @@ export function MobileEditor({ document, style, documentStyle, onStyleChange, te
         actions={[
           { id: "templates", icon: LayoutTemplate, label: t("rail.templates"), onClick: () => setCustomizePanel("templates") },
           { id: "style", icon: Palette, label: t("rail.style"), onClick: () => setCustomizePanel("style") },
+          { id: "analysis", icon: ClipboardCheck, label: t("rail.analysis"), onClick: () => setCustomizePanel("analysis") },
           { id: "ai", icon: Sparkles, label: t("rail.ai"), onClick: () => setCustomizePanel("ai") },
         ]}
       />
@@ -200,6 +201,7 @@ export function MobileEditor({ document, style, documentStyle, onStyleChange, te
         onTemplateChange={onTemplateChange}
         style={documentStyle}
         onStyleChange={onStyleChange}
+        document={document}
       />
     </div>
   )

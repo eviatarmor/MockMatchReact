@@ -25,6 +25,7 @@
     "templates": "Templates",
     "style": "Style",
     "sections": "Sections",
+    "analysis": "General analysis",
     "ai": "AI",
     "collapse": "Collapse panel"
   },
@@ -140,5 +141,53 @@
     },
     "promptPlaceholder": "Ask AI to edit your letter…",
     "send": "Send"
+  },
+  "analysis": {
+    "title": "General analysis",
+    "description": "Job-agnostic issues to fix on any application.",
+    "scoreLabel": "Letter health",
+    "status": {
+      "strong": "Looking solid",
+      "ok": "A few gaps",
+      "weak": "Needs work"
+    },
+    "severity": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "locations": {
+      "sender": "Sender",
+      "contact": "Contact",
+      "date": "Date",
+      "recipient": "Recipient",
+      "greeting": "Greeting",
+      "body": "Body",
+      "signoff": "Sign-off",
+      "writing": "Writing"
+    },
+    "empty": "No issues found — nice work.",
+    "linting": "Checking writing…",
+    "clickToFocus": "Click to edit",
+    "issueCount_one": "{{count}} issue",
+    "issueCount_other": "{{count}} issues",
+    "findings": {
+      "missing_name": "Add your full name.",
+      "missing_email": "Add an email address.",
+      "missing_phone": "Add a phone number.",
+      "invalid_email": "Email address looks invalid.",
+      "invalid_phone": "Phone number looks incomplete.",
+      "missing_location": "Add a city or location.",
+      "missing_linkedin": "Add a LinkedIn or portfolio link.",
+      "missing_company": "Add the company you're writing to.",
+      "missing_date": "Add a date.",
+      "missing_greeting": "Add a greeting (e.g. Dear Hiring Team,).",
+      "missing_body": "Add body paragraphs explaining your interest and fit.",
+      "body_too_short": "Body is very short — aim for a few stronger paragraphs ({{min}}+ characters).",
+      "missing_signoff": "Add a closing and signature.",
+      "incomplete_signoff": "Sign-off is missing a closing or signature.",
+      "grammar_issue": "Writing issue found."
+    }
   }
 }

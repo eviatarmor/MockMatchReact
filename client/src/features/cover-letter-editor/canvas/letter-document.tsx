@@ -64,6 +64,7 @@ function DocumentHeader({ document, template, style, handlers }: Required<Pick<L
             template.id === "minimal" && "text-3xl font-semibold uppercase tracking-[0.2em]",
             template.id === "classic" && "text-center"
           )}
+          analysisTarget="sender:name"
         />
         <EditableText
           value={sender.title}
@@ -73,6 +74,7 @@ function DocumentHeader({ document, template, style, handlers }: Required<Pick<L
           className={cn("mt-1 text-base font-medium", style.accentText, template.id === "classic" && "text-center")}
           grammar={grammarOn}
           grammarLabels={grammarLabels}
+          analysisTarget="sender:title"
         />
 
         {contacts.length > 0 ? (
@@ -86,6 +88,7 @@ function DocumentHeader({ document, template, style, handlers }: Required<Pick<L
                     value={contact.value}
                     onChange={bind((v) => handlers?.setContact(contact.id, v))}
                     ariaLabel={contact.id}
+                    analysisTarget={`sender:contact:${contact.iconKey}`}
                   />
                 </li>
               )
@@ -101,6 +104,7 @@ function DocumentHeader({ document, template, style, handlers }: Required<Pick<L
         onChange={bind((v) => handlers?.setDate(v))}
         ariaLabel={t("fields.date")}
         className="mt-8 text-[15px] text-neutral-500"
+        analysisTarget="date"
       />
 
       {showRecipient ? (
@@ -113,6 +117,7 @@ function DocumentHeader({ document, template, style, handlers }: Required<Pick<L
             className="font-medium text-neutral-900"
             grammar={grammarOn}
             grammarLabels={grammarLabels}
+            analysisTarget="recipient:name"
           />
           <EditableText
             value={recipient.title ?? ""}
@@ -121,6 +126,7 @@ function DocumentHeader({ document, template, style, handlers }: Required<Pick<L
             ariaLabel={t("fields.recipientTitle")}
             grammar={grammarOn}
             grammarLabels={grammarLabels}
+            analysisTarget="recipient:title"
           />
           <EditableText
             value={recipient.company}
@@ -130,6 +136,7 @@ function DocumentHeader({ document, template, style, handlers }: Required<Pick<L
             className="font-medium text-neutral-900"
             grammar={grammarOn}
             grammarLabels={grammarLabels}
+            analysisTarget="recipient:company"
           />
           {addressLines?.map((line, index) => (
             <p key={`${index}-${line}`}>{line}</p>
