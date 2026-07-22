@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "thesvg": {
+      "source": "glincker/thesvg",
+      "sourceType": "github",
+      "skillPath": "skills/thesvg/SKILL.md",
+      "computedHash": "76af90f24cd8937175ded9bdb58ad25e9197dc774a4177f2f307b9b60230b55f"
+    },
     "writing-guidelines": {
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",
