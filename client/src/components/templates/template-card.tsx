@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { Loader2, Plus } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
@@ -26,6 +27,34 @@ function avatarColor(id: string) {
   return AVATAR_COLORS[index]
 }
 
+function TemplateAvatar({ template }: { readonly template: TemplateItem }) {
+  const [imgFailed, setImgFailed] = useState(false)
+  const showLogo = Boolean(template.logoUrl) && !imgFailed
+
+  if (showLogo && template.logoUrl) {
+    return (
+      <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/60 bg-white p-1.5 dark:bg-neutral-100">
+        <img
+          src={template.logoUrl}
+          alt=""
+          className="size-full object-contain"
+          loading="lazy"
+          decoding="async"
+          onError={() => setImgFailed(true)}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className={`flex size-9 shrink-0 items-center justify-center rounded-lg text-sm font-semibold select-none ${avatarColor(template.id)}`}
+    >
+      {template.avatarText}
+    </div>
+  )
+}
+
 export function TemplateCard({
   template,
   translationPrefix,
@@ -37,11 +66,7 @@ export function TemplateCard({
   return (
     <div className="flex flex-col gap-4 rounded-xl border bg-card p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
-        <div
-          className={`flex size-9 shrink-0 items-center justify-center rounded-lg text-sm font-semibold select-none ${avatarColor(template.id)}`}
-        >
-          {template.avatarText}
-        </div>
+        <TemplateAvatar template={template} />
         <Badge variant="outline">
           {t(`${translationPrefix}.categories.${template.category}`)}
         </Badge>

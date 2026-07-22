@@ -1,4 +1,5 @@
 import type { TemplateItem } from "@/components/templates/types"
+import { companyLogoUrl } from "@/lib/company-logos"
 import { STYLE, buildCoverLetterDocument, buildResumeDocument } from "./builders"
 import {
   industryEducation,
@@ -117,6 +118,7 @@ export function toTemplateItem(t: {
     company: t.company,
     description: t.description,
     avatarText: t.avatarText,
+    logoUrl: companyLogoUrl(t.company),
     category: t.category,
     country: t.country,
   }
