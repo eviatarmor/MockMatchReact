@@ -3,11 +3,12 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { TemplatesPanel } from "../right-rail/templates-panel"
 import { StylePanel } from "../right-rail/style-panel"
+import { GeneralAnalysisPanel } from "../right-rail/general-analysis-panel"
 import { AiPanel } from "../right-rail/ai-panel"
 import type { DocumentStyle } from "@/components/document-editor"
-import type { EditorTemplateId } from "../types"
+import type { EditorTemplateId, ResumeDocument } from "../types"
 
-export type CustomizePanel = "templates" | "style" | "ai"
+export type CustomizePanel = "templates" | "style" | "analysis" | "ai"
 
 interface MobileCustomizeSheetProps {
   readonly panel: CustomizePanel | null
@@ -16,10 +17,19 @@ interface MobileCustomizeSheetProps {
   readonly onTemplateChange: (id: EditorTemplateId) => void
   readonly style: DocumentStyle
   readonly onStyleChange: (patch: Partial<DocumentStyle>) => void
+  readonly document: ResumeDocument
 }
 
-/** Mobile customise sheet: shows a single panel (templates / style / ai). */
-export function MobileCustomizeSheet({ panel, onClose, activeTemplateId, onTemplateChange, style, onStyleChange }: MobileCustomizeSheetProps) {
+/** Mobile customise sheet: shows a single panel (templates / style / analysis / ai). */
+export function MobileCustomizeSheet({
+  panel,
+  onClose,
+  activeTemplateId,
+  onTemplateChange,
+  style,
+  onStyleChange,
+  document,
+}: MobileCustomizeSheetProps) {
   const { t } = useTranslation("resume-editor")
 
   return (
@@ -33,6 +43,7 @@ export function MobileCustomizeSheet({ panel, onClose, activeTemplateId, onTempl
           <div className="p-4">
             {panel === "templates" && <TemplatesPanel activeTemplateId={activeTemplateId} onSelect={onTemplateChange} />}
             {panel === "style" && <StylePanel style={style} onChange={onStyleChange} />}
+            {panel === "analysis" && <GeneralAnalysisPanel document={document} />}
             {panel === "ai" && <AiPanel />}
           </div>
         </ScrollArea>

@@ -2,6 +2,7 @@ import {
   LayoutTemplate,
   Palette,
   ListChecks,
+  ClipboardCheck,
   Sparkles,
   AlignLeft,
   Briefcase,
@@ -48,6 +49,7 @@ export const EDITOR_RAIL_ITEMS: readonly EditorRailItem[] = [
   { id: "templates", icon: LayoutTemplate, labelKey: "rail.templates" },
   { id: "style", icon: Palette, labelKey: "rail.style" },
   { id: "sections", icon: ListChecks, labelKey: "rail.sections" },
+  { id: "analysis", icon: ClipboardCheck, labelKey: "rail.analysis" },
   { id: "ai", icon: Sparkles, labelKey: "rail.ai" },
 ]
 

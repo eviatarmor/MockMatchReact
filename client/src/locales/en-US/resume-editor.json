@@ -25,6 +25,7 @@
     "templates": "Templates",
     "style": "Style",
     "sections": "Sections",
+    "analysis": "General analysis",
     "ai": "AI",
     "collapse": "Collapse panel"
   },
@@ -180,5 +181,55 @@
     },
     "promptPlaceholder": "Ask AI to edit your resume…",
     "send": "Send"
+  },
+  "analysis": {
+    "title": "General analysis",
+    "description": "Job-agnostic issues to fix on any application.",
+    "scoreLabel": "Resume health",
+    "status": {
+      "strong": "Looking solid",
+      "ok": "A few gaps",
+      "weak": "Needs work"
+    },
+    "severity": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "locations": {
+      "header": "Header",
+      "contact": "Contact",
+      "summary": "Summary",
+      "experience": "Experience",
+      "education": "Education",
+      "skills": "Skills",
+      "writing": "Writing"
+    },
+    "empty": "No issues found — nice work.",
+    "linting": "Checking writing…",
+    "issueCount_one": "{{count}} issue",
+    "issueCount_other": "{{count}} issues",
+    "findings": {
+      "missing_name": "Add your full name.",
+      "missing_email": "Add an email address.",
+      "missing_phone": "Add a phone number.",
+      "invalid_email": "Email address looks invalid.",
+      "invalid_phone": "Phone number looks incomplete.",
+      "missing_location": "Add a city or location.",
+      "missing_linkedin": "Add a LinkedIn or portfolio link.",
+      "missing_experience": "Add work experience.",
+      "missing_education": "Add education.",
+      "missing_skills": "Add a skills section.",
+      "missing_summary": "Add a professional summary.",
+      "summary_too_short": "Summary is very short — aim for a few stronger sentences.",
+      "empty_experience_bullets": "Describe impact for this role (add bullet points).",
+      "incomplete_experience_entry": "Experience entry is missing a role or company.",
+      "incomplete_experience_dates": "Experience entry is missing dates.",
+      "incomplete_education_entry": "Education entry is missing a degree or school.",
+      "thin_skills": "Only {{count}} skills listed — add more (aim for {{min}}+).",
+      "no_metrics_in_experience": "No numbers or metrics in experience bullets — quantify impact where you can.",
+      "grammar_issue": "Writing issue found."
+    }
   }
 }
