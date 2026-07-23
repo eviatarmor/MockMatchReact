@@ -26,7 +26,7 @@ export function DashboardNavbar({ rounded = false }: DashboardNavbarProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-20 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-6 text-foreground",
+        "sticky top-0 z-40 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-6 text-foreground",
         rounded && "rounded-t-xl"
       )}
     >

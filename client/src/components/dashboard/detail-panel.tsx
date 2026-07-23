@@ -1,8 +1,6 @@
 import { useMemo, useRef, useState, type ReactNode } from "react"
-import { cn } from "@/lib/utils"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { useMediaQuery } from "@/hooks/use-media-query"
 import {
   DetailPanelActionsContext,
   DetailPanelContentContext,
@@ -30,11 +28,10 @@ export function DetailPanelProvider({ children }: { readonly children: ReactNode
   )
 }
 
+/** Right-side overlay sheet for entity details (job cards, etc.). */
 export function DetailPanel() {
   const content = useDetailPanelContent()
   const { close } = useDetailPanel()
-  // below lg (1024px) → overlay sheet; lg+ → inline push-panel
-  const isCompact = useMediaQuery("(max-width: 1023px)")
   const isOpen = content !== null
   // Keep the last content mounted through the close/slide animation.
   const lastContent = useRef<ReactNode>(null)
@@ -42,31 +39,12 @@ export function DetailPanel() {
     lastContent.current = content
   }
 
-  // below lg : overlay sheet
-  if (isCompact) {
-    return (
-      <Sheet open={isOpen} onOpenChange={(next) => !next && close()}>
-        <SheetContent side="right" showCloseButton={false} className="w-full gap-0 p-0 sm:max-w-md">
-          <SheetTitle className="sr-only">Details</SheetTitle>
-          <ScrollArea className="h-full">{lastContent.current}</ScrollArea>
-        </SheetContent>
-      </Sheet>
-    )
-  }
-
-  // lg+ : inline push-panel that narrows the content area
   return (
-    <div
-      data-state={isOpen ? "open" : "closed"}
-      className={cn(
-        "sticky top-0 h-svh shrink-0 self-start overflow-hidden transition-[width,padding,opacity] duration-200 ease-in-out",
-        "w-0 opacity-0",
-        "data-[state=open]:w-[27rem] data-[state=open]:py-4 data-[state=open]:pr-4 data-[state=open]:opacity-100"
-      )}
-    >
-      <ScrollArea className="h-full w-full rounded-xl border bg-sidebar shadow-sm">
-        {lastContent.current}
-      </ScrollArea>
-    </div>
+    <Sheet open={isOpen} onOpenChange={(next) => !next && close()}>
+      <SheetContent side="right" showCloseButton={false} className="w-full gap-0 p-0 sm:max-w-md">
+        <SheetTitle className="sr-only">Details</SheetTitle>
+        <ScrollArea className="h-full">{lastContent.current}</ScrollArea>
+      </SheetContent>
+    </Sheet>
   )
 }

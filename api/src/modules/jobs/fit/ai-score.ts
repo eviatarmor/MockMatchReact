@@ -121,10 +121,18 @@ Rules: be strict; score 0-100 integers; skills max 4 labels from job needs vs pr
         score,
         tier: tierFromScore(score),
         fitNote: (item.fitNote ?? "AI match estimate.").slice(0, 140),
-        skills: (item.skills ?? []).slice(0, 4).map((s) => ({
-          label: s.label.slice(0, 80),
-          matched: Boolean(s.matched),
-        })),
+        skills: (item.skills ?? [])
+          .flatMap((s) =>
+            s.label
+              .split(/[,/&]/)
+              .map((part) => part.trim())
+              .filter(Boolean)
+              .map((label) => ({
+                label: label.slice(0, 80),
+                matched: Boolean(s.matched),
+              }))
+          )
+          .slice(0, 6),
         mode: "ai",
       }
     }

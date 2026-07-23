@@ -58,7 +58,13 @@ export function DiscoverJobCard({ job, onViewDetails }: DiscoverJobCardProps) {
           </div>
           <div className="flex flex-col gap-0.5">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-semibold text-foreground">{job.title}</span>
+              <button
+                type="button"
+                onClick={() => onViewDetails(job)}
+                className="cursor-pointer text-left text-sm font-semibold text-foreground transition-colors hover:text-primary"
+              >
+                {job.title}
+              </button>
               {job.isNew && (
                 <Badge variant="default">{t("discover.filters.new")}</Badge>
               )}

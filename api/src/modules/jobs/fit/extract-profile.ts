@@ -48,6 +48,14 @@ function uniquePush(list: string[], value: string, seen: Set<string>): void {
   list.push(value)
 }
 
+/** Split compound skill chips: "React, Node & TypeScript" / "Python/Django" → separate skills. */
+function expandSkillLabel(label: string): string[] {
+  return label
+    .split(/[,/&]/)
+    .map((part) => part.trim())
+    .filter(Boolean)
+}
+
 function parseBullets(raw: unknown): string[] {
   if (typeof raw === "string") {
     return raw
@@ -106,7 +114,9 @@ function extractFromDocument(doc: unknown): {
           typeof item === "object" && item && "text" in item
             ? asString((item as { text?: unknown }).text)
             : asString(item)
-        uniquePush(skills, label, skillSeen)
+        for (const part of expandSkillLabel(label)) {
+          uniquePush(skills, part, skillSeen)
+        }
       }
     }
     if (type === "summary") {
