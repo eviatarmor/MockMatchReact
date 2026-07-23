@@ -75,15 +75,50 @@ export interface CoverLetterDocument {
   readonly blocks: readonly LetterBlock[]
 }
 
-export type EditorTemplateId = "modern" | "classic" | "minimal" | "technical"
+export type EditorTemplateId =
+  | "modern"
+  | "classic"
+  | "minimal"
+  | "technical"
+  | "executive"
+  | "compact"
+  | "banner"
+  | "editorial"
+  | "elegant"
 
 /**
- * Visual template definition. Carries the layout identity (`id` drives header
- * centering / small-caps quirks) plus the {@link DocumentStyle} defaults it
- * seeds — the Style panel then overrides any axis on top.
+ * Header/structure treatment a template applies on top of the shared single-column
+ * body. Layouts stay ATS-safe (single text column) — they vary the header block
+ * and the name/contact placement only.
+ * - `standard`   — left-aligned name over an accent rule (Modern).
+ * - `centered`   — centered name + contacts, serif rules (Classic).
+ * - `caps`       — airy uppercase name, no rules (Minimal).
+ * - `grid`       — tight mono header, plain rules (Technical).
+ * - `executive`  — large name, contacts under a heavy rule.
+ * - `compact`    — dense header, plain separator.
+ * - `banner`     — full-width accent color band behind the name/title.
+ * - `editorial`  — oversized serif name with a thin accent underline.
+ * - `elegant`    — centered small-caps name with an accent hairline frame.
+ */
+export type TemplateLayoutId =
+  | "standard"
+  | "centered"
+  | "caps"
+  | "grid"
+  | "executive"
+  | "compact"
+  | "banner"
+  | "editorial"
+  | "elegant"
+
+/**
+ * Visual template definition. Carries the {@link TemplateLayoutId} that drives the
+ * header/structure treatment plus the {@link DocumentStyle} defaults it seeds —
+ * the Style panel then overrides any style axis on top.
  */
 export interface EditorTemplate {
   readonly id: EditorTemplateId
+  readonly layout: TemplateLayoutId
   readonly nameKey: string
   readonly descriptionKey: string
   /** Style axes this template seeds (accent/typeface/heading/density). */

@@ -23,7 +23,13 @@ interface EntityRowActionsProps {
   /** i18n prefix for rowActions + deleteConfirm, e.g. "resumeLab.table" */
   readonly translationPrefix: string
   readonly entityTitle: string
+  /** Opens the editor (Edit action). */
   readonly onOpen: () => void
+  /**
+   * Opens a read-only preview (Preview action). Falls back to {@link onOpen}
+   * when omitted so callers without a dedicated preview still work.
+   */
+  readonly onPreview?: () => void
   readonly onDelete: () => void
   readonly onExport?: () => void
   readonly onDuplicate?: () => void
@@ -41,6 +47,7 @@ export function EntityRowActions({
   translationPrefix,
   entityTitle,
   onOpen,
+  onPreview,
   onDelete,
   onExport,
   onDuplicate,
@@ -70,7 +77,7 @@ export function EntityRowActions({
           <MoreHorizontal className="size-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem className="cursor-pointer" onClick={onOpen}>
+          <DropdownMenuItem className="cursor-pointer" onClick={onPreview ?? onOpen}>
             <Eye />
             {t(key("rowActions.preview"))}
           </DropdownMenuItem>

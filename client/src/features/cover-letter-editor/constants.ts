@@ -23,27 +23,66 @@ export const EDITOR_RAIL_ITEMS: readonly EditorRailItem[] = [
 export const EDITOR_TEMPLATES: readonly EditorTemplate[] = [
   {
     id: "modern",
+    layout: "standard",
     nameKey: "templates.items.modern.name",
     descriptionKey: "templates.items.modern.description",
     defaultStyle: { accent: "blue", typeface: "geist", heading: "accent", density: "normal" },
   },
   {
     id: "classic",
+    layout: "centered",
     nameKey: "templates.items.classic.name",
     descriptionKey: "templates.items.classic.description",
     defaultStyle: { accent: "slate", typeface: "source-serif", heading: "underline", density: "normal" },
   },
   {
     id: "minimal",
+    layout: "caps",
     nameKey: "templates.items.minimal.name",
     descriptionKey: "templates.items.minimal.description",
     defaultStyle: { accent: "slate", typeface: "geist", heading: "small-caps", density: "relaxed" },
   },
   {
     id: "technical",
+    layout: "grid",
     nameKey: "templates.items.technical.name",
     descriptionKey: "templates.items.technical.description",
     defaultStyle: { accent: "teal", typeface: "mono", heading: "plain", density: "compact" },
+  },
+  {
+    id: "executive",
+    layout: "executive",
+    nameKey: "templates.items.executive.name",
+    descriptionKey: "templates.items.executive.description",
+    defaultStyle: { accent: "slate", typeface: "newsreader", heading: "underline", density: "normal" },
+  },
+  {
+    id: "compact",
+    layout: "compact",
+    nameKey: "templates.items.compact.name",
+    descriptionKey: "templates.items.compact.description",
+    defaultStyle: { accent: "indigo", typeface: "geist", heading: "plain", density: "compact" },
+  },
+  {
+    id: "banner",
+    layout: "banner",
+    nameKey: "templates.items.banner.name",
+    descriptionKey: "templates.items.banner.description",
+    defaultStyle: { accent: "blue", typeface: "geist", heading: "accent", density: "normal" },
+  },
+  {
+    id: "editorial",
+    layout: "editorial",
+    nameKey: "templates.items.editorial.name",
+    descriptionKey: "templates.items.editorial.description",
+    defaultStyle: { accent: "rose", typeface: "newsreader", heading: "plain", density: "relaxed" },
+  },
+  {
+    id: "elegant",
+    layout: "elegant",
+    nameKey: "templates.items.elegant.name",
+    descriptionKey: "templates.items.elegant.description",
+    defaultStyle: { accent: "purple", typeface: "source-serif", heading: "small-caps", density: "relaxed" },
   },
 ]
 

@@ -1,5 +1,7 @@
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { EntityTable, type EntityTableColumn } from "@/components/data/entity-table"
+import { ResumePreviewDialog } from "./resume-preview-dialog"
 import { ResumeTableRow } from "./resume-table-row"
 import type { ResumeItem } from "../types"
 
@@ -23,6 +25,7 @@ export function ResumeTable({
   duplicatingId,
 }: ResumeTableProps) {
   const { t } = useTranslation("common")
+  const [preview, setPreview] = useState<{ id: string; title: string } | null>(null)
 
   const columns: EntityTableColumn[] = [
     { key: "resume", label: t("resumeLab.table.columns.resume") },
@@ -33,19 +36,31 @@ export function ResumeTable({
   ]
 
   return (
-    <EntityTable columns={columns} isEmpty={false} emptyMessage="">
-      {resumes.map((resume) => (
-        <ResumeTableRow
-          key={resume.id}
-          resume={resume}
-          onDelete={() => onDelete(resume)}
-          onExport={() => onExport(resume)}
-          onDuplicate={() => onDuplicate(resume)}
-          isDeleting={deletingId === resume.id}
-          isExporting={exportingId === resume.id}
-          isDuplicating={duplicatingId === resume.id}
-        />
-      ))}
-    </EntityTable>
+    <>
+      <EntityTable columns={columns} isEmpty={false} emptyMessage="">
+        {resumes.map((resume) => (
+          <ResumeTableRow
+            key={resume.id}
+            resume={resume}
+            onDelete={() => onDelete(resume)}
+            onExport={() => onExport(resume)}
+            onDuplicate={() => onDuplicate(resume)}
+            onPreview={() => setPreview({ id: resume.id, title: resume.title })}
+            isDeleting={deletingId === resume.id}
+            isExporting={exportingId === resume.id}
+            isDuplicating={duplicatingId === resume.id}
+          />
+        ))}
+      </EntityTable>
+
+      <ResumePreviewDialog
+        resumeId={preview?.id ?? null}
+        title={preview?.title ?? ""}
+        open={preview !== null}
+        onOpenChange={(open) => {
+          if (!open) setPreview(null)
+        }}
+      />
+    </>
   )
 }

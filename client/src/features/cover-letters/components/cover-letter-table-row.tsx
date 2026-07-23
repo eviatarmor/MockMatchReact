@@ -11,6 +11,7 @@ interface CoverLetterTableRowProps {
   readonly onDelete: () => void
   readonly onExport: () => void
   readonly onDuplicate: () => void
+  readonly onPreview: () => void
   readonly isDeleting?: boolean
   readonly isExporting?: boolean
   readonly isDuplicating?: boolean
@@ -21,6 +22,7 @@ export function CoverLetterTableRow({
   onDelete,
   onExport,
   onDuplicate,
+  onPreview,
   isDeleting,
   isExporting,
   isDuplicating,
@@ -65,6 +67,7 @@ export function CoverLetterTableRow({
           translationPrefix="coverLetters.table"
           entityTitle={coverLetter.title}
           onOpen={openEditor}
+          onPreview={onPreview}
           onDelete={onDelete}
           onExport={onExport}
           onDuplicate={onDuplicate}

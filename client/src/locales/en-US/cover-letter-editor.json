@@ -36,7 +36,12 @@
       "modern": { "name": "Modern", "description": "Bold name, accent headings" },
       "classic": { "name": "Classic", "description": "Centered, serif, rule lines" },
       "minimal": { "name": "Minimal", "description": "Airy, small caps, no rules" },
-      "technical": { "name": "Technical", "description": "Mono accents, tight grid" }
+      "technical": { "name": "Technical", "description": "Mono accents, tight grid" },
+      "executive": { "name": "Executive", "description": "Large serif name, bold rule" },
+      "compact": { "name": "Compact", "description": "Dense, plain headings" },
+      "banner": { "name": "Banner", "description": "Accent color header band" },
+      "editorial": { "name": "Editorial", "description": "Oversized name, airy" },
+      "elegant": { "name": "Elegant", "description": "Centered small caps, serif" }
     }
   },
   "style": {

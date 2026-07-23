@@ -12,6 +12,7 @@ interface ResumeTableRowProps {
   readonly onDelete: () => void
   readonly onExport: () => void
   readonly onDuplicate: () => void
+  readonly onPreview: () => void
   readonly isDeleting?: boolean
   readonly isExporting?: boolean
   readonly isDuplicating?: boolean
@@ -22,6 +23,7 @@ export function ResumeTableRow({
   onDelete,
   onExport,
   onDuplicate,
+  onPreview,
   isDeleting,
   isExporting,
   isDuplicating,
@@ -67,6 +69,7 @@ export function ResumeTableRow({
           translationPrefix="resumeLab.table"
           entityTitle={resume.title}
           onOpen={openEditor}
+          onPreview={onPreview}
           onDelete={onDelete}
           onExport={onExport}
           onDuplicate={onDuplicate}

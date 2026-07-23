@@ -111,6 +111,9 @@
         "duplicate": "Duplicate",
         "delete": "Delete"
       },
+      "preview": {
+        "description": "Print layout preview of this resume."
+      },
       "empty": "No resumes found",
       "emptyTitle": "No resumes yet",
       "emptyDescription": "Create your first resume to start tailoring for roles and tracking ATS readiness.",
@@ -273,6 +276,9 @@
         "export": "Export",
         "duplicate": "Duplicate",
         "delete": "Delete"
+      },
+      "preview": {
+        "description": "Print layout preview of this cover letter."
       },
       "empty": "No cover letters found",
       "emptyTitle": "No cover letters yet",

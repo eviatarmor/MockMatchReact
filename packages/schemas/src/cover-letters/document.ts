@@ -52,6 +52,11 @@ export const coverLetterTemplateIdSchema = z.enum([
   "classic",
   "minimal",
   "technical",
+  "executive",
+  "compact",
+  "banner",
+  "editorial",
+  "elegant",
 ])
 
 export const coverLetterStatusSchema = documentStatusSchema
