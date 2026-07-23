@@ -75,6 +75,45 @@ function stripJsonFences(raw: string): string {
   return fenced?.[1]?.trim() ?? trimmed
 }
 
+/** Pull outer `{...}` when model adds prose before/after JSON. */
+function extractJsonObject(raw: string): string {
+  const stripped = stripJsonFences(raw)
+  const start = stripped.indexOf("{")
+  const end = stripped.lastIndexOf("}")
+  if (start === -1 || end <= start) return stripped
+  return stripped.slice(start, end + 1)
+}
+
+/** Common model JSON nits: trailing commas, smart quotes. */
+function repairJsonLoose(text: string): string {
+  return text
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/,\s*([}\]])/g, "$1")
+}
+
+/**
+ * Parse model output as JSON with light recovery.
+ * Full resumes often produce large payloads — models truncate or leak fences.
+ */
+function parseModelJson(raw: string): unknown {
+  const candidates = [
+    stripJsonFences(raw),
+    extractJsonObject(raw),
+    repairJsonLoose(extractJsonObject(raw)),
+  ]
+  let lastError: unknown
+  for (const candidate of candidates) {
+    if (!candidate.trim()) continue
+    try {
+      return JSON.parse(candidate) as unknown
+    } catch (error) {
+      lastError = error
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("JSON parse failed")
+}
+
 function ensureId(value: unknown): string {
   return typeof value === "string" && value.length > 0 ? value : randomUUID()
 }
@@ -362,7 +401,10 @@ Rules:
 - Use empty string for unknown optional text fields — never omit required keys.
 - Preserve facts from the source; do not invent employers or degrees.
 - Prefer experience, education, skills, summary when present.
-- iconKey: mail for emails, phone for phones, mapPin for locations, globe for websites, link for LinkedIn/GitHub/etc.`
+- iconKey: mail for emails, phone for phones, mapPin for locations, globe for websites, link for LinkedIn/GitHub/etc.
+- Valid JSON only: double-quoted keys/strings, no trailing commas, escape quotes inside strings.
+- Keep HTML simple; avoid unescaped control characters. Merge spaced-out letters in names (e.g. "J O H N" → "JOHN").
+- Stay concise: omit empty sections; bullets max ~6 per entry.`
 
 const COVER_LETTER_SYSTEM = `You convert cover letter plain text into a single JSON object for MockMatch.
 
@@ -400,12 +442,21 @@ Rules:
 - Preserve the letter content; do not invent company names if missing (use "").
 - Split body into greeting, one or more paragraphs, and signoff when possible.`
 
+/** Cap extracted PDF text so prompt stays bounded (model still sees full core content). */
+const IMPORT_TEXT_MAX_CHARS = 40_000
+/** Resume JSON with HTML bullets can be large — avoid mid-object cutoff. */
+const IMPORT_MAX_TOKENS = 16_384
+
 async function callImportModel(input: {
   system: string
   userText: string
 }): Promise<unknown> {
   requireOpenRouterKey()
   const openRouter = getOpenRouter()
+  const userText =
+    input.userText.length > IMPORT_TEXT_MAX_CHARS
+      ? `${input.userText.slice(0, IMPORT_TEXT_MAX_CHARS)}\n\n[...truncated...]`
+      : input.userText
 
   let result: Awaited<ReturnType<typeof openRouter.chat.send>>
   try {
@@ -414,12 +465,14 @@ async function callImportModel(input: {
         model: env.OPENROUTER_IMPORT_MODEL,
         temperature: 0.1,
         stream: false,
+        maxTokens: IMPORT_MAX_TOKENS,
         responseFormat: { type: "json_object" },
+        plugins: [{ id: "response-healing", enabled: true }],
         messages: [
           { role: "system", content: input.system },
           {
             role: "user",
-            content: `Source document text:\n\n---\n${input.userText}\n---\n\nConvert to the required JSON object.`,
+            content: `Source document text:\n\n---\n${userText}\n---\n\nConvert to the required JSON object.`,
           },
         ],
       },
@@ -434,9 +487,13 @@ async function callImportModel(input: {
 
   // SDK returns ChatResult when stream:false
   const chat = result as {
-    choices?: Array<{ message?: { content?: string | null | Array<unknown> } }>
+    choices?: Array<{
+      finishReason?: string | null
+      message?: { content?: string | null | Array<unknown> }
+    }>
   }
-  const content = chat.choices?.[0]?.message?.content
+  const choice = chat.choices?.[0]
+  const content = choice?.message?.content
   const raw =
     typeof content === "string"
       ? content
@@ -458,12 +515,24 @@ async function callImportModel(input: {
   }
 
   try {
-    return JSON.parse(stripJsonFences(raw)) as unknown
-  } catch {
-    logger.warn({ preview: raw.slice(0, 400) }, "document_import_json_parse_failed")
+    return parseModelJson(raw)
+  } catch (error) {
+    logger.warn(
+      {
+        preview: raw.slice(0, 400),
+        tail: raw.slice(-200),
+        length: raw.length,
+        finishReason: choice?.finishReason ?? null,
+        parseError: error instanceof Error ? error.message : String(error),
+      },
+      "document_import_json_parse_failed"
+    )
     throw new TRPCError({
       code: "BAD_GATEWAY",
-      message: "AI returned invalid JSON. Try a cleaner PDF.",
+      message:
+        choice?.finishReason === "length"
+          ? "AI response was truncated. Try a shorter PDF or another model."
+          : "AI returned invalid JSON. Try a cleaner PDF.",
     })
   }
 }

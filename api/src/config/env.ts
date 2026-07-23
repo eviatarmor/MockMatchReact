@@ -34,12 +34,12 @@ const envSchema = z
     OPENROUTER_API_KEY: z.string().optional().default(""),
     /**
      * Cheap OpenRouter model for PDF → structured JSON import.
-     * Default: Google Gemini 2.0 Flash Lite (low cost, solid extraction).
+     * Default: Gemini 2.5 Flash (still cheap; more reliable JSON than lite).
      */
     OPENROUTER_IMPORT_MODEL: z
       .string()
       .min(1)
-      .default("google/gemini-2.0-flash-lite-001"),
+      .default("google/gemini-2.5-flash"),
     AWS_REGION: z.string().default("us-east-1"),
     AWS_S3_BUCKET: z.string().optional().default(""),
     AWS_ACCESS_KEY_ID: z.string().optional().default(""),
@@ -81,7 +81,7 @@ const envSchema = z
     OPENROUTER_FIT_MODEL: z
       .string()
       .min(1)
-      .default("google/gemini-2.0-flash-lite-001"),
+      .default("google/gemini-2.5-flash-lite"),
     /** Credits charged per uncached AI-scored job. */
     JOB_FIT_AI_CREDIT_COST: z.coerce.number().int().positive().default(1),
   })
