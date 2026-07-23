@@ -101,6 +101,7 @@ function UsageBody({
     { id: "mockInterviews" as const, used: credits.breakdown.mockInterviews },
     { id: "resumeScans" as const, used: credits.breakdown.resumeScans },
     { id: "coverLetters" as const, used: credits.breakdown.coverLetters },
+    { id: "jobFits" as const, used: credits.breakdown.jobFits ?? 0 },
   ]
 
   return (

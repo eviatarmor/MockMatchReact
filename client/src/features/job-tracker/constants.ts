@@ -1,4 +1,10 @@
-import type { DiscoverJob, EmploymentType, MatchTier, TrackedJob, TrackingStatus } from "./types"
+import type {
+  EmploymentType,
+  MatchTier,
+  PostedWithinDays,
+  TrackedJob,
+  TrackingStatus,
+} from "./types"
 
 export const MATCH_TIER_TEXT_CLASS: Record<MatchTier, string> = {
   strong: "text-emerald-600",
@@ -6,7 +12,7 @@ export const MATCH_TIER_TEXT_CLASS: Record<MatchTier, string> = {
   fair: "text-amber-600",
 }
 
-export const SALARY_FILTER_OPTIONS: number[] = [0, 120000, 150000, 180000, 200000]
+export const SALARY_FILTER_OPTIONS: number[] = [0, 60_000, 80_000, 100_000, 120_000, 150_000, 180_000, 200_000]
 
 export const EMPLOYMENT_TYPE_OPTIONS: EmploymentType[] = [
   "fullTime",
@@ -15,75 +21,7 @@ export const EMPLOYMENT_TYPE_OPTIONS: EmploymentType[] = [
   "internship",
 ]
 
-export const MOCK_DISCOVER_JOBS: DiscoverJob[] = [
-  {
-    id: "d1",
-    title: "Staff Product Designer",
-    company: "Northwind",
-    avatarText: "N",
-    avatarColorClass: "bg-blue-600 text-white",
-    isNew: true,
-    location: "Remote (US)",
-    remoteType: "remote",
-    salaryRange: "$185K – $215K",
-    seniority: "staff",
-    employmentType: "fullTime",
-    postedAt: "2d ago",
-    matchScore: 96,
-    matchTier: "strong",
-    fitNote: "You led a 60-component design system — exactly what this team is hiring to scale.",
-    skills: [
-      { label: "Design systems", matched: true },
-      { label: "B2B / SaaS", matched: true },
-      { label: "Product strategy", matched: true },
-    ],
-  },
-  {
-    id: "d2",
-    title: "Senior Product Designer, Growth",
-    company: "Acme",
-    avatarText: "A",
-    avatarColorClass: "bg-emerald-600 text-white",
-    isNew: true,
-    location: "San Francisco · Hybrid",
-    remoteType: "hybrid",
-    salaryRange: "$170K – $195K",
-    seniority: "senior",
-    employmentType: "fullTime",
-    postedAt: "1d ago",
-    matchScore: 92,
-    matchTier: "strong",
-    fitNote: "Your activation-lift work maps to their growth charter; brush up on A/B tooling.",
-    skills: [
-      { label: "Prototyping", matched: true },
-      { label: "User research", matched: true },
-      { label: "Data viz", matched: true },
-      { label: "Experimentation", matched: false },
-    ],
-  },
-  {
-    id: "d3",
-    title: "Design Lead, Platform",
-    company: "Globex",
-    avatarText: "G",
-    avatarColorClass: "bg-emerald-700 text-white",
-    isNew: false,
-    location: "New York · Hybrid",
-    remoteType: "hybrid",
-    salaryRange: "$190K – $220K",
-    seniority: "lead",
-    employmentType: "contract",
-    postedAt: "4d ago",
-    matchScore: 88,
-    matchTier: "good",
-    fitNote: "Strong systems overlap; the role adds direct reports beyond your current scope.",
-    skills: [
-      { label: "Design systems", matched: true },
-      { label: "Team leadership", matched: true },
-      { label: "Cross-platform", matched: true },
-    ],
-  },
-]
+export const POSTED_WITHIN_OPTIONS: PostedWithinDays[] = [0, 1, 7, 30]
 
 export const TRACKING_STATUS_ORDER: TrackingStatus[] = ["saved", "applied", "interviewing", "offer"]
 

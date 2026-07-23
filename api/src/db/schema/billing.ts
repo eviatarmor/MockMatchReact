@@ -16,6 +16,7 @@ export const DEFAULT_CREDIT_BREAKDOWN: CreditBreakdownJson = {
   mockInterviews: 0,
   resumeScans: 0,
   coverLetters: 0,
+  jobFits: 0,
 }
 
 export const creditAccounts = pgTable("credit_accounts", {

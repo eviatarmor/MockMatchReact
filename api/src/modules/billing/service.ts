@@ -80,12 +80,18 @@ export async function getBillingSummary(
     where: eq(creditAccounts.userId, userId),
   })
 
+  const breakdown = {
+    ...DEFAULT_CREDIT_BREAKDOWN,
+    ...(credits?.breakdown ?? {}),
+    jobFits: credits?.breakdown?.jobFits ?? 0,
+  }
+
   return {
     plan: "free",
     credits: {
       total: credits?.total ?? 0,
       used: credits?.used ?? 0,
-      breakdown: credits?.breakdown ?? DEFAULT_CREDIT_BREAKDOWN,
+      breakdown,
     },
     card: {
       brand: user.cardBrand,

@@ -333,12 +333,32 @@
   "discover": {
     "documentTitle": "Discover — MockMatch",
     "title": "Discover",
-    "description": "Discover roles matched to you",
+    "description": "Search live openings by role, location, and filters — tuned to your region.",
+    "loading": "Loading jobs…",
+    "endOfList": "Showing all {{total}} jobs",
+    "fit": {
+      "basic": "Basic match",
+      "ai": "AI + skills",
+      "creditsEmptyTitle": "AI match credits used up",
+      "creditsEmptyDescription": "Showing basic skill match. Top up credits in Billing for AI scoring."
+    },
     "filters": {
       "remote": "Remote",
       "new": "New",
       "salary": "Salary",
-      "employment": "Job type"
+      "employment": "Job type",
+      "location": "Location",
+      "locationPlaceholder": "City or region",
+      "useMyLocation": "Use my location",
+      "posted": "Posted",
+      "postedAny": "Any time",
+      "posted1d": "Last 24h",
+      "posted7d": "Last 7 days",
+      "posted30d": "Last 30 days"
+    },
+    "remoteTypes": {
+      "hybrid": "Hybrid",
+      "onsite": "On-site"
     },
     "employmentTypes": {
       "fullTime": "Full-time",
@@ -362,9 +382,10 @@
       "level": "Level",
       "location": "Location",
       "posted": "Posted",
+      "description": "Description",
       "tailorDocs": "Tailor docs",
       "applyNow": "Apply now",
-      "applyHint": "Generate a resume & cover letter optimized for this posting, then apply in one step.",
+      "applyHint": "Open the original posting to apply, or tailor docs for this role.",
       "whyYouMatch": "Why you match",
       "inResume": "— in your resume",
       "considerAdding": "— consider adding",
@@ -395,6 +416,16 @@
       "viewDetails": "View details",
       "notInterested": "Not interested",
       "dismiss": "Dismiss"
+    },
+    "empty": {
+      "noResultsTitle": "No jobs match these filters",
+      "noResultsDescription": "Try broader keywords, clear salary filters (many listings omit pay), or expand location.",
+      "clearFilters": "Clear filters",
+      "errorTitle": "Could not load jobs",
+      "errorDescription": "Something went wrong talking to the job provider. Try again.",
+      "retry": "Retry",
+      "notConfiguredTitle": "Job search not configured",
+      "notConfiguredDescription": "Set ADZUNA_APP_ID and ADZUNA_APP_KEY in the API env (free keys at developer.adzuna.com), then restart the API."
     },
     "matchSuffix": "match"
   },

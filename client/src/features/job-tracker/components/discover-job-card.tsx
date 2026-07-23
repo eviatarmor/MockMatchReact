@@ -1,8 +1,22 @@
-import { Sparkles, MapPin, DollarSign, Briefcase, Clock, Bookmark, MoreHorizontal, Send, Wand2, ArrowUpRight, X } from "lucide-react"
+import {
+  Sparkles,
+  MapPin,
+  DollarSign,
+  Briefcase,
+  Clock,
+  Bookmark,
+  MoreHorizontal,
+  Send,
+  Wand2,
+  ArrowUpRight,
+  X,
+  ExternalLink,
+} from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +35,14 @@ interface DiscoverJobCardProps {
 
 export function DiscoverJobCard({ job, onViewDetails }: DiscoverJobCardProps) {
   const { t } = useTranslation("common")
+  const hasMatch = job.matchScore != null && job.matchTier != null
+  const employmentLabel =
+    job.employmentType === "unknown"
+      ? null
+      : t(`discover.employmentTypes.${job.employmentType}`)
+  const seniorityLabel =
+    job.seniority === "unknown" ? null : job.seniority
+  const levelLine = [seniorityLabel, employmentLabel].filter(Boolean).join(" · ")
 
   return (
     <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 shadow-sm transition-colors hover:border-primary">
@@ -35,10 +57,16 @@ export function DiscoverJobCard({ job, onViewDetails }: DiscoverJobCardProps) {
             {job.avatarText}
           </div>
           <div className="flex flex-col gap-0.5">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-semibold text-foreground">{job.title}</span>
               {job.isNew && (
-                <Badge variant="default">{t("jobTracker.filters.new")}</Badge>
+                <Badge variant="default">{t("discover.filters.new")}</Badge>
+              )}
+              {job.remoteType === "remote" && (
+                <Badge variant="secondary">{t("discover.filters.remote")}</Badge>
+              )}
+              {job.remoteType === "hybrid" && (
+                <Badge variant="outline">{t("discover.remoteTypes.hybrid")}</Badge>
               )}
             </div>
             <span className="text-sm text-muted-foreground">{job.company}</span>
@@ -51,10 +79,12 @@ export function DiscoverJobCard({ job, onViewDetails }: DiscoverJobCardProps) {
                 <DollarSign className="size-3.5" />
                 {job.salaryRange}
               </span>
-              <span className="flex items-center gap-1 capitalize">
-                <Briefcase className="size-3.5" />
-                {job.seniority} · {t(`jobTracker.employmentTypes.${job.employmentType}`)}
-              </span>
+              {levelLine && (
+                <span className="flex items-center gap-1 capitalize">
+                  <Briefcase className="size-3.5" />
+                  {levelLine}
+                </span>
+              )}
               <span className="flex items-center gap-1">
                 <Clock className="size-3.5" />
                 {job.postedAt}
@@ -63,24 +93,49 @@ export function DiscoverJobCard({ job, onViewDetails }: DiscoverJobCardProps) {
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-col items-center gap-1">
-          <MatchScoreRing score={job.matchScore} tier={job.matchTier} />
-          <span className={cn("text-[11px] font-medium whitespace-nowrap", MATCH_TIER_TEXT_CLASS[job.matchTier])}>
-            {t(`jobTracker.matchTiers.${job.matchTier}`)}
-          </span>
-        </div>
+        {job.scorePending && !hasMatch && (
+          <div className="flex shrink-0 flex-col items-center gap-1.5">
+            <Skeleton className="size-14 rounded-full" />
+            <Skeleton className="h-2.5 w-14" />
+          </div>
+        )}
+        {hasMatch && (
+          <div className="flex shrink-0 flex-col items-center gap-1">
+            <MatchScoreRing score={job.matchScore!} tier={job.matchTier!} />
+            <span
+              className={cn(
+                "text-[11px] font-medium whitespace-nowrap",
+                MATCH_TIER_TEXT_CLASS[job.matchTier!]
+              )}
+            >
+              {t(`discover.matchTiers.${job.matchTier}`)}
+            </span>
+            {job.scoreMode === "heuristic" && (
+              <span className="text-[10px] text-muted-foreground">
+                {t("discover.fit.basic")}
+              </span>
+            )}
+            {job.scoreMode === "ai" && (
+              <span className="text-[10px] text-muted-foreground">
+                {t("discover.fit.ai")}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-between gap-4">
-        <div className="flex flex-1 items-start gap-2 rounded-lg bg-primary/5 px-3 py-2 text-sm text-muted-foreground">
-          <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" />
-          <span>{job.fitNote}</span>
-        </div>
+        {(job.fitNote || job.category) && (
+          <div className="flex flex-1 items-start gap-2 rounded-lg bg-primary/5 px-3 py-2 text-sm text-muted-foreground">
+            <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" />
+            <span>{job.fitNote ?? job.category}</span>
+          </div>
+        )}
 
         <div className="flex shrink-0 items-center gap-1.5">
           <Button size="sm" className="h-8 gap-1.5 cursor-pointer">
             <Bookmark className="size-4" />
-            {t("jobTracker.actions.track")}
+            {t("discover.actions.track")}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger
@@ -89,39 +144,51 @@ export function DiscoverJobCard({ job, onViewDetails }: DiscoverJobCardProps) {
               <MoreHorizontal className="size-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-44">
-              <DropdownMenuItem className="cursor-pointer">
-                <Send className="size-4" />
-                {t("jobTracker.actions.applyToRole")}
-              </DropdownMenuItem>
+              {job.applyUrl ? (
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  onClick={() => window.open(job.applyUrl, "_blank", "noopener,noreferrer")}
+                >
+                  <ExternalLink className="size-4" />
+                  {t("discover.actions.applyToRole")}
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem className="cursor-pointer">
+                  <Send className="size-4" />
+                  {t("discover.actions.applyToRole")}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem className="cursor-pointer">
                 <Wand2 className="size-4" />
-                {t("jobTracker.actions.tailorResume")}
+                {t("discover.actions.tailorResume")}
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer" onClick={() => onViewDetails(job)}>
                 <ArrowUpRight className="size-4" />
-                {t("jobTracker.actions.viewDetails")}
+                {t("discover.actions.viewDetails")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" className="cursor-pointer">
                 <X className="size-4" />
-                {t("jobTracker.actions.notInterested")}
+                {t("discover.actions.notInterested")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-1.5">
-        {job.skills.map((skill) => (
-          <Badge
-            key={skill.label}
-            variant={skill.matched ? "secondary" : "outline"}
-          >
-            {skill.matched ? "✓ " : "− "}
-            {skill.label}
-          </Badge>
-        ))}
-      </div>
+      {job.skills && job.skills.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {job.skills.map((skill) => (
+            <Badge
+              key={skill.label}
+              variant={skill.matched ? "secondary" : "outline"}
+            >
+              {skill.matched ? "✓ " : "− "}
+              {skill.label}
+            </Badge>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

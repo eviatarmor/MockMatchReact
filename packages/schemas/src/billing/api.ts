@@ -10,6 +10,8 @@ export const creditBreakdownSchema = z.object({
   mockInterviews: z.number().int().nonnegative(),
   resumeScans: z.number().int().nonnegative(),
   coverLetters: z.number().int().nonnegative(),
+  /** AI job-fit scores on Discover (paid only). */
+  jobFits: z.number().int().nonnegative().default(0),
 })
 
 export const creditUsageSchema = z.object({

@@ -27,7 +27,8 @@
     "breakdown": {
       "mockInterviews": "Mock interviews",
       "resumeScans": "Resume scans",
-      "coverLetters": "Cover letters"
+      "coverLetters": "Cover letters",
+      "jobFits": "Job fit scores"
     },
     "packsHeading": "Credit packs",
     "packCredits": "{{count}} credits",

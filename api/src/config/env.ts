@@ -66,6 +66,24 @@ const envSchema = z
     PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH: z.string().optional().default(""),
     /** Headless print page wait + PDF timeout (ms). */
     PDF_EXPORT_TIMEOUT_MS: z.coerce.number().int().positive().default(30_000),
+    /**
+     * Adzuna job search (optional). Empty → jobs.search returns not-configured.
+     * Register free keys at https://developer.adzuna.com/
+     */
+    ADZUNA_APP_ID: z.string().optional().default(""),
+    ADZUNA_APP_KEY: z.string().optional().default(""),
+    /** Redis TTL for cached job search results (seconds). */
+    JOBS_CACHE_TTL_SECONDS: z.coerce.number().int().positive().default(600),
+    /**
+     * Cheap OpenRouter model for Discover AI job-fit (paid credits only).
+     * Free users never call this path.
+     */
+    OPENROUTER_FIT_MODEL: z
+      .string()
+      .min(1)
+      .default("google/gemini-2.0-flash-lite-001"),
+    /** Credits charged per uncached AI-scored job. */
+    JOB_FIT_AI_CREDIT_COST: z.coerce.number().int().positive().default(1),
   })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV === "production" && data.OTP_STUB_CODE !== "") {

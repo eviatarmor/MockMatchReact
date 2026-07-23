@@ -11,4 +11,5 @@ export const BREAKDOWN_LABEL_KEYS = {
   mockInterviews: "usage.breakdown.mockInterviews",
   resumeScans: "usage.breakdown.resumeScans",
   coverLetters: "usage.breakdown.coverLetters",
+  jobFits: "usage.breakdown.jobFits",
 } as const

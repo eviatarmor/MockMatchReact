@@ -7,6 +7,8 @@ interface EntityEmptyStateAction {
   readonly onClick: () => void
   readonly pending?: boolean
   readonly icon?: LucideIcon
+  /** Default: primary (create CTAs). Use outline for clear/retry. */
+  readonly variant?: "default" | "outline"
 }
 
 interface EntityEmptyStateProps {
@@ -18,7 +20,7 @@ interface EntityEmptyStateProps {
 }
 
 /**
- * Bordered empty card for list/table surfaces (resumes, cover letters, …).
+ * Dashed empty card for list/table surfaces (resumes, cover letters, discover, …).
  * Prefer this over an empty table body when there is nothing to show.
  */
 export function EntityEmptyState({
@@ -31,12 +33,10 @@ export function EntityEmptyState({
   const ActionIcon = action?.icon
 
   return (
-    <div className="flex w-full flex-col items-center justify-center gap-3 rounded-xl border bg-card px-6 py-12 text-center shadow-sm">
-      <div className="flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-        <Icon className="size-6" aria-hidden />
-      </div>
-      <div className="flex max-w-sm flex-col gap-1">
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+    <div className="flex w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed px-6 py-12 text-center">
+      <Icon className="size-8 text-muted-foreground" aria-hidden />
+      <div className="flex max-w-md flex-col gap-1">
+        <p className="text-sm font-medium text-foreground">{title}</p>
         {description ? (
           <p className="text-sm text-muted-foreground">{description}</p>
         ) : null}
@@ -44,7 +44,9 @@ export function EntityEmptyState({
       {action ? (
         <Button
           type="button"
-          className="mt-1 h-8 cursor-pointer gap-1.5"
+          variant={action.variant ?? "default"}
+          size="sm"
+          className="cursor-pointer gap-1.5"
           disabled={action.pending}
           onClick={action.onClick}
         >
