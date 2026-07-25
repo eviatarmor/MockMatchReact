@@ -47,6 +47,15 @@ const envSchema = z
     S3_ENDPOINT: z.string().optional().default(""),
     APP_URL: z.string().url().default("http://localhost:5173"),
     API_URL: z.string().url().default("http://localhost:3000"),
+    /** Public WebSocket base (client connects here). */
+    WS_URL: z.string().url().default("ws://localhost:3001"),
+    WS_PORT: z.coerce.number().int().positive().default(3001),
+    /** Debounce before collab Redis snapshot → Postgres. */
+    COLLAB_FLUSH_DELAY_MS: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(8_000),
     /** LinkedIn OAuth (optional until portal + redirect wired). */
     LINKEDIN_CLIENT_ID: z.string().optional().default(""),
     LINKEDIN_CLIENT_SECRET: z.string().optional().default(""),

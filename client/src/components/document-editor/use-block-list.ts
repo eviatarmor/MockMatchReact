@@ -42,5 +42,9 @@ export function useBlockList<T extends BlockBase>(
     []
   )
 
-  return { blocks, blockHandlers }
+  const replaceBlocks = (next: readonly T[]) => {
+    dispatch({ kind: "replaceAll", blocks: next })
+  }
+
+  return { blocks, blockHandlers, replaceBlocks }
 }

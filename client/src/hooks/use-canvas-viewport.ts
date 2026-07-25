@@ -39,7 +39,31 @@ export function useCanvasViewport() {
 
   const zoomIn = useCallback(() => ref.current?.zoomIn(), [])
   const zoomOut = useCallback(() => ref.current?.zoomOut(), [])
-  const resetView = useCallback(() => ref.current?.resetTransform(), [])
+
+  /**
+   * Fit to 100% and pin the document to the **top-center** of the viewport.
+   * Library `resetTransform` / `centerOnInit` centers vertically, which for a
+   * tall multi-page paper lands near the middle/bottom — feels like “jump to end”.
+   */
+  const resetView = useCallback(() => {
+    const api = ref.current
+    if (!api) return
+    const wrapper = api.instance.wrapperComponent
+    const content = api.instance.contentComponent
+    const scale = ZOOM.default
+
+    if (!wrapper || !content) {
+      api.setTransform(0, 0, scale, 200)
+      return
+    }
+
+    const wrapperW = wrapper.clientWidth
+    const contentW = content.offsetWidth * scale
+    // Horizontal center, vertical top with small padding (matches canvas pt-12 feel)
+    const x = (wrapperW - contentW) / 2
+    const y = 48
+    api.setTransform(x, y, scale, 200)
+  }, [])
 
   // Fixed-step, cursor-anchored wheel zoom. react-zoom-pan-pinch's built-in
   // wheel scales by raw deltaY magnitude, which overshoots wildly on trackpads

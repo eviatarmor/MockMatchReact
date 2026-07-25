@@ -7,9 +7,10 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -n client,api,studio -c cyan,magenta,yellow \"npm:dev --workspace=client\" \"npm:dev --workspace=@mockmatch/api\" \"npm:db:studio --workspace=@mockmatch/api\"",
+    "dev": "concurrently -n client,api,ws,worker,studio -c cyan,magenta,green,blue,yellow \"npm:dev --workspace=client\" \"npm:dev --workspace=@mockmatch/api\" \"npm:dev:ws --workspace=@mockmatch/api\" \"npm:dev:worker --workspace=@mockmatch/api\" \"npm:db:studio --workspace=@mockmatch/api\"",
     "dev:client": "npm run dev --workspace=client",
     "dev:api": "npm run dev --workspace=@mockmatch/api",
+    "dev:ws": "npm run dev:ws --workspace=@mockmatch/api",
     "dev:worker": "npm run dev:worker --workspace=@mockmatch/api",
     "dev:studio": "npm run db:studio --workspace=@mockmatch/api",
     "infra:up": "docker compose -f infra/docker-compose.yml up -d",

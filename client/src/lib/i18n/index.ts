@@ -9,6 +9,7 @@ import privacy from "@/locales/en-US/privacy.json"
 import billing from "@/locales/en-US/billing.json"
 import coverLetterEditor from "@/locales/en-US/cover-letter-editor.json"
 import resumeEditor from "@/locales/en-US/resume-editor.json"
+import collab from "@/locales/en-US/collab.json"
 
 export const defaultNS = "common"
 
@@ -26,6 +27,7 @@ i18next.use(initReactI18next).init({
       billing,
       "cover-letter-editor": coverLetterEditor,
       "resume-editor": resumeEditor,
+      collab,
     },
   },
   interpolation: {

@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server"
-import { and, eq } from "drizzle-orm"
+import { eq } from "drizzle-orm"
 import type {
   CoverLetterCreateInput,
   CoverLetterListInput,
@@ -9,11 +9,12 @@ import type { Database } from "../../db/client.js"
 import { coverLetters } from "../../db/schema/cover-letters.js"
 import {
   deleteOwnedDocument,
-  getOwnedDocument,
   listOwnedDocuments,
   type OwnedDocumentTable,
 } from "../../lib/owned-document-store.js"
 import { importCoverLetterFromPdf } from "../../lib/document-import.js"
+import { resolveDocumentAccess } from "../collab/access.js"
+import { canApplyPath } from "../collab/permissions.js"
 import {
   blankCoverLetterDocument,
   DEFAULT_STYLE,
@@ -62,8 +63,17 @@ export async function listCoverLetters(
 }
 
 export async function getCoverLetter(db: Database, userId: string, id: string) {
-  const row = await getOwnedDocument(db, table, userId, id, NOT_FOUND)
-  return toDetail(row as typeof coverLetters.$inferSelect)
+  await resolveDocumentAccess(db, userId, "cover_letter", id)
+  const rows = await db
+    .select()
+    .from(coverLetters)
+    .where(eq(coverLetters.id, id))
+    .limit(1)
+  const row = rows[0]
+  if (!row) {
+    throw new TRPCError({ code: "NOT_FOUND", message: NOT_FOUND })
+  }
+  return toDetail(row)
 }
 
 export async function createCoverLetter(
@@ -99,23 +109,71 @@ export async function updateCoverLetter(
   userId: string,
   input: CoverLetterUpdateInput
 ) {
-  await getOwnedDocument(db, table, userId, input.id, NOT_FOUND)
+  const access = await resolveDocumentAccess(
+    db,
+    userId,
+    "cover_letter",
+    input.id
+  )
+
+  if (access.role === "view") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "View-only access cannot edit this cover letter.",
+    })
+  }
 
   const patch: Partial<typeof coverLetters.$inferInsert> = {
     updatedAt: new Date(),
   }
 
-  if (input.title !== undefined) patch.title = input.title
-  if (input.company !== undefined) patch.company = input.company
-  if (input.status !== undefined) patch.status = input.status
-  if (input.templateId !== undefined) patch.templateId = input.templateId
-  if (input.style !== undefined) patch.style = input.style
-  if (input.document !== undefined) patch.document = input.document
+  if (input.title !== undefined) {
+    if (!canApplyPath(access.role, "title")) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Cannot edit title." })
+    }
+    patch.title = input.title
+  }
+  if (input.document !== undefined) {
+    if (!canApplyPath(access.role, "document")) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Cannot edit document content.",
+      })
+    }
+    patch.document = input.document
+  }
+  if (input.templateId !== undefined) {
+    if (!canApplyPath(access.role, "templateId")) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Only the owner can change template.",
+      })
+    }
+    patch.templateId = input.templateId
+  }
+  if (input.style !== undefined) {
+    if (!canApplyPath(access.role, "style")) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Only the owner can change style.",
+      })
+    }
+    patch.style = input.style
+  }
+  if (access.role === "owner") {
+    if (input.company !== undefined) patch.company = input.company
+    if (input.status !== undefined) patch.status = input.status
+  } else if (input.company !== undefined || input.status !== undefined) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Only the owner can change document metadata.",
+    })
+  }
 
   const [row] = await db
     .update(coverLetters)
     .set(patch)
-    .where(and(eq(coverLetters.id, input.id), eq(coverLetters.userId, userId)))
+    .where(eq(coverLetters.id, input.id))
     .returning()
 
   if (!row) {

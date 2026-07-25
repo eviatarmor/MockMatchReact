@@ -1,8 +1,5 @@
 import type { ReactNode } from "react"
 import { useNavbarSlots } from "@/hooks/use-navbar-slots"
-import { NotificationBell } from "./notification-bell"
-import { FeedbackButton } from "./feedback-button"
-import { NavbarHelpButton } from "./navbar-help-button"
 
 interface DashboardPageShellProps {
   readonly title: string
@@ -15,15 +12,11 @@ export function DashboardPageShell({
   actions,
   children,
 }: DashboardPageShellProps) {
+  // Page-specific end actions only — help / notifications / feedback live in DashboardNavbar.
   useNavbarSlots({
-    end: (
-      <div className="flex items-center gap-1.5 sm:gap-2">
-        {actions}
-<NavbarHelpButton />
-        <NotificationBell />
-        <FeedbackButton />
-      </div>
-    ),
+    end: actions ? (
+      <div className="flex items-center gap-1.5 sm:gap-2">{actions}</div>
+    ) : null,
   })
 
   // No own ScrollArea: DashboardLayout already wraps the outlet in one.

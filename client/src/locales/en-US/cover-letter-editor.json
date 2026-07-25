@@ -13,6 +13,8 @@
     "undo": "Undo",
     "redo": "Redo",
     "share": "Share",
+    "preview": "Preview",
+    "previewDescription": "Print layout preview of this cover letter.",
     "exportPdf": "Export PDF",
     "exportSuccess": "PDF downloaded",
     "exportError": "Could not export PDF"

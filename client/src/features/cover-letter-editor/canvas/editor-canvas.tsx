@@ -2,6 +2,12 @@ import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 import { LetterDocument } from "./letter-document"
 import { ZOOM, useCanvasViewport } from "@/hooks/use-canvas-viewport"
 import type { ResolvedStyle } from "@/components/document-editor"
+import { RemoteCursors } from "@/features/collab/components/remote-cursors"
+import {
+  useCollabSurface,
+  type SendCursor,
+} from "@/features/collab/hooks/use-collab-surface"
+import type { CollabPeer } from "@/features/collab/types"
 import type { CoverLetterHandlers } from "../hooks/use-cover-letter-document"
 import type { CoverLetterDocument, EditorTemplate } from "../types"
 
@@ -12,21 +18,27 @@ interface EditorCanvasProps {
   readonly viewport: ReturnType<typeof useCanvasViewport>
   readonly handlers: CoverLetterHandlers
   readonly onAiBlock?: (id: string) => void
+  readonly peers?: readonly CollabPeer[]
+  readonly sendCursor?: SendCursor
+  readonly clearCursor?: () => void
 }
 
-/**
- * Pan-and-zoomable document canvas that fills its editor container.
- *
- * Rendered as an absolute inset-0 layer inside the editor's relative content
- * area (so it stays within the rounded content card, below the navbar and right
- * rail). Pan/zoom is handled by react-zoom-pan-pinch; the dotted grid is synced
- * to the live transform.
- */
-export function EditorCanvas({ document, template, style, viewport, handlers, onAiBlock }: EditorCanvasProps) {
+export function EditorCanvas({
+  document,
+  template,
+  style,
+  viewport,
+  handlers,
+  onAiBlock,
+  peers = [],
+  sendCursor,
+  clearCursor,
+}: EditorCanvasProps) {
   const { ref, scale, offset, onTransform } = viewport
+  const noop = () => {}
+  const { surfaceRef, surfaceSize, onPointerMove, onPointerLeave } =
+    useCollabSurface(sendCursor ?? noop, clearCursor)
 
-  // Clicking/dragging the canvas background starts a pan — drop focus + text
-  // selection so editable fields don't stay focused/highlighted underneath.
   const clearEditing = () => {
     const active = window.document.activeElement
     if (active instanceof HTMLElement) active.blur()
@@ -39,8 +51,20 @@ export function EditorCanvas({ document, template, style, viewport, handlers, on
       initialScale={ZOOM.default}
       minScale={ZOOM.min}
       maxScale={ZOOM.max}
-      centerOnInit
+      centerOnInit={false}
+      initialPositionX={0}
+      initialPositionY={48}
       limitToBounds={false}
+      onInit={(api) => {
+        requestAnimationFrame(() => {
+          const wrapper = api.instance.wrapperComponent
+          const content = api.instance.contentComponent
+          if (!wrapper || !content) return
+          const scale = ZOOM.default
+          const x = (wrapper.clientWidth - content.offsetWidth * scale) / 2
+          api.setTransform(x, 48, scale, 0)
+        })
+      }}
       doubleClick={{ disabled: true }}
       wheel={{ disabled: true }}
       panning={{ excluded: ["pan-ignore"] }}
@@ -56,7 +80,28 @@ export function EditorCanvas({ document, template, style, viewport, handlers, on
         }}
       >
         <div className="pt-12">
-          <LetterDocument document={document} template={template} style={style} handlers={handlers} onAiBlock={onAiBlock} scale={scale} />
+          <div
+            ref={surfaceRef}
+            className="relative inline-block"
+            onPointerMove={sendCursor ? onPointerMove : undefined}
+            onPointerLeave={clearCursor ? onPointerLeave : undefined}
+          >
+            <LetterDocument
+              document={document}
+              template={template}
+              style={style}
+              handlers={handlers}
+              onAiBlock={onAiBlock}
+              scale={scale}
+            />
+            {sendCursor && (
+              <RemoteCursors
+                peers={peers}
+                surfaceWidth={surfaceSize.w}
+                surfaceHeight={surfaceSize.h}
+              />
+            )}
+          </div>
         </div>
       </TransformComponent>
     </TransformWrapper>

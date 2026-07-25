@@ -23,6 +23,11 @@ interface EditorRailProps {
   readonly onStyleChange: (patch: Partial<DocumentStyle>) => void
   readonly document: CoverLetterDocument
   readonly handlers: CoverLetterHandlers
+  readonly permissions?: {
+    canEditContent: boolean
+    canEditDesign: boolean
+    canUseAi: boolean
+  }
 }
 
 function PanelBody({ panel, activeTemplateId, onTemplateChange, style, onStyleChange, document, handlers }: {
@@ -48,18 +53,44 @@ function PanelBody({ panel, activeTemplateId, onTemplateChange, style, onStyleCh
   }
 }
 
-export function EditorRail({ activeTemplateId, onTemplateChange, style, onStyleChange, document, handlers }: EditorRailProps) {
+function railItemAllowed(
+  id: EditorPanelId,
+  permissions?: EditorRailProps["permissions"]
+): boolean {
+  if (!permissions) return true
+  if (id === "templates" || id === "style") return permissions.canEditDesign
+  if (id === "sections") return permissions.canEditContent
+  if (id === "ai") return permissions.canUseAi
+  if (id === "analysis") return true
+  return true
+}
+
+export function EditorRail({
+  activeTemplateId,
+  onTemplateChange,
+  style,
+  onStyleChange,
+  document,
+  handlers,
+  permissions,
+}: EditorRailProps) {
   const { t } = useTranslation("cover-letter-editor")
-  const [activePanel, setActivePanel] = useState<EditorPanelId | null>("templates")
+  const visibleItems = EDITOR_RAIL_ITEMS.filter((item) =>
+    railItemAllowed(item.id, permissions)
+  )
+  const defaultPanel = visibleItems[0]?.id ?? null
+  const [activePanel, setActivePanel] = useState<EditorPanelId | null>(defaultPanel)
 
   const toggle = (id: EditorPanelId) => setActivePanel((current) => (current === id ? null : id))
+
+  if (visibleItems.length === 0) return null
 
   return (
     <TooltipProvider delay={300}>
       <div className="absolute inset-y-0 right-0 z-10 flex overflow-hidden border-l bg-background text-foreground">
 
         <AnimatePresence initial={false}>
-          {activePanel && (
+          {activePanel && railItemAllowed(activePanel, permissions) && (
             <motion.aside
               key="panel"
               initial={{ width: 0, opacity: 0 }}
@@ -95,7 +126,7 @@ export function EditorRail({ activeTemplateId, onTemplateChange, style, onStyleC
         </AnimatePresence>
 
         <nav className="flex w-12 shrink-0 flex-col items-center gap-1 py-3">
-          {EDITOR_RAIL_ITEMS.map((item) => {
+          {visibleItems.map((item) => {
             const Icon = item.icon
             const isActive = activePanel === item.id
             return (

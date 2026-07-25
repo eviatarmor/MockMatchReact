@@ -1,3 +1,4 @@
+export { EditorSecondaryBar } from "./editor-secondary-bar"
 export { EditableText } from "./editable-text"
 export { RichTextField } from "./rich-text-field"
 export { type RichTextToolbarLabels } from "./rich-text-toolbar"

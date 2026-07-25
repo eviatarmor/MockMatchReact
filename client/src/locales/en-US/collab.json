@@ -1,0 +1,48 @@
+{
+  "presence": {
+    "stackLabel": "{{count}} people editing",
+    "you": "you"
+  },
+  "roles": {
+    "view": "Viewer",
+    "edit": "Editor",
+    "owner": "Owner"
+  },
+  "share": {
+    "title": "Share",
+    "titleNamed": "Share “{{name}}”",
+    "description": "Share with up to 2 people.",
+    "generalAccess": "Anyone with the link",
+    "linkHint": "Copy a link to invite collaborators.",
+    "copyLink": "Copy link",
+    "noCollaborators": "No one else has access yet",
+    "createLink": "Create share link",
+    "created": "Share link created",
+    "createError": "Could not create share link",
+    "copied": "Link copied",
+    "copyError": "Could not copy link",
+    "copy": "Copy link",
+    "activeLinks": "Active links",
+    "expires": "expires {{time}}",
+    "revoke": "Revoke link",
+    "revoked": "Link revoked",
+    "collaborators": "People with access",
+    "remove": "Remove",
+    "removed": "Collaborator removed",
+    "ownerOnly": "Only the document owner can manage sharing.",
+    "paidRequired": "Collaboration is a paid feature. Buy credits to create share links.",
+    "goBilling": "Go to billing",
+    "grantDevCredits": "Grant 100 dev credits",
+    "devCreditsGranted": "Dev credits granted — try sharing again"
+  },
+  "roomFull": {
+    "title": "Room is full",
+    "description": "This document already has 3 people editing. Try again when someone leaves.",
+    "back": "Go back"
+  },
+  "status": {
+    "connecting": "Connecting…",
+    "synced": "Live",
+    "error": "Connection error"
+  }
+}

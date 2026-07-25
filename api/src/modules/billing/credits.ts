@@ -3,6 +3,7 @@ import type { CreditBreakdown } from "@mockmatch/schemas"
 import type { Database } from "../../db/client.js"
 import {
   creditAccounts,
+  creditTopups,
   DEFAULT_CREDIT_BREAKDOWN,
 } from "../../db/schema/billing.js"
 import { ensureCreditAccount } from "../account/service.js"
@@ -43,6 +44,41 @@ export async function getCreditBalance(
     remaining: Math.max(0, total - used),
     breakdown: normalizeBreakdown(row?.breakdown),
   }
+}
+
+/**
+ * Collab hosting / share links require a paid account:
+ * remaining credits > 0 OR any successful top-up history.
+ */
+export async function isPaidUser(
+  db: Database,
+  userId: string
+): Promise<boolean> {
+  const bal = await getCreditBalance(db, userId)
+  if (bal.remaining > 0) return true
+  const topup = await db.query.creditTopups.findFirst({
+    where: eq(creditTopups.userId, userId),
+    columns: { id: true },
+  })
+  return Boolean(topup)
+}
+
+/** Dev/local only — bump total credits so collab paid gate can be tested. */
+export async function grantCredits(
+  db: Database,
+  userId: string,
+  amount: number
+): Promise<CreditBalance> {
+  if (amount <= 0) return getCreditBalance(db, userId)
+  await ensureCreditAccount(db, userId)
+  await db
+    .update(creditAccounts)
+    .set({
+      total: sql`${creditAccounts.total} + ${amount}`,
+      updatedAt: new Date(),
+    })
+    .where(eq(creditAccounts.userId, userId))
+  return getCreditBalance(db, userId)
 }
 
 export type SpendCreditsResult =

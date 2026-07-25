@@ -4,4 +4,5 @@ export * from "./outbox.js"
 export * from "./resumes.js"
 export * from "./cover-letters.js"
 export * from "./billing.js"
+export * from "./collab.js"
 

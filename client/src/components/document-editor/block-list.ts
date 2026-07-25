@@ -32,6 +32,8 @@ export type BlockListAction<T extends BlockBase> =
   | { kind: "removeBlock"; id: string }
   | { kind: "moveBlock"; id: string; direction: "up" | "down" }
   | { kind: "reorderBlocks"; activeId: string; overId: string }
+  /** Full replace — collab remote snapshot / LWW. */
+  | { kind: "replaceAll"; blocks: readonly T[] }
 
 const indexOf = <T extends BlockBase>(blocks: readonly T[], id: string) =>
   blocks.findIndex((b) => b.id === id)
@@ -85,5 +87,8 @@ export function blockListReducer<T extends BlockBase>(
       if (from === -1 || to === -1 || from === to) return state
       return arrayMove([...state], from, to)
     }
+
+    case "replaceAll":
+      return action.blocks
   }
 }

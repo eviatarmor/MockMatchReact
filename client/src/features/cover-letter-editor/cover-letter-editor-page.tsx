@@ -1,18 +1,24 @@
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { useNavigate, useParams } from "react-router-dom"
+import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { AlertCircle, Loader2 } from "lucide-react"
 import { useNavbarSlots } from "@/hooks/use-navbar-slots"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useCanvasViewport } from "@/hooks/use-canvas-viewport"
-import { resolveStyleClasses } from "@/components/document-editor"
+import {
+  EditorSecondaryBar,
+  resolveStyleClasses,
+} from "@/components/document-editor"
 import { SaveStatusBadge } from "@/components/data/save-status-badge"
 import { Button } from "@/components/ui/button"
 import { trpc } from "@/lib/trpc"
 import { parseDocumentStyle } from "@/lib/parse-document-style"
+import { PresenceAvatarStack } from "@/features/collab/components/presence-avatar-stack"
+import { RoomFullGate } from "@/features/collab/components/room-full-gate"
 import { BreadcrumbName } from "./top-bar/breadcrumb-name"
 import { EditorBottomBar, EditorToolbarActions } from "./top-bar/editor-toolbar"
 import { EditorCanvas } from "./canvas/editor-canvas"
+import { LetterDocument } from "./canvas/letter-document"
 import { EditorRail } from "./right-rail/editor-rail"
 import { MobileEditor } from "./mobile/mobile-editor"
 import {
@@ -34,13 +40,17 @@ function CoverLetterEditorLoaded({
     templateId: ReturnType<typeof parseEditorTemplateId>
     style: ReturnType<typeof parseDocumentStyle>
     document: ReturnType<typeof parseCoverLetterDocument>
+    shareToken?: string | null
   }
 }) {
   const { t } = useTranslation("cover-letter-editor")
   const isMobile = useIsMobile()
   const viewport = useCanvasViewport()
   const session = useCoverLetterEditorSession(seed)
-  const resolvedStyle = useMemo(() => resolveStyleClasses(session.style), [session.style])
+  const resolvedStyle = useMemo(
+    () => resolveStyleClasses(session.style),
+    [session.style]
+  )
 
   const saveLabels = useMemo(
     () => ({
@@ -53,26 +63,46 @@ function CoverLetterEditorLoaded({
 
   const crumb = useMemo(
     () => (
-      <span className="flex items-center gap-2">
-        <BreadcrumbName value={session.letterName} onChange={session.setLetterName} />
-        <SaveStatusBadge status={session.saveStatus} labels={saveLabels} />
-      </span>
+      <BreadcrumbName
+        value={session.letterName}
+        onChange={session.setLetterName}
+      />
     ),
-    [session.letterName, session.setLetterName, session.saveStatus, saveLabels]
+    [session.letterName, session.setLetterName]
   )
-
   const center = useMemo(
     () =>
       isMobile ? (
-        <BreadcrumbName value={session.letterName} onChange={session.setLetterName} />
+        <BreadcrumbName
+          value={session.letterName}
+          onChange={session.setLetterName}
+        />
       ) : null,
     [isMobile, session.letterName, session.setLetterName]
   )
-  const end = useMemo(
-    () => <EditorToolbarActions letterId={seed.id} title={session.letterName} />,
-    [seed.id, session.letterName]
+  useNavbarSlots({ crumb, center, end: null })
+
+  const previewNode = useMemo(
+    () => (
+      <div className="flex justify-center bg-neutral-100 py-6 dark:bg-neutral-950">
+        <LetterDocument
+          document={session.document}
+          template={session.template}
+          style={resolvedStyle}
+        />
+      </div>
+    ),
+    [session.document, session.template, resolvedStyle]
   )
-  useNavbarSlots({ crumb, center, end })
+
+  if (session.collab.status === "room_full") {
+    return (
+      <RoomFullGate
+        backHref="/cover-letters"
+        message={session.collab.roomError}
+      />
+    )
+  }
 
   if (isMobile) {
     return (
@@ -89,23 +119,52 @@ function CoverLetterEditorLoaded({
   }
 
   return (
-    <div className="relative h-full min-h-0">
-      <EditorCanvas
-        document={session.document}
-        template={session.template}
-        style={resolvedStyle}
-        viewport={viewport}
-        handlers={session.handlers}
+    <div className="flex h-full min-h-0 flex-col">
+      <EditorSecondaryBar
+        left={
+          <>
+            <PresenceAvatarStack
+              self={session.collab.self}
+              peers={session.collab.peers}
+            />
+            <BreadcrumbName
+              value={session.letterName}
+              onChange={session.setLetterName}
+            />
+            <SaveStatusBadge status={session.saveStatus} labels={saveLabels} />
+          </>
+        }
+        right={
+          <EditorToolbarActions
+            letterId={seed.id}
+            title={session.letterName}
+            permissions={session.permissions}
+            preview={previewNode}
+          />
+        }
       />
-      <EditorBottomBar viewport={viewport} />
-      <EditorRail
-        activeTemplateId={session.templateId}
-        onTemplateChange={session.selectTemplate}
-        style={session.style}
-        onStyleChange={session.updateStyle}
-        document={session.document}
-        handlers={session.handlers}
-      />
+      <div className="relative min-h-0 flex-1">
+        <EditorCanvas
+          document={session.document}
+          template={session.template}
+          style={resolvedStyle}
+          viewport={viewport}
+          handlers={session.handlers}
+          peers={session.collab.peers}
+          sendCursor={session.collab.sendCursor}
+          clearCursor={session.collab.clearCursor}
+        />
+        <EditorBottomBar viewport={viewport} />
+        <EditorRail
+          activeTemplateId={session.templateId}
+          onTemplateChange={session.selectTemplate}
+          style={session.style}
+          onStyleChange={session.updateStyle}
+          document={session.document}
+          handlers={session.handlers}
+          permissions={session.permissions}
+        />
+      </div>
     </div>
   )
 }
@@ -114,11 +173,25 @@ export function CoverLetterEditorPageContent() {
   const { t } = useTranslation("cover-letter-editor")
   const navigate = useNavigate()
   const { letterId } = useParams<{ letterId: string }>()
+  const [searchParams] = useSearchParams()
+  const shareToken = searchParams.get("share")
   const isValidId = typeof letterId === "string" && UUID_RE.test(letterId)
+
+  const access = trpc.collab.getAccess.useQuery(
+    {
+      kind: "cover_letter",
+      id: letterId!,
+      shareToken: shareToken || undefined,
+    },
+    { enabled: isValidId && Boolean(shareToken), retry: false }
+  )
 
   const query = trpc.coverLetters.get.useQuery(
     { id: letterId! },
-    { enabled: isValidId, retry: false }
+    {
+      enabled: isValidId && (!shareToken || access.isSuccess || access.isError),
+      retry: false,
+    }
   )
 
   if (!isValidId) {
@@ -137,7 +210,7 @@ export function CoverLetterEditorPageContent() {
     )
   }
 
-  if (query.isLoading) {
+  if (query.isLoading || (shareToken && access.isLoading)) {
     return (
       <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">
         <Loader2 className="size-4 animate-spin" />
@@ -169,6 +242,7 @@ export function CoverLetterEditorPageContent() {
     templateId: parseEditorTemplateId(data.templateId),
     style: parseDocumentStyle(data.style, EDITOR_TEMPLATES[0].defaultStyle),
     document: parseCoverLetterDocument(data.document),
+    shareToken,
   }
 
   return <CoverLetterEditorLoaded key={seed.id} seed={seed} />

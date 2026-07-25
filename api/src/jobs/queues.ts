@@ -2,6 +2,7 @@ export const QUEUE_NAMES = {
   default: "default",
   email: "email",
   indexing: "indexing",
+  collab: "collab",
 } as const
 
 export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES]
@@ -14,3 +15,8 @@ export const EVENT_QUEUE_MAP = {
   "questions.deleted": QUEUE_NAMES.indexing,
   "files.upload_requested": QUEUE_NAMES.default,
 } as const
+
+export type CollabFlushJob = {
+  kind: "resume" | "cover_letter"
+  documentId: string
+}

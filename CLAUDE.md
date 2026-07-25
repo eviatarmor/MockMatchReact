@@ -56,10 +56,11 @@ Don't start the dev server or open browser devtools yourself. Instead, ask the u
 
 Run from repo root:
 ```bash
-npm run dev          # client + api + Drizzle Studio (concurrently)
+npm run dev          # client + api + ws + worker + Drizzle Studio (concurrently)
 npm run dev:client   # vite only
 npm run dev:api      # Hono + tRPC API
-npm run dev:worker   # BullMQ workers
+npm run dev:ws       # collab WebSocket
+npm run dev:worker   # BullMQ workers (also started by npm run dev)
 npm run dev:studio   # drizzle-kit studio only
 npm run infra:up     # Postgres + Redis (local)
 npm run infra:down

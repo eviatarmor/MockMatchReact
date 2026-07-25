@@ -1,4 +1,4 @@
-import { useMemo, useReducer } from "react"
+import { useCallback, useMemo, useReducer } from "react"
 import { useBlockList, type BlockListHandlers } from "@/components/document-editor"
 import { LETTER_BLOCK_TYPES } from "../constants"
 import type { CoverLetterDocument, LetterBlock } from "../types"
@@ -14,6 +14,7 @@ type HeaderAction =
   | { kind: "setContact"; id: string; value: string }
   | { kind: "setDate"; value: string }
   | { kind: "setRecipientField"; field: RecipientField; value: string }
+  | { kind: "replaceHeader"; header: LetterHeader }
 
 function headerReducer(state: LetterHeader, action: HeaderAction): LetterHeader {
   switch (action.kind) {
@@ -36,6 +37,9 @@ function headerReducer(state: LetterHeader, action: HeaderAction): LetterHeader 
 
     case "setRecipientField":
       return { ...state, recipient: { ...state.recipient, [action.field]: action.value } }
+
+    case "replaceHeader":
+      return action.header
   }
 }
 
@@ -46,21 +50,36 @@ export type CoverLetterHandlers = BlockListHandlers<LetterBlock> & {
   readonly setRecipientField: (field: RecipientField, value: string) => void
 }
 
-/**
- * Editable cover-letter controller. Composes the generic block-list engine
- * ({@link useBlockList}) for the body sections and owns the letter-specific
- * header fields (sender/date/recipient) in a small local reducer. The returned
- * `document` recombines the two halves so consumers see one document as before.
- */
 export function useCoverLetterDocument(initial: CoverLetterDocument) {
   const [header, dispatch] = useReducer(headerReducer, {
     sender: initial.sender,
     date: initial.date,
     recipient: initial.recipient,
   })
-  const { blocks, blockHandlers } = useBlockList(LETTER_BLOCK_TYPES, initial.blocks)
+  const { blocks, blockHandlers, replaceBlocks } = useBlockList(
+    LETTER_BLOCK_TYPES,
+    initial.blocks
+  )
 
-  const document: CoverLetterDocument = useMemo(() => ({ ...header, blocks }), [header, blocks])
+  const document: CoverLetterDocument = useMemo(
+    () => ({ ...header, blocks }),
+    [header, blocks]
+  )
+
+  const replaceDocument = useCallback(
+    (next: CoverLetterDocument) => {
+      dispatch({
+        kind: "replaceHeader",
+        header: {
+          sender: next.sender,
+          date: next.date,
+          recipient: next.recipient,
+        },
+      })
+      replaceBlocks(next.blocks)
+    },
+    [replaceBlocks]
+  )
 
   const handlers = useMemo<CoverLetterHandlers>(
     () => ({
@@ -73,5 +92,5 @@ export function useCoverLetterDocument(initial: CoverLetterDocument) {
     [blockHandlers]
   )
 
-  return { document, handlers }
+  return { document, handlers, replaceDocument }
 }

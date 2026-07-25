@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation, matchPath } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import {
   Breadcrumb,
@@ -11,9 +11,34 @@ import {
 } from "@/components/ui/breadcrumb"
 import { useNavbarSlotsValue } from "@/hooks/use-navbar-slots"
 import { NAV_DATA } from "@/components/dashboard/constants"
+import type { NavItem } from "@/components/dashboard/types"
+import { FeedbackButton } from "./feedback-button"
+import { NavbarHelpButton } from "./navbar-help-button"
+import { NotificationBell } from "./notification-bell"
 
 interface DashboardNavbarProps {
   readonly rounded?: boolean
+}
+
+/** Map editor / nested routes to their list-page nav item. */
+function resolveNavItem(pathname: string): NavItem | undefined {
+  if (matchPath("/resumes/:resumeId", pathname)) {
+    return NAV_DATA.find((item) => item.href === "/resume-lab")
+  }
+  if (
+    matchPath("/cover-letters/:letterId", pathname) &&
+    !matchPath("/cover-letters/templates", pathname)
+  ) {
+    return NAV_DATA.find((item) => item.href === "/cover-letters")
+  }
+
+  const withHref = NAV_DATA.filter(
+    (item): item is NavItem & { href: string } => Boolean(item.href)
+  ).sort((a, b) => b.href.length - a.href.length)
+
+  return withHref.find(
+    (item) => pathname === item.href || pathname.startsWith(`${item.href}/`)
+  )
 }
 
 export function DashboardNavbar({ rounded = false }: DashboardNavbarProps) {
@@ -21,7 +46,7 @@ export function DashboardNavbar({ rounded = false }: DashboardNavbarProps) {
   const { pathname } = useLocation()
   const { crumb, center, end } = useNavbarSlotsValue()
 
-  const currentItem = NAV_DATA.find((item) => item.href && pathname.startsWith(item.href))
+  const currentItem = resolveNavItem(pathname)
 
   return (
     <header
@@ -60,7 +85,12 @@ export function DashboardNavbar({ rounded = false }: DashboardNavbarProps) {
 
       <div className="flex flex-1 items-center justify-center">{center}</div>
 
-      <div className="flex items-center gap-2">{end}</div>
+      <div className="flex items-center gap-1.5 sm:gap-2">
+        {end}
+        <NavbarHelpButton />
+        <NotificationBell />
+        <FeedbackButton />
+      </div>
     </header>
   )
 }

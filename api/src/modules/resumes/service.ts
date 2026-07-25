@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server"
-import { and, eq } from "drizzle-orm"
+import { eq } from "drizzle-orm"
 import type {
   ResumeCreateInput,
   ResumeListInput,
@@ -9,11 +9,12 @@ import type { Database } from "../../db/client.js"
 import { resumes } from "../../db/schema/resumes.js"
 import {
   deleteOwnedDocument,
-  getOwnedDocument,
   listOwnedDocuments,
   type OwnedDocumentTable,
 } from "../../lib/owned-document-store.js"
 import { importResumeFromPdf } from "../../lib/document-import.js"
+import { resolveDocumentAccess } from "../collab/access.js"
+import { canApplyPath } from "../collab/permissions.js"
 import {
   blankResumeDocument,
   DEFAULT_STYLE,
@@ -71,8 +72,14 @@ export async function listResumes(
 }
 
 export async function getResume(db: Database, userId: string, id: string) {
-  const row = await getOwnedDocument(db, table, userId, id, NOT_FOUND)
-  return toDetail(row as typeof resumes.$inferSelect)
+  // Owner or collaborator (share ACL)
+  await resolveDocumentAccess(db, userId, "resume", id)
+  const rows = await db.select().from(resumes).where(eq(resumes.id, id)).limit(1)
+  const row = rows[0]
+  if (!row) {
+    throw new TRPCError({ code: "NOT_FOUND", message: NOT_FOUND })
+  }
+  return toDetail(row)
 }
 
 export async function createResume(
@@ -109,24 +116,72 @@ export async function updateResume(
   userId: string,
   input: ResumeUpdateInput
 ) {
-  await getOwnedDocument(db, table, userId, input.id, NOT_FOUND)
+  const access = await resolveDocumentAccess(db, userId, "resume", input.id)
+
+  if (access.role === "view") {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "View-only access cannot edit this resume.",
+    })
+  }
 
   const patch: Partial<typeof resumes.$inferInsert> = {
     updatedAt: new Date(),
   }
 
-  if (input.title !== undefined) patch.title = input.title
-  if (input.targetRole !== undefined) patch.targetRole = input.targetRole
-  if (input.company !== undefined) patch.company = input.company
-  if (input.status !== undefined) patch.status = input.status
-  if (input.templateId !== undefined) patch.templateId = input.templateId
-  if (input.style !== undefined) patch.style = input.style
-  if (input.document !== undefined) patch.document = input.document
+  if (input.title !== undefined) {
+    if (!canApplyPath(access.role, "title")) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Cannot edit title." })
+    }
+    patch.title = input.title
+  }
+  if (input.document !== undefined) {
+    if (!canApplyPath(access.role, "document")) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Cannot edit document content.",
+      })
+    }
+    patch.document = input.document
+  }
+  if (input.templateId !== undefined) {
+    if (!canApplyPath(access.role, "templateId")) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Only the owner can change template.",
+      })
+    }
+    patch.templateId = input.templateId
+  }
+  if (input.style !== undefined) {
+    if (!canApplyPath(access.role, "style")) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Only the owner can change style.",
+      })
+    }
+    patch.style = input.style
+  }
+  // Owner-only metadata
+  if (access.role === "owner") {
+    if (input.targetRole !== undefined) patch.targetRole = input.targetRole
+    if (input.company !== undefined) patch.company = input.company
+    if (input.status !== undefined) patch.status = input.status
+  } else if (
+    input.targetRole !== undefined ||
+    input.company !== undefined ||
+    input.status !== undefined
+  ) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Only the owner can change document metadata.",
+    })
+  }
 
   const [row] = await db
     .update(resumes)
     .set(patch)
-    .where(and(eq(resumes.id, input.id), eq(resumes.userId, userId)))
+    .where(eq(resumes.id, input.id))
     .returning()
 
   if (!row) {
