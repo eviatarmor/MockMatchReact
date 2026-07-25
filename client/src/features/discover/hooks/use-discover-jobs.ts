@@ -104,9 +104,20 @@ export function useDiscoverJobs() {
     }
   )
 
+  // Adzuna (and similar) often re-surface the same listing across pages —
+  // especially with remote soft-filters. Dedup by provider id so React keys stay unique.
   const baseJobs: DiscoverJob[] = useMemo(() => {
     const pages = infiniteQuery.data?.pages ?? []
-    return pages.flatMap((p) => p.items.map(mapNormalizedJobToDiscover))
+    const seen = new Set<string>()
+    const out: DiscoverJob[] = []
+    for (const page of pages) {
+      for (const item of page.items) {
+        if (seen.has(item.id)) continue
+        seen.add(item.id)
+        out.push(mapNormalizedJobToDiscover(item))
+      }
+    }
+    return out
   }, [infiniteQuery.data?.pages])
 
   const fit = useDiscoverFitScores(baseJobs)

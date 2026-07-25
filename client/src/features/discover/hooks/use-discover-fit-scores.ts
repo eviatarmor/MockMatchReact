@@ -6,37 +6,44 @@ import { trpc } from "@/lib/trpc"
 import type { DiscoverJob } from "../types"
 
 const BATCH_DEBOUNCE_MS = 300
+/** Never hammer the API for the same job after a failure / empty result. */
+const MAX_ATTEMPTS = 1
 
 /**
  * Batch-score visible jobs via multi-resume profile.
  * Free → heuristic. Paid credits → AI when available.
+ *
+ * Important: when the user has no resumes, the API returns mode "none" with
+ * empty scores. We must mark those job ids as done so we do not re-request
+ * forever and leave score skeletons spinning.
  */
 export function useDiscoverFitScores(jobs: readonly DiscoverJob[]) {
   const { t } = useTranslation("common")
   const [scores, setScores] = useState<Record<string, FitScore>>({})
   const [mode, setMode] = useState<"heuristic" | "ai" | "none" | null>(null)
   const [creditsRemaining, setCreditsRemaining] = useState(0)
+  /** Forces pendingKey recompute when inFlight / attempts change (refs alone don't). */
+  const [flightTick, setFlightTick] = useState(0)
   const toastedRef = useRef(false)
   const inFlightRef = useRef<Set<string>>(new Set())
+  const attemptsRef = useRef<Map<string, number>>(new Map())
+  /** Jobs that finished without a score (no resume / error) — never re-queue. */
+  const doneEmptyRef = useRef<Set<string>>(new Set())
 
   const scoreFits = trpc.jobs.scoreFits.useMutation({
     onSuccess: (data, variables) => {
       setMode(data.mode)
       setCreditsRemaining(data.creditsRemaining)
       setScores((prev) => ({ ...prev, ...data.scores }))
+
       for (const job of variables.jobs) {
         inFlightRef.current.delete(job.id)
+        // mode "none" or job missing from scores → stop retrying forever
+        if (!data.scores[job.id]) {
+          doneEmptyRef.current.add(job.id)
+        }
       }
-
-      if (
-        data.mode === "heuristic" &&
-        data.creditsRemaining === 0 &&
-        data.resumeCount > 0 &&
-        !toastedRef.current
-      ) {
-        // only toast once if user might expect AI (preferAi default true but free)
-        // skip noise for pure free users on first load — they always get heuristic
-      }
+      setFlightTick((n) => n + 1)
 
       if (data.creditsCharged > 0 && data.creditsRemaining === 0 && !toastedRef.current) {
         toastedRef.current = true
@@ -48,28 +55,45 @@ export function useDiscoverFitScores(jobs: readonly DiscoverJob[]) {
     onError: (_err, variables) => {
       for (const job of variables.jobs) {
         inFlightRef.current.delete(job.id)
+        doneEmptyRef.current.add(job.id)
       }
+      setFlightTick((n) => n + 1)
     },
   })
 
-  const unscoredKey = useMemo(() => {
+  const pendingKey = useMemo(() => {
     return jobs
-      .filter((j) => !scores[j.id] && !inFlightRef.current.has(j.id))
+      .filter((j) => {
+        if (scores[j.id]) return false
+        if (doneEmptyRef.current.has(j.id)) return false
+        if (inFlightRef.current.has(j.id)) return false
+        const attempts = attemptsRef.current.get(j.id) ?? 0
+        if (attempts >= MAX_ATTEMPTS) return false
+        return true
+      })
       .map((j) => j.id)
       .join("|")
-  }, [jobs, scores])
+  }, [jobs, scores, flightTick])
 
   useEffect(() => {
-    if (!unscoredKey) return
+    if (!pendingKey) return
 
     const timer = window.setTimeout(() => {
-      const pending = jobs.filter(
-        (j) => !scores[j.id] && !inFlightRef.current.has(j.id)
-      )
+      const pending = jobs.filter((j) => {
+        if (scores[j.id]) return false
+        if (doneEmptyRef.current.has(j.id)) return false
+        if (inFlightRef.current.has(j.id)) return false
+        const attempts = attemptsRef.current.get(j.id) ?? 0
+        return attempts < MAX_ATTEMPTS
+      })
       if (pending.length === 0) return
 
       const batch = pending.slice(0, 20)
-      for (const j of batch) inFlightRef.current.add(j.id)
+      for (const j of batch) {
+        inFlightRef.current.add(j.id)
+        attemptsRef.current.set(j.id, (attemptsRef.current.get(j.id) ?? 0) + 1)
+      }
+      setFlightTick((n) => n + 1)
 
       scoreFits.mutate({
         preferAi: true,
@@ -85,34 +109,43 @@ export function useDiscoverFitScores(jobs: readonly DiscoverJob[]) {
     }, BATCH_DEBOUNCE_MS)
 
     return () => window.clearTimeout(timer)
-    // scores intentionally omitted from deps — use unscoredKey + jobs
+    // scores intentionally omitted from deps — use pendingKey + jobs
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [unscoredKey, jobs])
+  }, [pendingKey, jobs])
 
-  // Reset scores when job list identity fully changes (filter reset)
+  // Drop scores / bookkeeping for jobs no longer in the list
   const jobIdsSignature = useMemo(
     () => jobs.map((j) => j.id).join(","),
     [jobs]
   )
   const prevSig = useRef(jobIdsSignature)
   useEffect(() => {
-    // only clear scores for jobs no longer present
     if (prevSig.current === jobIdsSignature) return
     prevSig.current = jobIdsSignature
+    const idSet = new Set(jobs.map((j) => j.id))
     setScores((prev) => {
       const next: Record<string, FitScore> = {}
-      const idSet = new Set(jobs.map((j) => j.id))
       for (const [id, score] of Object.entries(prev)) {
         if (idSet.has(id)) next[id] = score
       }
       return next
     })
+    for (const id of [...attemptsRef.current.keys()]) {
+      if (!idSet.has(id)) attemptsRef.current.delete(id)
+    }
+    for (const id of [...doneEmptyRef.current]) {
+      if (!idSet.has(id)) doneEmptyRef.current.delete(id)
+    }
+    for (const id of [...inFlightRef.current]) {
+      if (!idSet.has(id)) inFlightRef.current.delete(id)
+    }
   }, [jobIdsSignature, jobs])
 
   return {
     scores,
     mode,
     creditsRemaining,
-    isScoring: scoreFits.isPending || unscoredKey.length > 0,
+    /** Only true while a network request is in flight — never stuck on pendingKey alone. */
+    isScoring: scoreFits.isPending,
   }
 }
