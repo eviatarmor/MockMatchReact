@@ -19,9 +19,14 @@ function groupByStatus(jobs: TrackedJob[]): Columns {
  * Drag-and-drop board state for tracked jobs. Groups jobs into status columns
  * and keeps the local arrangement in sync as the incoming `jobs` change (e.g.
  * from the search filter). Dropping a card into another column flips its
- * `status` so the move sticks.
+ * `status` so the move sticks (via `onStatusesChange`).
  */
-export function useTrackingBoard(jobs: TrackedJob[]) {
+export function useTrackingBoard(
+  jobs: TrackedJob[],
+  onStatusesChange?: (
+    updates: ReadonlyArray<{ id: string; status: TrackingStatus }>
+  ) => void
+) {
   const [columns, setColumns] = useState<Columns>(() => groupByStatus(jobs))
 
   // Re-sync when the filtered input changes (search, added/removed jobs).
@@ -44,6 +49,19 @@ export function useTrackingBoard(jobs: TrackedJob[]) {
       ])
     ) as Columns
     setColumns(normalized)
+
+    if (onStatusesChange) {
+      const updates: { id: string; status: TrackingStatus }[] = []
+      for (const status of TRACKING_STATUS_ORDER) {
+        for (const job of normalized[status]) {
+          const original = jobs.find((j) => j.id === job.id)
+          if (original && original.status !== status) {
+            updates.push({ id: job.id, status })
+          }
+        }
+      }
+      if (updates.length > 0) onStatusesChange(updates)
+    }
   }
 
   return { columns, onColumnsChange: handleChange }

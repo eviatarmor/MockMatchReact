@@ -426,6 +426,10 @@
       "considerAdding": "— consider adding",
       "close": "Close",
       "trackRole": "Track",
+      "trackingRole": "Tracking",
+      "trackAdded": "Saved to Applications",
+      "trackAddedDescription": "This role is in your Saved column.",
+      "trackRemoved": "Removed from tracking",
       "fitResume": "AI Tailor Resume",
       "fitResumeTitle": "AI rewrites a draft resume tailored to this job (uses credits)",
       "fitCoverLetter": "AI Tailor Cover Letter",
@@ -438,16 +442,15 @@
     },
     "addJob": {
       "title": "Add a job to track",
-      "description": "Paste a job description or link — we'll score the match and start tracking.",
+      "description": "Paste the full job description to save it on your board.",
       "tabs": {
         "paste": "Paste description",
         "link": "From a link"
       },
       "pastePlaceholder": "Paste the full job description here…\n\nTip: include the role title on the first line.",
       "linkPlaceholder": "https://company.com/careers/role",
-      "matchNote": "Match scored against your resume",
       "cancel": "Cancel",
-      "submit": "Analyze & track"
+      "submit": "Save job"
     },
     "actions": {
       "track": "Track",
@@ -491,12 +494,43 @@
       "tailorResume": "Tailor resume & cover letter",
       "remove": "Remove from tracking"
     },
-    "views": {
-      "list": "List view",
-      "kanban": "Kanban view"
-    },
     "kanban": {
       "empty": "No applications"
+    },
+    "addJob": {
+      "title": "Import a job",
+      "description": "Paste the full job description. We'll save it under Saved.",
+      "pasteLabel": "Job description",
+      "pastePlaceholder": "Paste the full job description here…\n\nTip: put the role title on the first line.",
+      "cancel": "Cancel",
+      "submit": "Save job",
+      "successToast": "Job saved"
+    },
+    "gmail": {
+      "title": "Gmail application updates",
+      "description": "Connect Gmail and choose positions to watch for recruiter replies and status emails.",
+      "connectHint": "Authorize Gmail so MockMatch can detect application updates for the roles you track.",
+      "connectButton": "Connect Gmail",
+      "connectButtonShort": "Gmail",
+      "manageButton": "Gmail",
+      "connectedLabel": "Gmail connected",
+      "connectedToast": "Gmail connected",
+      "connectedListeningToast": "Gmail connected — listening for {{count}} position(s)",
+      "listeningUpdatedToast": "Listening for {{count}} position(s)",
+      "listenHeading": "Listen for emails about",
+      "listenHint": "We'll watch your inbox for messages related to these roles.",
+      "noJobs": "Track or import a job first, then pick positions to monitor.",
+      "cancel": "Cancel",
+      "saveListening": "Save listening",
+      "connectAndListen": "Connect & listen"
+    },
+    "empty": {
+      "title": "No saved applications yet",
+      "description": "Track a role from Discover, or import a job description. Connect Gmail to listen for status emails on specific positions.",
+      "noSearchTitle": "No matches",
+      "noSearchDescription": "Try a different search term.",
+      "gmailTitle": "Connect your Gmail account",
+      "gmailDescription": "Link Gmail so we can track application statuses for the jobs you apply to."
     }
   },
   "applicationDetail": {

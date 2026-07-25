@@ -15,12 +15,14 @@ import type { TrackedJob } from "../types"
 
 interface KanbanJobCardProps {
   readonly job: TrackedJob
+  readonly onRemove?: (id: string) => void
 }
 
-export function KanbanJobCard({ job }: KanbanJobCardProps) {
+export function KanbanJobCard({ job, onRemove }: KanbanJobCardProps) {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
   const openDetail = () => navigate(`/applications/${job.id}`)
+  const hasMatch = job.matchScore > 0
 
   return (
     <div
@@ -56,16 +58,20 @@ export function KanbanJobCard({ job }: KanbanJobCardProps) {
             <DropdownMenuContent align="end" className="min-w-48">
               <DropdownMenuItem className="cursor-pointer" onClick={openDetail}>
                 <ArrowUpRight className="size-4" />
-                {t("jobTracker.trackingActions.openDetails")}
+                {t("applications.trackingActions.openDetails")}
               </DropdownMenuItem>
               <DropdownMenuItem className="cursor-pointer">
                 <Wand2 className="size-4" />
-                {t("jobTracker.trackingActions.tailorResume")}
+                {t("applications.trackingActions.tailorResume")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive" className="cursor-pointer">
+              <DropdownMenuItem
+                variant="destructive"
+                className="cursor-pointer"
+                onClick={() => onRemove?.(job.id)}
+              >
                 <Trash2 className="size-4" />
-                {t("jobTracker.trackingActions.remove")}
+                {t("applications.trackingActions.remove")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -78,10 +84,15 @@ export function KanbanJobCard({ job }: KanbanJobCardProps) {
           completedSteps={job.progressCompleted}
           activeStepIndex={job.activeStepIndex}
         />
-        <span className="text-xs font-semibold text-foreground">
-          {job.matchScore}
-          <span className="font-normal text-muted-foreground"> {t("jobTracker.matchSuffix")}</span>
-        </span>
+        {hasMatch && (
+          <span className="text-xs font-semibold text-foreground">
+            {job.matchScore}
+            <span className="font-normal text-muted-foreground">
+              {" "}
+              {t("discover.matchSuffix")}
+            </span>
+          </span>
+        )}
       </div>
 
       {job.nextStep && (

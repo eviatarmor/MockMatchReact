@@ -1,36 +1,46 @@
 import { useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { Upload } from "lucide-react"
+import { toast } from "sonner"
+import { Bookmark, Mail, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
 import { TableToolbar } from "@/components/dashboard/table-toolbar"
-import { TrackingTab } from "./components/tracking-tab"
+import { EntityEmptyState } from "@/components/data/entity-empty-state"
 import { TrackingKanban } from "./components/tracking-kanban"
-import { ApplicationsViewToggle } from "./components/applications-view-toggle"
-import type { ApplicationsView } from "./components/applications-view-toggle"
+import { GmailConnectDialog } from "./components/gmail-connect-dialog"
 import { AddJobDialog } from "@/features/discover/components/add-job-dialog"
-import { MOCK_TRACKED_JOBS } from "./constants"
+import { useTrackedJobs, useGmailListen } from "./hooks/use-tracked-jobs"
 
 export function ApplicationsPageContent() {
   const { t } = useTranslation("common")
   const [search, setSearch] = useState("")
-  const [view, setView] = useState<ApplicationsView>("list")
+  const { jobs, addFromPaste, untrack, replaceStatuses } = useTrackedJobs()
+  const { connected } = useGmailListen()
 
   const filteredJobs = useMemo(
-    () => MOCK_TRACKED_JOBS.filter(
-      (job) =>
-        job.title.toLowerCase().includes(search.toLowerCase()) ||
-        job.company.toLowerCase().includes(search.toLowerCase())
-    ),
-    [search]
+    () =>
+      jobs.filter(
+        (job) =>
+          job.title.toLowerCase().includes(search.toLowerCase()) ||
+          job.company.toLowerCase().includes(search.toLowerCase())
+      ),
+    [jobs, search]
   )
 
+  const isEmpty = filteredJobs.length === 0 && search.trim() === ""
+  const noSearchHits = filteredJobs.length === 0 && search.trim() !== ""
+
+  function handleImport(description: string) {
+    const tracked = addFromPaste(description)
+    toast.success(t("applications.addJob.successToast"), {
+      description: tracked.title,
+    })
+  }
+
   return (
-    <DashboardPageShell
-      title={t("applications.title")}
-    >
-      <div className={view === "kanban" ? "flex flex-1 flex-col gap-3 min-h-0" : "flex flex-col gap-3"}>
+    <DashboardPageShell title={t("applications.title")}>
+      <div className="flex flex-1 flex-col gap-3 min-h-0">
         <DashboardPageHeader
           title={t("applications.title")}
           description={t("applications.description")}
@@ -41,25 +51,57 @@ export function ApplicationsPageContent() {
           onSearchChange={setSearch}
           actions={
             <>
+              <GmailConnectDialog
+                jobs={jobs}
+                trigger={
+                  <Button
+                    variant="outline"
+                    className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
+                  >
+                    <Mail className="size-4" />
+                    <span className="hidden sm:inline">
+                      {connected
+                        ? t("applications.gmail.manageButton")
+                        : t("applications.gmail.connectButtonShort")}
+                    </span>
+                  </Button>
+                }
+              />
               <AddJobDialog
+                onAdd={handleImport}
                 trigger={
                   <Button
                     variant="default"
                     className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
                   >
                     <Upload className="size-4" />
-                    <span className="hidden sm:inline">{t("dashboard.actions.importJob")}</span>
+                    <span className="hidden sm:inline">
+                      {t("dashboard.actions.importJob")}
+                    </span>
                   </Button>
                 }
               />
-              <ApplicationsViewToggle view={view} onChange={setView} />
             </>
           }
         />
-        {view === "list" ? (
-          <TrackingTab jobs={filteredJobs} />
+        {isEmpty ? (
+          <EntityEmptyState
+            icon={Bookmark}
+            title={t("applications.empty.title")}
+            description={t("applications.empty.description")}
+          />
+        ) : noSearchHits ? (
+          <EntityEmptyState
+            icon={Bookmark}
+            title={t("applications.empty.noSearchTitle")}
+            description={t("applications.empty.noSearchDescription")}
+          />
         ) : (
-          <TrackingKanban jobs={filteredJobs} />
+          <TrackingKanban
+            jobs={filteredJobs}
+            onStatusesChange={replaceStatuses}
+            onRemove={untrack}
+          />
         )}
       </div>
     </DashboardPageShell>

@@ -22,11 +22,19 @@ const COLUMN_DOT_CLASS: Record<TrackingStatus, string> = {
 
 interface TrackingKanbanProps {
   readonly jobs: TrackedJob[]
+  readonly onStatusesChange?: (
+    updates: ReadonlyArray<{ id: string; status: TrackingStatus }>
+  ) => void
+  readonly onRemove?: (id: string) => void
 }
 
-export function TrackingKanban({ jobs }: TrackingKanbanProps) {
+export function TrackingKanban({
+  jobs,
+  onStatusesChange,
+  onRemove,
+}: TrackingKanbanProps) {
   const { t } = useTranslation("common")
-  const { columns, onColumnsChange } = useTrackingBoard(jobs)
+  const { columns, onColumnsChange } = useTrackingBoard(jobs, onStatusesChange)
 
   return (
     <ScrollArea className="flex-1 min-h-0">
@@ -47,7 +55,7 @@ export function TrackingKanban({ jobs }: TrackingKanbanProps) {
                 <div className="flex items-center gap-2 px-1">
                   <span className={cn("size-2 rounded-full", COLUMN_DOT_CLASS[status])} />
                   <span className="text-sm font-medium text-foreground">
-                    {t(`jobTracker.statusLabels.${status}`)}
+                    {t(`applications.statusLabels.${status}`)}
                   </span>
                   <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                     {items.length}
@@ -62,7 +70,7 @@ export function TrackingKanban({ jobs }: TrackingKanbanProps) {
                   ) : (
                     items.map((job) => (
                       <KanbanItem key={job.id} value={job.id} asHandle>
-                        <KanbanJobCard job={job} />
+                        <KanbanJobCard job={job} onRemove={onRemove} />
                       </KanbanItem>
                     ))
                   )}

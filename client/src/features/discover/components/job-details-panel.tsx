@@ -1,7 +1,9 @@
 import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
 import {
   Send,
   Bookmark,
+  BookmarkCheck,
   DollarSign,
   Briefcase,
   MapPin,
@@ -22,6 +24,7 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PanelShell } from "@/components/dashboard/panel-shell"
+import { useTrackedJobs } from "@/features/applications/hooks/use-tracked-jobs"
 import { useFitDocument } from "../hooks/use-fit-document"
 import type { DiscoverJob } from "../types"
 
@@ -45,6 +48,8 @@ export function JobDetailsPanel({
 }: JobDetailsPanelProps) {
   const { t } = useTranslation("common")
   const fitDoc = useFitDocument()
+  const { isTracked, toggleDiscoverJob } = useTrackedJobs()
+  const tracked = isTracked(job.id)
   const hasMatch = job.matchScore != null
   const scoreBandKey =
     job.matchScore != null ? scoreBand(job.matchScore) : null
@@ -55,6 +60,17 @@ export function JobDetailsPanel({
   const seniorityLabel = job.seniority === "unknown" ? null : job.seniority
   const levelValue = [seniorityLabel, employmentLabel].filter(Boolean).join(" · ")
   const isPane = variant === "pane"
+
+  function handleTrackToggle() {
+    const nowTracked = toggleDiscoverJob(job)
+    if (nowTracked) {
+      toast.success(t("discover.details.trackAdded"), {
+        description: t("discover.details.trackAddedDescription"),
+      })
+    } else {
+      toast.message(t("discover.details.trackRemoved"))
+    }
+  }
 
   const stats = [
     { icon: DollarSign, labelKey: "discover.details.compensation", value: job.salaryRange },
@@ -139,9 +155,23 @@ export function JobDetailsPanel({
               </Button>
             </div>
             <div className="ml-auto flex min-w-0 flex-1 justify-end gap-2">
-              <Button variant="outline" className="gap-1.5 cursor-pointer sm:min-w-28">
-                <Bookmark className="size-4" />
-                {t("discover.details.trackRole")}
+              <Button
+                variant={tracked ? "secondary" : "outline"}
+                className={cn(
+                  "gap-1.5 cursor-pointer sm:min-w-28",
+                  tracked && "text-primary"
+                )}
+                aria-pressed={tracked}
+                onClick={handleTrackToggle}
+              >
+                {tracked ? (
+                  <BookmarkCheck className="size-4" />
+                ) : (
+                  <Bookmark className="size-4" />
+                )}
+                {tracked
+                  ? t("discover.details.trackingRole")
+                  : t("discover.details.trackRole")}
               </Button>
               {job.applyUrl ? (
                 <Button

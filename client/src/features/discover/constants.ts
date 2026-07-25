@@ -1,6 +1,5 @@
 import type {
   EmploymentType,
-  MatchTier,
   PostedWithinDays,
   TrackedJob,
   TrackingStatus,

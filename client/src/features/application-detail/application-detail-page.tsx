@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { Button } from "@/components/ui/button"
 import { MOCK_TRACKED_JOBS } from "@/features/discover/constants"
+import { useTrackedJobs } from "@/features/applications/hooks/use-tracked-jobs"
 import { PREP_STEPS } from "./constants"
 import { useStepScrollspy } from "./hooks/use-step-scrollspy"
 import { ApplicationDetailHeader } from "./components/application-detail-header"
@@ -19,7 +20,13 @@ export function ApplicationDetailPageContent() {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
   const { jobId } = useParams<{ jobId: string }>()
-  const job = useMemo(() => MOCK_TRACKED_JOBS.find((tracked) => tracked.id === jobId), [jobId])
+  const { jobs: trackedJobs } = useTrackedJobs()
+  const job = useMemo(
+    () =>
+      trackedJobs.find((tracked) => tracked.id === jobId) ??
+      MOCK_TRACKED_JOBS.find((tracked) => tracked.id === jobId),
+    [trackedJobs, jobId]
+  )
 
   const { activeStepId, registerStepRef, scrollToStep } = useStepScrollspy(STEP_IDS)
 
