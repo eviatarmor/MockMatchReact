@@ -16,15 +16,17 @@ import { Separator } from "@/components/ui/separator"
 import { DocumentPreviewDialog } from "@/components/data/document-preview-dialog"
 import { downloadDocumentPdf, pdfFilename } from "@/lib/export-document-pdf"
 import type { useCanvasViewport } from "@/hooks/use-canvas-viewport"
+import type { DocumentHistoryControls } from "@/hooks/use-document-history"
 import { ShareDialog } from "@/features/collab/components/share-dialog"
 import { trpc } from "@/lib/trpc"
 
 interface EditorBottomBarProps {
   readonly viewport: ReturnType<typeof useCanvasViewport>
+  readonly history: DocumentHistoryControls
 }
 
 /** Floating bottom bar over the canvas: undo/redo + zoom controls. */
-export function EditorBottomBar({ viewport }: EditorBottomBarProps) {
+export function EditorBottomBar({ viewport, history }: EditorBottomBarProps) {
   const { t } = useTranslation("cover-letter-editor")
   const { zoomPercent, zoomIn, zoomOut, resetView, canZoomIn, canZoomOut } =
     viewport
@@ -35,6 +37,8 @@ export function EditorBottomBar({ viewport }: EditorBottomBarProps) {
         variant="ghost"
         size="icon"
         className="size-7 cursor-pointer text-muted-foreground"
+        onClick={history.undo}
+        disabled={!history.canUndo}
         aria-label={t("toolbar.undo")}
       >
         <Undo2 className="size-4" />
@@ -43,6 +47,8 @@ export function EditorBottomBar({ viewport }: EditorBottomBarProps) {
         variant="ghost"
         size="icon"
         className="size-7 cursor-pointer text-muted-foreground"
+        onClick={history.redo}
+        disabled={!history.canRedo}
         aria-label={t("toolbar.redo")}
       >
         <Redo2 className="size-4" />

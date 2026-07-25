@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { DocumentStyle } from "@/components/document-editor"
 import { parseDocumentStyle } from "@/lib/parse-document-style"
+import {
+  useDocumentHistory,
+  type DocumentHistoryControls,
+} from "@/hooks/use-document-history"
 import { useCollabRoom } from "@/features/collab/hooks/use-collab-room"
 import { setByPath } from "@/features/collab/lib/apply-path-op"
 import type { CollabPermissions } from "@/features/collab/types"
@@ -18,6 +22,13 @@ interface SessionSeed {
   readonly shareToken?: string | null
 }
 
+type HistorySnapshot = {
+  readonly document: CoverLetterDocument
+  readonly style: DocumentStyle
+  readonly templateId: EditorTemplateId
+  readonly title: string
+}
+
 export function useCoverLetterEditorSession(seed: SessionSeed) {
   const { document, handlers, replaceDocument } = useCoverLetterDocument(seed.document)
   const [templateId, setTemplateId] = useState<EditorTemplateId>(seed.templateId)
@@ -28,10 +39,17 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
   documentRef.current = document
   const sendRaf = useRef(0)
 
+  const history = useDocumentHistory<HistorySnapshot>()
+  const skipNextRef = useRef(history.skipNext)
+  skipNextRef.current = history.skipNext
+  const markDiscreteRef = useRef(history.markDiscrete)
+  markDiscreteRef.current = history.markDiscrete
+
   const template = EDITOR_TEMPLATES.find((item) => item.id === templateId) ?? EDITOR_TEMPLATES[0]
 
   const applyRemoteDocument = useCallback(
     (path: string, value: unknown) => {
+      skipNextRef.current()
       skipBroadcast.current = true
       if (path === "document") {
         replaceDocument(parseCoverLetterDocument(value))
@@ -52,14 +70,17 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
   const onRemoteOp = useCallback(
     (path: string, value: unknown) => {
       if (path === "title") {
+        skipNextRef.current()
         setLetterName(String(value ?? ""))
         return
       }
       if (path === "templateId") {
+        skipNextRef.current()
         setTemplateId(parseEditorTemplateId(String(value ?? "modern")))
         return
       }
       if (path === "style") {
+        skipNextRef.current()
         setStyle(parseDocumentStyle(value))
         return
       }
@@ -75,6 +96,7 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
       style: Record<string, unknown>
       document: unknown
     }) => {
+      skipNextRef.current()
       skipBroadcast.current = true
       setLetterName(snap.title)
       setTemplateId(parseEditorTemplateId(snap.templateId))
@@ -95,6 +117,15 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
   const permissions: CollabPermissions = collab.permissions
 
   useEffect(() => {
+    history.commit({
+      document,
+      style,
+      templateId,
+      title: letterName,
+    })
+  }, [document, style, templateId, letterName, history.commit])
+
+  useEffect(() => {
     if (skipBroadcast.current) {
       skipBroadcast.current = false
       return
@@ -106,8 +137,34 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
     return () => window.clearTimeout(timer)
   }, [document, permissions.canEditContent, collab.live, collab.sendOp])
 
+  const applyHistorySnapshot = useCallback(
+    (snap: HistorySnapshot) => {
+      // document broadcast via existing document effect (skipBroadcast stays false)
+      replaceDocument(snap.document)
+      setStyle(snap.style)
+      setTemplateId(snap.templateId)
+      setLetterName(snap.title)
+      if (!collab.live) return
+      collab.sendOp("style", snap.style)
+      collab.sendOp("templateId", snap.templateId)
+      collab.sendOp("title", snap.title)
+    },
+    [replaceDocument, collab.live, collab.sendOp]
+  )
+
+  const historyControls = useMemo<DocumentHistoryControls>(
+    () => ({
+      undo: () => history.undo(applyHistorySnapshot),
+      redo: () => history.redo(applyHistorySnapshot),
+      canUndo: history.canUndo,
+      canRedo: history.canRedo,
+    }),
+    [history, applyHistorySnapshot]
+  )
+
   const selectTemplate = (id: EditorTemplateId) => {
     if (!permissions.canEditDesign) return
+    markDiscreteRef.current()
     setTemplateId(id)
     const next = EDITOR_TEMPLATES.find((item) => item.id === id)
     if (next) setStyle(next.defaultStyle)
@@ -117,6 +174,7 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
 
   const updateStyle = (patch: Partial<DocumentStyle>) => {
     if (!permissions.canEditDesign) return
+    markDiscreteRef.current()
     setStyle((prev) => {
       const merged = { ...prev, ...patch }
       collab.sendOp("style", merged)
@@ -199,18 +257,23 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
         })
       },
       addBlock: (blockType: (typeof document.blocks)[number]["type"], afterId?: string) => {
+        markDiscreteRef.current()
         handlers.addBlock(blockType, afterId)
       },
       duplicateBlock: (id: string) => {
+        markDiscreteRef.current()
         handlers.duplicateBlock(id)
       },
       removeBlock: (id: string) => {
+        markDiscreteRef.current()
         handlers.removeBlock(id)
       },
       moveBlock: (id: string, direction: "up" | "down") => {
+        markDiscreteRef.current()
         handlers.moveBlock(id, direction)
       },
       reorderBlocks: (activeId: string, overId: string) => {
+        markDiscreteRef.current()
         handlers.reorderBlocks(activeId, overId)
       },
     }
@@ -247,6 +310,7 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
     saveStatus,
     collab,
     permissions,
+    history: historyControls,
     documentViewKey: collab.remoteEpoch,
   }
 }

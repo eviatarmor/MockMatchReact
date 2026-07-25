@@ -154,7 +154,7 @@ function CoverLetterEditorLoaded({
           sendCursor={session.collab.sendCursor}
           clearCursor={session.collab.clearCursor}
         />
-        <EditorBottomBar viewport={viewport} />
+        <EditorBottomBar viewport={viewport} history={session.history} />
         <EditorRail
           activeTemplateId={session.templateId}
           onTemplateChange={session.selectTemplate}
