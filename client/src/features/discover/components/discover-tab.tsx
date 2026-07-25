@@ -49,6 +49,7 @@ export function DiscoverTab({ state }: DiscoverTabProps) {
         locationStatus={state.locationStatus}
         onDetectLocation={state.detectLocation}
         allowLocation={state.allowLocation}
+        country={state.country}
         remoteOnly={state.remoteOnly}
         onToggleRemote={state.toggleRemote}
         minSalary={state.minSalary}

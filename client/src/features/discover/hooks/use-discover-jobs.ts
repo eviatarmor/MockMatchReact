@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { Country } from "@mockmatch/schemas"
 import { trpc } from "@/lib/trpc"
 import { mapNormalizedJobToDiscover } from "../lib/map-job"
@@ -43,6 +43,16 @@ export function useDiscoverJobs() {
   )
   const [postedWithin, setPostedWithin] = useState<PostedWithinDays>(0)
   const [sort, setSort] = useState<DiscoverSortOption>("bestMatch")
+
+  // Country market changed → drop location (geo city is country-specific).
+  const prevCountryRef = useRef(country)
+  useEffect(() => {
+    if (prevCountryRef.current === country) return
+    prevCountryRef.current = country
+    setLocationInput("")
+    setDebouncedLocation("")
+    setLocationTouched(false)
+  }, [country])
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -97,6 +107,8 @@ export function useDiscoverJobs() {
     {
       enabled: queryEnabled,
       staleTime: STALE_TIME_MS,
+      // Country/key change must not show previous market's pages.
+      placeholderData: undefined,
       getNextPageParam: (lastPage) => {
         const loaded = lastPage.page * lastPage.pageSize
         return loaded < lastPage.total ? lastPage.page + 1 : undefined

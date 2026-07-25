@@ -61,7 +61,7 @@ export function useAccountSettingsForm(): UseAccountSettingsFormResult {
     onSave: (values) => {
       void (async () => {
         try {
-          const [profile] = await Promise.all([
+          const [profile, account] = await Promise.all([
             updateProfile.mutateAsync({ fullName: values.fullName }),
             updatePreferences.mutateAsync({
               voiceProfile: values.voiceProfile,
@@ -75,14 +75,20 @@ export function useAccountSettingsForm(): UseAccountSettingsFormResult {
             email: profile.email,
             fullName: profile.fullName,
           })
-          await Promise.all([
+          // Immediate cache write so Discover/region hooks see country without a race.
+          utils.account.get.setData(undefined, account)
+          // Toast before invalidate — same UX as privacy; don't wait on refetch.
+          toast.success(t("toast.saved"), { id: "account-settings-saved" })
+          void Promise.all([
             utils.account.get.invalidate(),
+            // Country drives Adzuna market — drop all cached job pages.
+            utils.jobs.search.invalidate(),
             utils.auth.me.invalidate(),
             utils.billing.summary.invalidate(),
           ])
-          toast.success(t("toast.saved"))
         } catch {
           toast.error(t("toast.saveErrorTitle"), {
+            id: "account-settings-save-error",
             description: t("toast.saveErrorDescription"),
           })
         }

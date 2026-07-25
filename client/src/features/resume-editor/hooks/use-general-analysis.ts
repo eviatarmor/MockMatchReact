@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { lintText } from "@/lib/grammar/harper"
+import { useRegionPreferences } from "@/hooks/use-region-preferences"
 import {
   analyzeStructure,
   buildResult,
@@ -19,12 +20,15 @@ const emptyResult = buildResult([])
 /**
  * Live general analysis: structural rules sync, Harper grammar debounced.
  * Findings sorted by severity; score 0–100.
+ * Harper dialect follows account country.
  */
 export function useGeneralAnalysis(
   document: ResumeDocument,
   enabled = true,
   delay = 600
 ): UseGeneralAnalysisResult {
+  const { dialect } = useRegionPreferences()
+
   const structural = useMemo(
     () => (enabled ? analyzeStructure(document) : []),
     [document, enabled]
@@ -49,7 +53,7 @@ export function useGeneralAnalysis(
     const token = ++latest.current
     setIsLinting(true)
     const timer = setTimeout(() => {
-      lintText(plainText)
+      lintText(plainText, { dialect })
         .then((issues) => {
           if (token !== latest.current) return
           setGrammarFindings(grammarFindingsFromIssues(issues))
@@ -65,7 +69,7 @@ export function useGeneralAnalysis(
     return () => {
       clearTimeout(timer)
     }
-  }, [plainText, enabled, delay])
+  }, [plainText, enabled, delay, dialect])
 
   return useMemo(() => {
     if (!enabled) {

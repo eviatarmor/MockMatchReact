@@ -14,9 +14,11 @@ import {
 import { SectionShell } from "@/components/layout/section-shell"
 import { formatInvoiceDate } from "@/features/billing/types"
 import { useBillingInvoices } from "@/features/billing/hooks/use-billing"
+import { useRegionPreferences } from "@/hooks/use-region-preferences"
 
 export function BillingHistorySection() {
   const { t } = useTranslation("billing")
+  const { dateFormat } = useRegionPreferences()
   const invoicesQuery = useBillingInvoices()
   const invoices = invoicesQuery.data ?? []
 
@@ -46,7 +48,7 @@ export function BillingHistorySection() {
                   <TableRow key={invoice.id}>
                     <TableCell className="font-medium text-foreground">{invoice.id}</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {formatInvoiceDate(invoice.date)}
+                      {formatInvoiceDate(invoice.date, dateFormat)}
                     </TableCell>
                     <TableCell className="tabular-nums">{invoice.amount}</TableCell>
                     <TableCell>

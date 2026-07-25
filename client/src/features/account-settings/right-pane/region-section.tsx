@@ -25,23 +25,7 @@ import type {
   SelectOption,
   TimeFormat,
 } from "@/features/account-settings/types"
-
-function formatDate(date: Date, format: DateFormat): string {
-  const dd = String(date.getDate()).padStart(2, "0")
-  const mm = String(date.getMonth() + 1).padStart(2, "0")
-  const yyyy = String(date.getFullYear())
-  if (format === "DD/MM/YYYY") return `${dd}/${mm}/${yyyy}`
-  if (format === "YYYY/MM/DD") return `${yyyy}/${mm}/${dd}`
-  return `${mm}/${dd}/${yyyy}`
-}
-
-function formatTime(date: Date, format: TimeFormat): string {
-  return date.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: format === "12h",
-  })
-}
+import { formatDate, formatTime } from "@/lib/format-datetime"
 
 interface FieldSelectProps<TValue extends string> {
   readonly id: string

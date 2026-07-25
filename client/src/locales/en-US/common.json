@@ -338,6 +338,12 @@
     "description": "Search live openings by role, location, and filters — tuned to your region.",
     "loading": "Loading jobs…",
     "endOfList": "Showing all {{total}} jobs",
+    "searchingIn": "Jobs in {{country}}",
+    "countries": {
+      "US": "United States",
+      "AU": "Australia",
+      "GB": "United Kingdom"
+    },
     "fit": {
       "basic": "Basic match",
       "ai": "AI match",

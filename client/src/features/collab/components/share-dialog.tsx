@@ -21,6 +21,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { trpc } from "@/lib/trpc"
+import { formatDateTime } from "@/lib/format-datetime"
+import { useRegionPreferences } from "@/hooks/use-region-preferences"
 
 interface ShareDialogProps {
   readonly open: boolean
@@ -52,6 +54,7 @@ export function ShareDialog({
   documentTitle,
 }: ShareDialogProps) {
   const { t } = useTranslation("collab")
+  const { dateFormat, timeFormat } = useRegionPreferences()
   const utils = trpc.useUtils()
   const [role, setRole] = useState<CollabRole>("edit")
   const [copied, setCopied] = useState(false)
@@ -303,7 +306,11 @@ export function ShareDialog({
                         <span className="min-w-0 flex-1 truncate text-muted-foreground">
                           {t(`roles.${link.role}`)} ·{" "}
                           {t("share.expires", {
-                            time: new Date(link.expiresAt).toLocaleString(),
+                            time: formatDateTime(
+                              link.expiresAt,
+                              dateFormat,
+                              timeFormat
+                            ),
                           })}
                         </span>
                         <Button

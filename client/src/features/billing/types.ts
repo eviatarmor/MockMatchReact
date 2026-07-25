@@ -2,8 +2,10 @@ import type { LucideIcon } from "lucide-react"
 import type {
   BillingSummary,
   CreditPack,
+  DateFormat,
   InvoiceDto,
 } from "@mockmatch/schemas"
+import { formatDate } from "@/lib/format-datetime"
 
 export type SectionId = "usage" | "payment" | "history"
 
@@ -48,12 +50,7 @@ export function formatMoney(amountCents: number, currency = "usd"): string {
   }
 }
 
-export function formatInvoiceDate(iso: string): string {
-  const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) return iso
-  return new Intl.DateTimeFormat(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }).format(date)
+/** Invoice date using the user's region date format. */
+export function formatInvoiceDate(iso: string, dateFormat: DateFormat): string {
+  return formatDate(iso, dateFormat)
 }

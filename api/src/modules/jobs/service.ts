@@ -96,12 +96,10 @@ export async function searchJobs(
   userId: string,
   input: JobSearchInput
 ): Promise<JobSearchResult> {
-  // Prefer client-supplied country (from prefs) to skip a DB read on every page.
-  let country: Country = input.country ?? "US"
-  if (!input.country) {
-    const account = await getAccount(db, userId)
-    country = account.preferences.country
-  }
+  // Always use saved account country as source of truth (client cache can lag
+  // autosave). Optional input.country is only used if account read fails open.
+  const account = await getAccount(db, userId)
+  const country: Country = account.preferences.country ?? input.country ?? "US"
   const provider = getJobProvider(input.provider)
   const query = toProviderQuery(input, country)
 
