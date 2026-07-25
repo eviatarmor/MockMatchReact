@@ -7,16 +7,31 @@ interface PanelShellProps {
   readonly footer?: ReactNode
   readonly children: ReactNode
   readonly className?: string
+  /** Extra classes for the header bar (e.g. drop `pr-12` when no close button). */
+  readonly headerClassName?: string
 }
 
 /**
  * Detail-sheet layout: fixed header, scrollable body, fixed footer.
  * Parent must fill height (e.g. SheetContent `h-full` flex column).
  */
-export function PanelShell({ header, footer, children, className }: PanelShellProps) {
+export function PanelShell({
+  header,
+  footer,
+  children,
+  className,
+  headerClassName,
+}: PanelShellProps) {
   return (
     <div className={cn("flex h-full min-h-0 flex-col", className)}>
-      <div className="shrink-0 border-b bg-background p-4 pr-12">{header}</div>
+      <div
+        className={cn(
+          "shrink-0 border-b bg-background p-4 pr-12",
+          headerClassName
+        )}
+      >
+        {header}
+      </div>
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="flex flex-col gap-4 p-4">{children}</div>
       </div>

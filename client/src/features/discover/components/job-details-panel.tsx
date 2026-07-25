@@ -12,17 +12,24 @@ import {
   Loader2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { SCORE_BAND_TEXT_CLASS, scoreBand } from "@/lib/score-tier"
+import {
+  SCORE_BAND_PROGRESS_CLASS,
+  SCORE_BAND_TEXT_CLASS,
+  scoreBand,
+} from "@/lib/score-tier"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import { Skeleton } from "@/components/ui/skeleton"
 import { PanelShell } from "@/components/dashboard/panel-shell"
-import { MatchScoreRing } from "./match-score-ring"
 import { useFitDocument } from "../hooks/use-fit-document"
 import type { DiscoverJob } from "../types"
 
 interface JobDetailsPanelProps {
   readonly job: DiscoverJob
-  readonly onClose: () => void
+  readonly onClose?: () => void
+  /** `sheet` = mobile overlay; `pane` = desktop right card. */
+  readonly variant?: "sheet" | "pane"
 }
 
 function isEmptyStatValue(value: string | null | undefined): boolean {
@@ -31,7 +38,11 @@ function isEmptyStatValue(value: string | null | undefined): boolean {
   return trimmed === "" || trimmed === "—" || trimmed === "-"
 }
 
-export function JobDetailsPanel({ job, onClose }: JobDetailsPanelProps) {
+export function JobDetailsPanel({
+  job,
+  onClose,
+  variant = "sheet",
+}: JobDetailsPanelProps) {
   const { t } = useTranslation("common")
   const fitDoc = useFitDocument()
   const hasMatch = job.matchScore != null
@@ -43,6 +54,7 @@ export function JobDetailsPanel({ job, onClose }: JobDetailsPanelProps) {
       : t(`discover.employmentTypes.${job.employmentType}`)
   const seniorityLabel = job.seniority === "unknown" ? null : job.seniority
   const levelValue = [seniorityLabel, employmentLabel].filter(Boolean).join(" · ")
+  const isPane = variant === "pane"
 
   const stats = [
     { icon: DollarSign, labelKey: "discover.details.compensation", value: job.salaryRange },
@@ -52,21 +64,24 @@ export function JobDetailsPanel({ job, onClose }: JobDetailsPanelProps) {
   ].filter((stat) => !isEmptyStatValue(stat.value))
 
   const description = job.description?.trim() ?? ""
-  const summary = job.summary?.trim() ?? ""
 
   return (
     <div className="relative h-full min-h-0">
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        className="absolute top-3 right-3 z-30 cursor-pointer"
-        onClick={onClose}
-      >
-        <X className="size-4" />
-        <span className="sr-only">{t("discover.details.close")}</span>
-      </Button>
+      {!isPane && onClose && (
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="absolute top-3 right-3 z-30 cursor-pointer"
+          onClick={onClose}
+        >
+          <X className="size-4" />
+          <span className="sr-only">{t("discover.details.close")}</span>
+        </Button>
+      )}
 
       <PanelShell
+        className={isPane ? "rounded-xl" : undefined}
+        headerClassName={isPane ? "pr-4" : undefined}
         header={
           <div className="flex items-start gap-3">
             <div
@@ -146,48 +161,81 @@ export function JobDetailsPanel({ job, onClose }: JobDetailsPanelProps) {
           </div>
         }
       >
-        {hasMatch && scoreBandKey && (
-          <div className="flex items-center gap-4 rounded-xl border p-3">
-            <MatchScoreRing score={job.matchScore!} />
-            <div className="flex min-w-0 flex-col gap-0.5">
-              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                {t("discover.atsScoreLabel")}
-              </span>
-              <span
+        {/* ATS score + progress (resume-editor general analysis pattern) */}
+        {(hasMatch || job.scorePending) && (
+          <div className="flex flex-col gap-2 rounded-lg border border-border/60 bg-muted/30 px-2.5 py-2.5">
+            <div className="flex items-center gap-2">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-foreground">
+                  {t("discover.atsScoreLabel")}
+                </p>
+                {hasMatch && scoreBandKey ? (
+                  <p className="truncate text-xs text-muted-foreground">
+                    {t(`discover.scoreBands.${scoreBandKey}`)}
+                    {job.fitNote ? ` · ${job.fitNote}` : ""}
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    {t("discover.details.scoring")}
+                  </p>
+                )}
+              </div>
+              {job.scorePending && !hasMatch ? (
+                <Loader2
+                  className="size-4 shrink-0 animate-spin text-muted-foreground"
+                  aria-label={t("discover.details.scoring")}
+                />
+              ) : hasMatch && scoreBandKey ? (
+                <span
+                  className={cn(
+                    "text-base font-semibold tabular-nums",
+                    SCORE_BAND_TEXT_CLASS[scoreBandKey]
+                  )}
+                >
+                  {job.matchScore}
+                </span>
+              ) : null}
+            </div>
+            {hasMatch ? (
+              <div
                 className={cn(
-                  "text-sm font-semibold",
-                  SCORE_BAND_TEXT_CLASS[scoreBandKey]
+                  "w-full",
+                  SCORE_BAND_PROGRESS_CLASS[scoreBand(job.matchScore!)]
                 )}
               >
-                {t(`discover.scoreBands.${scoreBandKey}`)}
-              </span>
-              {job.fitNote && (
-                <span className="text-sm text-muted-foreground">{job.fitNote}</span>
-              )}
-            </div>
+                <Progress value={job.matchScore!} className="w-full gap-0" />
+              </div>
+            ) : (
+              <Skeleton className="h-1 w-full rounded-full" />
+            )}
           </div>
         )}
 
         {stats.length > 0 && (
-          <div className="grid grid-cols-2 gap-2">
+          <div
+            className={cn(
+              "grid gap-1.5",
+              stats.length >= 4
+                ? "grid-cols-2 sm:grid-cols-4"
+                : stats.length === 3
+                  ? "grid-cols-3"
+                  : "grid-cols-2"
+            )}
+          >
             {stats.map((stat) => (
-              <div key={stat.labelKey} className="flex flex-col gap-1 rounded-xl border p-3">
-                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <stat.icon className="size-3.5" />
-                  {t(stat.labelKey)}
+              <div
+                key={stat.labelKey}
+                className="flex min-w-0 flex-col gap-0.5 rounded-lg border px-2.5 py-2"
+              >
+                <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                  <stat.icon className="size-3 shrink-0" />
+                  <span className="truncate">{t(stat.labelKey)}</span>
                 </span>
-                <span className="text-sm font-medium text-foreground capitalize">{stat.value}</span>
+                <span className="truncate text-xs font-medium text-foreground capitalize">
+                  {stat.value}
+                </span>
               </div>
             ))}
-          </div>
-        )}
-
-        {summary && (
-          <div className="flex flex-col gap-2">
-            <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-              {t("discover.details.summary")}
-            </span>
-            <p className="text-sm leading-relaxed text-muted-foreground">{summary}</p>
           </div>
         )}
 
@@ -216,7 +264,9 @@ export function JobDetailsPanel({ job, onClose }: JobDetailsPanelProps) {
             </div>
           </div>
         )}
+
       </PanelShell>
     </div>
   )
 }
+
