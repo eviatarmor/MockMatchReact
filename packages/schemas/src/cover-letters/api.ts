@@ -19,6 +19,8 @@ export const coverLetterCreateInputSchema = z.object({
   templateId: coverLetterTemplateIdSchema.optional(),
   style: documentStyleSchema.optional(),
   document: coverLetterDocumentSchema.optional(),
+  /** Job-agnostic health score (0–100). */
+  generalScore: z.number().int().min(0).max(100).nullable().optional(),
 })
 
 export const coverLetterUpdateInputSchema = z.object({
@@ -29,6 +31,8 @@ export const coverLetterUpdateInputSchema = z.object({
   templateId: coverLetterTemplateIdSchema.optional(),
   style: documentStyleSchema.optional(),
   document: coverLetterDocumentSchema.optional(),
+  /** Job-agnostic health score (0–100). */
+  generalScore: z.number().int().min(0).max(100).nullable().optional(),
 })
 
 export type CoverLetterListInput = z.infer<typeof coverLetterListInputSchema>

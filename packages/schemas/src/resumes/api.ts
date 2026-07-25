@@ -20,6 +20,8 @@ export const resumeCreateInputSchema = z.object({
   templateId: resumeTemplateIdSchema.optional(),
   style: documentStyleSchema.optional(),
   document: resumeDocumentSchema.optional(),
+  /** Job-agnostic health score (0–100). */
+  generalScore: z.number().int().min(0).max(100).nullable().optional(),
 })
 
 export const resumeUpdateInputSchema = z.object({
@@ -31,6 +33,8 @@ export const resumeUpdateInputSchema = z.object({
   templateId: resumeTemplateIdSchema.optional(),
   style: documentStyleSchema.optional(),
   document: resumeDocumentSchema.optional(),
+  /** Job-agnostic health score (0–100). */
+  generalScore: z.number().int().min(0).max(100).nullable().optional(),
 })
 
 export type ResumeListInput = z.infer<typeof resumeListInputSchema>

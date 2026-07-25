@@ -1,21 +1,26 @@
 import { cn } from "@/lib/utils"
 import { ProgressRing } from "@/components/data/progress-ring"
-import { MATCH_TIER_TEXT_CLASS } from "../constants"
-import type { MatchTier } from "../types"
+import { SCORE_BAND_TEXT_CLASS, scoreBand } from "@/lib/score-tier"
 
 interface MatchScoreRingProps {
   readonly score: number
-  readonly tier: MatchTier
   readonly className?: string
 }
 
-// Ring + score, colored by match tier. Callers add a tier label alongside when
-// they want one (see MATCH_TIER_TEXT_CLASS).
-export function MatchScoreRing({ score, tier, className }: MatchScoreRingProps) {
-  const colorClass = MATCH_TIER_TEXT_CLASS[tier]
+/**
+ * Ring + score, colored by the shared general-score bands
+ * (strong ≥85 emerald · ok ≥70 amber · weak &lt;70 rose).
+ */
+export function MatchScoreRing({ score, className }: MatchScoreRingProps) {
+  const colorClass = SCORE_BAND_TEXT_CLASS[scoreBand(score)]
 
   return (
-    <ProgressRing value={score} className={cn("size-14", className)} trackClass="stroke-muted" progressClass={colorClass}>
+    <ProgressRing
+      value={score}
+      className={cn("size-14", className)}
+      trackClass="stroke-muted"
+      progressClass={colorClass}
+    >
       <span className={cn("text-sm font-bold", colorClass)}>{score}</span>
     </ProgressRing>
   )

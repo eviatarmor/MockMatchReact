@@ -6,12 +6,14 @@ export function toCoverLetterItem(row: {
   title: string
   company: string | null
   status: "draft" | "active" | "archived"
+  generalScore: number | null
   updatedAt: string
 }): CoverLetterItem {
   return {
     id: row.id,
     title: row.title,
     company: row.company,
+    generalScore: row.generalScore,
     status: row.status,
     updatedAt: row.updatedAt,
     avatarText: titleToAvatarText(row.title),

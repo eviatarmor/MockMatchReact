@@ -31,6 +31,7 @@ function toListItem(row: typeof coverLetters.$inferSelect) {
     title: row.title,
     company: row.company,
     status: row.status,
+    generalScore: row.generalScore,
     updatedAt: row.updatedAt.toISOString(),
   }
 }
@@ -41,6 +42,7 @@ function toDetail(row: typeof coverLetters.$inferSelect) {
     title: row.title,
     company: row.company,
     status: row.status,
+    generalScore: row.generalScore,
     templateId: row.templateId,
     style: row.style,
     document: row.document,
@@ -89,6 +91,7 @@ export async function createCoverLetter(
       title: input.title ?? "Untitled cover letter",
       company: input.company ?? null,
       status: "draft",
+      generalScore: input.generalScore ?? null,
       templateId: input.templateId ?? DEFAULT_TEMPLATE_ID,
       style: input.style ?? DEFAULT_STYLE,
       document: input.document ?? blankCoverLetterDocument(),
@@ -143,6 +146,16 @@ export async function updateCoverLetter(
       })
     }
     patch.document = input.document
+  }
+  // Derived from document content — same ACL as document edits.
+  if (input.generalScore !== undefined) {
+    if (!canApplyPath(access.role, "document")) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Cannot edit document content.",
+      })
+    }
+    patch.generalScore = input.generalScore
   }
   if (input.templateId !== undefined) {
     if (!canApplyPath(access.role, "templateId")) {
@@ -217,6 +230,7 @@ export async function duplicateCoverLetter(
     document: structuredClone(
       source.document
     ) as CoverLetterCreateInput["document"],
+    generalScore: source.generalScore,
   })
 }
 

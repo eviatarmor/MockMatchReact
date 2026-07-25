@@ -29,6 +29,7 @@ export function CoverLetterTable({
 
   const columns: EntityTableColumn[] = [
     { key: "coverLetter", label: t("coverLetters.table.columns.coverLetter") },
+    { key: "score", label: t("coverLetters.table.columns.score"), className: "text-center" },
     { key: "status", label: t("coverLetters.table.columns.status") },
     { key: "updated", label: t("coverLetters.table.columns.updated"), className: "hidden sm:table-cell" },
     { key: "actions", className: "text-right w-12" },

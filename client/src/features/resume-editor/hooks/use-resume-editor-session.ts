@@ -13,6 +13,7 @@ import { parseResumeDocument } from "../lib/parse-resume-document"
 import type { EditorTemplateId, ResumeDocument } from "../types"
 import { useResumeDocument } from "./use-resume-document"
 import { useResumeAutosave, type SaveStatus } from "./use-resume-autosave"
+import { useSyncGeneralScore } from "./use-sync-general-score"
 
 export { parseResumeDocument }
 
@@ -285,6 +286,9 @@ export function useResumeEditorSession(seed: SessionSeed) {
     document,
     enabled: !collab.live && collab.status !== "connecting",
   })
+
+  // Persist the exact general analysis score shown in the editor (structure + grammar).
+  useSyncGeneralScore(seed.id, document, permissions.canEditContent)
 
   const saveStatus: SaveStatus =
     collab.status === "synced"

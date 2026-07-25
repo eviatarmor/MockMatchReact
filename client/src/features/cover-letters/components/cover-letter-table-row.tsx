@@ -4,6 +4,7 @@ import { DocumentStatusBadge } from "@/components/data/document-status-badge"
 import { EntityRowActions } from "@/components/data/entity-row-actions"
 import { formatRelativeTime } from "@/lib/format-relative-time"
 import { avatarClassFor } from "@/lib/title-avatar"
+import { CoverLetterScoreBadge } from "./cover-letter-score-badge"
 import type { CoverLetterItem } from "../types"
 
 interface CoverLetterTableRowProps {
@@ -49,6 +50,10 @@ export function CoverLetterTableRow({
             <span className="text-xs text-muted-foreground truncate">{subtitle}</span>
           </div>
         </button>
+      </td>
+
+      <td className="py-3 px-4 text-center">
+        <CoverLetterScoreBadge score={coverLetter.generalScore} />
       </td>
 
       <td className="py-3 px-4">

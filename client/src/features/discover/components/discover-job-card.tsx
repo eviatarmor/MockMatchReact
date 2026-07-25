@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
+import { SCORE_BAND_TEXT_CLASS, scoreBand } from "@/lib/score-tier"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -25,7 +26,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { MatchScoreRing } from "./match-score-ring"
-import { MATCH_TIER_TEXT_CLASS } from "../constants"
 import type { DiscoverJob } from "../types"
 
 interface DiscoverJobCardProps {
@@ -42,7 +42,9 @@ function isEmptyMeta(value: string | null | undefined): boolean {
 export function DiscoverJobCard({ job, onViewDetails }: DiscoverJobCardProps) {
   const { t } = useTranslation("common")
   const [menuOpen, setMenuOpen] = useState(false)
-  const hasMatch = job.matchScore != null && job.matchTier != null
+  const hasMatch = job.matchScore != null
+  const scoreBandKey =
+    job.matchScore != null ? scoreBand(job.matchScore) : null
   const employmentLabel =
     job.employmentType === "unknown"
       ? null
@@ -99,16 +101,16 @@ export function DiscoverJobCard({ job, onViewDetails }: DiscoverJobCardProps) {
           <Skeleton className="h-2.5 w-14" />
         </div>
       )}
-      {hasMatch && (
+      {hasMatch && scoreBandKey && (
         <div className="absolute top-3 right-3 z-10 flex flex-col items-center gap-1">
-          <MatchScoreRing score={job.matchScore!} tier={job.matchTier!} />
+          <MatchScoreRing score={job.matchScore!} />
           <span
             className={cn(
               "text-[11px] font-medium whitespace-nowrap",
-              MATCH_TIER_TEXT_CLASS[job.matchTier!]
+              SCORE_BAND_TEXT_CLASS[scoreBandKey]
             )}
           >
-            {t(`discover.matchTiers.${job.matchTier}`)}
+            {t(`discover.scoreBands.${scoreBandKey}`)}
           </span>
         </div>
       )}

@@ -4,7 +4,7 @@ import { DocumentStatusBadge } from "@/components/data/document-status-badge"
 import { EntityRowActions } from "@/components/data/entity-row-actions"
 import { formatRelativeTime } from "@/lib/format-relative-time"
 import { avatarClassFor } from "@/lib/title-avatar"
-import { ResumeATSBadge } from "./resume-ats-badge"
+import { ResumeScoreBadge } from "./resume-score-badge"
 import type { ResumeItem } from "../types"
 
 interface ResumeTableRowProps {
@@ -53,7 +53,7 @@ export function ResumeTableRow({
       </td>
 
       <td className="py-3 px-4 text-center">
-        <ResumeATSBadge score={resume.atsScore} />
+        <ResumeScoreBadge score={resume.generalScore} />
       </td>
 
       <td className="py-3 px-4">

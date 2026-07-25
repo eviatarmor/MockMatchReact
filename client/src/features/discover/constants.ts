@@ -6,13 +6,6 @@ import type {
   TrackingStatus,
 } from "./types"
 
-export const MATCH_TIER_TEXT_CLASS: Record<MatchTier, string> = {
-  strong: "text-emerald-600",
-  good: "text-blue-600",
-  fair: "text-amber-600",
-  weak: "text-rose-600",
-}
-
 export const SALARY_FILTER_OPTIONS: number[] = [0, 60_000, 80_000, 100_000, 120_000, 150_000, 180_000, 200_000]
 
 export const EMPLOYMENT_TYPE_OPTIONS: EmploymentType[] = [

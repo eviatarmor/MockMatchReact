@@ -7,7 +7,7 @@ export function toResumeItem(row: {
   targetRole: string | null
   company: string | null
   status: "draft" | "active" | "archived"
-  atsScore: number | null
+  generalScore: number | null
   updatedAt: string
 }): ResumeItem {
   return {
@@ -16,7 +16,7 @@ export function toResumeItem(row: {
     targetRole: row.targetRole,
     company: row.company,
     status: row.status,
-    atsScore: row.atsScore,
+    generalScore: row.generalScore,
     updatedAt: row.updatedAt,
     avatarText: titleToAvatarText(row.title),
   }

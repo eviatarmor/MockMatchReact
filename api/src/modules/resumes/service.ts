@@ -32,7 +32,7 @@ function toListItem(row: typeof resumes.$inferSelect) {
     targetRole: row.targetRole,
     company: row.company,
     status: row.status,
-    atsScore: row.atsScore,
+    generalScore: row.generalScore,
     updatedAt: row.updatedAt.toISOString(),
   }
 }
@@ -44,7 +44,7 @@ function toDetail(row: typeof resumes.$inferSelect) {
     targetRole: row.targetRole,
     company: row.company,
     status: row.status,
-    atsScore: row.atsScore,
+    generalScore: row.generalScore,
     templateId: row.templateId,
     style: row.style,
     document: row.document,
@@ -96,6 +96,7 @@ export async function createResume(
       targetRole: input.targetRole ?? null,
       company: input.company ?? null,
       status: "draft",
+      generalScore: input.generalScore ?? null,
       templateId: input.templateId ?? DEFAULT_TEMPLATE_ID,
       style: input.style ?? DEFAULT_STYLE,
       document: input.document ?? blankResumeDocument(),
@@ -145,6 +146,16 @@ export async function updateResume(
       })
     }
     patch.document = input.document
+  }
+  // Derived from document content — same ACL as document edits.
+  if (input.generalScore !== undefined) {
+    if (!canApplyPath(access.role, "document")) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Cannot edit document content.",
+      })
+    }
+    patch.generalScore = input.generalScore
   }
   if (input.templateId !== undefined) {
     if (!canApplyPath(access.role, "templateId")) {
@@ -212,6 +223,7 @@ export async function duplicateResume(db: Database, userId: string, id: string) 
     templateId: source.templateId as ResumeCreateInput["templateId"],
     style: source.style as ResumeCreateInput["style"],
     document: structuredClone(source.document) as ResumeCreateInput["document"],
+    generalScore: source.generalScore,
   })
 }
 

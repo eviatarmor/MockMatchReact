@@ -77,9 +77,4 @@ export function sortFindings(findings: readonly AnalysisFinding[]): AnalysisFind
   })
 }
 
-/** Band used for badge / status copy. */
-export function scoreBand(score: number): "strong" | "ok" | "weak" {
-  if (score >= 85) return "strong"
-  if (score >= 70) return "ok"
-  return "weak"
-}
+export { scoreBand } from "@/lib/score-tier"

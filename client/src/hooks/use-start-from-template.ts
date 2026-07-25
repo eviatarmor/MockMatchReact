@@ -6,6 +6,11 @@ import {
   buildCoverLetterFromRoleId,
   buildResumeFromRoleId,
 } from "@/lib/document-templates"
+import { computeCoverLetterGeneralScore } from "@/features/cover-letter-editor/lib/general-analysis"
+import type { CoverLetterDocument } from "@/features/cover-letter-editor/types"
+import { computeResumeGeneralScore } from "@/features/resume-editor/lib/general-analysis"
+import type { ResumeDocument } from "@/features/resume-editor/types"
+import { useRegionPreferences } from "@/hooks/use-region-preferences"
 import { trpc } from "@/lib/trpc"
 
 export type TemplateKind = "resume" | "cover-letter"
@@ -17,6 +22,7 @@ export function useStartFromTemplate(kind: TemplateKind) {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
   const utils = trpc.useUtils()
+  const { dialect } = useRegionPreferences()
   const [pendingId, setPendingId] = useState<string | null>(null)
 
   const createResume = trpc.resumes.create.useMutation({
@@ -51,15 +57,30 @@ export function useStartFromTemplate(kind: TemplateKind) {
           setPendingId(null)
           return
         }
-        createResume.mutate({
-          title: `${built.template.title} — ${built.template.company}`,
-          targetRole: built.template.title,
-          company: built.template.company,
-          templateId: built.template.layoutId,
-          style: built.template.style,
-          // API DTO expects mutable arrays; seed docs use readonly tuples.
-          document: structuredClone(built.document) as never,
-        })
+        const document = structuredClone(built.document) as never
+        void computeResumeGeneralScore(document as ResumeDocument, dialect)
+          .then((generalScore) => {
+            createResume.mutate({
+              title: `${built.template.title} — ${built.template.company}`,
+              targetRole: built.template.title,
+              company: built.template.company,
+              templateId: built.template.layoutId,
+              style: built.template.style,
+              // API DTO expects mutable arrays; seed docs use readonly tuples.
+              document,
+              generalScore,
+            })
+          })
+          .catch(() => {
+            createResume.mutate({
+              title: `${built.template.title} — ${built.template.company}`,
+              targetRole: built.template.title,
+              company: built.template.company,
+              templateId: built.template.layoutId,
+              style: built.template.style,
+              document,
+            })
+          })
         return
       }
 
@@ -69,15 +90,29 @@ export function useStartFromTemplate(kind: TemplateKind) {
         setPendingId(null)
         return
       }
-      createLetter.mutate({
-        title: `${built.template.title} — ${built.template.company}`,
-        company: built.template.company,
-        templateId: built.template.layoutId,
-        style: built.template.style,
-        document: structuredClone(built.document) as never,
-      })
+      const document = structuredClone(built.document) as never
+      void computeCoverLetterGeneralScore(document as CoverLetterDocument, dialect)
+        .then((generalScore) => {
+          createLetter.mutate({
+            title: `${built.template.title} — ${built.template.company}`,
+            company: built.template.company,
+            templateId: built.template.layoutId,
+            style: built.template.style,
+            document,
+            generalScore,
+          })
+        })
+        .catch(() => {
+          createLetter.mutate({
+            title: `${built.template.title} — ${built.template.company}`,
+            company: built.template.company,
+            templateId: built.template.layoutId,
+            style: built.template.style,
+            document,
+          })
+        })
     },
-    [createLetter, createResume, kind, pendingId, t]
+    [createLetter, createResume, dialect, kind, pendingId, t]
   )
 
   return {

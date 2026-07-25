@@ -29,7 +29,7 @@ export function ResumeTable({
 
   const columns: EntityTableColumn[] = [
     { key: "resume", label: t("resumeLab.table.columns.resume") },
-    { key: "ats", label: t("resumeLab.table.columns.ats"), className: "text-center" },
+    { key: "score", label: t("resumeLab.table.columns.score"), className: "text-center" },
     { key: "status", label: t("resumeLab.table.columns.status") },
     { key: "updated", label: t("resumeLab.table.columns.updated"), className: "hidden sm:table-cell" },
     { key: "actions", className: "text-right w-12" },

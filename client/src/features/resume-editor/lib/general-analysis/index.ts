@@ -20,3 +20,4 @@ export {
 } from "./score"
 export { grammarFindingsFromIssues } from "./grammar"
 export { focusAnalysisTarget } from "./focus"
+export { computeResumeGeneralScore } from "./compute-score"

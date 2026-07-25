@@ -1,6 +1,7 @@
 import { trpc } from "@/lib/trpc"
 import { usePageClamp, usePaginatedSearch } from "@/hooks/use-paginated-search"
 import { toCoverLetterItem } from "../utils"
+import { useEnsureGeneralScores } from "./use-ensure-general-scores"
 import type { CoverLetterItem } from "../types"
 
 export function useCoverLettersList() {
@@ -13,6 +14,8 @@ export function useCoverLettersList() {
   })
 
   const items: CoverLetterItem[] = (query.data?.items ?? []).map(toCoverLetterItem)
+  // Null scores (created before scoring) → compute with editor pipeline + persist.
+  useEnsureGeneralScores(items)
   const total = query.data?.total ?? 0
   const totalPages = usePageClamp(
     pagination.page,

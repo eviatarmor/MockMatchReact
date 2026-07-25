@@ -12,11 +12,11 @@ import {
   Loader2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { SCORE_BAND_TEXT_CLASS, scoreBand } from "@/lib/score-tier"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { PanelShell } from "@/components/dashboard/panel-shell"
 import { MatchScoreRing } from "./match-score-ring"
-import { MATCH_TIER_TEXT_CLASS } from "../constants"
 import { useFitDocument } from "../hooks/use-fit-document"
 import type { DiscoverJob } from "../types"
 
@@ -34,7 +34,9 @@ function isEmptyStatValue(value: string | null | undefined): boolean {
 export function JobDetailsPanel({ job, onClose }: JobDetailsPanelProps) {
   const { t } = useTranslation("common")
   const fitDoc = useFitDocument()
-  const hasMatch = job.matchScore != null && job.matchTier != null
+  const hasMatch = job.matchScore != null
+  const scoreBandKey =
+    job.matchScore != null ? scoreBand(job.matchScore) : null
   const employmentLabel =
     job.employmentType === "unknown"
       ? null
@@ -144,12 +146,20 @@ export function JobDetailsPanel({ job, onClose }: JobDetailsPanelProps) {
           </div>
         }
       >
-        {hasMatch && (
+        {hasMatch && scoreBandKey && (
           <div className="flex items-center gap-4 rounded-xl border p-3">
-            <MatchScoreRing score={job.matchScore!} tier={job.matchTier!} />
+            <MatchScoreRing score={job.matchScore!} />
             <div className="flex min-w-0 flex-col gap-0.5">
-              <span className={cn("text-sm font-semibold", MATCH_TIER_TEXT_CLASS[job.matchTier!])}>
-                {t(`discover.matchTiers.${job.matchTier}`)}
+              <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {t("discover.atsScoreLabel")}
+              </span>
+              <span
+                className={cn(
+                  "text-sm font-semibold",
+                  SCORE_BAND_TEXT_CLASS[scoreBandKey]
+                )}
+              >
+                {t(`discover.scoreBands.${scoreBandKey}`)}
               </span>
               {job.fitNote && (
                 <span className="text-sm text-muted-foreground">{job.fitNote}</span>

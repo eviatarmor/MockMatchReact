@@ -1,5 +1,6 @@
 import {
   index,
+  integer,
   jsonb,
   pgEnum,
   pgTable,
@@ -48,6 +49,8 @@ export const coverLetters = pgTable(
     title: text("title").notNull(),
     company: text("company"),
     status: coverLetterStatusEnum("status").notNull().default("draft"),
+    /** Job-agnostic health score (0–100) from general analysis. */
+    generalScore: integer("general_score"),
     templateId: text("template_id").notNull().default("modern"),
     style: jsonb("style").$type<CoverLetterStyleJson>().notNull(),
     document: jsonb("document").$type<CoverLetterDocumentJson>().notNull(),

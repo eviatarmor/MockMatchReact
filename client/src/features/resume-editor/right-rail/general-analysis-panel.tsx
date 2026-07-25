@@ -3,6 +3,11 @@ import { useTranslation } from "react-i18next"
 import { CheckCircle2, ClipboardCheck, Loader2 } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
+import {
+  SCORE_BAND_PROGRESS_CLASS,
+  SCORE_BAND_TEXT_CLASS,
+  scoreBand as scoreBandFromScore,
+} from "@/lib/score-tier"
 import { useGeneralAnalysis } from "../hooks/use-general-analysis"
 import {
   focusAnalysisTarget,
@@ -44,16 +49,12 @@ const SEVERITY_LABEL: Record<AnalysisSeverity, string> = {
 }
 
 function scoreTone(score: number): string {
-  if (score >= 85) return "text-emerald-600 dark:text-emerald-400"
-  if (score >= 70) return "text-amber-600 dark:text-amber-400"
-  return "text-rose-600 dark:text-rose-400"
+  return SCORE_BAND_TEXT_CLASS[scoreBandFromScore(score)]
 }
 
 /** Color the single Progress indicator (Progress always owns its own track). */
 function progressIndicatorTone(score: number): string {
-  if (score >= 85) return "[&_[data-slot=progress-indicator]]:bg-emerald-500"
-  if (score >= 70) return "[&_[data-slot=progress-indicator]]:bg-amber-500"
-  return "[&_[data-slot=progress-indicator]]:bg-rose-500"
+  return SCORE_BAND_PROGRESS_CLASS[scoreBandFromScore(score)]
 }
 
 function FindingRow({ finding }: { readonly finding: AnalysisFinding }) {

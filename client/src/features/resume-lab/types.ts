@@ -3,7 +3,8 @@ export interface ResumeItem {
   readonly title: string
   readonly targetRole: string | null
   readonly company: string | null
-  readonly atsScore: number | null
+  /** Job-agnostic resume health (0–100). Null until scored. */
+  readonly generalScore: number | null
   readonly status: "active" | "draft" | "archived"
   readonly updatedAt: string
   readonly avatarText: string

@@ -2,6 +2,8 @@ export interface CoverLetterItem {
   readonly id: string
   readonly title: string
   readonly company: string | null
+  /** Job-agnostic letter health (0–100). Null until scored. */
+  readonly generalScore: number | null
   readonly status: "active" | "draft" | "archived"
   readonly updatedAt: string
   readonly avatarText: string

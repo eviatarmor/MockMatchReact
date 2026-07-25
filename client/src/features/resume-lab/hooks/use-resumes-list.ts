@@ -1,6 +1,7 @@
 import { trpc } from "@/lib/trpc"
 import { usePageClamp, usePaginatedSearch } from "@/hooks/use-paginated-search"
 import { toResumeItem } from "../utils"
+import { useEnsureGeneralScores } from "./use-ensure-general-scores"
 import type { ResumeItem } from "../types"
 
 export function useResumesList() {
@@ -13,6 +14,8 @@ export function useResumesList() {
   })
 
   const items: ResumeItem[] = (query.data?.items ?? []).map(toResumeItem)
+  // Null scores (created before scoring) → compute with editor pipeline + persist.
+  useEnsureGeneralScores(items)
   const total = query.data?.total ?? 0
   const totalPages = usePageClamp(
     pagination.page,

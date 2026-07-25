@@ -12,6 +12,7 @@ import { EDITOR_TEMPLATES } from "../constants"
 import type { CoverLetterDocument, EditorTemplateId } from "../types"
 import { useCoverLetterDocument } from "./use-cover-letter-document"
 import { useCoverLetterAutosave, type SaveStatus } from "./use-cover-letter-autosave"
+import { useSyncGeneralScore } from "./use-sync-general-score"
 
 interface SessionSeed {
   readonly id: string
@@ -287,6 +288,9 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
     document,
     enabled: !collab.live && collab.status !== "connecting",
   })
+
+  // Persist the exact general analysis score shown in the editor (structure + grammar).
+  useSyncGeneralScore(seed.id, document, permissions.canEditContent)
 
   const saveStatus: SaveStatus =
     collab.status === "synced"

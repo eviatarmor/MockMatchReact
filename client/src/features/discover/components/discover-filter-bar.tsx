@@ -21,6 +21,11 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { SearchBar } from "@/components/dashboard/search-bar"
 import { cn } from "@/lib/utils"
 import {
@@ -134,22 +139,30 @@ export function DiscoverFilterBar({
               aria-label={t("discover.filters.location")}
             />
             {allowLocation && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-0.5 size-7 cursor-pointer"
-                onClick={onDetectLocation}
-                disabled={detecting}
-                title={t("discover.filters.useMyLocation")}
-                aria-label={t("discover.filters.useMyLocation")}
-              >
-                {detecting ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <Crosshair className="size-3.5" />
-                )}
-              </Button>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0.5 size-7 cursor-pointer"
+                      onClick={onDetectLocation}
+                      disabled={detecting}
+                      aria-label={t("discover.filters.useMyLocation")}
+                    />
+                  }
+                >
+                  {detecting ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Crosshair className="size-3.5" />
+                  )}
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  {t("discover.filters.useMyLocation")}
+                </TooltipContent>
+              </Tooltip>
             )}
           </div>
 

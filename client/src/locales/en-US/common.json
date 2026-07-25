@@ -81,7 +81,7 @@
   "resumeLab": {
     "documentTitle": "Resume Lab — MockMatch",
     "title": "Resume Lab",
-    "description": "Build, tailor, and ATS-score a resume for every role you chase.",
+    "description": "Build and improve resumes with a general health score — job-specific ATS fit lives in Discover.",
     "tabs": {
       "all": "All",
       "active": "Active",
@@ -94,7 +94,7 @@
     "table": {
       "columns": {
         "resume": "Resume",
-        "ats": "ATS",
+        "score": "Score",
         "status": "Status",
         "updated": "Updated"
       },
@@ -116,7 +116,7 @@
       },
       "empty": "No resumes found",
       "emptyTitle": "No resumes yet",
-      "emptyDescription": "Create your first resume to start tailoring for roles and tracking ATS readiness.",
+      "emptyDescription": "Create your first resume to track general health and tailor for roles in Discover.",
       "emptySearchTitle": "No matching resumes",
       "emptySearchDescription": "Try a different search term, or clear the search to see all resumes.",
       "loading": "Loading resumes…",
@@ -259,10 +259,11 @@
   "coverLetters": {
     "documentTitle": "Cover Letters — MockMatch",
     "title": "Cover Letters",
-    "description": "Tailor a cover letter for every application, matched to the role and company.",
+    "description": "Build cover letters with a general health score — job-specific ATS fit lives in Discover.",
     "table": {
       "columns": {
         "coverLetter": "Cover Letter",
+        "score": "Score",
         "status": "Status",
         "updated": "Updated"
       },
@@ -335,7 +336,7 @@
   "discover": {
     "documentTitle": "Discover — MockMatch",
     "title": "Discover",
-    "description": "Search live openings by role, location, and filters — tuned to your region.",
+    "description": "Search live openings and see job-specific ATS fit against your resumes.",
     "loading": "Loading jobs…",
     "endOfList": "Showing all {{total}} jobs",
     "searchingIn": "Jobs in {{country}}",
@@ -345,10 +346,10 @@
       "GB": "United Kingdom"
     },
     "fit": {
-      "basic": "Basic match",
-      "ai": "AI match",
-      "creditsEmptyTitle": "AI match credits used up",
-      "creditsEmptyDescription": "Showing basic skill match. Top up credits in Billing for AI scoring."
+      "basic": "Basic ATS",
+      "ai": "AI ATS",
+      "creditsEmptyTitle": "AI ATS credits used up",
+      "creditsEmptyDescription": "Showing basic skill match. Top up credits in Billing for AI ATS scoring."
     },
     "fitDoc": {
       "resumeSuccessTitle": "Resume fitted",
@@ -393,11 +394,17 @@
       "salary": "Salary"
     },
     "matchTiers": {
-      "strong": "Strong match",
-      "good": "Good match",
-      "fair": "Fair match",
-      "weak": "Weak match"
+      "strong": "Strong ATS",
+      "good": "Good ATS",
+      "fair": "Fair ATS",
+      "weak": "Weak ATS"
     },
+    "scoreBands": {
+      "strong": "Strong ATS",
+      "ok": "Good ATS",
+      "weak": "Weak ATS"
+    },
+    "atsScoreLabel": "ATS fit",
     "details": {
       "compensation": "Compensation",
       "level": "Level",
@@ -420,7 +427,7 @@
       "fitResumeTitle": "Create a new draft resume tailored to this job (uses credits)",
       "fitCoverLetter": "Fit cover letter",
       "fitCoverLetterTitle": "Create a new draft cover letter tailored to this job (uses credits)",
-      "scoredNote": "Scored against your resume and saved skills.",
+      "scoredNote": "ATS-scored against your resume and saved skills for this job.",
       "applicationStage": "Application stage",
       "openWorkflow": "Open workflow",
       "viewPosting": "View posting"
@@ -726,7 +733,7 @@
       "description": "Weighted from your practice sessions and assessments."
     },
     "areas": {
-      "resume": "Resume & ATS",
+      "resume": "Resume health",
       "behavioral": "Behavioral",
       "coding": "Coding challenges",
       "caseStudy": "Case studies",

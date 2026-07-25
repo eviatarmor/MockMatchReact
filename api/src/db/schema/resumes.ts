@@ -45,7 +45,8 @@ export const resumes = pgTable(
     targetRole: text("target_role"),
     company: text("company"),
     status: resumeStatusEnum("status").notNull().default("draft"),
-    atsScore: integer("ats_score"),
+    /** Job-agnostic health score (0–100) from general analysis. */
+    generalScore: integer("general_score"),
     templateId: text("template_id").notNull().default("modern"),
     style: jsonb("style").$type<ResumeStyleJson>().notNull(),
     document: jsonb("document").$type<ResumeDocumentJson>().notNull(),
