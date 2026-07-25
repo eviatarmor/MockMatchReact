@@ -43,6 +43,13 @@
       "when": 1784650000000,
       "tag": "0005_document_collab",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1784660000000,
+      "tag": "0006_candidate_profile",
+      "breakpoints": true
     }
   ]
 }

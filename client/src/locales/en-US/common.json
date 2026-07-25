@@ -344,6 +344,18 @@
       "creditsEmptyTitle": "AI match credits used up",
       "creditsEmptyDescription": "Showing basic skill match. Top up credits in Billing for AI scoring."
     },
+    "fitDoc": {
+      "resumeSuccessTitle": "Resume fitted",
+      "resumeSuccessDescription": "Draft created · fit score {{score}}. Review and edit before applying.",
+      "coverSuccessTitle": "Cover letter fitted",
+      "coverSuccessDescription": "Draft created · fit score {{score}}. Review and edit before applying.",
+      "resumeError": "Could not fit resume. Try again.",
+      "coverError": "Could not fit cover letter. Try again.",
+      "creditsTitle": "Not enough credits",
+      "creditsDescription": "Top up credits in Billing to fit resumes and cover letters with AI.",
+      "needResumeTitle": "Add a resume first",
+      "needResumeDescription": "We use your experience, skills, and writing style to tailor docs."
+    },
     "filters": {
       "remote": "Remote",
       "new": "New",
@@ -399,9 +411,9 @@
       "close": "Close",
       "trackRole": "Track",
       "fitResume": "Fit resume",
-      "fitResumeTitle": "Fit my resume to this job with AI (coming soon)",
+      "fitResumeTitle": "Create a new draft resume tailored to this job (uses credits)",
       "fitCoverLetter": "Fit cover letter",
-      "fitCoverLetterTitle": "Fit my cover letter to this job with AI (coming soon)",
+      "fitCoverLetterTitle": "Create a new draft cover letter tailored to this job (uses credits)",
       "scoredNote": "Scored against your resume and saved skills.",
       "applicationStage": "Application stage",
       "openWorkflow": "Open workflow",

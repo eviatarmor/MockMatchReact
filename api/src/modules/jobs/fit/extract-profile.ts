@@ -77,7 +77,7 @@ function parseBullets(raw: unknown): string[] {
   return []
 }
 
-function extractFromDocument(doc: unknown): {
+export function extractFromDocument(doc: unknown): {
   skills: string[]
   experience: ExperienceRole[]
   headline: string
@@ -155,7 +155,7 @@ function extractFromDocument(doc: unknown): {
   return { skills, experience, headline, summary, education, certifications }
 }
 
-function buildCompactText(profile: Omit<ResumeFitProfile, "compactText" | "profileHash">): string {
+export function buildCompactText(profile: Omit<ResumeFitProfile, "compactText" | "profileHash">): string {
   const lines: string[] = []
   if (profile.targetRoles.length) {
     lines.push(`Target roles: ${profile.targetRoles.join("; ")}`)

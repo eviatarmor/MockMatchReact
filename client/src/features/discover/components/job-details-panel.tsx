@@ -9,6 +9,7 @@ import {
   X,
   ExternalLink,
   Sparkles,
+  Loader2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
@@ -16,6 +17,7 @@ import { Button } from "@/components/ui/button"
 import { PanelShell } from "@/components/dashboard/panel-shell"
 import { MatchScoreRing } from "./match-score-ring"
 import { MATCH_TIER_TEXT_CLASS } from "../constants"
+import { useFitDocument } from "../hooks/use-fit-document"
 import type { DiscoverJob } from "../types"
 
 interface JobDetailsPanelProps {
@@ -31,6 +33,7 @@ function isEmptyStatValue(value: string | null | undefined): boolean {
 
 export function JobDetailsPanel({ job, onClose }: JobDetailsPanelProps) {
   const { t } = useTranslation("common")
+  const fitDoc = useFitDocument()
   const hasMatch = job.matchScore != null && job.matchTier != null
   const employmentLabel =
     job.employmentType === "unknown"
@@ -86,26 +89,35 @@ export function JobDetailsPanel({ job, onClose }: JobDetailsPanelProps) {
         }
         footer={
           <div className="flex flex-wrap items-center gap-2">
-            {/* Future: AI fit actions — compact secondary, not implemented yet */}
             <div className="flex shrink-0 items-center gap-0.5">
               <Button
                 variant="ghost"
                 size="sm"
                 className="gap-1.5 cursor-pointer text-muted-foreground"
-                disabled
+                disabled={fitDoc.isFitting}
                 title={t("discover.details.fitResumeTitle")}
+                onClick={() => fitDoc.fitResume(job)}
               >
-                <Sparkles className="size-3.5" />
+                {fitDoc.isFittingResume ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="size-3.5" />
+                )}
                 {t("discover.details.fitResume")}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 className="gap-1.5 cursor-pointer text-muted-foreground"
-                disabled
+                disabled={fitDoc.isFitting}
                 title={t("discover.details.fitCoverLetterTitle")}
+                onClick={() => fitDoc.fitCoverLetter(job)}
               >
-                <Sparkles className="size-3.5" />
+                {fitDoc.isFittingCoverLetter ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Sparkles className="size-3.5" />
+                )}
                 {t("discover.details.fitCoverLetter")}
               </Button>
             </div>

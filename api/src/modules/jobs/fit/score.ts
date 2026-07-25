@@ -15,6 +15,8 @@ import {
   spendCredits,
 } from "../../billing/credits.js"
 import { scoreJobsWithAi, isFitAiConfigured } from "./ai-score.js"
+import { loadCandidateBank } from "../../candidate-profile/load.js"
+import { syncCandidateProfile } from "../../candidate-profile/sync.js"
 import {
   buildMultiResumeProfile,
   type ResumeFitProfile,
@@ -172,6 +174,20 @@ export async function scoreJobFits(
     }
   }
 
+  // Prefer durable bank (skills/experience union) when available; enrich with live docs
+  let fitProfile = profile
+  let bank = await loadCandidateBank(db, userId)
+  if (
+    !bank ||
+    (bank.profile.skills.length === 0 && bank.profile.experience.length === 0)
+  ) {
+    await syncCandidateProfile(db, userId)
+    bank = await loadCandidateBank(db, userId)
+  }
+  if (bank) {
+    fitProfile = mergeProfiles(profile, bank.profile)
+  }
+
   const costPerJob = env.JOB_FIT_AI_CREDIT_COST
   const preferAi = input.preferAi !== false
   const canTryAi =
@@ -180,12 +196,12 @@ export async function scoreJobFits(
     (costPerJob === 0 || balance.remaining >= costPerJob)
 
   // Always compute heuristic baseline
-  const heuristic = scoreJobsHeuristic(profile, jobs)
+  const heuristic = scoreJobsHeuristic(fitProfile, jobs)
 
   if (!canTryAi) {
     return {
-      resumeCount: profile.resumeCount,
-      profileHash: profile.profileHash,
+      resumeCount: fitProfile.resumeCount,
+      profileHash: fitProfile.profileHash,
       mode: "heuristic",
       scores: heuristic,
       creditsCharged: 0,
@@ -200,7 +216,7 @@ export async function scoreJobFits(
 
   for (const job of jobs) {
     const base = heuristic[job.id]!
-    const cachedAi = await getCachedAiScore(profile.profileHash, job.id)
+    const cachedAi = await getCachedAiScore(fitProfile.profileHash, job.id)
     if (cachedAi) {
       scores[job.id] = blendHeuristicAndAi(base, cachedAi)
       usedAi++
@@ -211,8 +227,8 @@ export async function scoreJobFits(
 
   if (needAi.length === 0) {
     return {
-      resumeCount: profile.resumeCount,
-      profileHash: profile.profileHash,
+      resumeCount: fitProfile.resumeCount,
+      profileHash: fitProfile.profileHash,
       mode: "ai",
       scores,
       creditsCharged: 0,
@@ -227,8 +243,8 @@ export async function scoreJobFits(
 
   if (toScore.length === 0) {
     return {
-      resumeCount: profile.resumeCount,
-      profileHash: profile.profileHash,
+      resumeCount: fitProfile.resumeCount,
+      profileHash: fitProfile.profileHash,
       mode: usedAi > 0 ? "ai" : "heuristic",
       scores,
       creditsCharged: 0,
@@ -236,7 +252,7 @@ export async function scoreJobFits(
     }
   }
 
-  const aiResults = await runAiBatches(profile, toScore)
+  const aiResults = await runAiBatches(fitProfile, toScore)
   const aiJobIds = Object.keys(aiResults)
 
   // Charge only for successfully AI-scored jobs; cache raw AI; store blend
@@ -247,7 +263,7 @@ export async function scoreJobFits(
     if (charge === 0) {
       for (const id of aiJobIds) {
         const rawAi = aiResults[id]!
-        await setCachedAiScore(profile.profileHash, id, rawAi)
+        await setCachedAiScore(fitProfile.profileHash, id, rawAi)
         scores[id] = blendHeuristicAndAi(heuristic[id]!, rawAi)
         usedAi++
       }
@@ -258,7 +274,7 @@ export async function scoreJobFits(
         remaining = spent.remaining
         for (const id of aiJobIds) {
           const rawAi = aiResults[id]!
-          await setCachedAiScore(profile.profileHash, id, rawAi)
+          await setCachedAiScore(fitProfile.profileHash, id, rawAi)
           scores[id] = blendHeuristicAndAi(heuristic[id]!, rawAi)
           usedAi++
         }
@@ -270,11 +286,51 @@ export async function scoreJobFits(
   }
 
   return {
-    resumeCount: profile.resumeCount,
-    profileHash: profile.profileHash,
+    resumeCount: fitProfile.resumeCount,
+    profileHash: fitProfile.profileHash,
     mode: usedAi > 0 ? "ai" : "heuristic",
     scores,
     creditsCharged,
     creditsRemaining: remaining,
+  }
+}
+
+/** Union bank skills/roles into live multi-resume profile. */
+function mergeProfiles(
+  live: ResumeFitProfile,
+  bank: ResumeFitProfile
+): ResumeFitProfile {
+  const skillSeen = new Set(live.skills.map((s) => s.toLowerCase()))
+  const skills = [...live.skills]
+  for (const s of bank.skills) {
+    const key = s.toLowerCase()
+    if (skillSeen.has(key)) continue
+    skillSeen.add(key)
+    skills.push(s)
+  }
+
+  const roleMap = new Map(
+    live.experience.map((r) => [`${r.title.toLowerCase()}|${r.org.toLowerCase()}`, r])
+  )
+  for (const r of bank.experience) {
+    const key = `${r.title.toLowerCase()}|${r.org.toLowerCase()}`
+    if (!roleMap.has(key)) roleMap.set(key, r)
+  }
+
+  const experience = [...roleMap.values()]
+  const profileHash =
+    bank.profileHash && bank.profileHash !== "empty"
+      ? bank.profileHash
+      : live.profileHash
+
+  return {
+    ...live,
+    skills: skills.slice(0, 80),
+    experience: experience.slice(0, 12),
+    compactText:
+      bank.compactText.length >= live.compactText.length
+        ? bank.compactText
+        : live.compactText,
+    profileHash,
   }
 }

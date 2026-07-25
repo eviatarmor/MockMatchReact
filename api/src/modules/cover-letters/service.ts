@@ -15,6 +15,7 @@ import {
 import { importCoverLetterFromPdf } from "../../lib/document-import.js"
 import { resolveDocumentAccess } from "../collab/access.js"
 import { canApplyPath } from "../collab/permissions.js"
+import { syncCandidateProfile } from "../candidate-profile/sync.js"
 import {
   blankCoverLetterDocument,
   DEFAULT_STYLE,
@@ -101,6 +102,7 @@ export async function createCoverLetter(
     })
   }
 
+  await syncCandidateProfile(db, userId)
   return toDetail(row)
 }
 
@@ -180,6 +182,9 @@ export async function updateCoverLetter(
     throw new TRPCError({ code: "NOT_FOUND", message: NOT_FOUND })
   }
 
+  if (input.document !== undefined || input.style !== undefined) {
+    await syncCandidateProfile(db, row.userId)
+  }
   return toDetail(row)
 }
 
@@ -227,5 +232,7 @@ export async function deleteCoverLetter(
   userId: string,
   id: string
 ) {
-  return deleteOwnedDocument(db, table, userId, id, NOT_FOUND)
+  const result = await deleteOwnedDocument(db, table, userId, id, NOT_FOUND)
+  await syncCandidateProfile(db, userId)
+  return result
 }

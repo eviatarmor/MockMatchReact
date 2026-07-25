@@ -416,6 +416,9 @@ export async function persistDocumentSnapshot(
     document: unknown
   }
 ): Promise<void> {
+  // Lazy import avoids circular deps with document services
+  const { syncCandidateProfile } = await import("../candidate-profile/sync.js")
+
   if (kind === "resume") {
     await db
       .update(resumes)
@@ -427,6 +430,7 @@ export async function persistDocumentSnapshot(
         updatedAt: new Date(),
       })
       .where(and(eq(resumes.id, documentId), eq(resumes.userId, ownerUserId)))
+    await syncCandidateProfile(db, ownerUserId)
     return
   }
   await db
@@ -444,4 +448,5 @@ export async function persistDocumentSnapshot(
         eq(coverLetters.userId, ownerUserId)
       )
     )
+  await syncCandidateProfile(db, ownerUserId)
 }

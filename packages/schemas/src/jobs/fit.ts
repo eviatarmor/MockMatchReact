@@ -65,6 +65,29 @@ export const summarizeJobsResultSchema = z.object({
   mode: z.enum(["ai", "heuristic", "none"]),
 })
 
+/** Fit resume / cover letter to a job (AI document generation). */
+export const fitResumeInputSchema = z.object({
+  job: jobFitStubSchema,
+  /** Optional source resume for structure, contacts, and visual style. */
+  sourceResumeId: z.string().uuid().optional(),
+})
+
+export const fitCoverLetterInputSchema = z.object({
+  job: jobFitStubSchema,
+  sourceCoverLetterId: z.string().uuid().optional(),
+  /** Resume bank source for facts when CL source is thin. */
+  sourceResumeId: z.string().uuid().optional(),
+})
+
+export const fitDocumentResultSchema = z.object({
+  documentId: z.string().uuid(),
+  title: z.string(),
+  fitScore: fitScoreSchema,
+  creditsCharged: z.number().int().nonnegative(),
+  creditsRemaining: z.number().int().nonnegative(),
+  mode: z.enum(["ai", "heuristic_fallback"]),
+})
+
 export type FitSkillTag = z.infer<typeof fitSkillTagSchema>
 export type FitTier = z.infer<typeof fitTierSchema>
 export type FitMode = z.infer<typeof fitModeSchema>
@@ -75,3 +98,6 @@ export type ScoreFitsResult = z.infer<typeof scoreFitsResultSchema>
 export type JobSummaryStub = z.infer<typeof jobSummaryStubSchema>
 export type SummarizeJobsInput = z.infer<typeof summarizeJobsInputSchema>
 export type SummarizeJobsResult = z.infer<typeof summarizeJobsResultSchema>
+export type FitResumeInput = z.infer<typeof fitResumeInputSchema>
+export type FitCoverLetterInput = z.infer<typeof fitCoverLetterInputSchema>
+export type FitDocumentResult = z.infer<typeof fitDocumentResultSchema>

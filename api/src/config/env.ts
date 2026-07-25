@@ -102,6 +102,22 @@ const envSchema = z
       .default("openai/gpt-oss-20b:free"),
     /** Credits charged per uncached AI-scored job. 0 = free AI when key configured. */
     JOB_FIT_AI_CREDIT_COST: z.coerce.number().int().nonnegative().default(0),
+    /**
+     * Capable-cheap OpenRouter model for Fit resume / Fit cover letter generation.
+     * Stronger than free Discover fit scorer; keep cost-conscious for production.
+     */
+    OPENROUTER_FIT_DOC_MODEL: z
+      .string()
+      .min(1)
+      .default("google/gemini-2.5-flash"),
+    /** Credits per Fit resume (charged to resumeScans). 0 = free when key configured. */
+    FIT_RESUME_CREDIT_COST: z.coerce.number().int().nonnegative().default(5),
+    /** Credits per Fit cover letter (charged to coverLetters). */
+    FIT_COVER_LETTER_CREDIT_COST: z.coerce
+      .number()
+      .int()
+      .nonnegative()
+      .default(4),
   })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV === "production" && data.OTP_STUB_CODE !== "") {
