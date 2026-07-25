@@ -4,6 +4,8 @@ import { env } from "../../../config/env.js"
 import { logger } from "../../../lib/logger.js"
 import { getOpenRouter } from "../../../lib/openrouter.js"
 import type { ResumeFitProfile } from "./extract-profile.js"
+import { extractJobRequiredSkills } from "./job-skills.js"
+import { tierFromScore } from "./tier.js"
 
 const aiResultSchema = z.object({
   results: z.array(
@@ -11,27 +13,55 @@ const aiResultSchema = z.object({
       id: z.string(),
       score: z.number(),
       fitNote: z.string().optional(),
+      /** Skills / requirements the job asks for (not match status). */
       skills: z
         .array(
-          z.object({
-            label: z.string(),
-            matched: z.boolean(),
-          })
+          z.union([
+            z.string(),
+            z.object({
+              label: z.string(),
+              matched: z.boolean().optional(),
+            }),
+          ])
         )
         .optional(),
     })
   ),
 })
 
-function tierFromScore(score: number): FitScore["tier"] {
-  if (score >= 85) return "strong"
-  if (score >= 70) return "good"
-  return "fair"
-}
-
-function clampDesc(text: string, max = 500): string {
+function clampDesc(text: string, max = 1200): string {
   const clean = text.replace(/\s+/g, " ").trim()
   return clean.length > max ? `${clean.slice(0, max - 1)}…` : clean
+}
+
+function normalizeSkillLabel(raw: string): string | null {
+  const label = raw.replace(/\s+/g, " ").trim()
+  if (!label || label.length > 80) return null
+  return label
+}
+
+function parseSkillList(
+  skills: Array<string | { label: string; matched?: boolean }> | undefined,
+  fallbackJobText: string
+): FitScore["skills"] {
+  const labels: string[] = []
+  for (const s of skills ?? []) {
+    const raw = typeof s === "string" ? s : s.label
+    for (const part of raw.split(/[,/|]/)) {
+      const label = normalizeSkillLabel(part)
+      if (!label) continue
+      if (labels.some((l) => l.toLowerCase() === label.toLowerCase())) continue
+      labels.push(label)
+      if (labels.length >= 6) break
+    }
+    if (labels.length >= 6) break
+  }
+
+  if (labels.length === 0) {
+    return extractJobRequiredSkills(fallbackJobText, 6)
+  }
+
+  return labels.map((label) => ({ label, matched: false }))
 }
 
 export function isFitAiConfigured(): boolean {
@@ -39,8 +69,8 @@ export function isFitAiConfigured(): boolean {
 }
 
 /**
- * Batch AI fit for paid users only. Caller must gate on credits.
- * Returns partial map; missing ids mean failure for those jobs.
+ * Batch AI fit. Caller gates credits / config.
+ * Skills = what the job needs (not resume match tags).
  */
 export async function scoreJobsWithAi(
   profile: ResumeFitProfile,
@@ -58,8 +88,11 @@ export async function scoreJobsWithAi(
     .join("\n")
 
   const system = `You score job fit for a candidate. Return ONLY JSON:
-{"results":[{"id":"...","score":0-100,"fitNote":"<=140 chars","skills":[{"label":"...","matched":true|false}]}]}
-Rules: be strict; score 0-100 integers; skills max 4 labels from job needs vs profile; fitNote concise; no markdown.`
+{"results":[{"id":"...","score":0-100,"fitNote":"<=140 chars","skills":["skill1","skill2"]}]}
+Rules:
+- score 0-100 integers; be strict (poor fits should score under 40).
+- skills: up to 6 skills or requirements the JOB needs (tools, languages, domain) — NOT whether the candidate has them.
+- fitNote: short reason for the score; no markdown.`
 
   const user = `PROFILE:\n${profile.compactText}\n\nJOBS:\n${jobLines}`
 
@@ -100,7 +133,6 @@ Rules: be strict; score 0-100 integers; skills max 4 labels from job needs vs pr
     try {
       parsed = JSON.parse(raw)
     } catch {
-      // try extract JSON object
       const match = raw.match(/\{[\s\S]*\}/)
       if (!match) return {}
       parsed = JSON.parse(match[0])
@@ -112,27 +144,21 @@ Rules: be strict; score 0-100 integers; skills max 4 labels from job needs vs pr
       return {}
     }
 
+    const byId = new Map(jobs.map((j) => [j.id, j]))
     const allowed = new Set(jobs.map((j) => j.id))
     const out: Record<string, FitScore> = {}
     for (const item of validated.data.results) {
       if (!allowed.has(item.id)) continue
       const score = Math.max(0, Math.min(100, Math.round(item.score)))
+      const job = byId.get(item.id)
+      const fallbackText = job
+        ? [job.title, job.company, job.category ?? "", job.description].join(" ")
+        : ""
       out[item.id] = {
         score,
         tier: tierFromScore(score),
         fitNote: (item.fitNote ?? "AI match estimate.").slice(0, 140),
-        skills: (item.skills ?? [])
-          .flatMap((s) =>
-            s.label
-              .split(/[,/&]/)
-              .map((part) => part.trim())
-              .filter(Boolean)
-              .map((label) => ({
-                label: label.slice(0, 80),
-                matched: Boolean(s.matched),
-              }))
-          )
-          .slice(0, 6),
+        skills: parseSkillList(item.skills, fallbackText),
         mode: "ai",
       }
     }

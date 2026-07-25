@@ -1,7 +1,12 @@
-import { jobSearchInputSchema, scoreFitsInputSchema } from "@mockmatch/schemas"
+import {
+  jobSearchInputSchema,
+  scoreFitsInputSchema,
+  summarizeJobsInputSchema,
+} from "@mockmatch/schemas"
 import { protectedProcedure, router } from "../../trpc/trpc.js"
 import { scoreJobFits } from "./fit/score.js"
 import { searchJobs } from "./service.js"
+import { summarizeJobs } from "./summarize.js"
 
 export const jobsRouter = router({
   search: protectedProcedure
@@ -15,5 +20,12 @@ export const jobsRouter = router({
     .input(scoreFitsInputSchema)
     .mutation(async ({ ctx, input }) => {
       return scoreJobFits(ctx.db, ctx.user.id, input)
+    }),
+
+  /** Short card summaries via free OpenRouter model (Redis-cached). */
+  summarize: protectedProcedure
+    .input(summarizeJobsInputSchema)
+    .mutation(async ({ input }) => {
+      return summarizeJobs(input)
     }),
 })

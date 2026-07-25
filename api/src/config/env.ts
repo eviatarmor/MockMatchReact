@@ -33,13 +33,13 @@ const envSchema = z
     SMTP_FROM: z.string().optional().default("MockMatch <noreply@mockmatch.local>"),
     OPENROUTER_API_KEY: z.string().optional().default(""),
     /**
-     * Cheap OpenRouter model for PDF → structured JSON import.
-     * Default: Gemini 2.5 Flash (still cheap; more reliable JSON than lite).
+     * OpenRouter model for PDF → structured JSON import.
+     * Default: free OpenRouter collection model (see openrouter.ai/collections/free-models).
      */
     OPENROUTER_IMPORT_MODEL: z
       .string()
       .min(1)
-      .default("google/gemini-2.5-flash"),
+      .default("google/gemma-4-26b-a4b-it:free"),
     AWS_REGION: z.string().default("us-east-1"),
     AWS_S3_BUCKET: z.string().optional().default(""),
     AWS_ACCESS_KEY_ID: z.string().optional().default(""),
@@ -84,15 +84,24 @@ const envSchema = z
     /** Redis TTL for cached job search results (seconds). */
     JOBS_CACHE_TTL_SECONDS: z.coerce.number().int().positive().default(600),
     /**
-     * Cheap OpenRouter model for Discover AI job-fit (paid credits only).
-     * Free users never call this path.
+     * OpenRouter model for Discover AI job-fit (credits path when cost > 0).
+     * Default: free OpenRouter model — $0 on OpenRouter; still subject to JOB_FIT_AI_CREDIT_COST.
+     * Free-model catalog: https://openrouter.ai/collections/free-models
      */
     OPENROUTER_FIT_MODEL: z
       .string()
       .min(1)
-      .default("google/gemini-2.5-flash-lite"),
-    /** Credits charged per uncached AI-scored job. */
-    JOB_FIT_AI_CREDIT_COST: z.coerce.number().int().positive().default(1),
+      .default("openai/gpt-oss-20b:free"),
+    /**
+     * Free OpenRouter model for Discover card job summaries.
+     * Catalog: https://openrouter.ai/collections/free-models
+     */
+    OPENROUTER_SUMMARY_MODEL: z
+      .string()
+      .min(1)
+      .default("openai/gpt-oss-20b:free"),
+    /** Credits charged per uncached AI-scored job. 0 = free AI when key configured. */
+    JOB_FIT_AI_CREDIT_COST: z.coerce.number().int().nonnegative().default(0),
   })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV === "production" && data.OTP_STUB_CODE !== "") {

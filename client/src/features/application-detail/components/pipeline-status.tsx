@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next"
 import { Bookmark, Send, MessageSquare, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { TRACKING_STATUS_ORDER } from "@/features/job-tracker/constants"
-import type { TrackingStatus } from "@/features/job-tracker/types"
+import { TRACKING_STATUS_ORDER } from "@/features/discover/constants"
+import type { TrackingStatus } from "@/features/discover/types"
 
 interface PipelineStatusProps {
   readonly status: TrackingStatus

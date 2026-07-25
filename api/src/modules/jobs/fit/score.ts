@@ -21,6 +21,7 @@ import {
   type ResumeRowForFit,
 } from "./extract-profile.js"
 import { scoreJobsHeuristic } from "./heuristic.js"
+import { tierFromScore } from "./tier.js"
 
 const MAX_RESUMES = 20
 const AI_BATCH = 8
@@ -30,34 +31,23 @@ const HEURISTIC_WEIGHT = 0.5
 const AI_WEIGHT = 0.5
 
 function aiCacheKey(profileHash: string, jobId: string): string {
-  // v2 = raw AI only (blend with fresh heuristic on read)
-  return `jobs:fit:ai:v2:${profileHash}:${jobId}`
-}
-
-function tierFromScore(score: number): FitScore["tier"] {
-  if (score >= 85) return "strong"
-  if (score >= 70) return "good"
-  return "fair"
+  // v3 = job-required skills + weak tier (invalidate old matched-gap tags)
+  return `jobs:fit:ai:v3:${profileHash}:${jobId}`
 }
 
 function mergeSkills(
   heuristic: FitScore["skills"],
   ai: FitScore["skills"]
 ): FitScore["skills"] {
+  // Prefer AI job-required skills; fill from heuristic extract if sparse
   const byLabel = new Map<string, { label: string; matched: boolean }>()
-  for (const s of [...heuristic, ...ai]) {
+  for (const s of [...ai, ...heuristic]) {
     const key = s.label.toLowerCase()
-    const existing = byLabel.get(key)
-    if (!existing) {
-      byLabel.set(key, { label: s.label, matched: s.matched })
-    } else if (s.matched && !existing.matched) {
-      byLabel.set(key, { label: existing.label, matched: true })
+    if (!byLabel.has(key)) {
+      byLabel.set(key, { label: s.label, matched: false })
     }
   }
-  const merged = [...byLabel.values()]
-  const matched = merged.filter((s) => s.matched)
-  const unmatched = merged.filter((s) => !s.matched)
-  return [...matched, ...unmatched].slice(0, 6)
+  return [...byLabel.values()].slice(0, 6)
 }
 
 /**
@@ -186,8 +176,8 @@ export async function scoreJobFits(
   const preferAi = input.preferAi !== false
   const canTryAi =
     preferAi &&
-    balance.remaining >= costPerJob &&
-    isFitAiConfigured()
+    isFitAiConfigured() &&
+    (costPerJob === 0 || balance.remaining >= costPerJob)
 
   // Always compute heuristic baseline
   const heuristic = scoreJobsHeuristic(profile, jobs)
@@ -230,8 +220,9 @@ export async function scoreJobFits(
     }
   }
 
-  // Cap AI volume by remaining credits
-  const maxAiJobs = Math.floor(balance.remaining / costPerJob)
+  // Cap AI volume by remaining credits (unlimited when cost is 0)
+  const maxAiJobs =
+    costPerJob === 0 ? needAi.length : Math.floor(balance.remaining / costPerJob)
   const toScore = needAi.slice(0, maxAiJobs)
 
   if (toScore.length === 0) {
@@ -253,10 +244,7 @@ export async function scoreJobFits(
   let remaining = balance.remaining
   if (aiJobIds.length > 0) {
     const charge = aiJobIds.length * costPerJob
-    const spent = await spendCredits(db, userId, charge, "jobFits")
-    if (spent.ok) {
-      creditsCharged = charge
-      remaining = spent.remaining
+    if (charge === 0) {
       for (const id of aiJobIds) {
         const rawAi = aiResults[id]!
         await setCachedAiScore(profile.profileHash, id, rawAi)
@@ -264,8 +252,20 @@ export async function scoreJobFits(
         usedAi++
       }
     } else {
-      remaining = spent.remaining
-      logger.warn({ userId, charge }, "fit ai spend failed — heuristic kept")
+      const spent = await spendCredits(db, userId, charge, "jobFits")
+      if (spent.ok) {
+        creditsCharged = charge
+        remaining = spent.remaining
+        for (const id of aiJobIds) {
+          const rawAi = aiResults[id]!
+          await setCachedAiScore(profile.profileHash, id, rawAi)
+          scores[id] = blendHeuristicAndAi(heuristic[id]!, rawAi)
+          usedAi++
+        }
+      } else {
+        remaining = spent.remaining
+        logger.warn({ userId, charge }, "fit ai spend failed — heuristic kept")
+      }
     }
   }
 

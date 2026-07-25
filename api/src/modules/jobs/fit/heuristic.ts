@@ -1,5 +1,7 @@
 import type { FitScore, JobFitStub } from "@mockmatch/schemas"
 import type { ResumeFitProfile } from "./extract-profile.js"
+import { extractJobRequiredSkills } from "./job-skills.js"
+import { tierFromScore } from "./tier.js"
 
 function normalize(text: string): string {
   return text
@@ -58,103 +60,37 @@ const SENIORITY_RANK: Record<Seniority, number> = {
   unknown: 2,
 }
 
-function tierFromScore(score: number): FitScore["tier"] {
-  if (score >= 85) return "strong"
-  if (score >= 70) return "good"
-  return "fair"
-}
-
-function skillMatches(
-  profileSkills: string[],
-  jobText: string
-): Array<{ label: string; matched: boolean }> {
-  const jobNorm = normalize(jobText)
-  const jobTokens = tokenSet(jobText)
-  const matched: string[] = []
-  const unmatched: string[] = []
-
-  for (const skill of profileSkills) {
-    const sn = normalize(skill)
-    if (!sn) continue
-    const skillTokens = tokenSet(skill)
-    const multi = sn.length >= 3 && jobNorm.includes(sn)
-    let overlap = 0
-    for (const t of skillTokens) {
-      if (jobTokens.has(t)) overlap++
-    }
-    const hit = multi || (skillTokens.size > 0 && overlap / skillTokens.size >= 0.6)
-    if (hit) matched.push(skill)
-    else unmatched.push(skill)
-  }
-
-  // Prefer matched first, then a few unmatched for gap signal
-  const tags: Array<{ label: string; matched: boolean }> = []
-  for (const label of matched.slice(0, 4)) {
-    tags.push({ label, matched: true })
-  }
-  for (const label of unmatched.slice(0, Math.max(0, 4 - tags.length))) {
-    tags.push({ label, matched: false })
-  }
-
-  // If no profile skills, mine simple job keywords
-  if (tags.length === 0) {
-    const stop = new Set([
-      "and",
-      "the",
-      "for",
-      "with",
-      "you",
-      "our",
-      "will",
-      "are",
-      "job",
-      "role",
-      "work",
-      "team",
-      "years",
-      "experience",
-    ])
-    const freq = new Map<string, number>()
-    for (const t of tokens(jobText)) {
-      if (stop.has(t) || t.length < 3) continue
-      freq.set(t, (freq.get(t) ?? 0) + 1)
-    }
-    const top = [...freq.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 4)
-      .map(([w]) => w)
-    for (const label of top) {
-      tags.push({ label, matched: false })
-    }
-  }
-
-  return tags
-}
-
 function buildFitNote(
   score: number,
   matchedSkills: string[],
   titleHit: boolean
 ): string {
-  if (score >= 85) {
+  if (score >= 80) {
     const skills = matchedSkills.slice(0, 3).join(", ")
     return skills
       ? `Strong skill overlap (${skills}).`
       : "Strong overall alignment with your background."
   }
-  if (score >= 70) {
+  if (score >= 60) {
     return titleHit
       ? "Good role match; some skill gaps to cover."
       : "Solid skill overlap with partial role alignment."
   }
-  if (matchedSkills.length > 0) {
-    return `Limited overlap — matched ${matchedSkills.slice(0, 2).join(", ")}.`
+  if (score >= 40) {
+    if (matchedSkills.length > 0) {
+      return `Partial overlap — matched ${matchedSkills.slice(0, 2).join(", ")}.`
+    }
+    return "Fair skill overlap with this role."
   }
-  return "Limited skill overlap with this role."
+  if (matchedSkills.length > 0) {
+    return `Low overlap — only matched ${matchedSkills.slice(0, 2).join(", ")}.`
+  }
+  return "Weak skill overlap with this role."
 }
 
 /**
  * Free deterministic fit. Uses multi-resume skills + experience + target roles.
+ * Skills list = what the *job* requires (not resume gap tags).
  */
 export function scoreJobHeuristic(
   profile: ResumeFitProfile,
@@ -165,7 +101,7 @@ export function scoreJobHeuristic(
   const jobTokens = tokenSet(jobBlob)
   const titleTokens = tokenSet(job.title)
 
-  // Skill overlap
+  // Skill overlap (for score only)
   const skillHits: string[] = []
   let skillHitCount = 0
   for (const skill of profile.skills) {
@@ -227,13 +163,17 @@ export function scoreJobHeuristic(
     seniorityScore * 0.1
   const score = Math.max(0, Math.min(100, Math.round(raw)))
 
-  const skills = skillMatches(profile.skills, jobBlob)
-  const matchedLabels = skills.filter((s) => s.matched).map((s) => s.label)
+  // Job-required skills for UI (not matched/unmatched resume tags)
+  const skills = extractJobRequiredSkills(jobBlob, 6)
 
   return {
     score,
     tier: tierFromScore(score),
-    fitNote: buildFitNote(score, matchedLabels.length ? matchedLabels : skillHits, titleContains || titleJ > 0.2),
+    fitNote: buildFitNote(
+      score,
+      skillHits,
+      titleContains || titleJ > 0.2
+    ),
     skills,
     mode: "heuristic",
   }

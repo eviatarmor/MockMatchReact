@@ -193,7 +193,8 @@
     "matchTiers": {
       "strong": "Strong match",
       "good": "Good match",
-      "fair": "Fair match"
+      "fair": "Fair match",
+      "weak": "Weak match"
     },
     "details": {
       "compensation": "Compensation",
@@ -204,6 +205,7 @@
       "applyNow": "Apply now",
       "applyHint": "Generate a resume & cover letter optimized for this posting, then apply in one step.",
       "whyYouMatch": "Why you match",
+      "skillsRequired": "Skills required",
       "inResume": "— in your resume",
       "considerAdding": "— consider adding",
       "close": "Close",
@@ -338,7 +340,7 @@
     "endOfList": "Showing all {{total}} jobs",
     "fit": {
       "basic": "Basic match",
-      "ai": "AI + skills",
+      "ai": "AI match",
       "creditsEmptyTitle": "AI match credits used up",
       "creditsEmptyDescription": "Showing basic skill match. Top up credits in Billing for AI scoring."
     },
@@ -375,22 +377,31 @@
     "matchTiers": {
       "strong": "Strong match",
       "good": "Good match",
-      "fair": "Fair match"
+      "fair": "Fair match",
+      "weak": "Weak match"
     },
     "details": {
       "compensation": "Compensation",
       "level": "Level",
       "location": "Location",
       "posted": "Posted",
-      "description": "Description",
+      "description": "Listing excerpt",
+      "summary": "Summary",
+      "descriptionSnippetNote": "Adzuna’s search API only returns a short snippet. Open the full posting for the complete description.",
+      "viewFullPosting": "View full description on Adzuna",
       "tailorDocs": "Tailor docs",
       "applyNow": "Apply now",
-      "applyHint": "Open the original posting to apply, or tailor docs for this role.",
+      "applyHint": "Open the original posting to apply, or fit your resume to this role with AI.",
       "whyYouMatch": "Why you match",
+      "skillsRequired": "Skills required",
       "inResume": "— in your resume",
       "considerAdding": "— consider adding",
       "close": "Close",
-      "trackRole": "Track this role",
+      "trackRole": "Track",
+      "fitResume": "Fit resume",
+      "fitResumeTitle": "Fit my resume to this job with AI (coming soon)",
+      "fitCoverLetter": "Fit cover letter",
+      "fitCoverLetterTitle": "Fit my cover letter to this job with AI (coming soon)",
       "scoredNote": "Scored against your resume and saved skills.",
       "applicationStage": "Application stage",
       "openWorkflow": "Open workflow",

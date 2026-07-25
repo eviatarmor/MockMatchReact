@@ -9,7 +9,7 @@ import { TrackingTab } from "./components/tracking-tab"
 import { TrackingKanban } from "./components/tracking-kanban"
 import { ApplicationsViewToggle } from "./components/applications-view-toggle"
 import type { ApplicationsView } from "./components/applications-view-toggle"
-import { AddJobDialog } from "@/features/job-tracker/components/add-job-dialog"
+import { AddJobDialog } from "@/features/discover/components/add-job-dialog"
 import { MOCK_TRACKED_JOBS } from "./constants"
 
 export function ApplicationsPageContent() {

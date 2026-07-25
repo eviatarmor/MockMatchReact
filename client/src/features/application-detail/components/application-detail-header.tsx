@@ -9,8 +9,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MOCK_TRACKED_JOBS } from "@/features/job-tracker/constants"
-import type { TrackedJob } from "@/features/job-tracker/types"
+import { MOCK_TRACKED_JOBS } from "@/features/discover/constants"
+import type { TrackedJob } from "@/features/discover/types"
 
 interface ApplicationDetailHeaderProps {
   readonly currentJob: TrackedJob

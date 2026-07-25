@@ -1,1 +1,1 @@
-export type { TrackedJob, TrackingStatus } from "@/features/job-tracker/types"
+export type { TrackedJob, TrackingStatus } from "@/features/discover/types"
