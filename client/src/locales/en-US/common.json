@@ -618,7 +618,19 @@
     }
   },
   "navbar": {
-    "feedback": "Feedback"
+    "feedback": "Feedback",
+    "getCredits": "Get credits",
+    "getCreditsShort": "Credits",
+    "creditsCard": {
+      "title": "Top up credits",
+      "description": "Buy a pack to unlock AI features, or open Billing for usage and invoices.",
+      "viewBilling": "View billing",
+      "loading": "Loading packs…",
+      "devHeading": "Development",
+      "grantDev": "Grant 100 dev credits",
+      "devGranted": "Dev credits granted",
+      "devError": "Could not grant dev credits"
+    }
   },
   "recorder": {
     "documentTitle": "Interview Recorder — MockMatch",

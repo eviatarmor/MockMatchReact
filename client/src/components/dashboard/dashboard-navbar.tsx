@@ -13,6 +13,7 @@ import { useNavbarSlotsValue } from "@/hooks/use-navbar-slots"
 import { NAV_DATA } from "@/components/dashboard/constants"
 import type { NavItem } from "@/components/dashboard/types"
 import { FeedbackButton } from "./feedback-button"
+import { NavbarGetCreditsButton } from "./navbar-get-credits-button"
 import { NavbarHelpButton } from "./navbar-help-button"
 import { NotificationBell } from "./notification-bell"
 import { ThemeToggle } from "./theme-toggle"
@@ -88,10 +89,11 @@ export function DashboardNavbar({ rounded = false }: DashboardNavbarProps) {
 
       <div className="flex items-center gap-1.5 sm:gap-2">
         {end}
-        <ThemeToggle />
         <NavbarHelpButton />
         <NotificationBell />
+        <ThemeToggle />
         <FeedbackButton />
+        <NavbarGetCreditsButton />
       </div>
     </header>
   )

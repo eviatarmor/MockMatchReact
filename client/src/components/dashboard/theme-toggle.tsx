@@ -17,7 +17,7 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       theme={resolvedTheme}
       onThemeChange={setTheme}
       className={cn(
-        "inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground [&_svg]:size-4",
+        "inline-flex size-8 cursor-pointer items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground [&_svg]:size-4",
         className
       )}
       aria-label={t("theme.toggle")}

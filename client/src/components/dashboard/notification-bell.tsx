@@ -6,7 +6,7 @@ export function NotificationBell() {
     <Button
       variant="ghost"
       size="icon"
-      className="relative h-8 w-8 text-muted-foreground hover:text-foreground"
+      className="relative h-8 w-8 cursor-pointer text-muted-foreground hover:text-foreground"
       aria-label="Notifications"
     >
       <Bell className="size-4" />
