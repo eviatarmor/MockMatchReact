@@ -15,17 +15,19 @@ import { SectionShell } from "@/components/layout/section-shell"
 import {
   COUNTRY_OPTIONS,
   DATE_FORMAT_OPTIONS,
+  LANGUAGE_OPTIONS,
   TIME_FORMAT_OPTIONS,
-  COUNTRY_DIALECT_KEY,
 } from "@/features/account-settings/constants"
 import type {
   AccountSettingsForm,
   Country,
   DateFormat,
+  Language,
   SelectOption,
   TimeFormat,
 } from "@/features/account-settings/types"
 import { formatDate, formatTime } from "@/lib/format-datetime"
+import { setAppLanguage } from "@/lib/i18n"
 
 interface FieldSelectProps<TValue extends string> {
   readonly id: string
@@ -36,15 +38,20 @@ interface FieldSelectProps<TValue extends string> {
 
 function FieldSelect<TValue extends string>({ id, value, onChange, options }: FieldSelectProps<TValue>) {
   const { t } = useTranslation("account-settings")
+  // Base UI SelectValue shows raw `value` unless Root has `items` label map.
+  const items = options.map((option) => ({
+    value: option.value,
+    label: t(option.labelKey),
+  }))
   return (
-    <Select value={value} onValueChange={(next) => onChange(next as TValue)}>
+    <Select value={value} onValueChange={(next) => onChange(next as TValue)} items={items}>
       <SelectTrigger id={id} className="w-full">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {options.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
-            {t(option.labelKey)}
+        {items.map((item) => (
+          <SelectItem key={item.value} value={item.value}>
+            {item.label}
           </SelectItem>
         ))}
       </SelectContent>
@@ -65,7 +72,7 @@ export function RegionSection({ form }: RegionSectionProps) {
     return () => window.clearInterval(interval)
   }, [])
 
-  const country = form.watch("country")
+  const language = form.watch("language")
   const dateFormat = form.watch("dateFormat")
   const timeFormat = form.watch("timeFormat")
 
@@ -73,7 +80,25 @@ export function RegionSection({ form }: RegionSectionProps) {
     <SectionShell heading={t("region.heading")} description={t("region.description")}>
       <Card>
         <CardContent className="flex flex-col gap-4">
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="account-language">{t("region.languageLabel")}</Label>
+              <Controller
+                control={form.control}
+                name="language"
+                render={({ field }) => (
+                  <FieldSelect<Language>
+                    id="account-language"
+                    value={field.value}
+                    onChange={(next) => {
+                      field.onChange(next)
+                      setAppLanguage(next)
+                    }}
+                    options={LANGUAGE_OPTIONS}
+                  />
+                )}
+              />
+            </div>
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="account-country">{t("region.countryLabel")}</Label>
               <Controller
@@ -127,7 +152,7 @@ export function RegionSection({ form }: RegionSectionProps) {
               {formatDate(now, dateFormat)} · {formatTime(now, timeFormat)}
             </span>
             <span className="ml-auto text-xs text-muted-foreground">
-              {t(COUNTRY_DIALECT_KEY[country])}
+              {t(`region.languages.${language}`)}
             </span>
           </div>
         </CardContent>

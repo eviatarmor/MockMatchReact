@@ -1,0 +1,200 @@
+{
+  "documentTitle": "Cover Letter Editor — MockMatch",
+  "toolbar": {
+    "back": "Back to cover letters",
+    "subtitle": "Cover Letters · {{company}}",
+    "saved": "Saved",
+    "saving": "Saving…",
+    "saveError": "Save failed",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "resetZoom": "Reset zoom",
+    "resetView": "Fit to view",
+    "undo": "Undo",
+    "redo": "Redo",
+    "share": "Share",
+    "preview": "Preview",
+    "previewDescription": "Print layout preview of this cover letter.",
+    "exportPdf": "Export PDF",
+    "exportSuccess": "PDF downloaded",
+    "exportError": "Could not export PDF"
+  },
+  "loading": "Loading cover letter…",
+  "loadError": "Could not load this cover letter.",
+  "notFound": "Cover letter not found.",
+  "backToList": "Back to Cover Letters",
+  "rail": {
+    "templates": "Templates",
+    "style": "Style",
+    "sections": "Sections",
+    "analysis": "General analysis",
+    "ai": "AI",
+    "collapse": "Collapse panel"
+  },
+  "templates": {
+    "title": "Templates",
+    "description": "Switch layouts instantly — your content carries over.",
+    "items": {
+      "modern": { "name": "Modern", "description": "Bold name, accent headings" },
+      "classic": { "name": "Classic", "description": "Centered, serif, rule lines" },
+      "minimal": { "name": "Minimal", "description": "Airy, small caps, no rules" },
+      "technical": { "name": "Technical", "description": "Mono accents, tight grid" },
+      "executive": { "name": "Executive", "description": "Large serif name, bold rule" },
+      "compact": { "name": "Compact", "description": "Dense, plain headings" },
+      "banner": { "name": "Banner", "description": "Accent color header band" },
+      "editorial": { "name": "Editorial", "description": "Oversized name, airy" },
+      "elegant": { "name": "Elegant", "description": "Centered small caps, serif" }
+    }
+  },
+  "style": {
+    "title": "Style",
+    "description": "Fine-tune accent color, typeface, and layout.",
+    "accent": "Accent color",
+    "typeface": "Typeface",
+    "headings": "Section headings",
+    "density": "Density",
+    "typefaces": {
+      "geist": { "name": "Geist Sans", "description": "Clean & modern" },
+      "sourceSerif": { "name": "Source Serif", "description": "Classic & warm" },
+      "newsreader": { "name": "Newsreader", "description": "Editorial headings" },
+      "mono": { "name": "Mono accent", "description": "Technical feel" }
+    },
+    "headingStyles": {
+      "accent": "Accent",
+      "underline": "Underline",
+      "smallCaps": "Small caps",
+      "plain": "Plain"
+    },
+    "densities": {
+      "compact": "Compact",
+      "normal": "Normal",
+      "relaxed": "Relaxed"
+    }
+  },
+  "sections": {
+    "title": "Sections",
+    "description": "Add, reorder, and remove parts of the letter."
+  },
+  "addSection": "Add section",
+  "blocks": {
+    "greeting": "Greeting",
+    "subject": "Subject line",
+    "paragraph": "Body paragraph",
+    "signoff": "Sign-off",
+    "custom": "Custom section"
+  },
+  "blockPlaceholders": {
+    "greeting": "Dear Hiring Team,",
+    "paragraph": "Write a paragraph…",
+    "subject": "Re: Senior Product Designer",
+    "closing": "Sincerely,",
+    "signature": "Your name",
+    "heading": "Section heading"
+  },
+  "blockToolbar": {
+    "ai": "Ask AI",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "duplicate": "Duplicate",
+    "delete": "Delete",
+    "drag": "Drag to reorder"
+  },
+  "richText": {
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "list": "Bullet list",
+    "link": "Link",
+    "clear": "Clear formatting",
+    "linkPrompt": "Enter a URL"
+  },
+  "grammar": {
+    "apply": "Apply suggestion",
+    "noSuggestions": "No suggestions available.",
+    "dismiss": "Remove"
+  },
+  "fields": {
+    "name": "Your name",
+    "title": "Your title",
+    "date": "Date",
+    "recipientName": "Recipient name",
+    "recipientTitle": "Recipient title",
+    "company": "Company"
+  },
+  "contacts": {
+    "email": "Email",
+    "phone": "Phone",
+    "location": "Location",
+    "website": "Website",
+    "linkedin": "LinkedIn"
+  },
+  "mobile": {
+    "rows": {
+      "basicInfo": "Basic info",
+      "recipient": "Recipient",
+      "date": "Date"
+    },
+    "openSection": "Edit {{section}}",
+    "customize": "Customize"
+  },
+  "ai": {
+    "title": "AI assistant",
+    "description": "Rewrite, shorten, or tailor your letter in one click.",
+    "actions": {
+      "improve": "Improve writing",
+      "shorten": "Make shorter",
+      "tailor": "Tailor to job",
+      "grammar": "Fix grammar"
+    },
+    "promptPlaceholder": "Ask AI to edit your letter…",
+    "send": "Send"
+  },
+  "analysis": {
+    "title": "General analysis",
+    "description": "Job-agnostic issues to fix on any application.",
+    "scoreLabel": "Letter health",
+    "status": {
+      "strong": "Looking solid",
+      "ok": "A few gaps",
+      "weak": "Needs work"
+    },
+    "severity": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "locations": {
+      "sender": "Sender",
+      "contact": "Contact",
+      "date": "Date",
+      "recipient": "Recipient",
+      "greeting": "Greeting",
+      "body": "Body",
+      "signoff": "Sign-off",
+      "writing": "Writing"
+    },
+    "empty": "No issues found — nice work.",
+    "linting": "Checking writing…",
+    "clickToFocus": "Click to edit",
+    "issueCount_one": "{{count}} issue",
+    "issueCount_other": "{{count}} issues",
+    "findings": {
+      "missing_name": "Add your full name.",
+      "missing_email": "Add an email address.",
+      "missing_phone": "Add a phone number.",
+      "invalid_email": "Email address looks invalid.",
+      "invalid_phone": "Phone number looks incomplete.",
+      "missing_location": "Add a city or location.",
+      "missing_linkedin": "Add a LinkedIn or portfolio link.",
+      "missing_company": "Add the company you're writing to.",
+      "missing_date": "Add a date.",
+      "missing_greeting": "Add a greeting (e.g. Dear Hiring Team,).",
+      "missing_body": "Add body paragraphs explaining your interest and fit.",
+      "body_too_short": "Body is very short — aim for a few stronger paragraphs ({{min}}+ characters).",
+      "missing_signoff": "Add a closing and signature.",
+      "incomplete_signoff": "Sign-off is missing a closing or signature.",
+      "grammar_issue": "Writing issue found."
+    }
+  }
+}

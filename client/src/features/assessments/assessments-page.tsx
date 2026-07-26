@@ -63,7 +63,16 @@ export function AssessmentsPageContent() {
             value={search}
             onChange={setSearch}
           />
-          <Select value={difficulty} onValueChange={(v) => setDifficulty(v as DifficultyFilter)}>
+          <Select
+            value={difficulty}
+            onValueChange={(v) => setDifficulty(v as DifficultyFilter)}
+            items={{
+              any: t("assessments.filters.anyDifficulty"),
+              easy: t("assessments.difficulty.easy"),
+              medium: t("assessments.difficulty.medium"),
+              hard: t("assessments.difficulty.hard"),
+            }}
+          >
             <SelectTrigger className="h-8 w-auto gap-1.5 px-3 text-sm">
               <SelectValue />
             </SelectTrigger>

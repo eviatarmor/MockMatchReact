@@ -6,6 +6,11 @@ import { Select as SelectPrimitive } from "@base-ui/react/select"
 import { cn } from "@/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
+/**
+ * Base UI Select root.
+ * Pass `items` (value → label map or `{ value, label }[]`) so `<SelectValue />`
+ * shows the human label instead of the raw value.
+ */
 const Select = SelectPrimitive.Root
 
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {

@@ -20,7 +20,7 @@ const emptyResult = buildResult([])
 /**
  * Live general analysis: structural rules sync, Harper grammar debounced.
  * Findings sorted by severity; score 0–100.
- * Harper dialect follows account country.
+ * Harper dialect follows account language.
  */
 export function useGeneralAnalysis(
   document: CoverLetterDocument,

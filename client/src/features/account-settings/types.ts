@@ -11,6 +11,8 @@ export type VoiceProfile =
   | "polished"
   | "rounded"
 
+export type Language = "en-US" | "en-GB" | "en-AU"
+
 export type Country = "US" | "AU" | "GB"
 
 export type DateFormat = "DD/MM/YYYY" | "MM/DD/YYYY" | "YYYY/MM/DD"
@@ -48,6 +50,7 @@ export interface SelectOption<TValue extends string = string> {
 export interface AccountSettingsForm {
   fullName: string
   voiceProfile: VoiceProfile
+  language: Language
   country: Country
   dateFormat: DateFormat
   timeFormat: TimeFormat

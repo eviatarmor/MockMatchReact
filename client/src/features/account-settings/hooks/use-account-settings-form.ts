@@ -6,6 +6,7 @@ import { AUTO_SAVE_DEBOUNCE_MS } from "@/features/account-settings/constants"
 import type { AccountSettingsForm } from "@/features/account-settings/types"
 import { useDebouncedFormSave } from "@/hooks/use-debounced-form-save"
 import { setUser } from "@/lib/auth/session"
+import { setAppLanguage } from "@/lib/i18n"
 import { trpc } from "@/lib/trpc"
 
 export interface UseAccountSettingsFormResult {
@@ -18,6 +19,7 @@ export interface UseAccountSettingsFormResult {
 const emptyDefaults: AccountSettingsForm = {
   fullName: "",
   voiceProfile: "mellow",
+  language: "en-AU",
   country: "US",
   dateFormat: "MM/DD/YYYY",
   timeFormat: "12h",
@@ -42,10 +44,13 @@ export function useAccountSettingsForm(): UseAccountSettingsFormResult {
     form.reset({
       fullName: fullName ?? "",
       voiceProfile: preferences.voiceProfile,
+      language: preferences.language,
       country: preferences.country,
       dateFormat: preferences.dateFormat,
       timeFormat: preferences.timeFormat,
     })
+    // Server language is source of truth when logged in.
+    setAppLanguage(preferences.language)
     hydratedRef.current = true
   }, [accountQuery.data, form])
 
@@ -65,6 +70,7 @@ export function useAccountSettingsForm(): UseAccountSettingsFormResult {
             updateProfile.mutateAsync({ fullName: values.fullName }),
             updatePreferences.mutateAsync({
               voiceProfile: values.voiceProfile,
+              language: values.language,
               country: values.country,
               dateFormat: values.dateFormat,
               timeFormat: values.timeFormat,
@@ -75,7 +81,7 @@ export function useAccountSettingsForm(): UseAccountSettingsFormResult {
             email: profile.email,
             fullName: profile.fullName,
           })
-          // Immediate cache write so Discover/region hooks see country without a race.
+          // Immediate cache write so Discover/region hooks see country/language without a race.
           utils.account.get.setData(undefined, account)
           // Toast before invalidate — same UX as privacy; don't wait on refetch.
           toast.success(t("toast.saved"), { id: "account-settings-saved" })

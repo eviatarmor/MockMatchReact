@@ -6,7 +6,7 @@ import { useRegionPreferences } from "@/hooks/use-region-preferences"
  * Debounced grammar check for a plain-text string. Returns the current issues
  * (empty until the first check resolves). Stale results are dropped when `text`
  * changes mid-flight, so the issues always match the latest input.
- * Dialect follows account country (US/AU/GB → Harper American/Australian/British).
+ * Dialect follows account language (en-US/en-GB/en-AU → Harper American/British/Australian).
  */
 export function useGrammar(text: string, enabled = true, delay = 600): GrammarIssue[] {
   const { dialect } = useRegionPreferences()

@@ -1,6 +1,6 @@
 import { WorkerLinter, Dialect, type Lint } from "harper.js"
 import { binaryInlined } from "harper.js/binaryInlined"
-import type { Country } from "@mockmatch/schemas"
+import type { Language } from "@mockmatch/schemas"
 
 /** A single grammar problem, flattened to plain serializable data (Harper's
  * `Lint`/`Span`/`Suggestion` objects hold WASM memory we don't want to leak). */
@@ -21,10 +21,10 @@ export interface GrammarIssue {
 
 export { Dialect }
 
-/** Map account country → Harper English dialect. */
-export function countryToDialect(country: Country): Dialect {
-  if (country === "GB") return Dialect.British
-  if (country === "AU") return Dialect.Australian
+/** Map account UI language → Harper English dialect. */
+export function languageToDialect(language: Language): Dialect {
+  if (language === "en-GB") return Dialect.British
+  if (language === "en-AU") return Dialect.Australian
   return Dialect.American
 }
 

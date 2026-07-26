@@ -2,6 +2,7 @@ import { z } from "zod"
 import {
   countrySchema,
   dateFormatSchema,
+  languageSchema,
   privacyPreferencesSchema,
   timeFormatSchema,
   userPreferencesSchema,
@@ -16,6 +17,7 @@ export const updateProfileInputSchema = z.object({
 export const updatePreferencesInputSchema = z
   .object({
     voiceProfile: voiceProfileSchema.optional(),
+    language: languageSchema.optional(),
     country: countrySchema.optional(),
     dateFormat: dateFormatSchema.optional(),
     timeFormat: timeFormatSchema.optional(),
@@ -24,6 +26,7 @@ export const updatePreferencesInputSchema = z
   .refine(
     (value) =>
       value.voiceProfile !== undefined ||
+      value.language !== undefined ||
       value.country !== undefined ||
       value.dateFormat !== undefined ||
       value.timeFormat !== undefined ||

@@ -36,7 +36,13 @@ export function PerformancePageContent() {
           title={t("performance.title")}
           description={t("performance.description")}
           actions={
-            <Select value={timeRange} onValueChange={(v) => setTimeRange(v as TimeRange)}>
+            <Select
+              value={timeRange}
+              onValueChange={(v) => setTimeRange(v as TimeRange)}
+              items={Object.fromEntries(
+                TIME_RANGE_OPTIONS.map((r) => [r, t(`performance.timeRange.${r}`)])
+              )}
+            >
               <SelectTrigger className="h-8 w-auto gap-1.5 px-3 text-sm">
                 <SelectValue />
               </SelectTrigger>

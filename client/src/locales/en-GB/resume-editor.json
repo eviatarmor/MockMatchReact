@@ -1,0 +1,237 @@
+{
+  "documentTitle": "Resume Editor — MockMatch",
+  "toolbar": {
+    "back": "Back to resumes",
+    "saved": "Saved",
+    "saving": "Saving…",
+    "saveError": "Save failed",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "resetZoom": "Reset zoom",
+    "resetView": "Fit to view",
+    "undo": "Undo",
+    "redo": "Redo",
+    "share": "Share",
+    "preview": "Preview",
+    "previewDescription": "Print layout preview of this resume.",
+    "exportPdf": "Export PDF",
+    "exportSuccess": "PDF downloaded",
+    "exportError": "Could not export PDF"
+  },
+  "loading": "Loading resume…",
+  "loadError": "Could not load this resume.",
+  "notFound": "Resume not found.",
+  "backToLab": "Back to Resume Lab",
+
+  "rail": {
+    "templates": "Templates",
+    "style": "Style",
+    "sections": "Sections",
+    "analysis": "General analysis",
+    "ai": "AI",
+    "collapse": "Collapse panel"
+  },
+  "templates": {
+    "title": "Templates",
+    "description": "Switch layouts instantly — your content carries over.",
+    "items": {
+      "modern": { "name": "Modern", "description": "Bold name, accent headings" },
+      "classic": { "name": "Classic", "description": "Centered, serif, rule lines" },
+      "minimal": { "name": "Minimal", "description": "Airy, small caps, no rules" },
+      "technical": { "name": "Technical", "description": "Mono accents, tight grid" },
+      "executive": { "name": "Executive", "description": "Large serif name, bold rule" },
+      "compact": { "name": "Compact", "description": "Dense, plain headings" },
+      "banner": { "name": "Banner", "description": "Accent color header band" },
+      "editorial": { "name": "Editorial", "description": "Oversized name, airy" },
+      "elegant": { "name": "Elegant", "description": "Centered small caps, serif" }
+    }
+  },
+  "style": {
+    "title": "Style",
+    "description": "Fine-tune accent color, typeface, and layout.",
+    "accent": "Accent color",
+    "typeface": "Typeface",
+    "headings": "Section headings",
+    "density": "Density",
+    "typefaces": {
+      "geist": { "name": "Geist Sans", "description": "Clean & modern" },
+      "sourceSerif": { "name": "Source Serif", "description": "Classic & warm" },
+      "newsreader": { "name": "Newsreader", "description": "Editorial headings" },
+      "mono": { "name": "Mono accent", "description": "Technical feel" }
+    },
+    "headingStyles": {
+      "accent": "Accent",
+      "underline": "Underline",
+      "smallCaps": "Small caps",
+      "plain": "Plain"
+    },
+    "densities": {
+      "compact": "Compact",
+      "normal": "Normal",
+      "relaxed": "Relaxed"
+    }
+  },
+  "sections": {
+    "title": "Sections",
+    "description": "Add, reorder, and remove parts of the resume.",
+    "summary": "Summary",
+    "experience": "Work experience",
+    "education": "Education",
+    "skills": "Skills",
+    "projects": "Projects",
+    "volunteering": "Volunteering",
+    "awards": "Awards",
+    "certifications": "Certifications",
+    "publications": "Publications",
+    "languages": "Languages",
+    "affiliations": "Affiliations",
+    "hobbies": "Hobbies",
+    "references": "References",
+    "custom": "Custom section"
+  },
+  "addSection": "Add section",
+  "blockToolbar": {
+    "ai": "Ask AI",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "duplicate": "Duplicate",
+    "delete": "Delete",
+    "drag": "Drag to reorder"
+  },
+  "richText": {
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "list": "Bullet list",
+    "link": "Link",
+    "clear": "Clear formatting",
+    "linkPrompt": "Enter a URL"
+  },
+  "grammar": {
+    "apply": "Apply suggestion",
+    "noSuggestions": "No suggestions available.",
+    "dismiss": "Remove"
+  },
+  "fields": {
+    "name": "Your name",
+    "headline": "Your headline",
+    "summary": "Write a short professional summary…",
+    "role": "Role",
+    "company": "Company",
+    "organization": "Organization",
+    "location": "Location",
+    "startDate": "Start",
+    "endDate": "End",
+    "date": "Date",
+    "bullet": "Describe your work — use the toolbar to add bullets…",
+    "school": "School",
+    "degree": "Degree",
+    "field": "Field of study",
+    "skill": "Skill",
+    "projectName": "Project name",
+    "url": "URL",
+    "description": "Description…",
+    "awardTitle": "Award title",
+    "issuer": "Issuer",
+    "certName": "Certification name",
+    "credentialId": "Credential ID",
+    "pubTitle": "Publication title",
+    "publisher": "Publisher",
+    "language": "Language",
+    "proficiency": "Proficiency",
+    "hobby": "Hobby",
+    "refName": "Name",
+    "refRelation": "Relationship",
+    "refContact": "Contact",
+    "customHeading": "Section heading"
+  },
+  "rows": {
+    "addEntry": "Add entry",
+    "removeEntry": "Remove entry",
+    "addSkill": "Add skill",
+    "removeSkill": "Remove skill",
+    "addLanguage": "Add language",
+    "removeLanguage": "Remove language",
+    "addHobby": "Add hobby",
+    "removeHobby": "Remove hobby",
+    "addReference": "Add reference",
+    "removeReference": "Remove reference"
+  },
+  "contacts": {
+    "email": "Email",
+    "phone": "Phone",
+    "location": "Location",
+    "website": "Website",
+    "linkedin": "LinkedIn"
+  },
+  "mobile": {
+    "rows": {
+      "header": "Name & contact"
+    },
+    "openSection": "Edit {{section}}",
+    "customize": "Customize"
+  },
+  "ai": {
+    "title": "AI assistant",
+    "description": "Rewrite, shorten, or tailor your resume in one click.",
+    "actions": {
+      "improve": "Improve writing",
+      "shorten": "Make shorter",
+      "tailor": "Tailor to job",
+      "grammar": "Fix grammar"
+    },
+    "promptPlaceholder": "Ask AI to edit your resume…",
+    "send": "Send"
+  },
+  "analysis": {
+    "title": "General analysis",
+    "description": "Job-agnostic issues to fix on any application.",
+    "scoreLabel": "Resume health",
+    "status": {
+      "strong": "Looking solid",
+      "ok": "A few gaps",
+      "weak": "Needs work"
+    },
+    "severity": {
+      "critical": "Critical",
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
+    },
+    "locations": {
+      "header": "Header",
+      "contact": "Contact",
+      "summary": "Summary",
+      "experience": "Experience",
+      "education": "Education",
+      "skills": "Skills",
+      "writing": "Writing"
+    },
+    "empty": "No issues found — nice work.",
+    "linting": "Checking writing…",
+    "clickToFocus": "Click to edit",
+    "issueCount_one": "{{count}} issue",
+    "issueCount_other": "{{count}} issues",
+    "findings": {
+      "missing_name": "Add your full name.",
+      "missing_email": "Add an email address.",
+      "missing_phone": "Add a phone number.",
+      "invalid_email": "Email address looks invalid.",
+      "invalid_phone": "Phone number looks incomplete.",
+      "missing_location": "Add a city or location.",
+      "missing_linkedin": "Add a LinkedIn or portfolio link.",
+      "missing_experience": "Add work experience.",
+      "missing_education": "Add education.",
+      "missing_skills": "Add a skills section.",
+      "missing_summary": "Add a professional summary.",
+      "summary_too_short": "Summary is very short — aim for a few stronger sentences.",
+      "empty_experience_bullets": "Describe impact for this role (add bullet points).",
+      "incomplete_experience_entry": "Experience entry is missing a role or company.",
+      "incomplete_experience_dates": "Experience entry is missing dates.",
+      "incomplete_education_entry": "Education entry is missing a degree or school.",
+      "thin_skills": "Only {{count}} skills listed — add more (aim for {{min}}+).",
+      "no_metrics_in_experience": "No numbers or metrics in experience bullets — quantify impact where you can.",
+      "grammar_issue": "Writing issue found."
+    }
+  }
+}

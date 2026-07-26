@@ -1,0 +1,83 @@
+{
+  "documentTitle": "Billing — MockMatch",
+  "title": "Billing",
+  "description": "Free plan with credit top-ups for AI features. Card details stay with Stripe.",
+  "nav": {
+    "usage": "Usage",
+    "payment": "Payment",
+    "history": "Billing history"
+  },
+  "usage": {
+    "heading": "Usage",
+    "description": "Your free plan and interview-prep credits. Top up when you need paid AI features.",
+    "currentPlan": "Current plan",
+    "freeHint": "No subscription required. Buy credits for AI features that cost money.",
+    "plans": {
+      "free": "Free"
+    },
+    "price": {
+      "free": "Pay as you go"
+    },
+    "credits": {
+      "heading": "Credits",
+      "remaining": "{{count}} credits left",
+      "usedOfTotal": "{{used}} of {{total}} used",
+      "breakdownHeading": "Usage breakdown"
+    },
+    "breakdown": {
+      "mockInterviews": "Mock interviews",
+      "resumeScans": "Fit resume",
+      "coverLetters": "Fit cover letter",
+      "jobFits": "Job fit scores"
+    },
+    "packsHeading": "Credit packs",
+    "packCredits": "{{count}} credits",
+    "buyPack": "Buy",
+    "stripeNotConfigured": "Credit top-ups are not configured on this environment yet.",
+    "packsUnavailable": "No credit packs are available right now.",
+    "loadError": "Could not load billing data."
+  },
+  "payment": {
+    "heading": "Payment method",
+    "description": "Cards are collected and stored by Stripe — MockMatch only sees last four digits for display.",
+    "creditsLabel": "Credits left",
+    "creditsValue": "{{count}} credits",
+    "flipHint": "Click card to flip",
+    "pciNote": "We never store full card numbers or CVC on MockMatch servers (PCI SAQ A).",
+    "emptyTitle": "No card on file",
+    "emptyDescription": "Add a payment method in Stripe’s secure portal, or buy credits — Checkout will collect the card safely.",
+    "detailsHeading": "Billing details",
+    "name": "Name",
+    "email": "Email",
+    "address": "Address",
+    "country": "Country",
+    "update": "Update payment method",
+    "addViaStripe": "Manage in Stripe",
+    "buyToAddCard": "Buy credits"
+  },
+  "history": {
+    "heading": "Billing history",
+    "description": "Receipts for credit top-ups and other Stripe charges.",
+    "empty": "No invoices yet. Top up credits to see history here.",
+    "columns": {
+      "invoice": "Invoice",
+      "date": "Date",
+      "amount": "Amount",
+      "status": "Status",
+      "receipt": "Receipt"
+    },
+    "status": {
+      "paid": "Paid",
+      "pending": "Pending",
+      "open": "Open",
+      "void": "Void",
+      "uncollectible": "Uncollectible",
+      "draft": "Draft"
+    },
+    "download": "Download"
+  },
+  "toast": {
+    "checkoutError": "Could not start checkout",
+    "portalError": "Could not open billing portal"
+  }
+}

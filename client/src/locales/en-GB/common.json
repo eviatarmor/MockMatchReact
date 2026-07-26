@@ -1,0 +1,1028 @@
+{
+  "appName": "MockMatch",
+  "heroHeadline": {
+    "eyebrow": "Interview prep, end to end",
+    "title": "Practice like it's the real interview.",
+    "description": "Sharpen your resume, run AI mock interviews, and track every application — all in one calm, focused workspace."
+  },
+  "signIn": "Sign in",
+  "nav": {
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar"
+  },
+  "navGroups": {
+    "applications": "Applications",
+    "practice": "Practice",
+    "insights": "Insights",
+    "automation": "Automation"
+  },
+  "navItems": {
+    "resumeLab": "Resume Lab",
+    "coverLetters": "Cover Letters",
+    "jobWorkflow": "Job Workflow",
+    "simulations": "Simulations",
+    "assessments": "Assessments",
+    "questionBank": "Question Bank",
+    "readiness": "Readiness",
+    "performance": "Performance",
+    "autofill": "Autofill",
+    "interviewRecorder": "Interview Recorder",
+    "discover": "Discover",
+    "applications": "Applications"
+  },
+  "userMenu": {
+    "accountSettings": "Account Settings",
+    "billing": "Billing",
+    "privacy": "Privacy",
+    "logout": "Log out"
+  },
+  "theme": {
+    "toggle": "Toggle theme"
+  },
+  "dashboard": {
+    "search": {
+      "resumes": "Search resumes...",
+      "coverLetters": "Search cover letters...",
+      "jobs": "Search jobs...",
+      "workflows": "Search workflows...",
+      "simulations": "Search simulations...",
+      "assessments": "Search assessments...",
+      "questions": "Search questions...",
+      "readiness": "Search metrics...",
+      "performance": "Search performance...",
+      "autofill": "Search profiles...",
+      "default": "Search...",
+      "discover": "Search jobs...",
+      "applications": "Search applications..."
+    },
+    "actions": {
+      "importResume": "Import",
+      "newResume": "New resume",
+      "generateForJob": "Generate for a job",
+      "generateForJobShort": "Generate for job",
+      "generateResumeForJob": "Generate for a job based on past resumes",
+      "importCoverLetter": "Import",
+      "newCoverLetter": "New cover letter",
+      "importJob": "Import",
+      "newJob": "New job",
+      "newWorkflow": "New workflow",
+      "startSimulation": "Start simulation",
+      "startAssessment": "Start assessment",
+      "addProfile": "Add profile"
+    },
+    "import": {
+      "importing": "Importing…",
+      "invalidType": "Please choose a PDF file",
+      "tooLarge": "PDF must be under 5 MB"
+    },
+    "pagination": {
+      "summary": "Page {{page}} of {{totalPages}} · {{total}} total",
+      "prev": "Previous",
+      "next": "Next"
+    }
+  },
+  "resumeLab": {
+    "documentTitle": "Resume Lab — MockMatch",
+    "title": "Resume Lab",
+    "description": "Build and improve resumes with a general health score — job-specific ATS fit lives in Discover.",
+    "tabs": {
+      "all": "All",
+      "active": "Active",
+      "drafts": "Drafts",
+      "archived": "Archived"
+    },
+    "sort": {
+      "lastEdited": "Last edited"
+    },
+    "table": {
+      "columns": {
+        "resume": "Resume",
+        "score": "Score",
+        "status": "Status",
+        "updated": "Updated"
+      },
+      "noTargetRole": "No target role",
+      "statusLabels": {
+        "active": "Active",
+        "draft": "Draft",
+        "archived": "Archived"
+      },
+      "rowActions": {
+        "preview": "Preview",
+        "edit": "Edit",
+        "export": "Export",
+        "duplicate": "Duplicate",
+        "delete": "Delete"
+      },
+      "preview": {
+        "description": "Print layout preview of this resume."
+      },
+      "empty": "No resumes found",
+      "emptyTitle": "No resumes yet",
+      "emptyDescription": "Create your first resume to track general health and tailor for roles in Discover.",
+      "emptySearchTitle": "No matching resumes",
+      "emptySearchDescription": "Try a different search term, or clear the search to see all resumes.",
+      "loading": "Loading resumes…",
+      "loadError": "Could not load resumes. Try again.",
+      "deleteConfirm": {
+        "title": "Delete resume?",
+        "message": "“{{title}}” will be permanently deleted. This cannot be undone.",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      },
+      "toast": {
+        "deleted": "Resume deleted",
+        "deleteFailed": "Could not delete resume",
+        "createFailed": "Could not create resume",
+        "duplicated": "Resume duplicated",
+        "duplicateFailed": "Could not duplicate resume",
+        "exportSuccess": "PDF downloaded",
+        "exportFailed": "Could not export resume PDF",
+        "importSuccess": "Resume imported",
+        "importFailed": "Could not import resume PDF"
+      }
+    },
+    "templates": {
+      "title": "Start from a template",
+      "description": "50 role templates for top employers — pre-loaded sections and keywords.",
+      "browseAll": "Browse all",
+      "browseTitle": "Browse resume templates",
+      "browseBackLink": "Back to Resume Lab",
+      "browseDescription": "{{count}} role templates for top employers. Filter by industry.",
+      "searchPlaceholder": "Search role or company...",
+      "useTemplate": "Use template",
+      "noResults": "No templates found",
+      "toast": {
+        "created": "Resume created from template",
+        "createFailed": "Could not create resume from template"
+      },
+      "categories": {
+        "all": "All",
+        "tech": "Tech",
+        "healthcare": "Healthcare",
+        "finance": "Finance",
+        "consulting": "Consulting",
+        "engineering": "Engineering",
+        "legal": "Legal"
+      }
+    }
+  },
+  "jobTracker": {
+    "documentTitle": "Discover — MockMatch",
+    "title": "Discover",
+    "description": "Discover roles matched to you, then track each one through to an offer.",
+    "tabs": {
+      "discover": "Discover",
+      "tracking": "Tracking"
+    },
+    "filters": {
+      "remote": "Remote",
+      "new": "New",
+      "salary": "Salary",
+      "employment": "Job type"
+    },
+    "employmentTypes": {
+      "fullTime": "Full-time",
+      "partTime": "Part-time",
+      "contract": "Contract",
+      "internship": "Internship"
+    },
+    "sort": {
+      "label": "Sort",
+      "bestMatch": "Best match",
+      "newest": "Newest",
+      "salary": "Salary"
+    },
+    "matchTiers": {
+      "strong": "Strong match",
+      "good": "Good match",
+      "fair": "Fair match",
+      "weak": "Weak match"
+    },
+    "details": {
+      "compensation": "Compensation",
+      "level": "Level",
+      "location": "Location",
+      "posted": "Posted",
+      "tailorDocs": "Tailor docs",
+      "applyNow": "Apply now",
+      "applyHint": "Generate a resume & cover letter optimized for this posting, then apply in one step.",
+      "whyYouMatch": "Why you match",
+      "skillsRequired": "Skills required",
+      "inResume": "— in your resume",
+      "considerAdding": "— consider adding",
+      "close": "Close",
+      "trackRole": "Track this role",
+      "scoredNote": "Scored against your resume and saved skills.",
+      "applicationStage": "Application stage",
+      "openWorkflow": "Open workflow",
+      "viewPosting": "View posting"
+    },
+    "trackingActions": {
+      "openDetails": "Open details",
+      "tailorResume": "Tailor resume & cover letter",
+      "remove": "Remove from tracking"
+    },
+    "addJob": {
+      "title": "Add a job to track",
+      "description": "Paste a job description or link — we'll score the match and start tracking.",
+      "tabs": {
+        "paste": "Paste description",
+        "link": "From a link"
+      },
+      "pastePlaceholder": "Paste the full job description here…\n\nTip: include the role title on the first line.",
+      "linkPlaceholder": "https://company.com/careers/role",
+      "matchNote": "Match scored against your resume",
+      "cancel": "Cancel",
+      "submit": "Analyze & track"
+    },
+    "actions": {
+      "track": "Track",
+      "applyToRole": "Apply to this role",
+      "tailorResume": "Tailor resume & cover letter",
+      "viewDetails": "View details",
+      "notInterested": "Not interested",
+      "dismiss": "Dismiss"
+    },
+    "summary": {
+      "saved": "Saved",
+      "applied": "Applied",
+      "interviewing": "Interviewing",
+      "offer": "Offer",
+      "last7days": "Last 7 days"
+    },
+    "statusLabels": {
+      "saved": "Saved",
+      "applied": "Applied",
+      "interviewing": "Interviewing",
+      "offer": "Offer"
+    },
+    "matchSuffix": "match"
+  },
+  "coverLetters": {
+    "documentTitle": "Cover Letters — MockMatch",
+    "title": "Cover Letters",
+    "description": "Build cover letters with a general health score — job-specific ATS fit lives in Discover.",
+    "table": {
+      "columns": {
+        "coverLetter": "Cover Letter",
+        "score": "Score",
+        "status": "Status",
+        "updated": "Updated"
+      },
+      "noTargetRole": "No target role",
+      "statusLabels": {
+        "active": "Active",
+        "draft": "Draft",
+        "archived": "Archived"
+      },
+      "rowActions": {
+        "preview": "Preview",
+        "edit": "Edit",
+        "export": "Export",
+        "duplicate": "Duplicate",
+        "delete": "Delete"
+      },
+      "preview": {
+        "description": "Print layout preview of this cover letter."
+      },
+      "empty": "No cover letters found",
+      "emptyTitle": "No cover letters yet",
+      "emptyDescription": "Write your first cover letter and tailor it for each application.",
+      "emptySearchTitle": "No matching cover letters",
+      "emptySearchDescription": "Try a different search term, or clear the search to see all cover letters.",
+      "loading": "Loading cover letters…",
+      "loadError": "Could not load cover letters. Try again.",
+      "deleteConfirm": {
+        "title": "Delete cover letter?",
+        "message": "“{{title}}” will be permanently deleted. This cannot be undone.",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      },
+      "toast": {
+        "deleted": "Cover letter deleted",
+        "deleteFailed": "Could not delete cover letter",
+        "createFailed": "Could not create cover letter",
+        "duplicated": "Cover letter duplicated",
+        "duplicateFailed": "Could not duplicate cover letter",
+        "exportSuccess": "PDF downloaded",
+        "exportFailed": "Could not export cover letter PDF",
+        "importSuccess": "Cover letter imported",
+        "importFailed": "Could not import cover letter PDF"
+      }
+    },
+    "templates": {
+      "title": "Start from a template",
+      "description": "50 cover letter templates for top employers — role-tuned tone and structure.",
+      "browseAll": "Browse all",
+      "browseTitle": "Browse cover letter templates",
+      "browseBackLink": "Back to Cover Letters",
+      "browseDescription": "{{count}} cover letter templates for top employers. Filter by industry.",
+      "searchPlaceholder": "Search role or company...",
+      "useTemplate": "Use template",
+      "noResults": "No templates found",
+      "toast": {
+        "created": "Cover letter created from template",
+        "createFailed": "Could not create cover letter from template"
+      },
+      "categories": {
+        "all": "All",
+        "tech": "Tech",
+        "healthcare": "Healthcare",
+        "finance": "Finance",
+        "consulting": "Consulting",
+        "engineering": "Engineering",
+        "legal": "Legal"
+      }
+    }
+  },
+  "discover": {
+    "documentTitle": "Discover — MockMatch",
+    "title": "Discover",
+    "description": "Search live openings and see job-specific ATS fit against your resumes.",
+    "loading": "Loading jobs…",
+    "endOfList": "Showing all {{total}} jobs",
+    "resultsCount": "{{count}} jobs",
+    "jobListLabel": "Job listings",
+    "selectJob": "Select a job to view details",
+    "searchingIn": "Jobs in {{country}}",
+    "countries": {
+      "US": "United States",
+      "AU": "Australia",
+      "GB": "United Kingdom"
+    },
+    "fit": {
+      "basic": "Basic ATS",
+      "ai": "AI ATS",
+      "creditsEmptyTitle": "AI ATS credits used up",
+      "creditsEmptyDescription": "Showing basic skill match. Top up credits in Billing for AI ATS scoring."
+    },
+    "fitDoc": {
+      "resumeSuccessTitle": "Resume fitted",
+      "resumeSuccessDescription": "Draft created · fit score {{score}}. Review and edit before applying.",
+      "coverSuccessTitle": "Cover letter fitted",
+      "coverSuccessDescription": "Draft created · fit score {{score}}. Review and edit before applying.",
+      "resumeError": "Could not fit resume. Try again.",
+      "coverError": "Could not fit cover letter. Try again.",
+      "creditsTitle": "Not enough credits",
+      "creditsDescription": "Top up credits in Billing to fit resumes and cover letters with AI.",
+      "needResumeTitle": "Add a resume first",
+      "needResumeDescription": "We use your experience, skills, and writing style to tailor docs."
+    },
+    "filters": {
+      "remote": "Remote",
+      "new": "New",
+      "salary": "Salary",
+      "employment": "Job type",
+      "location": "Location",
+      "locationPlaceholder": "City or region",
+      "useMyLocation": "Use my location",
+      "posted": "Posted",
+      "postedAny": "Any time",
+      "posted1d": "Last 24h",
+      "posted7d": "Last 7 days",
+      "posted30d": "Last 30 days"
+    },
+    "remoteTypes": {
+      "hybrid": "Hybrid",
+      "onsite": "On-site"
+    },
+    "employmentTypes": {
+      "fullTime": "Full-time",
+      "partTime": "Part-time",
+      "contract": "Contract",
+      "internship": "Internship"
+    },
+    "sort": {
+      "label": "Sort",
+      "bestMatch": "Best match",
+      "newest": "Newest",
+      "salary": "Salary"
+    },
+    "matchTiers": {
+      "strong": "Strong ATS",
+      "good": "Good ATS",
+      "fair": "Fair ATS",
+      "weak": "Weak ATS"
+    },
+    "scoreBands": {
+      "strong": "Strong ATS",
+      "ok": "Good ATS",
+      "weak": "Weak ATS"
+    },
+    "atsScoreLabel": "ATS fit",
+    "details": {
+      "compensation": "Compensation",
+      "level": "Level",
+      "location": "Location",
+      "posted": "Posted",
+      "description": "Description",
+      "summary": "Summary",
+      "descriptionSnippetNote": "Adzuna’s search API only returns a short snippet. Open the full posting for the complete description.",
+      "viewFullPosting": "View full description on Adzuna",
+      "tailorDocs": "Tailor docs",
+      "applyNow": "Apply now",
+      "applyHint": "Open the original posting to apply, or fit your resume to this role with AI.",
+      "whyYouMatch": "Why you match",
+      "skillsRequired": "Skills required",
+      "inResume": "— in your resume",
+      "considerAdding": "— consider adding",
+      "close": "Close",
+      "trackRole": "Track",
+      "trackingRole": "Tracking",
+      "trackAdded": "Saved to Applications",
+      "trackAddedDescription": "This role is in your Saved column.",
+      "trackRemoved": "Removed from tracking",
+      "fitResume": "AI Tailor Resume",
+      "fitResumeTitle": "AI rewrites a draft resume tailored to this job (uses credits)",
+      "fitCoverLetter": "AI Tailor Cover Letter",
+      "fitCoverLetterTitle": "AI writes a draft cover letter tailored to this job (uses credits)",
+      "scoredNote": "ATS-scored against your resume and saved skills for this job.",
+      "scoring": "Scoring ATS fit…",
+      "applicationStage": "Application stage",
+      "openWorkflow": "Open workflow",
+      "viewPosting": "View posting"
+    },
+    "addJob": {
+      "title": "Add a job to track",
+      "description": "Paste the full job description to save it on your board.",
+      "tabs": {
+        "paste": "Paste description",
+        "link": "From a link"
+      },
+      "pastePlaceholder": "Paste the full job description here…\n\nTip: include the role title on the first line.",
+      "linkPlaceholder": "https://company.com/careers/role",
+      "cancel": "Cancel",
+      "submit": "Save job"
+    },
+    "actions": {
+      "track": "Track",
+      "applyToRole": "Apply to this role",
+      "tailorResume": "Tailor resume & cover letter",
+      "viewDetails": "View details",
+      "notInterested": "Not interested",
+      "dismiss": "Dismiss"
+    },
+    "empty": {
+      "noResultsTitle": "No jobs match these filters",
+      "noResultsDescription": "Try broader keywords, clear salary filters (many listings omit pay), or expand location.",
+      "clearFilters": "Clear filters",
+      "errorTitle": "Could not load jobs",
+      "errorDescription": "Something went wrong talking to the job provider. Try again.",
+      "retry": "Retry",
+      "notConfiguredTitle": "Job search not configured",
+      "notConfiguredDescription": "Set ADZUNA_APP_ID and ADZUNA_APP_KEY in the API env (free keys at developer.adzuna.com), then restart the API."
+    },
+    "matchSuffix": "match"
+  },
+  "applications": {
+    "documentTitle": "Applications — MockMatch",
+    "title": "Applications",
+    "description": "Track every application from saved to offer.",
+    "summary": {
+      "saved": "Saved",
+      "applied": "Applied",
+      "interviewing": "Interviewing",
+      "offer": "Offer",
+      "last7days": "Last 7 days"
+    },
+    "statusLabels": {
+      "saved": "Saved",
+      "applied": "Applied",
+      "interviewing": "Interviewing",
+      "offer": "Offer"
+    },
+    "trackingActions": {
+      "openDetails": "Open details",
+      "tailorResume": "Tailor resume & cover letter",
+      "remove": "Remove from tracking"
+    },
+    "kanban": {
+      "empty": "No applications"
+    },
+    "addJob": {
+      "title": "Import a job",
+      "description": "Paste the full job description. We'll save it under Saved.",
+      "pasteLabel": "Job description",
+      "pastePlaceholder": "Paste the full job description here…\n\nTip: put the role title on the first line.",
+      "cancel": "Cancel",
+      "submit": "Save job",
+      "successToast": "Job saved"
+    },
+    "gmail": {
+      "title": "Gmail application updates",
+      "description": "Connect Gmail and choose positions to watch for recruiter replies and status emails.",
+      "connectHint": "Authorize Gmail so MockMatch can detect application updates for the roles you track.",
+      "connectButton": "Connect Gmail",
+      "connectButtonShort": "Gmail",
+      "manageButton": "Gmail",
+      "connectedLabel": "Gmail connected",
+      "connectedToast": "Gmail connected",
+      "connectedListeningToast": "Gmail connected — listening for {{count}} position(s)",
+      "listeningUpdatedToast": "Listening for {{count}} position(s)",
+      "listenHeading": "Listen for emails about",
+      "listenHint": "We'll watch your inbox for messages related to these roles.",
+      "noJobs": "Track or import a job first, then pick positions to monitor.",
+      "cancel": "Cancel",
+      "saveListening": "Save listening",
+      "connectAndListen": "Connect & listen"
+    },
+    "empty": {
+      "title": "No saved applications yet",
+      "description": "Track a role from Discover, or import a job description. Connect Gmail to listen for status emails on specific positions.",
+      "noSearchTitle": "No matches",
+      "noSearchDescription": "Try a different search term.",
+      "gmailTitle": "Connect your Gmail account",
+      "gmailDescription": "Link Gmail so we can track application statuses for the jobs you apply to."
+    }
+  },
+  "applicationDetail": {
+    "documentTitle": "Preparation timeline — MockMatch",
+    "title": "Preparation timeline",
+    "description": "Every step for this application, from research to offer — pick up where you left off.",
+    "backLink": "All applications",
+    "switchJob": "Switch job",
+    "tasksCount": "{{completed}} of {{total}} tasks",
+    "stepLabel": "Step {{n}}: {{title}}",
+    "stepBadge": "Step {{n}}",
+    "nextUp": "NEXT UP",
+    "pipeline": "PIPELINE",
+    "notFound": "We couldn't find that application.",
+    "stepStatus": {
+      "done": "Done",
+      "inProgress": "In progress",
+      "upNext": "Up next"
+    },
+    "steps": {
+      "research": {
+        "title": "Research & fit",
+        "description": "Understand the role and where you stand before investing effort.",
+        "tasks": {
+          "reviewJobDescription": "Review the full job description",
+          "identifyRequirements": "Identify the must-have requirements",
+          "noteMatchGaps": "Note your match gaps to address"
+        },
+        "action": "Open in Tracker"
+      },
+      "resume": {
+        "title": "Tailor resume",
+        "description": "Shape your resume to this role's keywords and clear the ATS bar.",
+        "tasks": {
+          "matchKeywords": "Match resume bullets to top keywords",
+          "reorderBullets": "Reorder experience to lead with relevant wins",
+          "exportPdf": "Export the tailored PDF"
+        },
+        "action": "Open Resume Lab"
+      },
+      "coverLetter": {
+        "title": "Cover letter",
+        "description": "A short, specific letter that connects your work to their needs.",
+        "tasks": {
+          "generateDraft": "Generate a tailored draft",
+          "personalizeOpening": "Personalize the opening line",
+          "proofread": "Proofread & finalize"
+        },
+        "action": "Open Cover Letters"
+      },
+      "apply": {
+        "title": "Apply",
+        "description": "Submit, then log exactly what you sent and when.",
+        "tasks": {
+          "submit": "Submit the application",
+          "logDate": "Log date & versions sent",
+          "saveConfirmation": "Save the confirmation / job ID"
+        },
+        "action": "Mark as applied"
+      },
+      "interview": {
+        "title": "Prep & interview",
+        "description": "Rehearse the rounds you'll actually face for this role.",
+        "tasks": {
+          "mockInterview": "Run a behavioral mock (STAR)",
+          "assessment": "Complete a role-specific assessment",
+          "researchInterviewers": "Research your interviewers"
+        },
+        "action": "Start mock interview",
+        "secondaryAction": "Browse assessments"
+      },
+      "offer": {
+        "title": "Offer & decide",
+        "description": "Close it out — thank-yous, comp review, and your decision.",
+        "tasks": {
+          "thankYouNotes": "Send thank-you notes",
+          "reviewComp": "Review the compensation",
+          "makeDecision": "Make your decision"
+        },
+        "action": "Compare offer"
+      }
+    }
+  },
+  "navbar": {
+    "feedback": "Feedback",
+    "getCredits": "Get credits",
+    "getCreditsShort": "Credits",
+    "creditsLabel": "credits",
+    "creditsBalanceAria": "{{count}} credits remaining. Top up.",
+    "creditsCard": {
+      "title": "Top up credits",
+      "description": "Buy a pack to unlock AI features, or open Billing for usage and invoices.",
+      "viewBilling": "View billing",
+      "loading": "Loading packs…",
+      "devHeading": "Development",
+      "grantDev": "Grant 100 dev credits",
+      "devGranted": "Dev credits granted",
+      "devError": "Could not grant dev credits"
+    }
+  },
+  "recorder": {
+    "documentTitle": "Interview Recorder — MockMatch",
+    "title": "Interview Recorder",
+    "description": "Connect MockMatch to your real interviews. It joins the call, transcribes, and turns each one into structured insights.",
+    "banner": {
+      "name": "MockMatch Recorder",
+      "status": "Connected",
+      "description": "A companion that joins your scheduled interviews from your calendar, captures the conversation, and analyzes your delivery the moment the call ends.",
+      "zoom": "Zoom",
+      "meet": "Google Meet",
+      "teams": "Microsoft Teams",
+      "calendar": "Calendar",
+      "connected": "Connected",
+      "manage": "Manage"
+    },
+    "steps": {
+      "join":    { "title": "Joins your call",        "desc": "Auto-detects interviews from your calendar." },
+      "consent": { "title": "Records with consent",   "desc": "Announces itself and asks everyone first." },
+      "insights":{ "title": "Delivers insights",      "desc": "Transcript, metrics & moments after the call." }
+    },
+    "consent": {
+      "title": "Recording consent is built in",
+      "description": "Recording laws vary by region. The Recorder announces its presence and requests consent from all participants at the start of every call. You control retention below."
+    },
+    "stats": {
+      "captured":  "Interviews captured",
+      "hours":     "Hours analyzed",
+      "talkRatio": "Avg talk ratio",
+      "filler":    "Filler words / min"
+    },
+    "latest": {
+      "title": "Latest interview",
+      "talkRatio": "Talk ratio",
+      "you": "You",
+      "interviewer": "Interviewer",
+      "pace": "Pace",
+      "idealRange": "ideal range",
+      "fillerWords": "Filler words",
+      "fillerPerMin": "/ min",
+      "longestAnswer": "Longest answer",
+      "watchLength": "watch length",
+      "topicsCovered": "Topics covered",
+      "keyMoments": "Key moments",
+      "transcript": "Transcript",
+      "replay": "Replay",
+      "drillWeakSpots": "Drill the weak spots"
+    },
+    "settings": {
+      "platforms": { "title": "Connected platforms" },
+      "capture": {
+        "title": "Capture settings",
+        "autoJoin": "Auto-join scheduled interviews",
+        "autoJoinDesc": "Detect interview events on your calendar and join.",
+        "transcription": "Live transcription",
+        "transcriptionDesc": "Caption the call in real time.",
+        "insights": "Generate insights after call",
+        "insightsDesc": "Analyze delivery the moment it ends.",
+        "retention": "Recording retention",
+        "retentionDesc": "How long to keep audio."
+      },
+      "retention": {
+        "7days": "7 days",
+        "30days": "30 days",
+        "90days": "90 days",
+        "forever": "Forever"
+      }
+    },
+    "table": {
+      "title": "Recorded interviews",
+      "description": "Every captured call and its analysis.",
+      "viewAll": "View all",
+      "columns": {
+        "date": "Date",
+        "company": "Company",
+        "role": "Role",
+        "platform": "Platform",
+        "duration": "Duration",
+        "talkRatio": "Talk ratio",
+        "insights": "Insights",
+        "status": "Status"
+      },
+      "status": {
+        "analyzed": "Analyzed",
+        "processing": "Processing",
+        "draft": "Draft"
+      }
+    }
+  },
+  "autofill": {
+    "documentTitle": "Auto Apply — MockMatch",
+    "title": "Auto Apply",
+    "description": "A browser extension that fills your details into any job application — one click does the typing.",
+    "extension": {
+      "name": "MockMatch Auto Apply",
+      "status": "Installed · Active",
+      "description": "Pinned to your browser. When you open a job application, it detects the form and fills your profile, resume, and screening answers automatically.",
+      "chrome": "Chrome",
+      "edge": "Edge",
+      "brave": "Brave",
+      "firefox": "Firefox",
+      "addedToChrome": "Added to Chrome",
+      "manage": "Manage"
+    },
+    "steps": {
+      "open":   { "title": "Open a job posting",  "desc": "On any supported site, the icon lights up." },
+      "click":  { "title": "Click to autofill",   "desc": "Your profile maps into every field." },
+      "review": { "title": "Review & submit",      "desc": "Confirm, then it submits for you." }
+    },
+    "stats": {
+      "filled":  "Auto-filled this week",
+      "time":    "Time saved",
+      "fields":  "Fields mapped",
+      "success": "Submit success"
+    },
+    "activity": {
+      "title": "Recent activity",
+      "description": "Applications the extension has filled.",
+      "fullLog": "Full log",
+      "columns": {
+        "company": "Company",
+        "role": "Role",
+        "site": "Site",
+        "date": "Date",
+        "fieldsFilled": "Fields filled",
+        "status": "Status"
+      },
+      "status": {
+        "submitted": "Submitted",
+        "needsReview": "Needs review",
+        "draft": "Draft"
+      }
+    }
+  },
+  "readiness": {
+    "documentTitle": "Readiness — MockMatch",
+    "title": "Readiness",
+    "description": "Where you stand today, and what to do next to get interview-ready.",
+    "exportReport": "Export report",
+    "overallLabel": "Overall readiness",
+    "almostReady": "Almost ready",
+    "thisMonth": "this month",
+    "improveTip": "Closing the gap on Coding and System design will push you past 80.",
+    "stats": {
+      "activeApplications": "Active applications",
+      "thisWeek": "{{count}} this week",
+      "mockInterviews": "Mock interviews",
+      "completed": "completed",
+      "offers": "Offers"
+    },
+    "byArea": {
+      "title": "Readiness by area",
+      "description": "Weighted from your practice sessions and assessments."
+    },
+    "areas": {
+      "resume": "Resume health",
+      "behavioral": "Behavioral",
+      "coding": "Coding challenges",
+      "caseStudy": "Case studies",
+      "systemDesign": "System design"
+    },
+    "nextUp": {
+      "title": "Next up",
+      "description": "Recommended to lift your weakest areas.",
+      "n1Sub": "20 min · raises Coding",
+      "n2Sub": "AI Interviewer · 25 min",
+      "n3Sub": "Resume Lab · +6 pts"
+    },
+    "history": {
+      "title": "Session history",
+      "description": "Every scored practice run.",
+      "exportCsv": "Export CSV",
+      "columns": {
+        "date": "Date",
+        "role": "Role",
+        "track": "Track",
+        "score": "Score",
+        "delta": "Δ vs prev"
+      }
+    }
+  },
+  "performance": {
+    "documentTitle": "Performance — MockMatch",
+    "title": "Performance",
+    "description": "How your interview performance has trended over time, by domain and session.",
+    "export": "Export",
+    "timeRange": {
+      "last30": "Last 30 days",
+      "last90": "Last 90 days",
+      "last180": "Last 180 days",
+      "allTime": "All time"
+    },
+    "stats": {
+      "avgScore": "Avg score",
+      "sessions": "Sessions",
+      "time": "Time practiced",
+      "percentile": "Percentile"
+    },
+    "scoreTrend": {
+      "title": "Score trend",
+      "description": "Average session score, last 12 weeks."
+    },
+    "byDomain": {
+      "title": "By domain",
+      "description": "Current score and movement vs last period."
+    },
+    "domains": {
+      "behavioral": "Behavioral",
+      "caseStudy": "Case study",
+      "productSense": "Product sense",
+      "systemDesign": "System design",
+      "coding": "Coding",
+      "financeQuant": "Finance / quant"
+    },
+    "strengths": {
+      "title": "Strengths"
+    },
+    "focusAreas": {
+      "title": "Focus areas"
+    }
+  },
+  "assessments": {
+    "documentTitle": "Assessments — MockMatch",
+    "title": "Assessments",
+    "description": "Timed practice exercises across every domain — coding, case studies, clinical, and more.",
+    "surpriseMe": "Surprise me",
+    "searchPlaceholder": "Search exercises...",
+    "best": "Best",
+    "stats": {
+      "completed": "Completed",
+      "avgScore": "Avg score",
+      "dayStreak": "Day streak",
+      "hoursPracticed": "Hours practiced"
+    },
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "filters": {
+      "anyDifficulty": "Any difficulty"
+    },
+    "domains": {
+      "all": "All",
+      "coding": "Coding",
+      "caseStudy": "Case study",
+      "behavioral": "Behavioral",
+      "product": "Product",
+      "systemDesign": "System design",
+      "finance": "Finance",
+      "clinical": "Clinical"
+    },
+    "status": {
+      "notStarted": "Not started",
+      "inProgress": "In progress",
+      "mastered": "Mastered"
+    },
+    "actions": {
+      "start": "Start exercise",
+      "continue": "Continue",
+      "retry": "Retry"
+    }
+  },
+  "questionBank": {
+    "documentTitle": "Question Bank — MockMatch",
+    "title": "Question bank",
+    "description": "Every individual practice question, in one searchable pool. Filter, drill a question, or add it to a custom set.",
+    "searchPlaceholder": "Search questions...",
+    "questionsCount": "questions",
+    "noResults": "No questions found",
+    "filters": {
+      "title": "Filters",
+      "domain": "Domain",
+      "difficulty": "Difficulty",
+      "status": "Status",
+      "company": "Company"
+    },
+    "domains": {
+      "coding": "Coding",
+      "systemDesign": "System design",
+      "caseStudy": "Case study",
+      "product": "Product",
+      "behavioral": "Behavioral",
+      "finance": "Finance",
+      "clinical": "Clinical"
+    },
+    "difficulty": {
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "status": {
+      "new": "New",
+      "attempted": "Attempted",
+      "mastered": "Mastered"
+    },
+    "columns": {
+      "question": "Question",
+      "domain": "Domain",
+      "difficulty": "Difficulty",
+      "company": "Company",
+      "status": "Status",
+      "action": "Action"
+    },
+    "actions": {
+      "saved": "Saved",
+      "newPracticeSet": "New practice set",
+      "save": "Save to set",
+      "practice": "Practice"
+    }
+  },
+  "simulations": {
+    "documentTitle": "Simulations — MockMatch",
+    "title": "Simulations",
+    "description": "Practice role-specific interviews with an AI interviewer. Pick a track to begin.",
+    "configureRole": "Configure role",
+    "startPractice": "Start practice",
+    "interviewTracksLabel": "Interview tracks",
+    "difficulty": {
+      "adaptive": "Adaptive",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard"
+    },
+    "metaKind": {
+      "questions": "questions",
+      "problems": "problems",
+      "prompt": "prompt",
+      "cases": "cases"
+    },
+    "recentSessions": {
+      "title": "Recent sessions",
+      "description": "Your last four practice runs and how they scored.",
+      "viewAll": "View all",
+      "columns": {
+        "role": "Role",
+        "track": "Track",
+        "date": "Date",
+        "duration": "Duration",
+        "score": "Score",
+        "status": "Status"
+      },
+      "durationSuffix": "min",
+      "statusLabels": {
+        "completed": "Completed",
+        "in_progress": "In progress",
+        "abandoned": "Abandoned"
+      }
+    },
+    "tracks": {
+      "behavioral": {
+        "title": "Behavioral",
+        "description": "STAR-method stories on leadership, conflict, and impact."
+      },
+      "technicalCoding": {
+        "title": "Technical · Coding",
+        "description": "Live coding with hints, edge cases, and complexity review."
+      },
+      "systemDesign": {
+        "title": "System Design",
+        "description": "Architect a scalable system out loud, end to end."
+      },
+      "productSense": {
+        "title": "Product Sense",
+        "description": "Product critique, metrics, and prioritization tradeoffs."
+      },
+      "caseStudy": {
+        "title": "Case Study",
+        "description": "Structure an ambiguous business problem under time."
+      },
+      "financeQuant": {
+        "title": "Finance · Quant",
+        "description": "Markets, valuation, and mental-math drills."
+      },
+      "pmStrategy": {
+        "title": "PM · Strategy",
+        "description": "Roadmap, go-to-market, and stakeholder alignment scenarios."
+      },
+      "leadership": {
+        "title": "Leadership",
+        "description": "Influence without authority, team conflicts, and culture."
+      },
+      "dataAnalytics": {
+        "title": "Data · Analytics",
+        "description": "SQL, metrics interpretation, and experiment design."
+      },
+      "communication": {
+        "title": "Communication",
+        "description": "Clarity, executive presence, and persuasion under pressure."
+      }
+    }
+  }
+}

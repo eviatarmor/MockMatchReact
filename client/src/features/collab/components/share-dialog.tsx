@@ -44,6 +44,14 @@ function initials(name: string): string {
   return `${parts[0]![0] ?? ""}${parts[1]![0] ?? ""}`.toUpperCase()
 }
 
+function useCollabRoleItems() {
+  const { t } = useTranslation("collab")
+  return {
+    view: t("roles.view"),
+    edit: t("roles.edit"),
+  } as const
+}
+
 export function ShareDialog({
   open,
   onOpenChange,
@@ -55,6 +63,7 @@ export function ShareDialog({
   documentTitle,
 }: ShareDialogProps) {
   const { t } = useTranslation("collab")
+  const roleItems = useCollabRoleItems()
   const { dateFormat, timeFormat } = useRegionPreferences()
   const utils = trpc.useUtils()
   const [role, setRole] = useState<CollabRole>("edit")
@@ -184,6 +193,7 @@ export function ShareDialog({
                             </div>
                             <Select
                               value={c.role}
+                              items={roleItems}
                               onValueChange={(v) => {
                                 if (!v) return
                                 updateRole.mutate({
@@ -198,8 +208,8 @@ export function ShareDialog({
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="view">{t("roles.view")}</SelectItem>
-                                <SelectItem value="edit">{t("roles.edit")}</SelectItem>
+                                <SelectItem value="view">{roleItems.view}</SelectItem>
+                                <SelectItem value="edit">{roleItems.edit}</SelectItem>
                               </SelectContent>
                             </Select>
                             <Button
@@ -236,14 +246,15 @@ export function ShareDialog({
                     </div>
                     <Select
                       value={role}
+                      items={roleItems}
                       onValueChange={(v) => setRole((v as CollabRole) ?? "edit")}
                     >
                       <SelectTrigger className="h-8 w-[5.75rem] shrink-0 text-xs">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="view">{t("roles.view")}</SelectItem>
-                        <SelectItem value="edit">{t("roles.edit")}</SelectItem>
+                        <SelectItem value="view">{roleItems.view}</SelectItem>
+                        <SelectItem value="edit">{roleItems.edit}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

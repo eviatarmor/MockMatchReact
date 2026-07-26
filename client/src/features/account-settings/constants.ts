@@ -6,6 +6,7 @@ import type {
   VoiceOption,
   Country,
   DateFormat,
+  Language,
   TimeFormat,
 } from "@/features/account-settings/types"
 
@@ -32,6 +33,12 @@ export const VOICE_OPTIONS: readonly VoiceOption[] = [
   { value: "rounded", nameKey: "voice.voices.rounded.name", localeKey: "voice.voices.rounded.locale", genderKey: "voice.voices.rounded.gender", descriptionKey: "voice.voices.rounded.description" },
 ]
 
+export const LANGUAGE_OPTIONS: readonly SelectOption<Language>[] = [
+  { value: "en-US", labelKey: "region.languages.en-US" },
+  { value: "en-GB", labelKey: "region.languages.en-GB" },
+  { value: "en-AU", labelKey: "region.languages.en-AU" },
+]
+
 export const COUNTRY_OPTIONS: readonly SelectOption<Country>[] = [
   { value: "US", labelKey: "region.countries.US" },
   { value: "AU", labelKey: "region.countries.AU" },
@@ -48,12 +55,5 @@ export const TIME_FORMAT_OPTIONS: readonly SelectOption<TimeFormat>[] = [
   { value: "12h", labelKey: "region.timeFormats.12h" },
   { value: "24h", labelKey: "region.timeFormats.24h" },
 ]
-
-// Locale (dialect) shown in the live region preview, keyed by country.
-export const COUNTRY_DIALECT_KEY: Record<Country, string> = {
-  US: "region.dialects.US",
-  AU: "region.dialects.AU",
-  GB: "region.dialects.GB",
-}
 
 export const AUTO_SAVE_DEBOUNCE_MS = 1000

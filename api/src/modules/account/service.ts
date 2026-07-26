@@ -108,6 +108,7 @@ export async function updatePreferences(
   const current = parsePreferences(user.preferences)
   const next: UserPreferences = {
     voiceProfile: input.voiceProfile ?? current.voiceProfile,
+    language: input.language ?? current.language,
     country: input.country ?? current.country,
     dateFormat: input.dateFormat ?? current.dateFormat,
     timeFormat: input.timeFormat ?? current.timeFormat,
