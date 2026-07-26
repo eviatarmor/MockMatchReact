@@ -124,6 +124,34 @@ export function useTrackedJobs() {
     [setJobs]
   )
 
+  /**
+   * Discover “I applied” — upsert job and move to Applied (or leave later stages alone).
+   * Returns true when status was newly set/advanced to applied.
+   */
+  const markAppliedFromDiscover = useCallback(
+    (job: DiscoverJob) => {
+      const existing = list.find((item) => item.id === job.id)
+      if (existing && existing.status !== "saved") return false
+
+      setJobs((current) => {
+        const prev = current ?? []
+        const row = prev.find((item) => item.id === job.id)
+        if (row) {
+          if (row.status !== "saved") return prev
+          return prev.map((item) =>
+            item.id === job.id ? { ...item, ...statusFields("applied") } : item
+          )
+        }
+        return [
+          { ...discoverJobToTracked(job), ...statusFields("applied") },
+          ...prev,
+        ]
+      })
+      return true
+    },
+    [list, setJobs]
+  )
+
   return {
     jobs: list,
     isTracked,
@@ -133,6 +161,7 @@ export function useTrackedJobs() {
     addFromPaste,
     updateStatus,
     replaceStatuses,
+    markAppliedFromDiscover,
   }
 }
 

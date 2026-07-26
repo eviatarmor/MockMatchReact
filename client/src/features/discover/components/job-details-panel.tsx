@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import {
@@ -21,6 +22,14 @@ import {
 } from "@/lib/score-tier"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import { PanelShell } from "@/components/dashboard/panel-shell"
@@ -48,7 +57,9 @@ export function JobDetailsPanel({
 }: JobDetailsPanelProps) {
   const { t } = useTranslation("common")
   const fitDoc = useFitDocument()
-  const { isTracked, toggleDiscoverJob } = useTrackedJobs()
+  const { isTracked, toggleDiscoverJob, markAppliedFromDiscover } =
+    useTrackedJobs()
+  const [applyConfirmOpen, setApplyConfirmOpen] = useState(false)
   const tracked = isTracked(job.id)
   const hasMatch = job.matchScore != null
   const scoreBandKey =
@@ -69,6 +80,25 @@ export function JobDetailsPanel({
       })
     } else {
       toast.message(t("discover.details.trackRemoved"))
+    }
+  }
+
+  function handleApplyClick() {
+    if (job.applyUrl) {
+      window.open(job.applyUrl, "_blank", "noopener,noreferrer")
+    }
+    setApplyConfirmOpen(true)
+  }
+
+  function handleConfirmApplied() {
+    const changed = markAppliedFromDiscover(job)
+    setApplyConfirmOpen(false)
+    if (changed) {
+      toast.success(t("discover.details.applyMarked"), {
+        description: t("discover.details.applyMarkedDescription"),
+      })
+    } else {
+      toast.message(t("discover.details.applyAlreadyMarked"))
     }
   }
 
@@ -173,20 +203,17 @@ export function JobDetailsPanel({
                   ? t("discover.details.trackingRole")
                   : t("discover.details.trackRole")}
               </Button>
-              {job.applyUrl ? (
-                <Button
-                  className="gap-1.5 cursor-pointer sm:min-w-28"
-                  onClick={() => window.open(job.applyUrl, "_blank", "noopener,noreferrer")}
-                >
+              <Button
+                className="gap-1.5 cursor-pointer sm:min-w-28"
+                onClick={handleApplyClick}
+              >
+                {job.applyUrl ? (
                   <ExternalLink className="size-4" />
-                  {t("discover.details.applyNow")}
-                </Button>
-              ) : (
-                <Button className="gap-1.5 cursor-pointer sm:min-w-28">
+                ) : (
                   <Send className="size-4" />
-                  {t("discover.details.applyNow")}
-                </Button>
-              )}
+                )}
+                {t("discover.details.applyNow")}
+              </Button>
             </div>
           </div>
         }
@@ -296,6 +323,32 @@ export function JobDetailsPanel({
         )}
 
       </PanelShell>
+
+      <Dialog open={applyConfirmOpen} onOpenChange={setApplyConfirmOpen}>
+        <DialogContent showCloseButton>
+          <DialogHeader>
+            <DialogTitle>{t("discover.details.applyConfirmTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("discover.details.applyConfirmDescription", {
+                title: job.title,
+                company: job.company,
+              })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="cursor-pointer"
+              onClick={() => setApplyConfirmOpen(false)}
+            >
+              {t("discover.details.applyConfirmNo")}
+            </Button>
+            <Button className="cursor-pointer" onClick={handleConfirmApplied}>
+              {t("discover.details.applyConfirmYes")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
