@@ -1,4 +1,5 @@
 import * as React from "react"
+import { Slot } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
@@ -12,7 +13,7 @@ function Card({
       data-slot="card"
       data-size={size}
       className={cn(
-        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-xl bg-card py-(--card-spacing) text-sm text-card-foreground ring-1 ring-foreground/10 transition-colors hover:ring-primary [--card-spacing:--spacing(4)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
+        "group/card flex flex-col gap-(--card-spacing) overflow-hidden rounded-xl bg-card py-(--card-spacing) text-sm text-card-foreground ring-1 ring-foreground/10 [--card-spacing:--spacing(4)] has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(3)] data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
         className
       )}
       {...props}
@@ -92,6 +93,37 @@ function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/** Interactive selectable surface — animated primary border on hover/selected. Static shells use `Card`. */
+function SelectCard({
+  className,
+  selected = false,
+  asChild = false,
+  ...props
+}: React.ComponentProps<"div"> & {
+  selected?: boolean
+  asChild?: boolean
+}) {
+  const Comp = asChild ? Slot.Slot : "div"
+
+  return (
+    <Comp
+      data-slot="select-card"
+      data-selected={selected ? "true" : undefined}
+      className={cn(
+        // Border (not ring) so color/shadow ease smoothly — ring width/color often snaps.
+        "group/select-card cursor-pointer rounded-xl border bg-card text-sm text-card-foreground shadow-sm outline-none",
+        "transition-[border-color,box-shadow] duration-300 ease-out",
+        "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40",
+        selected
+          ? "border-primary shadow-md"
+          : "border-foreground/10 hover:border-primary hover:shadow-md",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
 export {
   Card,
   CardHeader,
@@ -100,4 +132,5 @@ export {
   CardAction,
   CardDescription,
   CardContent,
+  SelectCard,
 }

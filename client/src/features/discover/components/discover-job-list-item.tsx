@@ -2,6 +2,7 @@ import { MapPin, DollarSign, Clock } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
+import { SelectCard } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { DocumentScoreBadge } from "@/components/data/document-score-badge"
 import type { DiscoverJob } from "../types"
@@ -48,10 +49,11 @@ export function DiscoverJobListItem({
   }>
 
   return (
-    <div
+    <SelectCard
       role="option"
       aria-selected={selected}
       tabIndex={0}
+      selected={selected}
       onClick={() => onSelect(job)}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
@@ -59,14 +61,7 @@ export function DiscoverJobListItem({
           onSelect(job)
         }
       }}
-      className={cn(
-        // Select-card pattern (account-settings appearance/voice)
-        "flex cursor-pointer items-start gap-3 rounded-xl bg-card p-3 ring-1 transition-colors outline-none",
-        "focus-visible:ring-2 focus-visible:ring-ring",
-        selected
-          ? "ring-2 ring-primary"
-          : "ring-foreground/10 hover:ring-primary"
-      )}
+      className="flex items-start gap-3 p-3"
     >
       <div
         className={cn(
@@ -125,6 +120,6 @@ export function DiscoverJobListItem({
           />
         )}
       </div>
-    </div>
+    </SelectCard>
   )
 }

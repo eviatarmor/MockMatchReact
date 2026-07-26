@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { Check } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { SelectCard } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { startThemeViewTransition } from "@/lib/theme-view-transition"
 import { SectionShell } from "@/components/layout/section-shell"
@@ -64,26 +65,28 @@ export function AppearanceSection() {
         {THEME_OPTIONS.map((option) => {
           const selected = theme === option.value
           return (
-            <label
+            <SelectCard
               key={option.value}
-              onPointerDown={(event) => {
-                originRef.current = event.currentTarget
-              }}
-              className={cn(
-                "group/theme relative flex cursor-pointer flex-col gap-2 rounded-xl bg-card p-2 ring-1 transition-colors",
-                selected ? "ring-2 ring-primary" : "ring-foreground/10 hover:ring-primary"
-              )}
+              asChild
+              selected={selected}
             >
-              <ThemePreview mode={option.value} />
-              <div className="flex items-start justify-between gap-2 px-1 pb-1">
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-foreground">{t(option.labelKey)}</span>
-                  <span className="text-xs text-muted-foreground">{t(option.descriptionKey)}</span>
+              <label
+                onPointerDown={(event) => {
+                  originRef.current = event.currentTarget
+                }}
+                className="group/theme relative flex flex-col gap-2 p-2"
+              >
+                <ThemePreview mode={option.value} />
+                <div className="flex items-start justify-between gap-2 px-1 pb-1">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-foreground">{t(option.labelKey)}</span>
+                    <span className="text-xs text-muted-foreground">{t(option.descriptionKey)}</span>
+                  </div>
+                  {selected && <Check className="size-4 shrink-0 text-primary" />}
                 </div>
-                {selected && <Check className="size-4 shrink-0 text-primary" />}
-              </div>
-              <RadioGroupItem value={option.value} className="sr-only" />
-            </label>
+                <RadioGroupItem value={option.value} className="sr-only" />
+              </label>
+            </SelectCard>
           )
         })}
       </RadioGroup>

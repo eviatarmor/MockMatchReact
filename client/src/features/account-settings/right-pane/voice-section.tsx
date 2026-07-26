@@ -4,6 +4,7 @@ import { motion } from "motion/react"
 import { Play } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { SelectCard } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { cn } from "@/lib/utils"
 import { SectionShell } from "@/components/layout/section-shell"
@@ -55,36 +56,32 @@ export function VoiceSection({ form }: VoiceSectionProps) {
               const selected = field.value === option.value
               const name = t(option.nameKey)
               return (
-                <label
-                  key={option.value}
-                  className={cn(
-                    "flex cursor-pointer items-center gap-3 rounded-xl bg-card p-3 ring-1 transition-colors",
-                    selected ? "ring-2 ring-primary" : "ring-foreground/10 hover:ring-primary"
-                  )}
-                >
-                  <RadioGroupItem value={option.value} className="shrink-0" />
-                  <Equalizer active={selected} />
-                  <div className="flex min-w-0 flex-1 flex-col">
-                    <span className="text-sm font-medium text-foreground">{name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {t(option.localeKey)} · {t(option.genderKey)}
-                    </span>
-                    <span className="truncate text-xs text-muted-foreground">{t(option.descriptionKey)}</span>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="shrink-0 gap-1.5 cursor-pointer"
-                    onClick={(event) => {
-                      event.preventDefault()
-                      previewVoice(name)
-                    }}
-                  >
-                    <Play className="size-3.5" />
-                    {t("voice.preview")}
-                  </Button>
-                </label>
+                <SelectCard key={option.value} asChild selected={selected}>
+                  <label className="flex items-center gap-3 p-3">
+                    <RadioGroupItem value={option.value} className="shrink-0" />
+                    <Equalizer active={selected} />
+                    <div className="flex min-w-0 flex-1 flex-col">
+                      <span className="text-sm font-medium text-foreground">{name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {t(option.localeKey)} · {t(option.genderKey)}
+                      </span>
+                      <span className="truncate text-xs text-muted-foreground">{t(option.descriptionKey)}</span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="shrink-0 gap-1.5 cursor-pointer"
+                      onClick={(event) => {
+                        event.preventDefault()
+                        previewVoice(name)
+                      }}
+                    >
+                      <Play className="size-3.5" />
+                      {t("voice.preview")}
+                    </Button>
+                  </label>
+                </SelectCard>
               )
             })}
           </RadioGroup>
