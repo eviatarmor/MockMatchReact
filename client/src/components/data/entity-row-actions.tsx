@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react"
 import { MoreHorizontal, Eye, Pencil, Download, Copy, Trash2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -38,6 +39,8 @@ interface EntityRowActionsProps {
   readonly isDuplicating?: boolean
   /** Extra menu items rendered before export/duplicate (optional). */
   readonly extraItems?: ReactNode
+  /** Optional className for the ⋮ trigger (e.g. light icon on dark overlay). */
+  readonly triggerClassName?: string
 }
 
 /**
@@ -55,6 +58,7 @@ export function EntityRowActions({
   isExporting,
   isDuplicating,
   extraItems,
+  triggerClassName,
 }: EntityRowActionsProps) {
   const { t } = useTranslation("common")
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -69,7 +73,10 @@ export function EntityRowActions({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
+              className={cn(
+                "h-8 w-8 cursor-pointer text-muted-foreground hover:text-foreground",
+                triggerClassName
+              )}
               disabled={busy}
             />
           }

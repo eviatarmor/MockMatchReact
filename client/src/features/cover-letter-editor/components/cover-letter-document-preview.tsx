@@ -21,13 +21,14 @@ interface CoverLetterDocumentPreviewProps {
   /**
    * `preview` — read-only document card with page shadow (table dialog).
    * `print` — bare surface for PDF / browser print (no shadow).
+   * `thumbnail` — bare page only for scaled grid cards (no chrome).
    */
-  readonly variant?: "preview" | "print"
+  readonly variant?: "preview" | "print" | "thumbnail"
 }
 
 /**
  * Loads a cover letter and renders {@link LetterDocument} read-only.
- * Used by the lab preview dialog and the bare `/print` route.
+ * Used by the lab preview dialog, grid thumbnails, and the bare `/print` route.
  */
 export function CoverLetterDocumentPreview({
   letterId,
@@ -37,6 +38,7 @@ export function CoverLetterDocumentPreview({
   const { t } = useTranslation("cover-letter-editor")
   const isValidId = UUID_RE.test(letterId)
   const isPrint = variant === "print"
+  const isThumbnail = variant === "thumbnail"
 
   const query = trpc.coverLetters.get.useQuery(
     { id: letterId },
@@ -58,9 +60,11 @@ export function CoverLetterDocumentPreview({
     }
   }, [query.data])
 
-  const shell = isPrint
-    ? "flex min-h-svh items-center justify-center gap-2 p-8 text-sm text-muted-foreground"
-    : "flex items-center justify-center gap-2 p-12 text-sm text-muted-foreground"
+  const shell = isThumbnail
+    ? "flex h-[1056px] w-[816px] items-center justify-center gap-2 bg-muted/30 text-sm text-muted-foreground"
+    : isPrint
+      ? "flex min-h-svh items-center justify-center gap-2 p-8 text-sm text-muted-foreground"
+      : "flex items-center justify-center gap-2 p-12 text-sm text-muted-foreground"
 
   if (!isValidId) {
     return (
@@ -86,6 +90,17 @@ export function CoverLetterDocumentPreview({
         <AlertCircle className="size-5 text-destructive" />
         {t("loadError")}
       </div>
+    )
+  }
+
+  if (isThumbnail) {
+    return (
+      <LetterDocument
+        document={view.document}
+        template={view.template}
+        style={view.style}
+        print
+      />
     )
   }
 

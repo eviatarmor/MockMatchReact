@@ -21,13 +21,14 @@ interface ResumeDocumentPreviewProps {
   /**
    * `preview` — read-only document card with page shadow (table dialog).
    * `print` — bare surface for PDF / browser print (no shadow).
+   * `thumbnail` — bare page only for scaled grid cards (no chrome).
    */
-  readonly variant?: "preview" | "print"
+  readonly variant?: "preview" | "print" | "thumbnail"
 }
 
 /**
  * Loads a résumé and renders {@link ResumeDocumentView} read-only.
- * Used by the lab preview dialog and the bare `/print` route.
+ * Used by the lab preview dialog, grid thumbnails, and the bare `/print` route.
  */
 export function ResumeDocumentPreview({
   resumeId,
@@ -37,6 +38,7 @@ export function ResumeDocumentPreview({
   const { t } = useTranslation("resume-editor")
   const isValidId = UUID_RE.test(resumeId)
   const isPrint = variant === "print"
+  const isThumbnail = variant === "thumbnail"
 
   const query = trpc.resumes.get.useQuery(
     { id: resumeId },
@@ -58,9 +60,11 @@ export function ResumeDocumentPreview({
     }
   }, [query.data])
 
-  const shell = isPrint
-    ? "flex min-h-svh items-center justify-center gap-2 p-8 text-sm text-muted-foreground"
-    : "flex items-center justify-center gap-2 p-12 text-sm text-muted-foreground"
+  const shell = isThumbnail
+    ? "flex h-[1056px] w-[816px] items-center justify-center gap-2 bg-muted/30 text-sm text-muted-foreground"
+    : isPrint
+      ? "flex min-h-svh items-center justify-center gap-2 p-8 text-sm text-muted-foreground"
+      : "flex items-center justify-center gap-2 p-12 text-sm text-muted-foreground"
 
   if (!isValidId) {
     return (
@@ -86,6 +90,17 @@ export function ResumeDocumentPreview({
         <AlertCircle className="size-5 text-destructive" />
         {t("loadError")}
       </div>
+    )
+  }
+
+  if (isThumbnail) {
+    return (
+      <ResumeDocumentView
+        document={view.document}
+        template={view.template}
+        style={view.style}
+        print
+      />
     )
   }
 

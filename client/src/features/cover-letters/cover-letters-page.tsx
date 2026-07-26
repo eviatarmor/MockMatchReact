@@ -12,10 +12,15 @@ import { TemplateBrowserSection } from "@/components/templates/template-browser-
 import { EntityEmptyState } from "@/components/data/entity-empty-state"
 import { EntityListStates } from "@/components/data/entity-list-states"
 import { EntityTablePagination } from "@/components/data/entity-table-pagination"
+import {
+  ViewModeTabs,
+  type ListViewMode,
+} from "@/components/data/view-mode-tabs"
 import { useImportDocumentPdf } from "@/hooks/use-import-document-pdf"
 import { useStartFromTemplate } from "@/hooks/use-start-from-template"
 import { downloadDocumentPdf, pdfFilename } from "@/lib/export-document-pdf"
 import { trpc } from "@/lib/trpc"
+import { CoverLetterCardGrid } from "./components/cover-letter-card-grid"
 import { CoverLetterTable } from "./components/cover-letter-table"
 import { useCoverLettersList } from "./hooks/use-cover-letters-list"
 import { TEMPLATE_BROWSER_ITEMS } from "./constants"
@@ -27,6 +32,7 @@ export function CoverLettersPageContent() {
   const utils = trpc.useUtils()
   const list = useCoverLettersList()
   const [exportingId, setExportingId] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<ListViewMode>("table")
 
   const createLetter = trpc.coverLetters.create.useMutation({
     onSuccess: (letter) => {
@@ -121,6 +127,9 @@ export function CoverLettersPageContent() {
           searchPlaceholder={t("dashboard.search.coverLetters")}
           search={list.search}
           onSearchChange={list.setSearch}
+          filters={
+            <ViewModeTabs value={viewMode} onValueChange={setViewMode} />
+          }
           actions={
             <>
               <input {...pdfImport.fileInput} />
@@ -163,17 +172,31 @@ export function CoverLettersPageContent() {
           loadingMessage={t("coverLetters.table.loading")}
           emptyState={emptyState}
         >
-          <CoverLetterTable
-            coverLetters={list.items}
-            onDelete={handleDelete}
-            onExport={(letter) => void handleExport(letter)}
-            onDuplicate={handleDuplicate}
-            deletingId={deleteLetter.isPending ? deleteLetter.variables?.id : null}
-            exportingId={exportingId}
-            duplicatingId={
-              duplicateLetter.isPending ? duplicateLetter.variables?.id : null
-            }
-          />
+          {viewMode === "table" ? (
+            <CoverLetterTable
+              coverLetters={list.items}
+              onDelete={handleDelete}
+              onExport={(letter) => void handleExport(letter)}
+              onDuplicate={handleDuplicate}
+              deletingId={deleteLetter.isPending ? deleteLetter.variables?.id : null}
+              exportingId={exportingId}
+              duplicatingId={
+                duplicateLetter.isPending ? duplicateLetter.variables?.id : null
+              }
+            />
+          ) : (
+            <CoverLetterCardGrid
+              coverLetters={list.items}
+              onDelete={handleDelete}
+              onExport={(letter) => void handleExport(letter)}
+              onDuplicate={handleDuplicate}
+              deletingId={deleteLetter.isPending ? deleteLetter.variables?.id : null}
+              exportingId={exportingId}
+              duplicatingId={
+                duplicateLetter.isPending ? duplicateLetter.variables?.id : null
+              }
+            />
+          )}
           <EntityTablePagination
             page={list.page}
             totalPages={list.totalPages}

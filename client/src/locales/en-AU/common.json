@@ -39,6 +39,10 @@
   "theme": {
     "toggle": "Toggle theme"
   },
+  "viewMode": {
+    "table": "Table view",
+    "grid": "Grid view"
+  },
   "dashboard": {
     "search": {
       "resumes": "Search resumes...",

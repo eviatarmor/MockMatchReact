@@ -12,10 +12,15 @@ import { TemplateBrowserSection } from "@/components/templates/template-browser-
 import { EntityEmptyState } from "@/components/data/entity-empty-state"
 import { EntityListStates } from "@/components/data/entity-list-states"
 import { EntityTablePagination } from "@/components/data/entity-table-pagination"
+import {
+  ViewModeTabs,
+  type ListViewMode,
+} from "@/components/data/view-mode-tabs"
 import { useImportDocumentPdf } from "@/hooks/use-import-document-pdf"
 import { useStartFromTemplate } from "@/hooks/use-start-from-template"
 import { downloadDocumentPdf, pdfFilename } from "@/lib/export-document-pdf"
 import { trpc } from "@/lib/trpc"
+import { ResumeCardGrid } from "./components/resume-card-grid"
 import { ResumeTable } from "./components/resume-table"
 import { useResumesList } from "./hooks/use-resumes-list"
 import { TEMPLATE_BROWSER_ITEMS } from "./constants"
@@ -27,6 +32,7 @@ export function ResumeLabPageContent() {
   const utils = trpc.useUtils()
   const list = useResumesList()
   const [exportingId, setExportingId] = useState<string | null>(null)
+  const [viewMode, setViewMode] = useState<ListViewMode>("table")
 
   const createResume = trpc.resumes.create.useMutation({
     onSuccess: (resume) => {
@@ -119,6 +125,9 @@ export function ResumeLabPageContent() {
           searchPlaceholder={t("dashboard.search.resumes")}
           search={list.search}
           onSearchChange={list.setSearch}
+          filters={
+            <ViewModeTabs value={viewMode} onValueChange={setViewMode} />
+          }
           actions={
             <>
               <input {...pdfImport.fileInput} />
@@ -161,17 +170,31 @@ export function ResumeLabPageContent() {
           loadingMessage={t("resumeLab.table.loading")}
           emptyState={emptyState}
         >
-          <ResumeTable
-            resumes={list.items}
-            onDelete={handleDelete}
-            onExport={(resume) => void handleExport(resume)}
-            onDuplicate={handleDuplicate}
-            deletingId={deleteResume.isPending ? deleteResume.variables?.id : null}
-            exportingId={exportingId}
-            duplicatingId={
-              duplicateResume.isPending ? duplicateResume.variables?.id : null
-            }
-          />
+          {viewMode === "table" ? (
+            <ResumeTable
+              resumes={list.items}
+              onDelete={handleDelete}
+              onExport={(resume) => void handleExport(resume)}
+              onDuplicate={handleDuplicate}
+              deletingId={deleteResume.isPending ? deleteResume.variables?.id : null}
+              exportingId={exportingId}
+              duplicatingId={
+                duplicateResume.isPending ? duplicateResume.variables?.id : null
+              }
+            />
+          ) : (
+            <ResumeCardGrid
+              resumes={list.items}
+              onDelete={handleDelete}
+              onExport={(resume) => void handleExport(resume)}
+              onDuplicate={handleDuplicate}
+              deletingId={deleteResume.isPending ? deleteResume.variables?.id : null}
+              exportingId={exportingId}
+              duplicatingId={
+                duplicateResume.isPending ? duplicateResume.variables?.id : null
+              }
+            />
+          )}
           <EntityTablePagination
             page={list.page}
             totalPages={list.totalPages}
