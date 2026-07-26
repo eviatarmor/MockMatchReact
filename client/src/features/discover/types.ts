@@ -77,4 +77,8 @@ export interface TrackedJob {
   readonly progressCompleted: number
   readonly activeStepIndex: number | null
   readonly statusUpdatedAt: string
+  /** Snapshot fields for full job page when search cache is cold. */
+  readonly applyUrl?: string
+  readonly description?: string
+  readonly provider?: string
 }

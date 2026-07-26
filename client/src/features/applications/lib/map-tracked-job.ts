@@ -34,6 +34,9 @@ export function discoverJobToTracked(job: DiscoverJob): TrackedJob {
     progressCompleted: 0,
     activeStepIndex: null,
     statusUpdatedAt: "Saved just now",
+    applyUrl: job.applyUrl || undefined,
+    description: job.description || undefined,
+    provider: job.provider || undefined,
   }
 }
 
@@ -98,5 +101,7 @@ export function parseJobDescriptionToTracked(raw: string): TrackedJob {
     progressCompleted: 0,
     activeStepIndex: null,
     statusUpdatedAt: "Saved just now",
+    description: text || undefined,
+    provider: "import",
   }
 }

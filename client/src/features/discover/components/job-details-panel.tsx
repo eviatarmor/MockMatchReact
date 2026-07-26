@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import {
@@ -13,6 +14,7 @@ import {
   ExternalLink,
   Sparkles,
   Loader2,
+  Maximize2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
@@ -35,13 +37,18 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { PanelShell } from "@/components/dashboard/panel-shell"
 import { useTrackedJobs } from "@/features/applications/hooks/use-tracked-jobs"
 import { useFitDocument } from "../hooks/use-fit-document"
+import { cacheJobSnapshot, jobDetailPath } from "../lib/job-snapshot"
+import { JobShareMenu } from "./job-share-menu"
 import type { DiscoverJob } from "../types"
 
 interface JobDetailsPanelProps {
   readonly job: DiscoverJob
   readonly onClose?: () => void
-  /** `sheet` = mobile overlay; `pane` = desktop right card. */
-  readonly variant?: "sheet" | "pane"
+  /**
+   * `sheet` = mobile overlay; `pane` = desktop right card;
+   * `page` = full job route (no expand control).
+   */
+  readonly variant?: "sheet" | "pane" | "page"
 }
 
 function isEmptyStatValue(value: string | null | undefined): boolean {
@@ -56,6 +63,7 @@ export function JobDetailsPanel({
   variant = "sheet",
 }: JobDetailsPanelProps) {
   const { t } = useTranslation("common")
+  const navigate = useNavigate()
   const fitDoc = useFitDocument()
   const { isTracked, toggleDiscoverJob, markAppliedFromDiscover } =
     useTrackedJobs()
@@ -71,6 +79,8 @@ export function JobDetailsPanel({
   const seniorityLabel = job.seniority === "unknown" ? null : job.seniority
   const levelValue = [seniorityLabel, employmentLabel].filter(Boolean).join(" · ")
   const isPane = variant === "pane"
+  const isPage = variant === "page"
+  const showOpenFull = !isPage
 
   function handleTrackToggle() {
     const nowTracked = toggleDiscoverJob(job)
@@ -81,6 +91,14 @@ export function JobDetailsPanel({
     } else {
       toast.message(t("discover.details.trackRemoved"))
     }
+  }
+
+  function handleOpenFull() {
+    cacheJobSnapshot(job)
+    onClose?.()
+    navigate(jobDetailPath(job.id), {
+      state: { job, backTo: "/discover" },
+    })
   }
 
   function handleApplyClick() {
@@ -112,22 +130,10 @@ export function JobDetailsPanel({
   const description = job.description?.trim() ?? ""
 
   return (
-    <div className="relative h-full min-h-0">
-      {!isPane && onClose && (
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="absolute top-3 right-3 z-30 cursor-pointer"
-          onClick={onClose}
-        >
-          <X className="size-4" />
-          <span className="sr-only">{t("discover.details.close")}</span>
-        </Button>
-      )}
-
+    <div className="relative flex h-full min-h-0 flex-col">
       <PanelShell
-        className={isPane ? "rounded-xl" : undefined}
-        headerClassName={isPane ? "pr-4" : undefined}
+        className={isPane || isPage ? "min-h-0 rounded-xl" : "min-h-0"}
+        headerClassName="pr-4"
         header={
           <div className="flex items-start gap-3">
             <div
@@ -147,6 +153,32 @@ export function JobDetailsPanel({
                   .filter((part) => !isEmptyStatValue(part))
                   .join(" · ")}
               </span>
+            </div>
+            <div className="flex shrink-0 items-center gap-0.5">
+              <JobShareMenu job={job} variant="icon" />
+              {showOpenFull && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="cursor-pointer text-muted-foreground"
+                  title={t("discover.details.openFull")}
+                  onClick={handleOpenFull}
+                >
+                  <Maximize2 className="size-4" />
+                  <span className="sr-only">{t("discover.details.openFull")}</span>
+                </Button>
+              )}
+              {!isPane && !isPage && onClose && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="cursor-pointer text-muted-foreground"
+                  onClick={onClose}
+                >
+                  <X className="size-4" />
+                  <span className="sr-only">{t("discover.details.close")}</span>
+                </Button>
+              )}
             </div>
           </div>
         }

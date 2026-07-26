@@ -10,6 +10,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { jobDetailPath, cacheJobSnapshot } from "@/features/discover/lib/job-snapshot"
+import { trackedJobToDiscover } from "@/features/discover/lib/tracked-to-discover"
 import { TrackingProgressDots } from "./tracking-progress-dots"
 import type { TrackedJob } from "../types"
 
@@ -21,7 +23,13 @@ interface KanbanJobCardProps {
 export function KanbanJobCard({ job, onRemove }: KanbanJobCardProps) {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
-  const openDetail = () => navigate(`/applications/${job.id}`)
+  const openDetail = () => {
+    const discoverJob = trackedJobToDiscover(job)
+    cacheJobSnapshot(discoverJob)
+    navigate(jobDetailPath(job.id), {
+      state: { job: discoverJob, backTo: "/applications" },
+    })
+  }
   const hasMatch = job.matchScore > 0
 
   return (

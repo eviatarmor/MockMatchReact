@@ -11,6 +11,7 @@ import { CoverLetterEditorPage } from "@/pages/dashboard/cover-letter-editor-pag
 import { CoverLetterPrintPage } from "@/pages/dashboard/cover-letter-print-page";
 import { CoverLetterTemplatesPage } from "@/pages/dashboard/cover-letter-templates-page";
 import { DiscoverPage } from "@/pages/dashboard/discover-page";
+import { DiscoverJobPage } from "@/pages/dashboard/discover-job-page";
 import { ApplicationsPage } from "@/pages/dashboard/applications-page";
 import { ApplicationDetailPage } from "@/pages/dashboard/application-detail-page";
 import { AccountSettingsPage } from "@/pages/dashboard/account-settings-page";
@@ -51,6 +52,7 @@ export function dashboardRoutes() {
       <Route path="cover-letters/:letterId/print" element={<CoverLetterPrintPage />} />
 
       <Route element={<DashboardLayout />}>
+        <Route path="discover/jobs/:jobId" element={<DiscoverJobPage />} />
         <Route path="applications/:jobId" element={<ApplicationDetailPage />} />
         <Route path="cover-letters/templates" element={<CoverLetterTemplatesPage />} />
         <Route path="cover-letters/:letterId" element={<CoverLetterEditorPage />} />

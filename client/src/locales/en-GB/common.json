@@ -448,7 +448,23 @@
       "scoring": "Scoring ATS fit…",
       "applicationStage": "Application stage",
       "openWorkflow": "Open workflow",
-      "viewPosting": "View posting"
+      "viewPosting": "View posting",
+      "openFull": "Open full job page"
+    },
+    "jobPage": {
+      "documentTitle": "Job — MockMatch",
+      "title": "Job details",
+      "backToDiscover": "Back to Discover",
+      "backToApplications": "Back to Applications",
+      "notFound": "This job is no longer available. Open it again from Discover or Applications."
+    },
+    "share": {
+      "menu": "Share",
+      "copy": "Copy to clipboard",
+      "copied": "Job copied to clipboard",
+      "copyFailed": "Could not copy — try again",
+      "whatsapp": "Share on WhatsApp",
+      "telegram": "Share on Telegram"
     },
     "addJob": {
       "title": "Add a job to track",

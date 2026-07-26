@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils"
 import { DiscoverFilterBar } from "./discover-filter-bar"
 import { DiscoverJobListItem } from "./discover-job-list-item"
 import { DiscoverJobListItemSkeleton } from "./discover-job-list-item-skeleton"
+import { cacheJobSnapshot } from "../lib/job-snapshot"
 import { JobDetailsPanel } from "./job-details-panel"
 import type { DiscoverJobsState } from "../hooks/use-discover-jobs"
 import type { DiscoverJob } from "../types"
@@ -52,6 +53,7 @@ export function DiscoverTab({ state }: DiscoverTabProps) {
   const selectJob = useCallback(
     (job: DiscoverJob) => {
       setSelectedJobId(job.id)
+      cacheJobSnapshot(job)
       if (!isDesktop) {
         open(<JobDetailsPanel job={job} onClose={close} variant="sheet" />)
       }
