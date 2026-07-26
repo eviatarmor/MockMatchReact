@@ -1,10 +1,12 @@
 import { BadgeCheck, Sparkles, type LucideIcon } from "lucide-react"
-import { AppLogo } from "@/components/icons/app-logo"
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
+import { AppLogo } from "@/components/icons/app-logo"
+import { InteractiveGridPattern } from "@/components/ui/interactive-grid-pattern"
 import { FeatureHighlightList } from "@/features/login/left-pane/feature-highlight-list"
 import { ReadinessSummaryCard } from "@/features/login/left-pane/readiness-summary-card"
 import { FEATURE_HIGHLIGHTS, READINESS_SUMMARY } from "@/features/login/constants"
+import { cn } from "@/lib/utils"
 
 interface AuthHeroPanelProps {
   readonly trustMessageKey?: string
@@ -29,11 +31,19 @@ export function AuthHeroPanel({
 
   return (
     <div className="relative hidden flex-1 flex-col justify-between overflow-hidden bg-primary p-12 text-white lg:flex">
-      <div
+      {/* z-0 + full-panel hit target; content below uses pointer-events-none so hover reaches cells */}
+      <InteractiveGridPattern
         aria-hidden="true"
-        className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:2.5rem_2.5rem] [mask-image:linear-gradient(to_right,transparent,white)]"
+        width={20}
+        height={20}
+        squares={[80, 80]}
+        className={cn(
+          "z-0 border-0",
+          "[mask-image:radial-gradient(400px_circle_at_center,white,transparent)]"
+        )}
+        squaresClassName="hover:fill-blue-500"
       />
-      <div className="relative flex w-full max-w-md flex-1 flex-col justify-between">
+      <div className="pointer-events-none relative z-10 flex w-full max-w-md flex-1 flex-col justify-between">
         <div className="flex items-center gap-2">
           <span className="flex size-8 items-center justify-center rounded-lg bg-white p-1">
             <AppLogo className="size-full" />
