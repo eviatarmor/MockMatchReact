@@ -50,6 +50,15 @@ export function useTrackedJobs() {
 
   const isTracked = useCallback((id: string) => list.some((job) => job.id === id), [list])
 
+  /** Applied / interviewing / offer — past Saved (or never tracked → false). */
+  const hasApplied = useCallback(
+    (id: string) => {
+      const job = list.find((item) => item.id === id)
+      return job != null && job.status !== "saved"
+    },
+    [list]
+  )
+
   const trackDiscoverJob = useCallback(
     (job: DiscoverJob) => {
       setJobs((current) => {
@@ -155,6 +164,7 @@ export function useTrackedJobs() {
   return {
     jobs: list,
     isTracked,
+    hasApplied,
     trackDiscoverJob,
     untrack,
     toggleDiscoverJob,

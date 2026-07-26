@@ -87,7 +87,7 @@ export function EditorRail({
 
   return (
     <TooltipProvider delay={300}>
-      <div className="absolute inset-y-0 right-0 z-10 flex overflow-hidden border-l bg-background text-foreground">
+      <div className="relative z-10 flex h-full shrink-0 overflow-hidden border-l bg-background text-foreground">
 
         <AnimatePresence initial={false}>
           {activePanel && railItemAllowed(activePanel, permissions) && (

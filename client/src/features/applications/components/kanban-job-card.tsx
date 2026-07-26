@@ -1,8 +1,19 @@
+import { useState } from "react"
 import { Clock, MoreHorizontal, ArrowUpRight, Wand2, Trash2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +34,7 @@ interface KanbanJobCardProps {
 export function KanbanJobCard({ job, onRemove }: KanbanJobCardProps) {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
+  const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false)
   const openDetail = () => {
     const discoverJob = trackedJobToDiscover(job)
     cacheJobSnapshot(discoverJob)
@@ -31,6 +43,12 @@ export function KanbanJobCard({ job, onRemove }: KanbanJobCardProps) {
     })
   }
   const hasMatch = job.matchScore > 0
+
+  function handleConfirmRemove() {
+    setRemoveConfirmOpen(false)
+    onRemove?.(job.id)
+    toast.message(t("applications.trackingActions.removedToast"))
+  }
 
   return (
     <div
@@ -50,39 +68,74 @@ export function KanbanJobCard({ job, onRemove }: KanbanJobCardProps) {
           <span className="truncate text-sm font-semibold text-foreground">{job.title}</span>
           <span className="truncate text-xs text-muted-foreground">{job.company} · {job.location}</span>
         </div>
-        <div onClick={(event) => event.stopPropagation()}>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground cursor-pointer"
-                />
-              }
-            >
-              <MoreHorizontal className="size-3.5" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-48">
-              <DropdownMenuItem className="cursor-pointer" onClick={openDetail}>
-                <ArrowUpRight className="size-4" />
-                {t("applications.trackingActions.openDetails")}
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                <Wand2 className="size-4" />
-                {t("applications.trackingActions.tailorResume")}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                className="cursor-pointer"
-                onClick={() => onRemove?.(job.id)}
+        {/* stopPropagation on pointer/mouse so card drag handle (asHandle) doesn't steal the menu */}
+        <div
+          onClick={(event) => event.stopPropagation()}
+          onPointerDown={(event) => event.stopPropagation()}
+          onMouseDown={(event) => event.stopPropagation()}
+          onTouchStart={(event) => event.stopPropagation()}
+        >
+          <Dialog open={removeConfirmOpen} onOpenChange={setRemoveConfirmOpen}>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground cursor-pointer"
+                  />
+                }
               >
-                <Trash2 className="size-4" />
-                {t("applications.trackingActions.remove")}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <MoreHorizontal className="size-3.5" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-48">
+                <DropdownMenuItem className="cursor-pointer" onClick={openDetail}>
+                  <ArrowUpRight className="size-4" />
+                  {t("applications.trackingActions.openDetails")}
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer">
+                  <Wand2 className="size-4" />
+                  {t("applications.trackingActions.tailorResume")}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  className="cursor-pointer"
+                  onClick={() => setRemoveConfirmOpen(true)}
+                >
+                  <Trash2 className="size-4" />
+                  {t("applications.trackingActions.remove")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {t("applications.trackingActions.removeConfirm.title")}
+                </DialogTitle>
+                <DialogDescription>
+                  {t("applications.trackingActions.removeConfirm.message", {
+                    title: job.title,
+                  })}
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <DialogClose
+                  render={<Button variant="outline" className="cursor-pointer" />}
+                >
+                  {t("applications.trackingActions.removeConfirm.cancel")}
+                </DialogClose>
+                <Button
+                  variant="destructive"
+                  className="cursor-pointer"
+                  onClick={handleConfirmRemove}
+                >
+                  {t("applications.trackingActions.removeConfirm.confirm")}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 

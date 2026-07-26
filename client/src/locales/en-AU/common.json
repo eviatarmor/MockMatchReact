@@ -422,6 +422,7 @@
       "viewFullPosting": "View full description on Adzuna",
       "tailorDocs": "Tailor docs",
       "applyNow": "Apply now",
+      "appliedLabel": "Applied",
       "applyHint": "Open the original posting to apply, or fit your resume to this role with AI.",
       "applyConfirmTitle": "Did you apply for this job?",
       "applyConfirmDescription": "If you submitted an application for {{title}} at {{company}}, we can move it to Applied on your board.",
@@ -430,6 +431,11 @@
       "applyMarked": "Marked as applied",
       "applyMarkedDescription": "This role is in your Applied column.",
       "applyAlreadyMarked": "Already on your board past Saved",
+      "applyAgainTitle": "Apply again?",
+      "applyAgainDescription": "You already applied for {{title}} at {{company}}. Are you sure you want to apply again?",
+      "applyAgainYes": "Apply again",
+      "applyAgainNo": "Cancel",
+      "applyAgainOpened": "Opening the job posting again",
       "whyYouMatch": "Why you match",
       "skillsRequired": "Skills required",
       "inResume": "— in your resume",
@@ -518,7 +524,14 @@
     "trackingActions": {
       "openDetails": "Open details",
       "tailorResume": "Tailor resume & cover letter",
-      "remove": "Remove from tracking"
+      "remove": "Remove from tracking",
+      "removedToast": "Removed from tracking",
+      "removeConfirm": {
+        "title": "Remove from tracking?",
+        "message": "“{{title}}” will be removed from your board. You can track it again from Discover.",
+        "confirm": "Remove",
+        "cancel": "Cancel"
+      }
     },
     "kanban": {
       "empty": "No applications"

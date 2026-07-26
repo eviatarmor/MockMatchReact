@@ -118,33 +118,33 @@ function ResumeEditorLoaded({
   }
 
   return (
-    // Secondary bar overlays the canvas so glass transparency reveals the dots.
-    <div className="relative h-full min-h-0">
-      <EditorSecondaryBar
-        className="absolute inset-x-0 top-0 z-20"
-        left={
-          <>
-            <PresenceAvatarStack
-              self={session.collab.self}
-              peers={session.collab.peers}
+    // Canvas column (secondary bar overlays dots) + rail as sibling so bar never covers panels.
+    <div className="flex h-full min-h-0">
+      <div className="relative min-h-0 min-w-0 flex-1">
+        <EditorSecondaryBar
+          className="absolute inset-x-0 top-0 z-20"
+          left={
+            <>
+              <PresenceAvatarStack
+                self={session.collab.self}
+                peers={session.collab.peers}
+              />
+              <BreadcrumbName
+                value={session.resumeName}
+                onChange={session.setResumeName}
+              />
+              <SaveStatusBadge status={session.saveStatus} labels={saveLabels} />
+            </>
+          }
+          right={
+            <EditorToolbarActions
+              resumeId={seed.id}
+              title={session.resumeName}
+              permissions={session.permissions}
+              preview={previewNode}
             />
-            <BreadcrumbName
-              value={session.resumeName}
-              onChange={session.setResumeName}
-            />
-            <SaveStatusBadge status={session.saveStatus} labels={saveLabels} />
-          </>
-        }
-        right={
-          <EditorToolbarActions
-            resumeId={seed.id}
-            title={session.resumeName}
-            permissions={session.permissions}
-            preview={previewNode}
-          />
-        }
-      />
-      <div className="relative h-full min-h-0">
+          }
+        />
         <EditorCanvas
           document={session.document}
           template={session.template}
@@ -156,16 +156,16 @@ function ResumeEditorLoaded({
           clearCursor={session.collab.clearCursor}
         />
         <EditorBottomBar viewport={viewport} history={session.history} />
-        <EditorRail
-          activeTemplateId={session.templateId}
-          onTemplateChange={session.selectTemplate}
-          style={session.style}
-          onStyleChange={session.updateStyle}
-          document={session.document}
-          handlers={session.handlers}
-          permissions={session.permissions}
-        />
       </div>
+      <EditorRail
+        activeTemplateId={session.templateId}
+        onTemplateChange={session.selectTemplate}
+        style={session.style}
+        onStyleChange={session.updateStyle}
+        document={session.document}
+        handlers={session.handlers}
+        permissions={session.permissions}
+      />
     </div>
   )
 }

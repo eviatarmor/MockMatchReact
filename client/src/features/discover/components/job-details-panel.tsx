@@ -6,6 +6,7 @@ import {
   Send,
   Bookmark,
   BookmarkCheck,
+  Check,
   DollarSign,
   Briefcase,
   MapPin,
@@ -65,10 +66,12 @@ export function JobDetailsPanel({
   const { t } = useTranslation("common")
   const navigate = useNavigate()
   const fitDoc = useFitDocument()
-  const { isTracked, toggleDiscoverJob, markAppliedFromDiscover } =
+  const { isTracked, hasApplied, toggleDiscoverJob, markAppliedFromDiscover } =
     useTrackedJobs()
-  const [applyConfirmOpen, setApplyConfirmOpen] = useState(false)
+  /** `first` = mark applied after posting; `again` = re-open posting after already applied. */
+  const [applyDialog, setApplyDialog] = useState<"first" | "again" | null>(null)
   const tracked = isTracked(job.id)
+  const applied = hasApplied(job.id)
   const hasMatch = job.matchScore != null
   const scoreBandKey =
     job.matchScore != null ? scoreBand(job.matchScore) : null
@@ -101,16 +104,24 @@ export function JobDetailsPanel({
     })
   }
 
-  function handleApplyClick() {
+  function openApplyUrl() {
     if (job.applyUrl) {
       window.open(job.applyUrl, "_blank", "noopener,noreferrer")
     }
-    setApplyConfirmOpen(true)
+  }
+
+  function handleApplyClick() {
+    if (applied) {
+      setApplyDialog("again")
+      return
+    }
+    openApplyUrl()
+    setApplyDialog("first")
   }
 
   function handleConfirmApplied() {
     const changed = markAppliedFromDiscover(job)
-    setApplyConfirmOpen(false)
+    setApplyDialog(null)
     if (changed) {
       toast.success(t("discover.details.applyMarked"), {
         description: t("discover.details.applyMarkedDescription"),
@@ -118,6 +129,12 @@ export function JobDetailsPanel({
     } else {
       toast.message(t("discover.details.applyAlreadyMarked"))
     }
+  }
+
+  function handleConfirmApplyAgain() {
+    setApplyDialog(null)
+    openApplyUrl()
+    toast.message(t("discover.details.applyAgainOpened"))
   }
 
   const stats = [
@@ -236,15 +253,24 @@ export function JobDetailsPanel({
                   : t("discover.details.trackRole")}
               </Button>
               <Button
-                className="gap-1.5 cursor-pointer sm:min-w-28"
+                variant={applied ? "secondary" : "default"}
+                className={cn(
+                  "gap-1.5 cursor-pointer sm:min-w-28",
+                  applied && "text-primary"
+                )}
+                aria-pressed={applied}
                 onClick={handleApplyClick}
               >
-                {job.applyUrl ? (
+                {applied ? (
+                  <Check className="size-4" />
+                ) : job.applyUrl ? (
                   <ExternalLink className="size-4" />
                 ) : (
                   <Send className="size-4" />
                 )}
-                {t("discover.details.applyNow")}
+                {applied
+                  ? t("discover.details.appliedLabel")
+                  : t("discover.details.applyNow")}
               </Button>
             </div>
           </div>
@@ -356,7 +382,12 @@ export function JobDetailsPanel({
 
       </PanelShell>
 
-      <Dialog open={applyConfirmOpen} onOpenChange={setApplyConfirmOpen}>
+      <Dialog
+        open={applyDialog === "first"}
+        onOpenChange={(open) => {
+          if (!open) setApplyDialog(null)
+        }}
+      >
         <DialogContent showCloseButton>
           <DialogHeader>
             <DialogTitle>{t("discover.details.applyConfirmTitle")}</DialogTitle>
@@ -371,12 +402,43 @@ export function JobDetailsPanel({
             <Button
               variant="outline"
               className="cursor-pointer"
-              onClick={() => setApplyConfirmOpen(false)}
+              onClick={() => setApplyDialog(null)}
             >
               {t("discover.details.applyConfirmNo")}
             </Button>
             <Button className="cursor-pointer" onClick={handleConfirmApplied}>
               {t("discover.details.applyConfirmYes")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={applyDialog === "again"}
+        onOpenChange={(open) => {
+          if (!open) setApplyDialog(null)
+        }}
+      >
+        <DialogContent showCloseButton>
+          <DialogHeader>
+            <DialogTitle>{t("discover.details.applyAgainTitle")}</DialogTitle>
+            <DialogDescription>
+              {t("discover.details.applyAgainDescription", {
+                title: job.title,
+                company: job.company,
+              })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="cursor-pointer"
+              onClick={() => setApplyDialog(null)}
+            >
+              {t("discover.details.applyAgainNo")}
+            </Button>
+            <Button className="cursor-pointer" onClick={handleConfirmApplyAgain}>
+              {t("discover.details.applyAgainYes")}
             </Button>
           </DialogFooter>
         </DialogContent>
