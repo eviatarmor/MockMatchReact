@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { Link, useNavigate } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
+import { PanelLeftOpen } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { forceLogout } from "@/lib/auth/session-guard"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -24,11 +25,19 @@ const USER_MENU_ROUTES: Record<string, string> = {
 interface IconRailProps {
   readonly activeSectionId: string
   readonly onNavigate?: () => void
+  /** When section-nav is collapsed, logo morphs to expand icon on rail hover. */
+  readonly collapsed?: boolean
+  readonly onExpand?: () => void
 }
 
 // Far-left icon-only column: brand mark, one icon per nav section, user avatar.
 // Selecting a section navigates to its first route, which drives the label column.
-export function IconRail({ activeSectionId, onNavigate }: IconRailProps) {
+export function IconRail({
+  activeSectionId,
+  onNavigate,
+  collapsed = false,
+  onExpand,
+}: IconRailProps) {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -46,10 +55,40 @@ export function IconRail({ activeSectionId, onNavigate }: IconRailProps) {
   }
 
   return (
-    <nav className="flex w-14 shrink-0 flex-col items-center gap-1 bg-sidebar py-3 text-sidebar-foreground">
-      <Link to="/" aria-label={t("appName")} className="mb-2 flex size-9 items-center justify-center">
-        <AppLogo className="size-7" />
-      </Link>
+    <nav className="group/rail flex w-14 shrink-0 flex-col items-center gap-1 bg-sidebar py-3 text-sidebar-foreground">
+      {/* Fixed size-9 slot — same footprint expanded/collapsed so rail icons don't jump. */}
+      {collapsed ? (
+        <button
+          type="button"
+          onClick={onExpand}
+          aria-label={t("nav.expand")}
+          className="relative mb-2 flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-lg text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+        >
+          {/* Logo → expand icon on hover of entire rail (group/rail). */}
+          <AppLogo
+            className={cn(
+              "size-7 transition-all duration-200 ease-out",
+              "group-hover/rail:scale-50 group-hover/rail:opacity-0 group-hover/rail:rotate-90"
+            )}
+          />
+          <PanelLeftOpen
+            className={cn(
+              "pointer-events-none absolute size-4",
+              "scale-50 opacity-0 -rotate-90 transition-all duration-200 ease-out",
+              "group-hover/rail:scale-100 group-hover/rail:opacity-100 group-hover/rail:rotate-0"
+            )}
+            aria-hidden
+          />
+        </button>
+      ) : (
+        <Link
+          to="/"
+          aria-label={t("appName")}
+          className="mb-2 flex size-9 shrink-0 items-center justify-center"
+        >
+          <AppLogo className="size-7" />
+        </Link>
+      )}
 
       <div className="flex flex-1 flex-col items-center gap-1">
         {NAV_SECTIONS.map((section) => {
