@@ -577,7 +577,8 @@
     },
     "trackingActions": {
       "openDetails": "Open details",
-      "tailorResume": "Tailor resume & cover letter",
+      "fitResume": "AI tailor resume",
+      "fitCoverLetter": "AI tailor cover letter",
       "remove": "Remove from tracking",
       "removedToast": "Removed from tracking",
       "removeConfirm": {

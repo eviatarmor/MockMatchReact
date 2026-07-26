@@ -1,5 +1,13 @@
 import { useState } from "react"
-import { Clock, MoreHorizontal, ArrowUpRight, Wand2, Trash2 } from "lucide-react"
+import {
+  Clock,
+  MoreHorizontal,
+  ArrowUpRight,
+  FileText,
+  Mail,
+  Loader2,
+  Trash2,
+} from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
@@ -21,6 +29,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useFitDocument } from "@/features/discover/hooks/use-fit-document"
 import { jobDetailPath, cacheJobSnapshot } from "@/features/discover/lib/job-snapshot"
 import { trackedJobToDiscover } from "@/features/discover/lib/tracked-to-discover"
 import { TrackingProgressDots } from "./tracking-progress-dots"
@@ -34,9 +43,10 @@ interface KanbanJobCardProps {
 export function KanbanJobCard({ job, onRemove }: KanbanJobCardProps) {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
+  const fitDoc = useFitDocument()
   const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false)
+  const discoverJob = trackedJobToDiscover(job)
   const openDetail = () => {
-    const discoverJob = trackedJobToDiscover(job)
     cacheJobSnapshot(discoverJob)
     navigate(jobDetailPath(job.id), {
       state: { job: discoverJob, backTo: "/applications" },
@@ -88,14 +98,34 @@ export function KanbanJobCard({ job, onRemove }: KanbanJobCardProps) {
               >
                 <MoreHorizontal className="size-3.5" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-48">
+              <DropdownMenuContent align="end" className="min-w-52">
                 <DropdownMenuItem className="cursor-pointer" onClick={openDetail}>
                   <ArrowUpRight className="size-4" />
                   {t("applications.trackingActions.openDetails")}
                 </DropdownMenuItem>
-                <DropdownMenuItem className="cursor-pointer">
-                  <Wand2 className="size-4" />
-                  {t("applications.trackingActions.tailorResume")}
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  disabled={fitDoc.isFitting}
+                  onClick={() => fitDoc.fitResume(discoverJob)}
+                >
+                  {fitDoc.isFittingResume ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <FileText className="size-4" />
+                  )}
+                  {t("applications.trackingActions.fitResume")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer"
+                  disabled={fitDoc.isFitting}
+                  onClick={() => fitDoc.fitCoverLetter(discoverJob)}
+                >
+                  {fitDoc.isFittingCoverLetter ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Mail className="size-4" />
+                  )}
+                  {t("applications.trackingActions.fitCoverLetter")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
