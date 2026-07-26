@@ -1,21 +1,23 @@
 import { useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
-import { Bookmark, Mail, Upload } from "lucide-react"
+import { Bookmark, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
 import { TableToolbar } from "@/components/dashboard/table-toolbar"
 import { EntityEmptyState } from "@/components/data/entity-empty-state"
 import { TrackingKanban } from "./components/tracking-kanban"
+import { EmailConnectBar } from "./components/email-connect-bar"
 import { AddJobDialog } from "@/features/discover/components/add-job-dialog"
-import { useTrackedJobs, useGmailListen } from "./hooks/use-tracked-jobs"
+import { useTrackedJobs, useEmailConnect } from "./hooks/use-tracked-jobs"
+import type { EmailProvider } from "./types"
 
 export function ApplicationsPageContent() {
   const { t } = useTranslation("common")
   const [search, setSearch] = useState("")
   const { jobs, addFromPaste, untrack, replaceStatuses } = useTrackedJobs()
-  const { connected, connect } = useGmailListen()
+  const { connectedProvider, connect, disconnect } = useEmailConnect()
 
   const filteredJobs = useMemo(
     () =>
@@ -37,9 +39,18 @@ export function ApplicationsPageContent() {
     })
   }
 
-  function handleConnectGmail() {
-    connect()
-    toast.success(t("applications.gmail.connectedToast"))
+  function handleConnect(provider: EmailProvider) {
+    connect(provider)
+    toast.success(
+      t("applications.email.connectedToast", {
+        provider: t(`applications.email.providers.${provider}`),
+      })
+    )
+  }
+
+  function handleDisconnect() {
+    disconnect()
+    toast.success(t("applications.email.disconnectedToast"))
   }
 
   return (
@@ -48,20 +59,14 @@ export function ApplicationsPageContent() {
         <DashboardPageHeader
           title={t("applications.title")}
           description={t("applications.description")}
+          actions={
+            <EmailConnectBar
+              connectedProvider={connectedProvider}
+              onConnect={handleConnect}
+              onDisconnect={handleDisconnect}
+            />
+          }
         />
-
-        {!connected ? (
-          <EntityEmptyState
-            icon={Mail}
-            title={t("applications.empty.gmailTitle")}
-            description={t("applications.empty.gmailDescription")}
-            action={{
-              label: t("applications.gmail.connectButton"),
-              onClick: handleConnectGmail,
-              icon: Mail,
-            }}
-          />
-        ) : null}
 
         <TableToolbar
           searchPlaceholder={t("dashboard.search.applications")}

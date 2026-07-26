@@ -6,9 +6,24 @@ import {
   parseJobDescriptionToTracked,
 } from "../lib/map-tracked-job"
 
+import type { EmailProvider } from "../types"
+
 const STORAGE_KEY = "mm.trackedJobs"
+/** Legacy boolean flag — migrated into EMAIL_PROVIDER_KEY. */
 const GMAIL_KEY = "mm.gmailConnected"
+const EMAIL_PROVIDER_KEY = "mm.emailProvider"
 const GMAIL_LISTEN_KEY = "mm.gmailListenJobIds"
+
+const EMAIL_PROVIDERS: readonly EmailProvider[] = [
+  "google",
+  "microsoft",
+  "apple",
+  "yahoo",
+]
+
+function isEmailProvider(value: unknown): value is EmailProvider {
+  return typeof value === "string" && (EMAIL_PROVIDERS as readonly string[]).includes(value)
+}
 
 function statusFields(status: TrackingStatus): Pick<
   TrackedJob,
@@ -175,24 +190,60 @@ export function useTrackedJobs() {
   }
 }
 
-/** Migrate pre-JSON boolean string (`"true"`) used by older client builds. */
-function migrateGmailConnectedFlag() {
+/**
+ * Migrate legacy gmail boolean → email provider id.
+ * Older builds stored plain `"true"`/`"false"` or JSON boolean under GMAIL_KEY.
+ */
+function migrateEmailProviderFlag() {
   if (typeof window === "undefined") return
+  if (window.localStorage.getItem(EMAIL_PROVIDER_KEY) != null) return
+
   const raw = window.localStorage.getItem(GMAIL_KEY)
+  if (raw == null) return
+
+  let wasConnected = false
   if (raw === "true" || raw === "false") {
-    window.localStorage.setItem(GMAIL_KEY, JSON.stringify(raw === "true"))
+    wasConnected = raw === "true"
+  } else {
+    try {
+      wasConnected = JSON.parse(raw) === true
+    } catch {
+      wasConnected = false
+    }
   }
+
+  if (wasConnected) {
+    window.localStorage.setItem(EMAIL_PROVIDER_KEY, JSON.stringify("google"))
+  }
+  window.localStorage.removeItem(GMAIL_KEY)
 }
 
-/** Gmail connection + per-position listen prefs (client stub until OAuth lands). */
+/**
+ * Inbox provider connection + per-position listen prefs (client stub until OAuth lands).
+ * @deprecated Prefer `useEmailConnect` — kept as alias for existing imports.
+ */
 export function useGmailListen() {
-  migrateGmailConnectedFlag()
+  return useEmailConnect()
+}
 
-  const [connected, setConnected] = useLocalStorage<boolean>(GMAIL_KEY, false)
+/** Inbox provider connection + per-position listen prefs (client stub until OAuth lands). */
+export function useEmailConnect() {
+  migrateEmailProviderFlag()
+
+  const [provider, setProvider] = useLocalStorage<EmailProvider | null>(
+    EMAIL_PROVIDER_KEY,
+    null
+  )
   const [listenJobIds, setListenJobIds] = useLocalStorage<string[]>(GMAIL_LISTEN_KEY, [])
 
-  const connect = useCallback(() => setConnected(true), [setConnected])
-  const disconnect = useCallback(() => setConnected(false), [setConnected])
+  const connectedProvider = isEmailProvider(provider) ? provider : null
+  const connected = connectedProvider != null
+
+  const connect = useCallback(
+    (next: EmailProvider) => setProvider(next),
+    [setProvider]
+  )
+  const disconnect = useCallback(() => setProvider(null), [setProvider])
 
   const setListening = useCallback(
     (jobIds: string[]) => setListenJobIds(jobIds),
@@ -210,7 +261,8 @@ export function useGmailListen() {
   )
 
   return {
-    connected: connected ?? false,
+    connected,
+    connectedProvider,
     listenJobIds: listenJobIds ?? [],
     connect,
     disconnect,

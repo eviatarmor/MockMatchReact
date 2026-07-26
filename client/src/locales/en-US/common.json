@@ -549,6 +549,25 @@
       "submit": "Save job",
       "successToast": "Job saved"
     },
+    "email": {
+      "syncLabel": "Sync inbox",
+      "connectedShort": "Connected",
+      "connectedToast": "{{provider}} connected",
+      "disconnectedToast": "Inbox disconnected",
+      "disconnect": "Disconnect {{provider}}",
+      "providers": {
+        "google": "Gmail",
+        "microsoft": "Outlook",
+        "apple": "iCloud Mail",
+        "yahoo": "Yahoo Mail"
+      },
+      "connect": {
+        "google": "Connect Gmail",
+        "microsoft": "Connect Outlook",
+        "apple": "Connect iCloud Mail",
+        "yahoo": "Connect Yahoo Mail"
+      }
+    },
     "gmail": {
       "title": "Gmail application updates",
       "description": "Connect Gmail and choose positions to watch for recruiter replies and status emails.",
@@ -569,11 +588,9 @@
     },
     "empty": {
       "title": "No saved applications yet",
-      "description": "Track a role from Discover, or import a job description. Connect Gmail to listen for status emails on specific positions.",
+      "description": "Track a role from Discover, or import a job description. Connect an inbox to listen for status emails on specific positions.",
       "noSearchTitle": "No matches",
-      "noSearchDescription": "Try a different search term.",
-      "gmailTitle": "Connect your Gmail account",
-      "gmailDescription": "Link Gmail so we can track application statuses for the jobs you apply to."
+      "noSearchDescription": "Try a different search term."
     }
   },
   "applicationDetail": {
