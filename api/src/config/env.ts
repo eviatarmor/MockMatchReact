@@ -100,6 +100,14 @@ const envSchema = z
       .string()
       .min(1)
       .default("openai/gpt-oss-20b:free"),
+    /**
+     * Free OpenRouter model for the in-app Ask product assistant.
+     * Catalog: https://openrouter.ai/collections/free-models
+     */
+    OPENROUTER_ASK_MODEL: z
+      .string()
+      .min(1)
+      .default("openai/gpt-oss-20b:free"),
     /** Credits charged per uncached AI-scored job. 0 = free AI when key configured. */
     JOB_FIT_AI_CREDIT_COST: z.coerce.number().int().nonnegative().default(0),
     /**

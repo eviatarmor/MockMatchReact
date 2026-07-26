@@ -726,10 +726,11 @@
     }
   },
   "navbar": {
+    "ask": "Ask",
     "feedback": "Feedback",
     "getCredits": "Get credits",
     "getCreditsShort": "Credits",
-    "creditsLabel": "credits",
+    "creditsLabel": "Credits",
     "creditsBalanceAria": "{{count}} credits remaining. Top up.",
     "creditsCard": {
       "title": "Top up credits",

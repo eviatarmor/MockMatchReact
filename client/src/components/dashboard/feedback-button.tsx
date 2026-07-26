@@ -6,7 +6,13 @@ export function FeedbackButton() {
   const { t } = useTranslation("common")
 
   return (
-    <Button variant="secondary" size="sm" className="cursor-pointer gap-1.5">
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      className="cursor-pointer gap-1.5"
+      aria-label={t("navbar.feedback")}
+    >
       <MessageSquarePlus className="size-3.5" />
       <span className="hidden sm:inline">{t("navbar.feedback")}</span>
     </Button>

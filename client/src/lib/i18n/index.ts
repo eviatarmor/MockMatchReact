@@ -11,6 +11,7 @@ import billingEnUS from "@/locales/en-US/billing.json"
 import coverLetterEditorEnUS from "@/locales/en-US/cover-letter-editor.json"
 import resumeEditorEnUS from "@/locales/en-US/resume-editor.json"
 import collabEnUS from "@/locales/en-US/collab.json"
+import askEnUS from "@/locales/en-US/ask.json"
 
 import commonEnGB from "@/locales/en-GB/common.json"
 import loginEnGB from "@/locales/en-GB/login.json"
@@ -21,6 +22,7 @@ import billingEnGB from "@/locales/en-GB/billing.json"
 import coverLetterEditorEnGB from "@/locales/en-GB/cover-letter-editor.json"
 import resumeEditorEnGB from "@/locales/en-GB/resume-editor.json"
 import collabEnGB from "@/locales/en-GB/collab.json"
+import askEnGB from "@/locales/en-GB/ask.json"
 
 import commonEnAU from "@/locales/en-AU/common.json"
 import loginEnAU from "@/locales/en-AU/login.json"
@@ -31,6 +33,7 @@ import billingEnAU from "@/locales/en-AU/billing.json"
 import coverLetterEditorEnAU from "@/locales/en-AU/cover-letter-editor.json"
 import resumeEditorEnAU from "@/locales/en-AU/resume-editor.json"
 import collabEnAU from "@/locales/en-AU/collab.json"
+import askEnAU from "@/locales/en-AU/ask.json"
 
 import {
   DEFAULT_LANGUAGE,
@@ -51,6 +54,7 @@ const enUS = {
   "cover-letter-editor": coverLetterEditorEnUS,
   "resume-editor": resumeEditorEnUS,
   collab: collabEnUS,
+  ask: askEnUS,
 }
 
 const enGB = {
@@ -63,6 +67,7 @@ const enGB = {
   "cover-letter-editor": coverLetterEditorEnGB,
   "resume-editor": resumeEditorEnGB,
   collab: collabEnGB,
+  ask: askEnGB,
 }
 
 const enAU = {
@@ -75,6 +80,7 @@ const enAU = {
   "cover-letter-editor": coverLetterEditorEnAU,
   "resume-editor": resumeEditorEnAU,
   collab: collabEnAU,
+  ask: askEnAU,
 }
 
 const initialLanguage = readStoredLanguage() ?? DEFAULT_LANGUAGE

@@ -1,0 +1,32 @@
+{
+  "title": "Ask MockMatch",
+  "greeting": "Hi! How can I help you today?",
+  "placeholder": "Ask anything...",
+  "newChat": "New chat",
+  "close": "Close",
+  "send": "Send",
+  "stop": "Stop generating",
+  "thinkingPlaceholder": "Looking up how MockMatch works…",
+  "errorGeneric": "Something went wrong. Try again in a moment.",
+  "speech": {
+    "placeholderListening": "Listening — keep talking…",
+    "startListening": "Start voice input",
+    "stopListening": "Stop voice input"
+  },
+  "suggestions": {
+    "resumeScore": "How do I score my resume?",
+    "trackApplications": "Where do I track applications?",
+    "discoverFit": "How does Discover job fit work?",
+    "mockInterview": "How do I start a mock interview?",
+    "credits": "What are credits used for?",
+    "exportPdf": "How do I export a PDF resume?",
+    "importResume": "How do I import a PDF resume?",
+    "coverLetter": "How do I write a cover letter?",
+    "templates": "Where are resume templates?",
+    "collabShare": "How do share links work?",
+    "billing": "How do I buy more credits?",
+    "readiness": "What is the Readiness page?",
+    "questionBank": "How do I use the Question Bank?",
+    "autofill": "What does Autofill do?"
+  }
+}

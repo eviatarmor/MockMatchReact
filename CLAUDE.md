@@ -14,6 +14,17 @@ Always use **caveman ultra** for chat replies (`/caveman ultra` / skill `user:ca
 - Drop caveman only for security warnings, irreversible confirmations, multi-step sequences where compression risks misread, or when user asks to clarify.
 - Off only if user says `stop caveman` / `normal mode`.
 
+## Ask assistant product guide
+
+In-app **Ask** chat (navbar) uses a free OpenRouter model and a product system prompt.
+
+- **Runtime guide (source of truth):** `api/src/modules/ask/product-guide.ts`
+- **System prompt builder:** `api/src/modules/ask/system-prompt.ts`
+- **Stream route:** `POST /ask/chat` (`api/src/modules/ask/routes.ts`)
+- **Client UI:** `client/src/features/ask/`
+
+**When adding or changing user-facing features, routes, or nav items, update `product-guide.ts`** so the assistant stays accurate (page map + how-tos). Do not put the full prompt only in this file — keep the guide co-located with the API module.
+
 ## Project overview
 
 MockMatch — interview prep app (resume scoring, AI mock interviews, readiness tracking). Monorepo: React client + Hono/tRPC API scaffold + Docker infra.
