@@ -118,8 +118,10 @@ function ResumeEditorLoaded({
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    // Secondary bar overlays the canvas so glass transparency reveals the dots.
+    <div className="relative h-full min-h-0">
       <EditorSecondaryBar
+        className="absolute inset-x-0 top-0 z-20"
         left={
           <>
             <PresenceAvatarStack
@@ -142,7 +144,7 @@ function ResumeEditorLoaded({
           />
         }
       />
-      <div className="relative min-h-0 flex-1">
+      <div className="relative h-full min-h-0">
         <EditorCanvas
           document={session.document}
           template={session.template}

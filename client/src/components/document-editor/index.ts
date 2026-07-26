@@ -1,4 +1,8 @@
-export { EditorSecondaryBar } from "./editor-secondary-bar"
+export {
+  EditorSecondaryBar,
+  SECONDARY_BAR_SURFACE,
+  SECONDARY_BAR_SURFACE_STUCK,
+} from "./editor-secondary-bar"
 export { EditableText } from "./editable-text"
 export { RichTextField } from "./rich-text-field"
 export { type RichTextToolbarLabels } from "./rich-text-toolbar"
