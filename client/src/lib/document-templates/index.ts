@@ -72,12 +72,7 @@ export function getCoverLetterRoleTemplates(): readonly CoverLetterRoleTemplate[
   return ROLE_DIRECTORY.map((entry) => {
     const person = personFor(entry)
     const letter = letterParagraphs(entry.category, entry.title, entry.company)
-    const hq =
-      entry.country === "US"
-        ? entry.location
-        : entry.country === "UK"
-          ? entry.location
-          : entry.location
+    const hq = entry.location
     return {
       id: entry.id,
       title: entry.title,

@@ -1,8 +1,17 @@
 {
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
-  "entry": ["src/index.{js,jsx,mjs}", "src/main.{js,jsx,mjs}"],
+  "entry": [
+    "client/src/main.tsx",
+    "api/src/index.ts",
+    "api/src/worker.ts",
+    "api/src/ws.ts",
+    "api/src/lib/s3.ts",
+    "client/src/components/ui/**/*.{ts,tsx}",
+    "client/src/components/shadcn-space/**/*.{ts,tsx}",
+    "client/src/components/format/**/*.{ts,tsx}"
+  ],
   "workspaces": {
-    "packages": ["client", "packages/*"]
+    "packages": ["client", "api", "packages/*"]
   },
   "duplicates": {
     // Hide pair-only clones; focus on widespread copy-paste
@@ -13,5 +22,13 @@
       "client/src/components/shadcn-space/**"
     ]
   },
-  "rules": {}
+  "rules": {
+    // Public/shared surfaces intentionally export more than current callers.
+    // PR gate (`fallow audit`) still flags newly introduced dead code.
+    "unused-exports": "off",
+    "unused-types": "off",
+    "duplicate-exports": "off",
+    "unused-files": "error",
+    "unused-dependencies": "error"
+  }
 }

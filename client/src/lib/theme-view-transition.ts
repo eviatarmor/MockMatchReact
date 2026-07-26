@@ -44,11 +44,6 @@ function getThemeTransitionClipPaths(
     `${(r / (Math.hypot(viewportWidth, viewportHeight) / Math.SQRT2)) * 100}%`
 
   switch (variant) {
-    case "circle":
-      return [
-        `circle(0% at ${point(cx, cy)})`,
-        `circle(${toRadius(maxRadius)} at ${point(cx, cy)})`,
-      ]
     case "square": {
       const halfW = Math.max(cx, viewportWidth - cx)
       const halfH = Math.max(cy, viewportHeight - cy)
@@ -119,6 +114,7 @@ function getThemeTransitionClipPaths(
       const startR = Math.max(2, R * 0.025)
       return [starPolygon(startR), starPolygon(R)]
     }
+    case "circle":
     default:
       return [
         `circle(0% at ${point(cx, cy)})`,

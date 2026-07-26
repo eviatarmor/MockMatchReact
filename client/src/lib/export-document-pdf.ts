@@ -8,6 +8,8 @@ export type DocumentExportKind = "resume" | "cover-letter"
 export function pdfFilename(title: string, fallback: string): string {
   const stem = title
     .trim()
+    // Strip path-illegal + C0 control chars (0x00-0x1F) for safe download names
+    // eslint-disable-next-line no-control-regex -- intentional filename sanitization
     .replace(/[<>:"/\\|?*\u0000-\u001f]+/g, "")
     .replace(/\s+/g, "-")
     .slice(0, 80)
