@@ -7,6 +7,7 @@ import {
   DiffHtmlProvider,
   resolveStyleClasses,
 } from "@/components/document-editor"
+import { DocumentPreviewDialog } from "@/components/data/document-preview-dialog"
 import {
   Dialog,
   DialogClose,
@@ -50,8 +51,8 @@ type VersionPreviewDialogProps = {
 }
 
 /**
- * Version snapshot preview — shell matches {@link DocumentPreviewDialog}
- * (p-0 chrome, bordered header, plain overflow-auto body).
+ * Version snapshot preview — reuses {@link DocumentPreviewDialog} shell so
+ * scroll / sizing match lab resume previews.
  */
 export function VersionPreviewDialog({
   open,
@@ -154,75 +155,63 @@ export function VersionPreviewDialog({
 
   return (
     <>
-      <Dialog
+      <DocumentPreviewDialog
         open={open}
         onOpenChange={(next) => {
           if (!next) setConfirmOpen(false)
           onOpenChange(next)
         }}
-      >
-        <DialogContent
-          showCloseButton
-          className="flex max-h-[min(92vh,1100px)] w-[min(920px,calc(100%-1.5rem))] max-w-none flex-col gap-0 overflow-hidden p-0 sm:max-w-none"
-        >
-          <DialogHeader className="shrink-0 border-b border-border/60 px-4 py-3 pr-12">
-            <DialogTitle className="truncate">{title}</DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              {description}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="min-h-0 flex-1 overflow-auto">
-            {query.isLoading && (
-              <div className="flex items-center justify-center gap-2 p-12 text-sm text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" />
-                {t("history.loading")}
-              </div>
-            )}
-            {query.isError && (
-              <p className="p-8 text-center text-sm text-muted-foreground">
-                {t("history.loadError")}
-              </p>
-            )}
-            {preview && (
-              <DiffHtmlProvider enabled={preview.hasPrevious}>
-                <div className="flex justify-center bg-neutral-100 py-6 dark:bg-neutral-950">
-                  {preview.kind === "resume" ? (
-                    <ResumeDocumentView
-                      document={preview.document}
-                      template={preview.template}
-                      style={preview.style}
-                    />
-                  ) : (
-                    <LetterDocument
-                      document={preview.document}
-                      template={preview.template}
-                      style={preview.style}
-                    />
-                  )}
-                </div>
-              </DiffHtmlProvider>
-            )}
-          </div>
-
-          {canRestore && (
-            <div className="shrink-0 border-t border-border/60 px-4 py-3">
-              <div className="flex justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="cursor-pointer gap-1.5"
-                  onClick={() => setConfirmOpen(true)}
-                  disabled={!query.data || restore.isPending}
-                >
-                  <RotateCcw className="size-3.5" />
-                  {t("history.restore")}
-                </Button>
-              </div>
+        title={title}
+        description={description}
+        descriptionSrOnly={false}
+        footer={
+          canRestore ? (
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                className="cursor-pointer gap-1.5"
+                onClick={() => setConfirmOpen(true)}
+                disabled={!query.data || restore.isPending}
+              >
+                <RotateCcw className="size-3.5" />
+                {t("history.restore")}
+              </Button>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          ) : undefined
+        }
+      >
+        {query.isLoading && (
+          <div className="flex items-center justify-center gap-2 p-12 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" />
+            {t("history.loading")}
+          </div>
+        )}
+        {query.isError && (
+          <p className="p-8 text-center text-sm text-muted-foreground">
+            {t("history.loadError")}
+          </p>
+        )}
+        {preview && (
+          <DiffHtmlProvider enabled={preview.hasPrevious}>
+            <div className="flex justify-center bg-neutral-100 py-6 dark:bg-neutral-950">
+              {preview.kind === "resume" ? (
+                <ResumeDocumentView
+                  document={preview.document}
+                  template={preview.template}
+                  style={preview.style}
+                />
+              ) : (
+                <LetterDocument
+                  document={preview.document}
+                  template={preview.template}
+                  style={preview.style}
+                />
+              )}
+            </div>
+          </DiffHtmlProvider>
+        )}
+      </DocumentPreviewDialog>
 
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent>
