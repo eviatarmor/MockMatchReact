@@ -1,5 +1,6 @@
-import { useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { useInView } from "react-intersection-observer"
 import { History, Loader2 } from "lucide-react"
 import type { DocumentKind } from "@mockmatch/schemas"
 import { StaggerItem } from "@/components/ui/stagger"
@@ -7,6 +8,8 @@ import { cn } from "@/lib/utils"
 import { formatRelativeTime } from "@/lib/format-relative-time"
 import { trpc } from "@/lib/trpc"
 import { VersionPreviewDialog } from "./version-preview-dialog"
+
+const PAGE_SIZE = 15
 
 type HistoryPanelProps = {
   readonly kind: DocumentKind
@@ -32,16 +35,36 @@ export function HistoryPanel({
   const { t } = useTranslation(i18nNs)
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
-  const list = trpc.documentVersions.list.useQuery(
-    { kind, id: documentId },
+  const list = trpc.documentVersions.list.useInfiniteQuery(
+    { kind, id: documentId, pageSize: PAGE_SIZE },
     {
       staleTime: 3_000,
       refetchInterval: 8_000,
       refetchOnWindowFocus: true,
+      getNextPageParam: (lastPage) => {
+        const loaded = lastPage.page * lastPage.pageSize
+        return loaded < lastPage.total ? lastPage.page + 1 : undefined
+      },
     }
   )
 
-  const items = list.data?.items ?? []
+  const items = useMemo(
+    () => list.data?.pages.flatMap((page) => page.items) ?? [],
+    [list.data?.pages]
+  )
+
+  // Nested ScrollArea in editor rail clips the list — observer still works
+  // (overflow ancestors clip intersection vs viewport root).
+  const { ref: loadMoreRef, inView } = useInView({
+    rootMargin: "120px",
+    threshold: 0,
+  })
+
+  useEffect(() => {
+    if (inView && list.hasNextPage && !list.isFetchingNextPage) {
+      void list.fetchNextPage()
+    }
+  }, [inView, list.hasNextPage, list.isFetchingNextPage, list.fetchNextPage])
 
   if (list.isLoading) {
     return (
@@ -71,7 +94,7 @@ export function HistoryPanel({
 
   return (
     <>
-      <ul className="space-y-0.5">
+      <ul className="space-y-0.5" aria-busy={list.isFetchingNextPage}>
         {items.map((item, idx) => (
           <StaggerItem key={item.id} index={idx} as="li">
             <button
@@ -93,6 +116,15 @@ export function HistoryPanel({
           </StaggerItem>
         ))}
       </ul>
+
+      <div ref={loadMoreRef} className="h-1 w-full" aria-hidden />
+
+      {list.isFetchingNextPage && (
+        <div className="flex items-center justify-center gap-2 py-3 text-xs text-muted-foreground">
+          <Loader2 className="size-3.5 animate-spin" />
+          {t("history.loading")}
+        </div>
+      )}
 
       <VersionPreviewDialog
         open={selectedId != null}

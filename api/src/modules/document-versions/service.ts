@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto"
-import { and, asc, desc, eq, sql } from "drizzle-orm"
+import { and, asc, count, desc, eq, sql } from "drizzle-orm"
 import { TRPCError } from "@trpc/server"
 import type {
   DocumentKind,
@@ -233,23 +233,39 @@ export async function listDocumentVersions(
   db: Database,
   userId: string,
   kind: DocumentKind,
-  documentId: string
+  documentId: string,
+  opts?: { page?: number; pageSize?: number }
 ) {
   await resolveDocumentAccess(db, userId, kind, documentId)
+
+  const page = opts?.page ?? 1
+  const pageSize = opts?.pageSize ?? 15
+  const offset = (page - 1) * pageSize
+
+  const where = and(
+    eq(documentVersions.documentKind, kind),
+    eq(documentVersions.documentId, documentId)
+  )
+
+  const [totalRow] = await db
+    .select({ value: count() })
+    .from(documentVersions)
+    .where(where)
 
   const rows = await db
     .select()
     .from(documentVersions)
-    .where(
-      and(
-        eq(documentVersions.documentKind, kind),
-        eq(documentVersions.documentId, documentId)
-      )
-    )
+    .where(where)
     .orderBy(desc(documentVersions.createdAt))
-    .limit(MAX_VERSIONS_PER_DOC)
+    .limit(pageSize)
+    .offset(offset)
 
-  return { items: rows.map(toListItem) }
+  return {
+    items: rows.map(toListItem),
+    total: totalRow?.value ?? 0,
+    page,
+    pageSize,
+  }
 }
 
 export async function getDocumentVersion(
