@@ -621,6 +621,8 @@
     "feedback": "Feedback",
     "getCredits": "Get credits",
     "getCreditsShort": "Credits",
+    "creditsLabel": "credits",
+    "creditsBalanceAria": "{{count}} credits remaining. Top up.",
     "creditsCard": {
       "title": "Top up credits",
       "description": "Buy a pack to unlock AI features, or open Billing for usage and invoices.",
