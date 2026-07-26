@@ -203,7 +203,7 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
           {visible.map((it) => (
             <span
               key={it.id}
-              className="group/tag inline-flex min-w-0 max-w-full items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
+              className="group/tag inline-flex min-w-0 max-w-full items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700"
             >
               {editable ? (
                 <FreeformAutocomplete
@@ -372,7 +372,7 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
       return (
         <div className="flex flex-wrap items-center gap-1.5">
           {visible.map((h) => (
-            <span key={h.id} className="group/tag inline-flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">
+            <span key={h.id} className="group/tag inline-flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700">
               {field(h.text, (text) => commit(patchRow(items, h.id, { text })), t("fields.hobby"))}
               {editable ? (
                 <button
