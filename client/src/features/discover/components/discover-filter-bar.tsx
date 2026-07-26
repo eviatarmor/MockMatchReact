@@ -9,10 +9,8 @@ import {
   Loader2,
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import type { Country } from "@mockmatch/schemas"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -48,7 +46,6 @@ interface DiscoverFilterBarProps {
   readonly locationStatus: LocationDetectStatus
   readonly onDetectLocation: () => void
   readonly allowLocation: boolean
-  readonly country: Country
   readonly remoteOnly: boolean
   readonly onToggleRemote: () => void
   readonly minSalary: number
@@ -83,7 +80,6 @@ export function DiscoverFilterBar({
   locationStatus,
   onDetectLocation,
   allowLocation,
-  country,
   remoteOnly,
   onToggleRemote,
   minSalary,
@@ -104,7 +100,6 @@ export function DiscoverFilterBar({
           .join(", ")
 
   const detecting = locationStatus === "detecting"
-  const countryName = t(`discover.countries.${country}`)
 
   return (
     <div className="flex flex-col gap-2">
@@ -264,17 +259,6 @@ export function DiscoverFilterBar({
         </div>
 
         <div className="ml-auto flex shrink-0 items-center gap-2">
-          <Badge
-            variant="secondary"
-            className="h-8 gap-1.5 px-2.5 font-medium"
-            title={t("discover.searchingIn", { country: countryName })}
-          >
-            <Globe className="size-3.5" />
-            <span className="text-xs sm:text-sm">
-              {t("discover.searchingIn", { country: countryName })}
-            </span>
-          </Badge>
-
           <span className="hidden text-sm text-muted-foreground sm:inline">
             {t("discover.sort.label")}
           </span>

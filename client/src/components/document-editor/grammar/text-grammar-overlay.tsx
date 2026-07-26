@@ -2,7 +2,7 @@ import { Fragment, useState } from "react"
 import { cn } from "@/lib/utils"
 import type { GrammarIssue } from "@/lib/grammar/harper"
 import { GrammarPopover, type GrammarPopoverLabels } from "./grammar-popover"
-import { GRAMMAR_SQUIGGLE, GRAMMAR_SQUIGGLE_SIZE } from "./squiggle"
+import { grammarSquiggleForKind, GRAMMAR_SQUIGGLE_SIZE } from "./squiggle"
 
 interface TextGrammarOverlayProps {
   readonly text: string
@@ -65,7 +65,7 @@ export function TextGrammarOverlay({ text, issues, multiline, className, labels,
               key={`${segment.issue.start}-${segment.issue.end}`}
               className="pointer-events-auto cursor-pointer bg-bottom bg-repeat-x"
               style={{
-                backgroundImage: GRAMMAR_SQUIGGLE,
+                backgroundImage: grammarSquiggleForKind(segment.issue.kind),
                 backgroundSize: GRAMMAR_SQUIGGLE_SIZE,
               }}
               onClick={(event) => {

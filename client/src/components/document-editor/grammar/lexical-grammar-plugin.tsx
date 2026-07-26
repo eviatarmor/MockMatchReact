@@ -3,7 +3,7 @@ import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext
 import { $getRoot, $isTextNode, $createRangeSelection, $setSelection, type LexicalNode } from "lexical"
 import { useGrammar } from "./use-grammar"
 import { GrammarPopover, type GrammarPopoverLabels } from "./grammar-popover"
-import { GRAMMAR_SQUIGGLE, GRAMMAR_SQUIGGLE_SIZE } from "./squiggle"
+import { grammarSquiggleForKind, GRAMMAR_SQUIGGLE_SIZE } from "./squiggle"
 import type { GrammarIssue } from "@/lib/grammar/harper"
 
 interface DomTextMap {
@@ -163,7 +163,7 @@ export function LexicalGrammarPlugin({ enabled = true, labels }: LexicalGrammarP
               top: rect.top,
               width: rect.width,
               height: rect.height,
-              backgroundImage: GRAMMAR_SQUIGGLE,
+              backgroundImage: grammarSquiggleForKind(mark.issue.kind),
               backgroundSize: GRAMMAR_SQUIGGLE_SIZE,
             }}
             onClick={(event) => {

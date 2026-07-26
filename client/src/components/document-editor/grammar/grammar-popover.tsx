@@ -1,6 +1,11 @@
 import { useEffect } from "react"
 import { createPortal } from "react-dom"
 import type { GrammarIssue } from "@/lib/grammar/harper"
+import {
+  GRAMMAR_SEVERITY_LABEL_CLASS,
+  severityForGrammarKind,
+} from "@/lib/grammar/severity"
+import { cn } from "@/lib/utils"
 
 export interface GrammarPopoverLabels {
   readonly apply: string
@@ -46,7 +51,14 @@ export function GrammarPopover({ issue, anchor, labels, onApply, onClose }: Gram
       className="pan-ignore fixed z-[60] w-64 -translate-x-1/2 rounded-lg border border-neutral-200 bg-white p-3 shadow-xl dark:border-neutral-700 dark:bg-neutral-900"
       style={{ top: anchor.bottom + 8, left: anchor.left }}
     >
-      <p className="mb-0.5 text-[11px] font-medium uppercase tracking-wide text-red-500">{issue.kind}</p>
+      <p
+        className={cn(
+          "mb-0.5 text-[11px] font-medium uppercase tracking-wide",
+          GRAMMAR_SEVERITY_LABEL_CLASS[severityForGrammarKind(issue.kind)]
+        )}
+      >
+        {issue.kind}
+      </p>
       <p className="mb-2 text-sm text-neutral-700 dark:text-neutral-200">{issue.message}</p>
       {issue.replacements.length > 0 ? (
         <div className="flex flex-wrap gap-1.5">

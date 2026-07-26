@@ -15,28 +15,11 @@ import { useDiscoverSummaries } from "./use-discover-summaries"
 const PAGE_SIZE = 20
 const SEARCH_DEBOUNCE_MS = 400
 const STALE_TIME_MS = 5 * 60 * 1000
-const RESUME_STALE_MS = 60_000
 
 function sortToApi(sort: DiscoverSortOption): "relevance" | "date" | "salary" {
   if (sort === "newest") return "date"
   if (sort === "salary") return "salary"
   return "relevance"
-}
-
-/** Prefer document headline; fall back to target role metadata. */
-function extractDefaultSearchQuery(resume: {
-  targetRole?: string | null
-  document?: unknown
-} | null | undefined): string {
-  if (!resume) return ""
-  const doc = resume.document as
-    | { header?: { headline?: unknown } }
-    | null
-    | undefined
-  const headline =
-    typeof doc?.header?.headline === "string" ? doc.header.headline.trim() : ""
-  if (headline) return headline
-  return typeof resume.targetRole === "string" ? resume.targetRole.trim() : ""
 }
 
 export function useDiscoverJobs() {
@@ -48,36 +31,8 @@ export function useDiscoverJobs() {
   const allowLocation =
     accountQuery.data?.preferences.privacy.allowLocationMetadata === true
 
-  // Most recently updated resume → default job search keyword (headline).
-  const resumesListQuery = trpc.resumes.list.useQuery(
-    { page: 1, pageSize: 1 },
-    { staleTime: RESUME_STALE_MS }
-  )
-  const primaryResumeId = resumesListQuery.data?.items[0]?.id
-  const primaryResumeQuery = trpc.resumes.get.useQuery(
-    { id: primaryResumeId! },
-    {
-      enabled: Boolean(primaryResumeId),
-      staleTime: RESUME_STALE_MS,
-    }
-  )
-
-  const defaultSearchQuery = useMemo(() => {
-    const fromDetail = extractDefaultSearchQuery(primaryResumeQuery.data)
-    if (fromDetail) return fromDetail
-    // List row has targetRole before detail lands
-    const listItem = resumesListQuery.data?.items[0]
-    return listItem?.targetRole?.trim() ?? ""
-  }, [primaryResumeQuery.data, resumesListQuery.data?.items])
-
-  const resumeSeedReady =
-    !resumesListQuery.isLoading &&
-    (!primaryResumeId || primaryResumeQuery.isSuccess || primaryResumeQuery.isError)
-
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
-  const [searchTouched, setSearchTouched] = useState(false)
-  const [searchSeeded, setSearchSeeded] = useState(false)
   const [locationInput, setLocationInput] = useState("")
   const [debouncedLocation, setDebouncedLocation] = useState("")
   const [locationTouched, setLocationTouched] = useState(false)
@@ -88,16 +43,6 @@ export function useDiscoverJobs() {
   )
   const [postedWithin, setPostedWithin] = useState<PostedWithinDays>(0)
   const [sort, setSort] = useState<DiscoverSortOption>("bestMatch")
-
-  // Seed search bar from resume headline once; user can always edit after.
-  useEffect(() => {
-    if (searchTouched) return
-    if (!resumeSeedReady) return
-
-    setSearch(defaultSearchQuery)
-    setDebouncedSearch(defaultSearchQuery.trim())
-    setSearchSeeded(true)
-  }, [searchTouched, resumeSeedReady, defaultSearchQuery])
 
   // Country market changed → drop location (geo city is country-specific).
   const prevCountryRef = useRef(country)
@@ -145,8 +90,7 @@ export function useDiscoverJobs() {
     [employmentTypes]
   )
 
-  // Wait for resume headline seed so first page matches experience, not generic listings.
-  const queryEnabled = accountQuery.isSuccess && searchSeeded
+  const queryEnabled = accountQuery.isSuccess
 
   const infiniteQuery = trpc.jobs.search.useInfiniteQuery(
     {
@@ -243,7 +187,6 @@ export function useDiscoverJobs() {
   const total = infiniteQuery.data?.pages[0]?.total ?? 0
 
   const setSearchValue = useCallback((value: string) => {
-    setSearchTouched(true)
     setSearch(value)
   }, [])
 
@@ -278,10 +221,8 @@ export function useDiscoverJobs() {
   }, [])
 
   const clearFilters = useCallback(() => {
-    // Clear search + all filters. Mark search touched so headline seed does not re-fill.
     setSearch("")
     setDebouncedSearch("")
-    setSearchTouched(true)
     setLocationInput("")
     setDebouncedLocation("")
     setLocationTouched(true)
@@ -324,7 +265,6 @@ export function useDiscoverJobs() {
     country,
     search,
     setSearch: setSearchValue,
-    defaultSearchQuery: defaultSearchQuery.trim(),
     location: locationInput,
     setLocation,
     locationStatus: geo.status,
