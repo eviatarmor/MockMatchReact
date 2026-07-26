@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { StaggerItem } from "@/components/ui/stagger"
 import { resolveStyleClasses } from "@/components/document-editor"
 import { EDITOR_TEMPLATES } from "../constants"
 import type { EditorTemplate, EditorTemplateId } from "../types"
@@ -71,31 +72,32 @@ export function TemplatesPanel({ activeTemplateId, onSelect }: TemplatesPanelPro
 
   return (
     <div className="grid grid-cols-2 gap-3">
-      {EDITOR_TEMPLATES.map((template) => {
+      {EDITOR_TEMPLATES.map((template, index) => {
         const isActive = template.id === activeTemplateId
         return (
-          <button
-            key={template.id}
-            type="button"
-            onClick={() => onSelect(template.id)}
-            className="group flex cursor-pointer flex-col gap-2 text-left"
-          >
-            <div
-              className={cn(
-                "rounded-lg border-2 p-1.5 transition-colors",
-                isActive ? "border-primary" : "border-transparent group-hover:border-border"
-              )}
+          <StaggerItem key={template.id} index={index} direction="left">
+            <button
+              type="button"
+              onClick={() => onSelect(template.id)}
+              className="group flex w-full cursor-pointer flex-col gap-2 text-left"
             >
-              <TemplatePreview template={template} />
-            </div>
-            <div className="px-0.5">
-              <span className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
-                {t(template.nameKey)}
-                {isActive && <Check className="size-3.5 text-primary" />}
-              </span>
-              <p className="text-xs leading-snug text-muted-foreground">{t(template.descriptionKey)}</p>
-            </div>
-          </button>
+              <div
+                className={cn(
+                  "rounded-lg border-2 p-1.5 transition-colors",
+                  isActive ? "border-primary" : "border-transparent group-hover:border-border"
+                )}
+              >
+                <TemplatePreview template={template} />
+              </div>
+              <div className="px-0.5">
+                <span className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+                  {t(template.nameKey)}
+                  {isActive && <Check className="size-3.5 text-primary" />}
+                </span>
+                <p className="text-xs leading-snug text-muted-foreground">{t(template.descriptionKey)}</p>
+              </div>
+            </button>
+          </StaggerItem>
         )
       })}
     </div>

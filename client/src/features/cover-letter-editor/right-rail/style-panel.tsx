@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
+import { StaggerItem } from "@/components/ui/stagger"
 import type {
   DocumentStyle,
   StyleAccentId,
@@ -20,6 +21,9 @@ interface StylePanelProps {
   readonly style: DocumentStyle
   readonly onChange: (patch: Partial<DocumentStyle>) => void
 }
+
+/** Style panel sections cascade as units (accent → typeface → headings → density). */
+const SECTION_COUNT = 4
 
 function Segmented({ options, value, onChange, columns }: {
   readonly options: readonly StyleSegmentOption[]
@@ -58,7 +62,7 @@ export function StylePanel({ style, onChange }: StylePanelProps) {
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="flex flex-col gap-2.5">
+      <StaggerItem index={0} count={SECTION_COUNT} className="flex flex-col gap-2.5">
         <Label className="text-sm font-semibold text-foreground">{t("style.accent")}</Label>
         <div className="flex flex-wrap gap-2">
           {STYLE_ACCENTS.map((option) => (
@@ -76,9 +80,9 @@ export function StylePanel({ style, onChange }: StylePanelProps) {
             />
           ))}
         </div>
-      </section>
+      </StaggerItem>
 
-      <section className="flex flex-col gap-2.5">
+      <StaggerItem index={1} count={SECTION_COUNT} className="flex flex-col gap-2.5">
         <Label className="text-sm font-semibold text-foreground">{t("style.typeface")}</Label>
         <div className="grid grid-cols-2 gap-2">
           {STYLE_TYPEFACES.map((option) => {
@@ -105,17 +109,27 @@ export function StylePanel({ style, onChange }: StylePanelProps) {
             )
           })}
         </div>
-      </section>
+      </StaggerItem>
 
-      <section className="flex flex-col gap-2.5">
+      <StaggerItem index={2} count={SECTION_COUNT} className="flex flex-col gap-2.5">
         <Label className="text-sm font-semibold text-foreground">{t("style.headings")}</Label>
-        <Segmented options={STYLE_HEADINGS} value={style.heading} onChange={(id) => onChange({ heading: id as StyleHeadingId })} columns={4} />
-      </section>
+        <Segmented
+          options={STYLE_HEADINGS}
+          value={style.heading}
+          onChange={(id) => onChange({ heading: id as StyleHeadingId })}
+          columns={4}
+        />
+      </StaggerItem>
 
-      <section className="flex flex-col gap-2.5">
+      <StaggerItem index={3} count={SECTION_COUNT} className="flex flex-col gap-2.5">
         <Label className="text-sm font-semibold text-foreground">{t("style.density")}</Label>
-        <Segmented options={STYLE_DENSITIES} value={style.density} onChange={(id) => onChange({ density: id as StyleDensityId })} columns={3} />
-      </section>
+        <Segmented
+          options={STYLE_DENSITIES}
+          value={style.density}
+          onChange={(id) => onChange({ density: id as StyleDensityId })}
+          columns={3}
+        />
+      </StaggerItem>
     </div>
   )
 }

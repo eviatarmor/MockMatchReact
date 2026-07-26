@@ -12,6 +12,7 @@ import { CSS } from "@dnd-kit/utilities"
 import { GripVertical, ChevronUp, ChevronDown, Trash2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
+import { StaggerItem } from "@/components/ui/stagger"
 import { LETTER_BLOCK_TYPES } from "../constants"
 import { snippet } from "../section-snippet"
 import type { CoverLetterHandlers } from "../hooks/use-cover-letter-document"
@@ -41,52 +42,59 @@ function SectionRow({ block, index, total, handlers }: {
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        "flex items-center gap-1.5 rounded-lg border border-border/60 bg-muted/30 py-2 pl-1.5 pr-2",
+        "rounded-lg border border-border/60 bg-muted/30",
         isDragging && "z-10 opacity-80 shadow-md"
       )}
     >
-      <button
-        type="button"
-        {...attributes}
-        {...listeners}
-        aria-label={t("blockToolbar.drag")}
-        className="flex size-5 shrink-0 cursor-grab touch-none items-center justify-center text-muted-foreground/50 hover:text-muted-foreground active:cursor-grabbing"
+      {/* Entrance only — dnd transform stays on the outer <li>. */}
+      <StaggerItem
+        index={index}
+        count={total}
+        className="flex items-center gap-1.5 py-2 pl-1.5 pr-2"
       >
-        <GripVertical className="size-4" />
-      </button>
-      {Icon && <Icon className="size-4 shrink-0 text-muted-foreground" />}
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-foreground">{meta ? t(meta.labelKey) : block.type}</p>
-        {preview && <p className="truncate text-xs text-muted-foreground">{preview}</p>}
-      </div>
-      <div className="flex shrink-0 items-center">
         <button
           type="button"
-          onClick={() => handlers.moveBlock(block.id, "up")}
-          disabled={index === 0}
-          aria-label={t("blockToolbar.moveUp")}
-          className="flex size-6 cursor-pointer items-center justify-center rounded text-muted-foreground hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+          {...attributes}
+          {...listeners}
+          aria-label={t("blockToolbar.drag")}
+          className="flex size-5 shrink-0 cursor-grab touch-none items-center justify-center text-muted-foreground/50 hover:text-muted-foreground active:cursor-grabbing"
         >
-          <ChevronUp className="size-4" />
+          <GripVertical className="size-4" />
         </button>
-        <button
-          type="button"
-          onClick={() => handlers.moveBlock(block.id, "down")}
-          disabled={index === total - 1}
-          aria-label={t("blockToolbar.moveDown")}
-          className="flex size-6 cursor-pointer items-center justify-center rounded text-muted-foreground hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
-        >
-          <ChevronDown className="size-4" />
-        </button>
-        <button
-          type="button"
-          onClick={() => handlers.removeBlock(block.id)}
-          aria-label={t("blockToolbar.delete")}
-          className="flex size-6 cursor-pointer items-center justify-center rounded text-muted-foreground hover:text-destructive"
-        >
-          <Trash2 className="size-4" />
-        </button>
-      </div>
+        {Icon && <Icon className="size-4 shrink-0 text-muted-foreground" />}
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-foreground">{meta ? t(meta.labelKey) : block.type}</p>
+          {preview && <p className="truncate text-xs text-muted-foreground">{preview}</p>}
+        </div>
+        <div className="flex shrink-0 items-center">
+          <button
+            type="button"
+            onClick={() => handlers.moveBlock(block.id, "up")}
+            disabled={index === 0}
+            aria-label={t("blockToolbar.moveUp")}
+            className="flex size-6 cursor-pointer items-center justify-center rounded text-muted-foreground hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+          >
+            <ChevronUp className="size-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => handlers.moveBlock(block.id, "down")}
+            disabled={index === total - 1}
+            aria-label={t("blockToolbar.moveDown")}
+            className="flex size-6 cursor-pointer items-center justify-center rounded text-muted-foreground hover:text-foreground disabled:pointer-events-none disabled:opacity-30"
+          >
+            <ChevronDown className="size-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => handlers.removeBlock(block.id)}
+            aria-label={t("blockToolbar.delete")}
+            className="flex size-6 cursor-pointer items-center justify-center rounded text-muted-foreground hover:text-destructive"
+          >
+            <Trash2 className="size-4" />
+          </button>
+        </div>
+      </StaggerItem>
     </li>
   )
 }
@@ -116,18 +124,23 @@ export function SectionsPanel({ blocks, handlers }: SectionsPanelProps) {
       <div className="flex flex-col gap-2.5 border-t border-border/60 pt-5">
         <Label className="text-sm font-semibold text-foreground">{t("addSection")}</Label>
         <div className="grid grid-cols-2 gap-1.5">
-          {LETTER_BLOCK_TYPES.map((meta) => {
+          {LETTER_BLOCK_TYPES.map((meta, index) => {
             const Icon = meta.icon
             return (
-              <button
+              <StaggerItem
                 key={meta.type}
-                type="button"
-                onClick={() => handlers.addBlock(meta.type)}
-                className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-dashed border-border/70 px-2.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-border hover:bg-muted/40 hover:text-foreground"
+                index={index}
+                count={LETTER_BLOCK_TYPES.length}
               >
-                <Icon className="size-4 shrink-0" />
-                {t(meta.labelKey)}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => handlers.addBlock(meta.type)}
+                  className="flex w-full cursor-pointer items-center gap-1.5 rounded-lg border border-dashed border-border/70 px-2.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-border hover:bg-muted/40 hover:text-foreground"
+                >
+                  <Icon className="size-4 shrink-0" />
+                  {t(meta.labelKey)}
+                </button>
+              </StaggerItem>
             )
           })}
         </div>

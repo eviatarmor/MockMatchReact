@@ -2,6 +2,7 @@ import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { CheckCircle2, ClipboardCheck, Loader2 } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
+import { StaggerItem } from "@/components/ui/stagger"
 import { cn } from "@/lib/utils"
 import {
   SCORE_BAND_PROGRESS_CLASS,
@@ -57,7 +58,13 @@ function progressIndicatorTone(score: number): string {
   return SCORE_BAND_PROGRESS_CLASS[scoreBandFromScore(score)]
 }
 
-function FindingRow({ finding }: { readonly finding: AnalysisFinding }) {
+function FindingRow({
+  finding,
+  index,
+}: {
+  readonly finding: AnalysisFinding
+  readonly index: number
+}) {
   const { t } = useTranslation("resume-editor")
   const message =
     finding.message ??
@@ -70,7 +77,7 @@ function FindingRow({ finding }: { readonly finding: AnalysisFinding }) {
   const canFocus = Boolean(finding.focusTarget)
 
   return (
-    <li>
+    <StaggerItem as="li" index={index}>
       <button
         type="button"
         disabled={!canFocus}
@@ -108,7 +115,7 @@ function FindingRow({ finding }: { readonly finding: AnalysisFinding }) {
           </p>
         </div>
       </button>
-    </li>
+    </StaggerItem>
   )
 }
 
@@ -200,8 +207,8 @@ export function GeneralAnalysisPanel({ document }: GeneralAnalysisPanelProps) {
                   <span className="ml-1.5 font-normal text-muted-foreground">({rows.length})</span>
                 </p>
                 <ul className="flex flex-col gap-1.5">
-                  {rows.map((f) => (
-                    <FindingRow key={f.id} finding={f} />
+                  {rows.map((f, index) => (
+                    <FindingRow key={f.id} finding={f} index={index} />
                   ))}
                 </ul>
               </section>

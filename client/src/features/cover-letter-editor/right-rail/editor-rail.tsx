@@ -89,7 +89,11 @@ export function EditorRail({
     <TooltipProvider delay={300}>
       <div className="relative z-10 flex h-full shrink-0 overflow-hidden border-l bg-background text-foreground">
 
-        <AnimatePresence initial={false}>
+        {/*
+          Do not set AnimatePresence initial={false} — it suppresses initial
+          animations for every nested motion node (StaggerItem included).
+        */}
+        <AnimatePresence>
           {activePanel && railItemAllowed(activePanel, permissions) && (
             <motion.aside
               key="panel"
@@ -116,7 +120,8 @@ export function EditorRail({
                   </Button>
                 </div>
                 <ScrollArea className="min-h-0 flex-1">
-                  <div className="px-4 py-4">
+                  {/* Remount on panel switch so StaggerItem entrance re-runs. */}
+                  <div key={activePanel} className="px-4 py-4">
                     <PanelBody panel={activePanel} activeTemplateId={activeTemplateId} onTemplateChange={onTemplateChange} style={style} onStyleChange={onStyleChange} document={document} handlers={handlers} />
                   </div>
                 </ScrollArea>
