@@ -9,8 +9,11 @@ import { TableToolbar } from "@/components/dashboard/table-toolbar"
 import { EntityEmptyState } from "@/components/data/entity-empty-state"
 import { TrackingKanban } from "./components/tracking-kanban"
 import { EmailConnectBar } from "./components/email-connect-bar"
+import { ApplicationsWelcomeDialog } from "./components/applications-welcome-dialog"
+import { ApplicationsTour } from "./components/applications-tour"
 import { AddJobDialog } from "@/features/discover/components/add-job-dialog"
 import { useTrackedJobs, useEmailConnect } from "./hooks/use-tracked-jobs"
+import { useApplicationsOnboarding } from "./hooks/use-applications-onboarding"
 import type { EmailProvider } from "./types"
 
 export function ApplicationsPageContent() {
@@ -18,6 +21,13 @@ export function ApplicationsPageContent() {
   const [search, setSearch] = useState("")
   const { jobs, addFromPaste, untrack, replaceStatuses } = useTrackedJobs()
   const { connectedProvider, connect, disconnect } = useEmailConnect()
+  const {
+    welcomeOpen,
+    tourOpen,
+    startTour,
+    skipWelcome,
+    setTourOpen,
+  } = useApplicationsOnboarding()
 
   const filteredJobs = useMemo(
     () =>
@@ -55,16 +65,18 @@ export function ApplicationsPageContent() {
 
   return (
     <DashboardPageShell title={t("applications.title")}>
-      <div className="flex flex-1 flex-col gap-3 min-h-0">
+      <div className="flex min-h-0 flex-1 flex-col gap-3">
         <DashboardPageHeader
           title={t("applications.title")}
           description={t("applications.description")}
           actions={
-            <EmailConnectBar
-              connectedProvider={connectedProvider}
-              onConnect={handleConnect}
-              onDisconnect={handleDisconnect}
-            />
+            <div id="applications-tour-email">
+              <EmailConnectBar
+                connectedProvider={connectedProvider}
+                onConnect={handleConnect}
+                onDisconnect={handleDisconnect}
+              />
+            </div>
           }
         />
 
@@ -73,43 +85,54 @@ export function ApplicationsPageContent() {
           search={search}
           onSearchChange={setSearch}
           actions={
-            <AddJobDialog
-              onAdd={handleImport}
-              trigger={
-                <Button
-                  variant="default"
-                  className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
-                >
-                  <Upload className="size-4" />
-                  <span className="hidden sm:inline">
-                    {t("dashboard.actions.importJob")}
-                  </span>
-                </Button>
-              }
-            />
+            <div id="applications-tour-import">
+              <AddJobDialog
+                onAdd={handleImport}
+                trigger={
+                  <Button
+                    variant="default"
+                    className="h-8 w-8 cursor-pointer gap-1.5 px-0 sm:w-auto sm:px-3"
+                  >
+                    <Upload className="size-4" />
+                    <span className="hidden sm:inline">
+                      {t("dashboard.actions.importJob")}
+                    </span>
+                  </Button>
+                }
+              />
+            </div>
           }
         />
 
-        {isEmpty ? (
-          <EntityEmptyState
-            icon={Bookmark}
-            title={t("applications.empty.title")}
-            description={t("applications.empty.description")}
-          />
-        ) : noSearchHits ? (
-          <EntityEmptyState
-            icon={Bookmark}
-            title={t("applications.empty.noSearchTitle")}
-            description={t("applications.empty.noSearchDescription")}
-          />
-        ) : (
-          <TrackingKanban
-            jobs={filteredJobs}
-            onStatusesChange={replaceStatuses}
-            onRemove={untrack}
-          />
-        )}
+        <div id="applications-tour-board" className="flex min-h-0 flex-1 flex-col">
+          {isEmpty ? (
+            <EntityEmptyState
+              icon={Bookmark}
+              title={t("applications.empty.title")}
+              description={t("applications.empty.description")}
+            />
+          ) : noSearchHits ? (
+            <EntityEmptyState
+              icon={Bookmark}
+              title={t("applications.empty.noSearchTitle")}
+              description={t("applications.empty.noSearchDescription")}
+            />
+          ) : (
+            <TrackingKanban
+              jobs={filteredJobs}
+              onStatusesChange={replaceStatuses}
+              onRemove={untrack}
+            />
+          )}
+        </div>
       </div>
+
+      <ApplicationsWelcomeDialog
+        open={welcomeOpen}
+        onStartTour={startTour}
+        onSkip={skipWelcome}
+      />
+      <ApplicationsTour open={tourOpen} onOpenChange={setTourOpen} />
     </DashboardPageShell>
   )
 }

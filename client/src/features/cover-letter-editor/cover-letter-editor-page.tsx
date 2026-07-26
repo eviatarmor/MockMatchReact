@@ -9,6 +9,7 @@ import {
   EditorSecondaryBar,
   resolveStyleClasses,
 } from "@/components/document-editor"
+import { DocumentEditorOnboarding } from "@/components/onboarding/document-editor-onboarding"
 import { SaveStatusBadge } from "@/components/data/save-status-badge"
 import { Button } from "@/components/ui/button"
 import { trpc } from "@/lib/trpc"
@@ -126,10 +127,12 @@ function CoverLetterEditorLoaded({
           className="absolute inset-x-0 top-0 z-20"
           left={
             <>
-              <PresenceAvatarStack
-                self={session.collab.self}
-                peers={session.collab.peers}
-              />
+              <div id="editor-tour-collab" className="flex items-center gap-2">
+                <PresenceAvatarStack
+                  self={session.collab.self}
+                  peers={session.collab.peers}
+                />
+              </div>
               <BreadcrumbName
                 value={session.letterName}
                 onChange={session.setLetterName}
@@ -138,35 +141,42 @@ function CoverLetterEditorLoaded({
             </>
           }
           right={
-            <EditorToolbarActions
-              letterId={seed.id}
-              title={session.letterName}
-              permissions={session.permissions}
-              preview={previewNode}
-            />
+            <div id="editor-tour-actions">
+              <EditorToolbarActions
+                letterId={seed.id}
+                title={session.letterName}
+                permissions={session.permissions}
+                preview={previewNode}
+              />
+            </div>
           }
         />
-        <EditorCanvas
-          document={session.document}
-          template={session.template}
-          style={resolvedStyle}
-          viewport={viewport}
-          handlers={session.handlers}
-          peers={session.collab.peers}
-          sendCursor={session.collab.sendCursor}
-          clearCursor={session.collab.clearCursor}
-        />
+        <div id="editor-tour-canvas" className="h-full min-h-0">
+          <EditorCanvas
+            document={session.document}
+            template={session.template}
+            style={resolvedStyle}
+            viewport={viewport}
+            handlers={session.handlers}
+            peers={session.collab.peers}
+            sendCursor={session.collab.sendCursor}
+            clearCursor={session.collab.clearCursor}
+          />
+        </div>
         <EditorBottomBar viewport={viewport} history={session.history} />
       </div>
-      <EditorRail
-        activeTemplateId={session.templateId}
-        onTemplateChange={session.selectTemplate}
-        style={session.style}
-        onStyleChange={session.updateStyle}
-        document={session.document}
-        handlers={session.handlers}
-        permissions={session.permissions}
-      />
+      <div id="editor-tour-rail" className="flex h-full min-h-0 shrink-0">
+        <EditorRail
+          activeTemplateId={session.templateId}
+          onTemplateChange={session.selectTemplate}
+          style={session.style}
+          onStyleChange={session.updateStyle}
+          document={session.document}
+          handlers={session.handlers}
+          permissions={session.permissions}
+        />
+      </div>
+      <DocumentEditorOnboarding />
     </div>
   )
 }

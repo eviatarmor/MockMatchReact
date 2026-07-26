@@ -508,22 +508,72 @@
     },
     "matchSuffix": "match"
   },
+  "documentEditor": {
+    "welcome": {
+      "title": "Welcome to the editor",
+      "description": "Edit your document on the canvas, tune layout from the sidebar, and collaborate with others in real time.",
+      "tourPrompt": "Want a quick tour of the editor?",
+      "startTour": "Take the tour",
+      "skip": "Skip for now"
+    },
+    "tour": {
+      "canvas": {
+        "title": "Your document",
+        "description": "Click any section to edit inline. Changes autosave as you type."
+      },
+      "collab": {
+        "title": "Live collaboration",
+        "description": "See who else is here via presence avatars. Share a link so teammates can view or edit with you."
+      },
+      "actions": {
+        "title": "Share, preview & export",
+        "description": "Invite collaborators, preview print layout, or download a PDF when you’re ready."
+      },
+      "rail": {
+        "title": "Editor sidebar",
+        "description": "Templates, style, sections, general analysis, and AI tools. Click a tab to open the panel; click again to collapse."
+      }
+    }
+  },
   "applications": {
     "documentTitle": "Applications — MockMatch",
     "title": "Applications",
-    "description": "Track every application from saved to offer.",
+    "description": "Track every application from saved to offer — or mark ones that were declined.",
     "summary": {
       "saved": "Saved",
       "applied": "Applied",
       "interviewing": "Interviewing",
       "offer": "Offer",
+      "declined": "Declined",
       "last7days": "Last 7 days"
     },
     "statusLabels": {
       "saved": "Saved",
       "applied": "Applied",
       "interviewing": "Interviewing",
-      "offer": "Offer"
+      "offer": "Offer",
+      "declined": "Declined"
+    },
+    "welcome": {
+      "title": "Welcome to Applications",
+      "description": "Your personal tracker for every role you save or apply to. Drag cards across stages, import jobs, and keep prep in one place.",
+      "tourPrompt": "Want a quick tour of the board?",
+      "startTour": "Take the tour",
+      "skip": "Skip for now"
+    },
+    "tour": {
+      "email": {
+        "title": "Sync your inbox",
+        "description": "Recommended: connect Gmail, Outlook, iCloud, or Yahoo so MockMatch can pick up recruiter replies and auto-update application statuses."
+      },
+      "import": {
+        "title": "Import a job",
+        "description": "Paste a job description to add a card to Saved — then drag it across stages as you apply."
+      },
+      "kanban": {
+        "title": "Kanban board",
+        "description": "Drag cards across Saved → Applied → Interviewing → Offer. Use Declined for roles that didn’t work out."
+      }
     },
     "trackingActions": {
       "openDetails": "Open details",

@@ -2,6 +2,7 @@ import type { EmailProviderDef } from "./types"
 
 export {
   TRACKING_STATUS_ORDER,
+  TRACKING_PIPELINE_ORDER,
   TRACKING_STATUS_TRENDS,
   MOCK_TRACKED_JOBS,
 } from "@/features/discover/constants"

@@ -10,6 +10,7 @@ const COLUMN_DOT_CLASS: Record<TrackingStatus, string> = {
   applied: "bg-blue-500",
   interviewing: "bg-amber-500",
   offer: "bg-emerald-500",
+  declined: "bg-rose-500",
 }
 
 interface KanbanStatusBarProps {

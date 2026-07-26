@@ -30,12 +30,19 @@ function statusFields(status: TrackingStatus): Pick<
   "status" | "progressCompleted" | "activeStepIndex" | "statusUpdatedAt" | "nextStep"
 > {
   const progressCompleted =
-    status === "saved" ? 0 : status === "applied" ? 1 : status === "interviewing" ? 2 : 3
+    status === "saved" || status === "declined"
+      ? 0
+      : status === "applied"
+        ? 1
+        : status === "interviewing"
+          ? 2
+          : 3
 
   return {
     status,
     progressCompleted,
-    activeStepIndex: status === "saved" ? null : Math.min(progressCompleted, 3),
+    activeStepIndex:
+      status === "saved" || status === "declined" ? null : Math.min(progressCompleted, 3),
     statusUpdatedAt:
       status === "saved"
         ? "Saved just now"
@@ -43,7 +50,9 @@ function statusFields(status: TrackingStatus): Pick<
           ? "Applied just now"
           : status === "interviewing"
             ? "Interviewing"
-            : "Offer",
+            : status === "declined"
+              ? "Declined"
+              : "Offer",
     nextStep:
       status === "saved"
         ? "Tailor resume & apply"
@@ -51,7 +60,9 @@ function statusFields(status: TrackingStatus): Pick<
           ? "Follow up with recruiter"
           : status === "interviewing"
             ? "Prep for next round"
-            : "Review offer details",
+            : status === "declined"
+              ? "Learn from feedback"
+              : "Review offer details",
   }
 }
 

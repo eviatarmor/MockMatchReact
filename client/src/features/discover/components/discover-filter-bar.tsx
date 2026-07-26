@@ -110,17 +110,6 @@ export function DiscoverFilterBar({
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2 overflow-x-auto">
         <div className="flex shrink-0 items-center gap-2">
-          <Badge
-            variant="secondary"
-            className="h-8 shrink-0 gap-1.5 px-2.5 font-medium"
-            title={t("discover.searchingIn", { country: countryName })}
-          >
-            <Globe className="size-3.5" />
-            <span className="text-xs sm:text-sm">
-              {t("discover.searchingIn", { country: countryName })}
-            </span>
-          </Badge>
-
           <SearchBar
             placeholder={t("dashboard.search.discover")}
             value={search}
@@ -274,8 +263,19 @@ export function DiscoverFilterBar({
           </DropdownMenu>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <Badge
+            variant="secondary"
+            className="h-8 gap-1.5 px-2.5 font-medium"
+            title={t("discover.searchingIn", { country: countryName })}
+          >
+            <Globe className="size-3.5" />
+            <span className="text-xs sm:text-sm">
+              {t("discover.searchingIn", { country: countryName })}
+            </span>
+          </Badge>
+
+          <span className="hidden text-sm text-muted-foreground sm:inline">
             {t("discover.sort.label")}
           </span>
           <div className="flex items-center rounded-lg border bg-muted/30 p-0.5">

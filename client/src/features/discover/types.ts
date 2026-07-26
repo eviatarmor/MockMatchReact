@@ -56,7 +56,12 @@ export interface DiscoverJob {
   readonly summaryPending?: boolean
 }
 
-export type TrackingStatus = "saved" | "applied" | "interviewing" | "offer"
+export type TrackingStatus =
+  | "saved"
+  | "applied"
+  | "interviewing"
+  | "offer"
+  | "declined"
 
 export interface TrackedJob {
   readonly id: string
