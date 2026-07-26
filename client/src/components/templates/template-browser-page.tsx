@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
+import { StaggerItem } from "@/components/ui/stagger"
 import { TemplateCard } from "./template-card"
 import type { TemplateItem } from "./types"
 
@@ -100,15 +101,19 @@ export function TemplateBrowserPage({
         </div>
 
         {filteredTemplates.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {filteredTemplates.map((template) => (
-              <TemplateCard
-                key={template.id}
-                template={template}
-                translationPrefix={translationPrefix}
-                onUse={onUse}
-                isUsing={pendingId === template.id}
-              />
+          <div
+            key={`${activeCategory}:${query}`}
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+          >
+            {filteredTemplates.map((template, index) => (
+              <StaggerItem key={template.id} index={index} direction="left">
+                <TemplateCard
+                  template={template}
+                  translationPrefix={translationPrefix}
+                  onUse={onUse}
+                  isUsing={pendingId === template.id}
+                />
+              </StaggerItem>
             ))}
           </div>
         ) : (

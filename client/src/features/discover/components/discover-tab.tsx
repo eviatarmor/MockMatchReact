@@ -6,6 +6,7 @@ import { useDetailPanel } from "@/hooks/use-detail-panel"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { EntityEmptyState } from "@/components/data/entity-empty-state"
 import { Card } from "@/components/ui/card"
+import { StaggerItem } from "@/components/ui/stagger"
 import { cn } from "@/lib/utils"
 import { DiscoverFilterBar } from "./discover-filter-bar"
 import { DiscoverJobListItem } from "./discover-job-list-item"
@@ -58,7 +59,7 @@ export function DiscoverTab({ state }: DiscoverTabProps) {
     [isDesktop, open, close]
   )
 
-  // Page-level scroll: observer uses default root (scroll viewport).
+  // Page-level scroll: observer uses default root (dashboard ScrollArea).
   const { ref: loadMoreRef, inView } = useInView({
     rootMargin: "240px",
     threshold: 0,
@@ -156,13 +157,14 @@ export function DiscoverTab({ state }: DiscoverTabProps) {
               ))}
 
             {!state.isLoading &&
-              state.jobs.map((job) => (
-                <DiscoverJobListItem
-                  key={job.id}
-                  job={job}
-                  selected={job.id === selectedJobId}
-                  onSelect={selectJob}
-                />
+              state.jobs.map((job, index) => (
+                <StaggerItem key={job.id} index={index}>
+                  <DiscoverJobListItem
+                    job={job}
+                    selected={job.id === selectedJobId}
+                    onSelect={selectJob}
+                  />
+                </StaggerItem>
               ))}
 
             <div ref={loadMoreRef} className="h-1 w-full" aria-hidden />

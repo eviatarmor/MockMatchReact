@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
+import { StaggerItem } from "@/components/ui/stagger"
 import { TemplateCard } from "./template-card"
 import type { TemplateItem } from "./types"
 
@@ -14,7 +15,7 @@ interface TemplateBrowserSectionProps {
   readonly pendingId?: string | null
 }
 
-// Featured template grid + link to the full "browse all templates" page. Shared by resume and cover-letter labs.
+// Featured template strip + link to the full "browse all templates" page. Shared by resume and cover-letter labs.
 export function TemplateBrowserSection({
   items,
   translationPrefix,
@@ -45,14 +46,15 @@ export function TemplateBrowserSection({
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {featuredTemplates.map((template) => (
-          <TemplateCard
-            key={template.id}
-            template={template}
-            translationPrefix={translationPrefix}
-            onUse={onUse}
-            isUsing={pendingId === template.id}
-          />
+        {featuredTemplates.map((template, index) => (
+          <StaggerItem key={template.id} index={index} direction="left">
+            <TemplateCard
+              template={template}
+              translationPrefix={translationPrefix}
+              onUse={onUse}
+              isUsing={pendingId === template.id}
+            />
+          </StaggerItem>
         ))}
       </div>
     </div>

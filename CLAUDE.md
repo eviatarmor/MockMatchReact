@@ -160,6 +160,39 @@ Exception: small self-contained UI animations (e.g. `ReadinessSummaryCard`'s rol
 ### UI components — shadcnspace first
 All new UI must come from **shadcnspace** (`mcp__shadcnspace-mcp__*` — `searchBlocks`/`listComponents` then `getBlockInstall`, installed via `npx shadcn@latest add @shadcn-space/<name>`) into `components/shadcn-space/<category>/`. Only fall back to plain **shadcn/ui** (`npx shadcn@latest add <component>` into `components/ui/`) when no shadcnspace equivalent exists. Do not hand-roll custom UI primitives (e.g. a bespoke `animated-text` component) when a shadcnspace/shadcn block covers it — `components/shadcn-space/animated-text/animated-text-04.tsx` (rolling text) is the pattern used by `ReadinessSummaryCard`.
 
+### List / grid entrance — `StaggerItem` (required for similar UIs)
+Shared fast cascade for lists, tables, and horizontal strips. **Do not re-implement** per-feature `motion` delays — use the library.
+
+- **Module:** `@/components/ui/stagger` (`StaggerItem`, `STAGGER`, `staggerDelay`, `staggerTransition`)
+- **Stack:** `motion` (already a client dep). First `STAGGER.count` (12) items delay by `index * STAGGER.delay` (0.04s); later indices mount with delay `0` (infinite scroll / long pages).
+- **API:** `index` required; `as` = `"div"` | `"tr"` | `"li"` (use `as="tr"` for table rows — never wrap `<tr>` in a `<div>`); `direction` = `"up"` | `"down"` | `"left"` | `"right"` (default `"up"`).
+
+```tsx
+import { StaggerItem } from "@/components/ui/stagger"
+
+// Vertical list / table
+{items.map((item, i) => (
+  <StaggerItem key={item.id} index={i}>{/* card */}</StaggerItem>
+))}
+// Table rows
+<StaggerItem as="tr" index={i} className="...">...</StaggerItem>
+// Horizontal template / card strip
+<StaggerItem index={i} direction="left">...</StaggerItem>
+```
+
+**Already wired**
+| Surface | Direction / notes |
+|---------|-------------------|
+| Discover job list | `up` |
+| Resume Lab + Cover Letters tables | `as="tr"`, `up` |
+| Template strip + full template browse | `left` (re-stagger on filter key ok) |
+
+**Planned / use same pattern**
+- **Applications kanban** (`features/applications` — `tracking-kanban.tsx` / `kanban-job-card.tsx`): stagger cards on column mount (per-column `index`, usually `direction="up"`). Avoid fighting `@dnd-kit` drag transforms — animate entrance only, not while dragging.
+- Any new entity list, table body, or horizontal card rail should use `StaggerItem` by default.
+
+**Do not use for:** Magic UI `progressive-blur` on page-scroll lists (bleeds borders / sticky hacks) — only if content lives in a **fixed-height clipped scroller**. Magic UI `AnimatedList` is for landing-page notification demos (reverses order) — not product data lists.
+
 ## React skills
 
 `client/.agents/skills/` contains Vercel-authored skill rule packs (composition patterns, React best-practices, view transitions). These encode the project's preferred React 19 patterns (e.g. no `forwardRef`, derived state without effects, memoization rules) — consult them when writing or reviewing component code.
