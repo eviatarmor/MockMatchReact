@@ -8,7 +8,6 @@ import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-heade
 import { TableToolbar } from "@/components/dashboard/table-toolbar"
 import { EntityEmptyState } from "@/components/data/entity-empty-state"
 import { TrackingKanban } from "./components/tracking-kanban"
-import { GmailConnectDialog } from "./components/gmail-connect-dialog"
 import { AddJobDialog } from "@/features/discover/components/add-job-dialog"
 import { useTrackedJobs, useGmailListen } from "./hooks/use-tracked-jobs"
 
@@ -16,7 +15,7 @@ export function ApplicationsPageContent() {
   const { t } = useTranslation("common")
   const [search, setSearch] = useState("")
   const { jobs, addFromPaste, untrack, replaceStatuses } = useTrackedJobs()
-  const { connected } = useGmailListen()
+  const { connected, connect } = useGmailListen()
 
   const filteredJobs = useMemo(
     () =>
@@ -38,6 +37,11 @@ export function ApplicationsPageContent() {
     })
   }
 
+  function handleConnectGmail() {
+    connect()
+    toast.success(t("applications.gmail.connectedToast"))
+  }
+
   return (
     <DashboardPageShell title={t("applications.title")}>
       <div className="flex flex-1 flex-col gap-3 min-h-0">
@@ -45,45 +49,42 @@ export function ApplicationsPageContent() {
           title={t("applications.title")}
           description={t("applications.description")}
         />
+
+        {!connected ? (
+          <EntityEmptyState
+            icon={Mail}
+            title={t("applications.empty.gmailTitle")}
+            description={t("applications.empty.gmailDescription")}
+            action={{
+              label: t("applications.gmail.connectButton"),
+              onClick: handleConnectGmail,
+              icon: Mail,
+            }}
+          />
+        ) : null}
+
         <TableToolbar
           searchPlaceholder={t("dashboard.search.applications")}
           search={search}
           onSearchChange={setSearch}
           actions={
-            <>
-              <GmailConnectDialog
-                jobs={jobs}
-                trigger={
-                  <Button
-                    variant="outline"
-                    className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
-                  >
-                    <Mail className="size-4" />
-                    <span className="hidden sm:inline">
-                      {connected
-                        ? t("applications.gmail.manageButton")
-                        : t("applications.gmail.connectButtonShort")}
-                    </span>
-                  </Button>
-                }
-              />
-              <AddJobDialog
-                onAdd={handleImport}
-                trigger={
-                  <Button
-                    variant="default"
-                    className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
-                  >
-                    <Upload className="size-4" />
-                    <span className="hidden sm:inline">
-                      {t("dashboard.actions.importJob")}
-                    </span>
-                  </Button>
-                }
-              />
-            </>
+            <AddJobDialog
+              onAdd={handleImport}
+              trigger={
+                <Button
+                  variant="default"
+                  className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
+                >
+                  <Upload className="size-4" />
+                  <span className="hidden sm:inline">
+                    {t("dashboard.actions.importJob")}
+                  </span>
+                </Button>
+              }
+            />
           }
         />
+
         {isEmpty ? (
           <EntityEmptyState
             icon={Bookmark}

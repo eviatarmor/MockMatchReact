@@ -1,13 +1,10 @@
+import { useDocumentTitle } from "@uidotdev/usehooks"
 import { useTranslation } from "react-i18next"
-import { useEffect } from "react"
 import { ApplicationsPageContent } from "@/features/applications/applications-page"
 
 export function ApplicationsPage() {
   const { t } = useTranslation("common")
-
-  useEffect(() => {
-    document.title = t("applications.documentTitle")
-  }, [t])
+  useDocumentTitle(t("applications.documentTitle"))
 
   return <ApplicationsPageContent />
 }

@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { useCopyToClipboard } from "@uidotdev/usehooks"
 import { Link as LinkIcon, Loader2, Copy, Check, Trash2, UserRound } from "lucide-react"
 import { toast } from "sonner"
 import { Link } from "react-router-dom"
@@ -57,9 +58,10 @@ export function ShareDialog({
   const { dateFormat, timeFormat } = useRegionPreferences()
   const utils = trpc.useUtils()
   const [role, setRole] = useState<CollabRole>("edit")
-  const [copied, setCopied] = useState(false)
+  const [copiedText, copyToClipboard] = useCopyToClipboard()
   /** URL only available right after create (token never re-readable). */
   const [lastUrl, setLastUrl] = useState<string | null>(null)
+  const copied = Boolean(copiedText && lastUrl && copiedText === lastUrl)
 
   const create = trpc.collab.createShareLink.useMutation({
     onSuccess: (data) => {
@@ -107,26 +109,20 @@ export function ShareDialog({
     { enabled: open && canShare }
   )
 
-  const onCopyUrl = async (url: string) => {
-    try {
-      await navigator.clipboard.writeText(url)
-      setCopied(true)
-      window.setTimeout(() => setCopied(false), 1500)
-      toast.success(t("share.copied"))
-    } catch {
-      toast.error(t("share.copyError"))
-    }
+  const onCopyUrl = (url: string) => {
+    copyToClipboard(url)
+    toast.success(t("share.copied"))
   }
 
   /** Create link if needed, then copy — Google "Copy link" one-shot. */
   const onCopyLink = async () => {
     if (lastUrl) {
-      await onCopyUrl(lastUrl)
+      onCopyUrl(lastUrl)
       return
     }
     try {
       const data = await create.mutateAsync({ kind, id: documentId, role })
-      await onCopyUrl(data.url)
+      onCopyUrl(data.url)
     } catch {
       // toast from mutation
     }

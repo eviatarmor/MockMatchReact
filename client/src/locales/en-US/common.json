@@ -36,6 +36,9 @@
     "privacy": "Privacy",
     "logout": "Log out"
   },
+  "theme": {
+    "toggle": "Toggle theme"
+  },
   "dashboard": {
     "search": {
       "resumes": "Search resumes...",

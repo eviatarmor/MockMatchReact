@@ -1,13 +1,10 @@
-import { useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import { BillingPageContent } from "@/features/billing/billing-page";
+import { useDocumentTitle } from "@uidotdev/usehooks"
+import { useTranslation } from "react-i18next"
+import { BillingPageContent } from "@/features/billing/billing-page"
 
 export function BillingPage() {
-  const { t } = useTranslation("billing");
+  const { t } = useTranslation("billing")
+  useDocumentTitle(t("documentTitle"))
 
-  useEffect(() => {
-    document.title = t("documentTitle");
-  }, [t]);
-
-  return <BillingPageContent />;
+  return <BillingPageContent />
 }

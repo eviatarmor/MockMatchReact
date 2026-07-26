@@ -1,14 +1,10 @@
-import { useEffect } from "react"
+import { useDocumentTitle } from "@uidotdev/usehooks"
 import { useTranslation } from "react-i18next"
-
 import { SignupPageContent } from "@/features/signup/signup-page"
 
 export function SignupPage() {
   const { t } = useTranslation("signup")
-
-  useEffect(() => {
-    document.title = t("documentTitle")
-  }, [t])
+  useDocumentTitle(t("documentTitle"))
 
   return <SignupPageContent />
 }

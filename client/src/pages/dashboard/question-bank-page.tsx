@@ -1,13 +1,10 @@
-import { useEffect } from "react"
+import { useDocumentTitle } from "@uidotdev/usehooks"
 import { useTranslation } from "react-i18next"
 import { QuestionBankPageContent } from "@/features/question-bank/question-bank-page"
 
 export function QuestionBankPage() {
   const { t } = useTranslation("common")
-
-  useEffect(() => {
-    document.title = t("questionBank.documentTitle")
-  }, [t])
+  useDocumentTitle(t("questionBank.documentTitle"))
 
   return <QuestionBankPageContent />
 }

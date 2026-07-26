@@ -1,8 +1,10 @@
+import { useRef } from "react"
 import { useTranslation } from "react-i18next"
 import { Check } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { cn } from "@/lib/utils"
+import { startThemeViewTransition } from "@/lib/theme-view-transition"
 import { SectionShell } from "@/components/layout/section-shell"
 import { THEME_OPTIONS } from "@/features/account-settings/constants"
 import type { ThemeMode } from "@/features/account-settings/types"
@@ -39,12 +41,24 @@ function ThemePreview({ mode }: { readonly mode: ThemeMode }) {
 export function AppearanceSection() {
   const { t } = useTranslation("account-settings")
   const { theme, setTheme } = useTheme()
+  // Capture the card that was pointer-selected so the clip expands from it.
+  const originRef = useRef<Element | null>(null)
+
+  const selectTheme = (value: ThemeMode) => {
+    if (value === theme) return
+    const origin = originRef.current
+    originRef.current = null
+    startThemeViewTransition({
+      origin,
+      apply: () => setTheme(value),
+    })
+  }
 
   return (
     <SectionShell heading={t("appearance.heading")} description={t("appearance.description")}>
       <RadioGroup
         value={theme}
-        onValueChange={(value) => setTheme(value as ThemeMode)}
+        onValueChange={(value) => selectTheme(value as ThemeMode)}
         className="grid gap-3 sm:grid-cols-3"
       >
         {THEME_OPTIONS.map((option) => {
@@ -52,6 +66,9 @@ export function AppearanceSection() {
           return (
             <label
               key={option.value}
+              onPointerDown={(event) => {
+                originRef.current = event.currentTarget
+              }}
               className={cn(
                 "group/theme relative flex cursor-pointer flex-col gap-2 rounded-xl bg-card p-2 ring-1 transition-colors",
                 selected ? "ring-2 ring-primary" : "ring-foreground/10 hover:ring-primary"

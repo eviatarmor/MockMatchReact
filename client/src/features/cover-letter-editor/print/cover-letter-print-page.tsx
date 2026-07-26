@@ -1,4 +1,4 @@
-import { useEffect } from "react"
+import { useDocumentTitle } from "@uidotdev/usehooks"
 import { useParams } from "react-router-dom"
 import { usePrintReady } from "@/hooks/use-print-ready"
 import { trpc } from "@/lib/trpc"
@@ -21,12 +21,7 @@ export function CoverLetterPrintPageContent() {
   )
 
   usePrintReady(isValidId && query.isSuccess && Boolean(query.data))
-
-  useEffect(() => {
-    if (query.data?.title) {
-      document.title = `${query.data.title} — MockMatch`
-    }
-  }, [query.data?.title])
+  useDocumentTitle(query.data?.title ? `${query.data.title} — MockMatch` : "MockMatch")
 
   if (!letterId) return null
 

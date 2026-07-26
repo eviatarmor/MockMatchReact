@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useSessionStorage } from "@uidotdev/usehooks"
 
 const SESSION_KEY = "mockmatch.discover.detectedCity"
 
@@ -22,20 +23,19 @@ interface UseDetectLocationOptions {
   readonly onDetected?: (city: string) => void
 }
 
-function readSessionCity(): string | null {
+/** Older builds stored a raw city string; useSessionStorage JSON-encodes. */
+function migrateSessionCity() {
+  if (typeof window === "undefined") return
   try {
-    const value = sessionStorage.getItem(SESSION_KEY)
-    return value?.trim() || null
+    const raw = window.sessionStorage.getItem(SESSION_KEY)
+    if (raw === null) return
+    try {
+      JSON.parse(raw)
+    } catch {
+      window.sessionStorage.setItem(SESSION_KEY, JSON.stringify(raw))
+    }
   } catch {
-    return null
-  }
-}
-
-function writeSessionCity(city: string): void {
-  try {
-    sessionStorage.setItem(SESSION_KEY, city)
-  } catch {
-    // ignore quota / private mode
+    // ignore private mode
   }
 }
 
@@ -63,18 +63,22 @@ async function reverseGeocode(lat: number, lon: number): Promise<string | null> 
  * Caches city in sessionStorage to avoid re-prompt on remount.
  */
 export function useDetectLocation({ enabled, onDetected }: UseDetectLocationOptions) {
+  migrateSessionCity()
+
   const [status, setStatus] = useState<LocationDetectStatus>("idle")
-  const [city, setCity] = useState<string | null>(() => readSessionCity())
+  const [city, setCity] = useSessionStorage<string | null>(SESSION_KEY, null)
   const attemptedRef = useRef(false)
   const onDetectedRef = useRef(onDetected)
   onDetectedRef.current = onDetected
 
-  const applyCity = useCallback((next: string) => {
-    writeSessionCity(next)
-    setCity(next)
-    setStatus("ready")
-    onDetectedRef.current?.(next)
-  }, [])
+  const applyCity = useCallback(
+    (next: string) => {
+      setCity(next)
+      setStatus("ready")
+      onDetectedRef.current?.(next)
+    },
+    [setCity]
+  )
 
   const detect = useCallback(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
@@ -117,29 +121,22 @@ export function useDetectLocation({ enabled, onDetected }: UseDetectLocationOpti
     }
     if (attemptedRef.current) return
 
-    const cached = readSessionCity()
-    if (cached) {
+    if (city) {
       attemptedRef.current = true
-      setCity(cached)
       setStatus("ready")
-      onDetectedRef.current?.(cached)
+      onDetectedRef.current?.(city)
       return
     }
 
     attemptedRef.current = true
     detect()
-  }, [enabled, detect])
+  }, [enabled, detect, city])
 
   return {
     status,
-    city,
+    city: city ?? null,
     detect,
     clearCity: () => {
-      try {
-        sessionStorage.removeItem(SESSION_KEY)
-      } catch {
-        // ignore
-      }
       setCity(null)
       setStatus("idle")
     },

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react"
+import { useCallback } from "react"
+import { useLocalStorage } from "@uidotdev/usehooks"
 import type { DiscoverJob, TrackedJob, TrackingStatus } from "@/features/discover/types"
 import {
   discoverJobToTracked,
@@ -9,62 +10,34 @@ const STORAGE_KEY = "mm.trackedJobs"
 const GMAIL_KEY = "mm.gmailConnected"
 const GMAIL_LISTEN_KEY = "mm.gmailListenJobIds"
 
-type Listener = () => void
+function statusFields(status: TrackingStatus): Pick<
+  TrackedJob,
+  "status" | "progressCompleted" | "activeStepIndex" | "statusUpdatedAt" | "nextStep"
+> {
+  const progressCompleted =
+    status === "saved" ? 0 : status === "applied" ? 1 : status === "interviewing" ? 2 : 3
 
-let jobsCache: TrackedJob[] | null = null
-const listeners = new Set<Listener>()
-
-function loadJobs(): TrackedJob[] {
-  if (jobsCache) return jobsCache
-  if (typeof window === "undefined") {
-    jobsCache = []
-    return jobsCache
+  return {
+    status,
+    progressCompleted,
+    activeStepIndex: status === "saved" ? null : Math.min(progressCompleted, 3),
+    statusUpdatedAt:
+      status === "saved"
+        ? "Saved just now"
+        : status === "applied"
+          ? "Applied just now"
+          : status === "interviewing"
+            ? "Interviewing"
+            : "Offer",
+    nextStep:
+      status === "saved"
+        ? "Tailor resume & apply"
+        : status === "applied"
+          ? "Follow up with recruiter"
+          : status === "interviewing"
+            ? "Prep for next round"
+            : "Review offer details",
   }
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    jobsCache = raw ? (JSON.parse(raw) as TrackedJob[]) : []
-  } catch {
-    jobsCache = []
-  }
-  return jobsCache
-}
-
-function persist(next: TrackedJob[]) {
-  jobsCache = next
-  if (typeof window !== "undefined") {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
-  }
-  for (const listener of listeners) listener()
-}
-
-function subscribe(listener: Listener) {
-  listeners.add(listener)
-  return () => {
-    listeners.delete(listener)
-  }
-}
-
-function getSnapshot() {
-  return loadJobs()
-}
-
-function getServerSnapshot(): TrackedJob[] {
-  return []
-}
-
-function readJsonArray(key: string): string[] {
-  if (typeof window === "undefined") return []
-  try {
-    const raw = window.localStorage.getItem(key)
-    return raw ? (JSON.parse(raw) as string[]) : []
-  } catch {
-    return []
-  }
-}
-
-function writeJsonArray(key: string, value: string[]) {
-  if (typeof window === "undefined") return
-  window.localStorage.setItem(key, JSON.stringify(value))
 }
 
 /**
@@ -72,122 +45,87 @@ function writeJsonArray(key: string, value: string[]) {
  * localStorage-backed until a tracking API lands.
  */
 export function useTrackedJobs() {
-  const jobs = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
+  const [jobs, setJobs] = useLocalStorage<TrackedJob[]>(STORAGE_KEY, [])
+  const list = jobs ?? []
 
-  // Multi-tab sync
-  useEffect(() => {
-    const onStorage = (event: StorageEvent) => {
-      if (event.key !== STORAGE_KEY) return
-      jobsCache = null
-      for (const listener of listeners) listener()
-    }
-    window.addEventListener("storage", onStorage)
-    return () => window.removeEventListener("storage", onStorage)
-  }, [])
+  const isTracked = useCallback((id: string) => list.some((job) => job.id === id), [list])
 
-  const isTracked = useCallback(
-    (id: string) => jobs.some((job) => job.id === id),
-    [jobs]
+  const trackDiscoverJob = useCallback(
+    (job: DiscoverJob) => {
+      setJobs((current) => {
+        const prev = current ?? []
+        if (prev.some((tracked) => tracked.id === job.id)) return prev
+        return [discoverJobToTracked(job), ...prev]
+      })
+    },
+    [setJobs]
   )
 
-  const trackDiscoverJob = useCallback((job: DiscoverJob) => {
-    const current = loadJobs()
-    if (current.some((tracked) => tracked.id === job.id)) return
-    persist([discoverJobToTracked(job), ...current])
-  }, [])
+  const untrack = useCallback(
+    (id: string) => {
+      setJobs((current) => (current ?? []).filter((job) => job.id !== id))
+    },
+    [setJobs]
+  )
 
-  const untrack = useCallback((id: string) => {
-    persist(loadJobs().filter((job) => job.id !== id))
-  }, [])
+  const toggleDiscoverJob = useCallback(
+    (job: DiscoverJob) => {
+      let tracked = false
+      setJobs((current) => {
+        const prev = current ?? []
+        if (prev.some((item) => item.id === job.id)) {
+          tracked = false
+          return prev.filter((item) => item.id !== job.id)
+        }
+        tracked = true
+        return [discoverJobToTracked(job), ...prev]
+      })
+      return tracked
+    },
+    [setJobs]
+  )
 
-  const toggleDiscoverJob = useCallback((job: DiscoverJob) => {
-    const current = loadJobs()
-    if (current.some((tracked) => tracked.id === job.id)) {
-      persist(current.filter((tracked) => tracked.id !== job.id))
-      return false
-    }
-    persist([discoverJobToTracked(job), ...current])
-    return true
-  }, [])
+  const addFromPaste = useCallback(
+    (description: string) => {
+      const trackedJob = parseJobDescriptionToTracked(description)
+      setJobs((current) => [trackedJob, ...(current ?? [])])
+      return trackedJob
+    },
+    [setJobs]
+  )
 
-  const addFromPaste = useCallback((description: string) => {
-    const tracked = parseJobDescriptionToTracked(description)
-    const current = loadJobs()
-    persist([tracked, ...current])
-    return tracked
-  }, [])
-
-  const updateStatus = useCallback((id: string, status: TrackingStatus) => {
-    const current = loadJobs()
-    const next = current.map((job) => {
-      if (job.id !== id || job.status === status) return job
-      const progressCompleted =
-        status === "saved"
-          ? 0
-          : status === "applied"
-            ? 1
-            : status === "interviewing"
-              ? 2
-              : 3
-      const activeStepIndex =
-        status === "saved" ? null : Math.min(progressCompleted, 3)
-      return {
-        ...job,
-        status,
-        progressCompleted,
-        activeStepIndex,
-        statusUpdatedAt:
-          status === "saved"
-            ? "Saved just now"
-            : status === "applied"
-              ? "Applied just now"
-              : status === "interviewing"
-                ? "Interviewing"
-                : "Offer",
-        nextStep:
-          status === "saved"
-            ? "Tailor resume & apply"
-            : status === "applied"
-              ? "Follow up with recruiter"
-              : status === "interviewing"
-                ? "Prep for next round"
-                : "Review offer details",
-      }
-    })
-    persist(next)
-  }, [])
+  const updateStatus = useCallback(
+    (id: string, status: TrackingStatus) => {
+      setJobs((current) =>
+        (current ?? []).map((job) => {
+          if (job.id !== id || job.status === status) return job
+          return { ...job, ...statusFields(status) }
+        })
+      )
+    },
+    [setJobs]
+  )
 
   const replaceStatuses = useCallback(
     (updates: ReadonlyArray<{ id: string; status: TrackingStatus }>) => {
       const byId = new Map(updates.map((u) => [u.id, u.status]))
-      const current = loadJobs()
-      let changed = false
-      const next = current.map((job) => {
-        const status = byId.get(job.id)
-        if (!status || status === job.status) return job
-        changed = true
-        const progressCompleted =
-          status === "saved"
-            ? 0
-            : status === "applied"
-              ? 1
-              : status === "interviewing"
-                ? 2
-                : 3
-        return {
-          ...job,
-          status,
-          progressCompleted,
-          activeStepIndex: status === "saved" ? null : Math.min(progressCompleted, 3),
-        }
+      setJobs((current) => {
+        const prev = current ?? []
+        let changed = false
+        const next = prev.map((job) => {
+          const status = byId.get(job.id)
+          if (!status || status === job.status) return job
+          changed = true
+          return { ...job, ...statusFields(status) }
+        })
+        return changed ? next : prev
       })
-      if (changed) persist(next)
     },
-    []
+    [setJobs]
   )
 
   return {
-    jobs,
+    jobs: list,
     isTracked,
     trackDiscoverJob,
     untrack,
@@ -198,44 +136,43 @@ export function useTrackedJobs() {
   }
 }
 
+/** Migrate pre-JSON boolean string (`"true"`) used by older client builds. */
+function migrateGmailConnectedFlag() {
+  if (typeof window === "undefined") return
+  const raw = window.localStorage.getItem(GMAIL_KEY)
+  if (raw === "true" || raw === "false") {
+    window.localStorage.setItem(GMAIL_KEY, JSON.stringify(raw === "true"))
+  }
+}
+
 /** Gmail connection + per-position listen prefs (client stub until OAuth lands). */
 export function useGmailListen() {
-  const [connected, setConnected] = useState(() => {
-    if (typeof window === "undefined") return false
-    return window.localStorage.getItem(GMAIL_KEY) === "true"
-  })
-  const [listenJobIds, setListenJobIds] = useState<string[]>(() =>
-    readJsonArray(GMAIL_LISTEN_KEY)
+  migrateGmailConnectedFlag()
+
+  const [connected, setConnected] = useLocalStorage<boolean>(GMAIL_KEY, false)
+  const [listenJobIds, setListenJobIds] = useLocalStorage<string[]>(GMAIL_LISTEN_KEY, [])
+
+  const connect = useCallback(() => setConnected(true), [setConnected])
+  const disconnect = useCallback(() => setConnected(false), [setConnected])
+
+  const setListening = useCallback(
+    (jobIds: string[]) => setListenJobIds(jobIds),
+    [setListenJobIds]
   )
 
-  const connect = useCallback(() => {
-    window.localStorage.setItem(GMAIL_KEY, "true")
-    setConnected(true)
-  }, [])
-
-  const disconnect = useCallback(() => {
-    window.localStorage.setItem(GMAIL_KEY, "false")
-    setConnected(false)
-  }, [])
-
-  const setListening = useCallback((jobIds: string[]) => {
-    writeJsonArray(GMAIL_LISTEN_KEY, jobIds)
-    setListenJobIds(jobIds)
-  }, [])
-
-  const toggleListen = useCallback((jobId: string) => {
-    setListenJobIds((prev) => {
-      const next = prev.includes(jobId)
-        ? prev.filter((id) => id !== jobId)
-        : [...prev, jobId]
-      writeJsonArray(GMAIL_LISTEN_KEY, next)
-      return next
-    })
-  }, [])
+  const toggleListen = useCallback(
+    (jobId: string) => {
+      setListenJobIds((prev) => {
+        const list = prev ?? []
+        return list.includes(jobId) ? list.filter((id) => id !== jobId) : [...list, jobId]
+      })
+    },
+    [setListenJobIds]
+  )
 
   return {
-    connected,
-    listenJobIds,
+    connected: connected ?? false,
+    listenJobIds: listenJobIds ?? [],
     connect,
     disconnect,
     setListening,

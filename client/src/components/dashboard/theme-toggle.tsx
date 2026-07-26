@@ -1,30 +1,26 @@
-import { Moon, Sun } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useTranslation } from "react-i18next"
 import { useTheme } from "@/components/theme-provider"
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler"
+import { cn } from "@/lib/utils"
 
-export function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
+interface ThemeToggleProps {
+  readonly className?: string
+}
 
-  const toggle = () => {
-    const isDark =
-      theme === "dark" ||
-      (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
-    setTheme(isDark ? "light" : "dark")
-  }
-
-  const isDark =
-    theme === "dark" ||
-    (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
+/** Light/dark toggle via Magic UI view-transition. Theme lives in localStorage only. */
+export function ThemeToggle({ className }: ThemeToggleProps) {
+  const { t } = useTranslation("common")
+  const { resolvedTheme, setTheme } = useTheme()
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="h-8 w-8 text-muted-foreground hover:text-foreground"
-      onClick={toggle}
-      aria-label="Toggle theme"
-    >
-      {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-    </Button>
+    <AnimatedThemeToggler
+      theme={resolvedTheme}
+      onThemeChange={setTheme}
+      className={cn(
+        "inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground [&_svg]:size-4",
+        className
+      )}
+      aria-label={t("theme.toggle")}
+    />
   )
 }

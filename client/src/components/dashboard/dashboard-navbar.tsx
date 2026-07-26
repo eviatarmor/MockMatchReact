@@ -15,6 +15,7 @@ import type { NavItem } from "@/components/dashboard/types"
 import { FeedbackButton } from "./feedback-button"
 import { NavbarHelpButton } from "./navbar-help-button"
 import { NotificationBell } from "./notification-bell"
+import { ThemeToggle } from "./theme-toggle"
 
 interface DashboardNavbarProps {
   readonly rounded?: boolean
@@ -87,6 +88,7 @@ export function DashboardNavbar({ rounded = false }: DashboardNavbarProps) {
 
       <div className="flex items-center gap-1.5 sm:gap-2">
         {end}
+        <ThemeToggle />
         <NavbarHelpButton />
         <NotificationBell />
         <FeedbackButton />
