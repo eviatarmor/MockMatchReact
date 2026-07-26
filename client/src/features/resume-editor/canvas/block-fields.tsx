@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 import { Plus, X } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
+import { FreeformAutocomplete } from "@/components/ui/autocomplete"
 import {
   EditableText,
   RichTextField,
@@ -9,6 +10,7 @@ import {
   type ResolvedStyle,
   type RichTextToolbarLabels,
 } from "@/components/document-editor"
+import { getSkillOptions } from "@/lib/onet"
 import { sectionIsEmpty } from "../section-snippet"
 import type {
   BulletItem,
@@ -17,6 +19,8 @@ import type {
   ResumeSection,
 } from "../types"
 import { EntryListFields } from "./entry-list-fields"
+
+const SKILL_OPTIONS = getSkillOptions()
 
 interface BlockFieldsProps {
   readonly block: ResumeSection
@@ -197,8 +201,27 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
       return (
         <div className="flex flex-wrap items-center gap-1.5">
           {visible.map((it) => (
-            <span key={it.id} className="group/tag inline-flex items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200">
-              {field(it.text, (text) => commit(patchRow(items, it.id, { text })), t("fields.skill"))}
+            <span
+              key={it.id}
+              className="group/tag inline-flex min-w-0 max-w-full items-center gap-1 rounded-md bg-neutral-100 px-2 py-0.5 text-xs text-neutral-700 dark:bg-neutral-800 dark:text-neutral-200"
+            >
+              {editable ? (
+                <FreeformAutocomplete
+                  value={it.text}
+                  onChange={(text) => commit(patchRow(items, it.id, { text }))}
+                  options={SKILL_OPTIONS}
+                  placeholder={t("fields.skill")}
+                  ariaLabel={t("fields.skill")}
+                  variant="inline"
+                  className="w-auto min-w-[4.5rem] max-w-[14rem]"
+                  inputClassName="text-xs"
+                  allowCustom
+                  customOptionLabel={(q) => t("autocomplete.useCustom", { query: q })}
+                  emptyLabel={t("autocomplete.empty")}
+                />
+              ) : (
+                field(it.text, undefined, t("fields.skill"))
+              )}
               {editable ? (
                 <button
                   type="button"

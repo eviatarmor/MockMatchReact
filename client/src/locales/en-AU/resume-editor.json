@@ -112,6 +112,10 @@
     "noSuggestions": "No suggestions available.",
     "dismiss": "Remove"
   },
+  "autocomplete": {
+    "useCustom": "Use “{{query}}”",
+    "empty": "No matches — keep typing your own"
+  },
   "fields": {
     "name": "Your name",
     "headline": "Your headline",
