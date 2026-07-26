@@ -23,6 +23,7 @@ import {
   SCORE_BAND_TEXT_CLASS,
   scoreBand,
 } from "@/lib/score-tier"
+import confetti from "canvas-confetti"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -123,6 +124,13 @@ export function JobDetailsPanel({
     const changed = markAppliedFromDiscover(job)
     setApplyDialog(null)
     if (changed) {
+      void confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.65 },
+        zIndex: 200,
+        disableForReducedMotion: true,
+      })
       toast.success(t("discover.details.applyMarked"), {
         description: t("discover.details.applyMarkedDescription"),
       })
