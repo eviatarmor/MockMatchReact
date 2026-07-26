@@ -76,6 +76,7 @@ export async function runCollabFlush(
     templateId: snap.templateId,
     style: snap.style,
     document: snap.document,
+    lastEditorUserId: snap.lastEditorUserId,
   })
 
   await markFlushed(kind, documentId, snap.rev)

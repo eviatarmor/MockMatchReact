@@ -63,6 +63,9 @@ export function useResumeAutosave({
     },
     onSaved: () => {
       utils.resumes.list.invalidate().catch(() => {})
+      utils.documentVersions.list
+        .invalidate({ kind: "resume", id: resumeId })
+        .catch(() => {})
     },
   })
 }

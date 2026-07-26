@@ -15,6 +15,8 @@ import type {
 const HEARTBEAT_MS = 15_000
 const CURSOR_THROTTLE_MS = 40
 const RECONNECT_MS = 1_500
+/** Settle "Saving…" → "Saved" after last op ack (avoids flicker while typing). */
+const DOC_SAVED_SETTLE_MS = 350
 
 type SnapshotPayload = {
   rev: number
@@ -42,6 +44,8 @@ export function useCollabRoom({
   onSnapshot,
 }: UseCollabRoomArgs) {
   const [status, setStatus] = useState<CollabSaveStatus>("idle")
+  /** Document persist indicator — independent of room connection status. */
+  const [docSaveStatus, setDocSaveStatus] = useState<"saved" | "saving">("saved")
   const [peers, setPeers] = useState<CollabPeer[]>([])
   const [self, setSelf] = useState<CollabPeer | null>(null)
   const [role, setRole] = useState<CollabEffectiveRole>("owner")
@@ -58,6 +62,8 @@ export function useCollabRoom({
   onSnapshotRef.current = onSnapshot
 
   const lastCursorSent = useRef(0)
+  const docSavedTimerRef = useRef<number | undefined>(undefined)
+  const pendingOpsRef = useRef(0)
   const ticketMut = trpc.collab.wsTicket.useMutation()
   const ticketMutRef = useRef(ticketMut)
   ticketMutRef.current = ticketMut
@@ -79,6 +85,12 @@ export function useCollabRoom({
       setPeers(msg.peers)
       setRev(msg.rev)
       setStatus("synced")
+      setDocSaveStatus("saved")
+      pendingOpsRef.current = 0
+      if (docSavedTimerRef.current) {
+        window.clearTimeout(docSavedTimerRef.current)
+        docSavedTimerRef.current = undefined
+      }
       setRoomError(null)
       onSnapshotRef.current?.(
         {
@@ -149,6 +161,19 @@ export function useCollabRoom({
     if (msg.type === "doc.op") {
       setRev(msg.rev)
       setStatus("synced")
+      // Own op echo → count down pending; settle badge after a short quiet window.
+      if (msg.userId === selfIdRef.current) {
+        pendingOpsRef.current = Math.max(0, pendingOpsRef.current - 1)
+        if (pendingOpsRef.current === 0) {
+          if (docSavedTimerRef.current) {
+            window.clearTimeout(docSavedTimerRef.current)
+          }
+          docSavedTimerRef.current = window.setTimeout(() => {
+            setDocSaveStatus("saved")
+            docSavedTimerRef.current = undefined
+          }, DOC_SAVED_SETTLE_MS)
+        }
+      }
       // Apply peer ops only (skip own echo). Bump remoteEpoch so UI remounts fields.
       if (msg.userId !== selfIdRef.current) {
         onRemoteOpRef.current?.(msg.path, msg.value, msg.userId)
@@ -179,6 +204,8 @@ export function useCollabRoom({
     const connect = async () => {
       if (closed) return
       setStatus("connecting")
+      setDocSaveStatus("saved")
+      pendingOpsRef.current = 0
       try {
         const ticket = await ticketMutRef.current.mutateAsync({
           kind,
@@ -240,6 +267,10 @@ export function useCollabRoom({
       closed = true
       if (heartbeat) window.clearInterval(heartbeat)
       if (reconnectTimer) window.clearTimeout(reconnectTimer)
+      if (docSavedTimerRef.current) {
+        window.clearTimeout(docSavedTimerRef.current)
+        docSavedTimerRef.current = undefined
+      }
       if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({ type: "leave" }))
         socket.close()
@@ -251,8 +282,22 @@ export function useCollabRoom({
   const sendOp = useCallback((path: string, value: unknown) => {
     const ws = wsRef.current
     if (!ws || ws.readyState !== WebSocket.OPEN) return
+    // Keep room "synced" (live) — only flip the document badge.
     setStatus("synced")
+    setDocSaveStatus("saving")
+    pendingOpsRef.current += 1
+    if (docSavedTimerRef.current) {
+      window.clearTimeout(docSavedTimerRef.current)
+      docSavedTimerRef.current = undefined
+    }
     ws.send(JSON.stringify({ type: "doc.op", path, value }))
+    // Safety: if ack never arrives, don't leave the badge stuck on Saving.
+    docSavedTimerRef.current = window.setTimeout(() => {
+      if (pendingOpsRef.current > 0) {
+        pendingOpsRef.current = 0
+        setDocSaveStatus("saved")
+      }
+    }, 5_000)
   }, [])
 
   const sendCursor = useCallback(
@@ -295,6 +340,8 @@ export function useCollabRoom({
 
   return {
     status,
+    /** "saving" while local ops in flight; "saved" after server echo settles. */
+    docSaveStatus,
     peers,
     self,
     role,

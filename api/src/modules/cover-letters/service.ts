@@ -16,6 +16,7 @@ import { importCoverLetterFromPdf } from "../../lib/document-import.js"
 import { resolveDocumentAccess } from "../collab/access.js"
 import { canApplyPath } from "../collab/permissions.js"
 import { syncCandidateProfile } from "../candidate-profile/sync.js"
+import { maybeRecordDocumentVersion } from "../document-versions/service.js"
 import {
   blankCoverLetterDocument,
   DEFAULT_STYLE,
@@ -82,7 +83,8 @@ export async function getCoverLetter(db: Database, userId: string, id: string) {
 export async function createCoverLetter(
   db: Database,
   userId: string,
-  input: CoverLetterCreateInput
+  input: CoverLetterCreateInput,
+  opts?: { versionSource?: "create" | "import" }
 ) {
   const [row] = await db
     .insert(coverLetters)
@@ -106,6 +108,17 @@ export async function createCoverLetter(
   }
 
   await syncCandidateProfile(db, userId)
+  await maybeRecordDocumentVersion(db, {
+    kind: "cover_letter",
+    documentId: row.id,
+    actorUserId: userId,
+    title: row.title,
+    templateId: row.templateId,
+    style: row.style,
+    document: row.document,
+    source: opts?.versionSource ?? "create",
+    force: true,
+  })
   return toDetail(row)
 }
 
@@ -198,6 +211,25 @@ export async function updateCoverLetter(
   if (input.document !== undefined || input.style !== undefined) {
     await syncCandidateProfile(db, row.userId)
   }
+
+  if (
+    input.document !== undefined ||
+    input.style !== undefined ||
+    input.templateId !== undefined ||
+    input.title !== undefined
+  ) {
+    await maybeRecordDocumentVersion(db, {
+      kind: "cover_letter",
+      documentId: row.id,
+      actorUserId: userId,
+      title: row.title,
+      templateId: row.templateId,
+      style: row.style,
+      document: row.document,
+      source: "autosave",
+    })
+  }
+
   return toDetail(row)
 }
 
@@ -208,11 +240,16 @@ export async function importCoverLetterFromPdfFile(
   input: { filename: string; pdfBase64: string }
 ) {
   const parsed = await importCoverLetterFromPdf(input)
-  return createCoverLetter(db, userId, {
-    title: parsed.title,
-    company: parsed.company ?? null,
-    document: parsed.document,
-  })
+  return createCoverLetter(
+    db,
+    userId,
+    {
+      title: parsed.title,
+      company: parsed.company ?? null,
+      document: parsed.document,
+    },
+    { versionSource: "import" }
+  )
 }
 
 /** Clone a cover letter the user owns into a new draft with a "(Copy)" title. */

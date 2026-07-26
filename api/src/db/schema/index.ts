@@ -6,4 +6,5 @@ export * from "./cover-letters.js"
 export * from "./billing.js"
 export * from "./collab.js"
 export * from "./candidate-profile.js"
+export * from "./document-versions.js"
 

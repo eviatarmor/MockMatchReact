@@ -18,6 +18,8 @@ export type CollabDocSnapshot = {
   document: unknown
   updatedAt: string
   flushedRev: number
+  /** Last user who applied a path op — used for version history attribution. */
+  lastEditorUserId?: string
 }
 
 export type PresenceRecord = {
@@ -164,7 +166,8 @@ export async function applyPathOp(
   kind: DocumentKind,
   id: string,
   path: string,
-  value: unknown
+  value: unknown,
+  actorUserId?: string
 ): Promise<CollabDocSnapshot | null> {
   const current = await getSnapshot(kind, id)
   if (!current) return null
@@ -184,6 +187,7 @@ export async function applyPathOp(
     style: (next.style as Record<string, unknown>) ?? current.style,
     document: next.document ?? current.document,
     updatedAt: new Date().toISOString(),
+    lastEditorUserId: actorUserId ?? current.lastEditorUserId,
   }
   // Pipeline write + dirty flag — one round-trip (lower collab latency)
   const redis = getRedis()

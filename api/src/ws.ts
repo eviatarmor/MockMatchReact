@@ -355,7 +355,7 @@ async function handleMessage(state: ClientState, raw: string): Promise<void> {
       return
     }
 
-    const snapshot = await applyPathOp(kind, documentId, path, msg.value)
+    const snapshot = await applyPathOp(kind, documentId, path, msg.value, userId)
     if (!snapshot) {
       send(state.ws, {
         type: "error",

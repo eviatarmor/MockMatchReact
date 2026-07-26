@@ -16,6 +16,7 @@ import { importResumeFromPdf } from "../../lib/document-import.js"
 import { resolveDocumentAccess } from "../collab/access.js"
 import { canApplyPath } from "../collab/permissions.js"
 import { syncCandidateProfile } from "../candidate-profile/sync.js"
+import { maybeRecordDocumentVersion } from "../document-versions/service.js"
 import {
   blankResumeDocument,
   DEFAULT_STYLE,
@@ -86,7 +87,8 @@ export async function getResume(db: Database, userId: string, id: string) {
 export async function createResume(
   db: Database,
   userId: string,
-  input: ResumeCreateInput
+  input: ResumeCreateInput,
+  opts?: { versionSource?: "create" | "import" }
 ) {
   const [row] = await db
     .insert(resumes)
@@ -111,6 +113,17 @@ export async function createResume(
   }
 
   await syncCandidateProfile(db, userId)
+  await maybeRecordDocumentVersion(db, {
+    kind: "resume",
+    documentId: row.id,
+    actorUserId: userId,
+    title: row.title,
+    templateId: row.templateId,
+    style: row.style,
+    document: row.document,
+    source: opts?.versionSource ?? "create",
+    force: true,
+  })
   return toDetail(row)
 }
 
@@ -204,6 +217,25 @@ export async function updateResume(
   if (input.document !== undefined || input.style !== undefined) {
     await syncCandidateProfile(db, row.userId)
   }
+
+  if (
+    input.document !== undefined ||
+    input.style !== undefined ||
+    input.templateId !== undefined ||
+    input.title !== undefined
+  ) {
+    await maybeRecordDocumentVersion(db, {
+      kind: "resume",
+      documentId: row.id,
+      actorUserId: userId,
+      title: row.title,
+      templateId: row.templateId,
+      style: row.style,
+      document: row.document,
+      source: "autosave",
+    })
+  }
+
   return toDetail(row)
 }
 
@@ -241,9 +273,14 @@ export async function importResumeFromPdfFile(
   input: { filename: string; pdfBase64: string }
 ) {
   const parsed = await importResumeFromPdf(input)
-  return createResume(db, userId, {
-    title: parsed.title,
-    targetRole: parsed.targetRole ?? null,
-    document: parsed.document,
-  })
+  return createResume(
+    db,
+    userId,
+    {
+      title: parsed.title,
+      targetRole: parsed.targetRole ?? null,
+      document: parsed.document,
+    },
+    { versionSource: "import" }
+  )
 }

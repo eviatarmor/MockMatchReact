@@ -93,11 +93,11 @@ export function useResumeEditorSession(seed: SessionSeed) {
     [applyRemoteDocument]
   )
 
-  const onSnapshot = useCallback(
+  const applyExternalSnapshot = useCallback(
     (snap: {
       title: string
       templateId: string
-      style: Record<string, unknown>
+      style: unknown
       document: unknown
     }) => {
       skipNextRef.current()
@@ -108,6 +108,18 @@ export function useResumeEditorSession(seed: SessionSeed) {
       replaceDocument(parseResumeDocument(snap.document))
     },
     [replaceDocument]
+  )
+
+  const onSnapshot = useCallback(
+    (snap: {
+      title: string
+      templateId: string
+      style: Record<string, unknown>
+      document: unknown
+    }) => {
+      applyExternalSnapshot(snap)
+    },
+    [applyExternalSnapshot]
   )
 
   const collab = useCollabRoom({
@@ -290,14 +302,37 @@ export function useResumeEditorSession(seed: SessionSeed) {
   // Persist the exact general analysis score shown in the editor (structure + grammar).
   useSyncGeneralScore(seed.id, document, permissions.canEditContent)
 
+  // Collab: connection vs document persist are separate — badge follows docSaveStatus
+  // while live so typing actually flips Saving → Saved (not stuck on Saved).
   const saveStatus: SaveStatus =
-    collab.status === "synced"
-      ? "saved"
-      : collab.status === "connecting"
-        ? "saving"
-        : collab.status === "error"
-          ? "error"
+    collab.status === "connecting"
+      ? "saving"
+      : collab.status === "error" || collab.status === "room_full"
+        ? "error"
+        : collab.live
+          ? collab.docSaveStatus
           : trpcSaveStatus
+
+  /** Apply a restored server snapshot into the live editor (+ collab peers). */
+  const applyRestoredVersion = useCallback(
+    (snap: {
+      title: string
+      templateId: string
+      style: unknown
+      document: unknown
+    }) => {
+      markDiscreteRef.current()
+      applyExternalSnapshot(snap)
+      // Broadcast so collab peers pick up the restore
+      if (collab.live) {
+        collab.sendOp("document", parseResumeDocument(snap.document))
+        collab.sendOp("style", parseDocumentStyle(snap.style))
+        collab.sendOp("templateId", snap.templateId)
+        collab.sendOp("title", snap.title)
+      }
+    },
+    [applyExternalSnapshot, collab.live, collab.sendOp]
+  )
 
   return {
     document,
@@ -313,6 +348,7 @@ export function useResumeEditorSession(seed: SessionSeed) {
     collab,
     permissions,
     history: historyControls,
+    applyRestoredVersion,
     /** Kept for API compat — in-place Lexical/input sync; no full remount. */
     documentViewKey: collab.remoteEpoch,
   }

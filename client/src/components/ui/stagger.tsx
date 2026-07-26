@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import { useRef, type ComponentPropsWithoutRef, type ReactNode } from "react"
 import { motion, type Transition } from "motion/react"
 import { cn } from "@/lib/utils"
 
@@ -80,6 +80,12 @@ type StaggerItemBase = StaggerOptions & {
   readonly index: number
   readonly children: ReactNode
   readonly className?: string
+  /**
+   * When false, mounts already in the final state (no entrance).
+   * Use for kanban/drag remounts where the item already appeared once.
+   * Default true.
+   */
+  readonly entrance?: boolean
 }
 
 export type StaggerItemProps =
@@ -100,6 +106,9 @@ export type StaggerItemProps =
  * One-shot entrance for list/table/grid items.
  * First `count` items cascade; later ones (e.g. infinite scroll) appear with no delay.
  *
+ * Set `entrance={false}` when the same identity remounts (e.g. kanban column move)
+ * so the cascade does not re-run.
+ *
  * @example
  * ```tsx
  * {jobs.map((job, i) => (
@@ -113,6 +122,9 @@ export type StaggerItemProps =
  *
  * // Horizontal template strip
  * <StaggerItem index={i} direction="left">...</StaggerItem>
+ *
+ * // Kanban: first paint only
+ * <StaggerItem index={i} entrance={!seenIds.has(job.id)}>...</StaggerItem>
  * ```
  */
 export function StaggerItem({
@@ -123,18 +135,26 @@ export function StaggerItem({
   delay = STAGGER.delay,
   duration = STAGGER.duration,
   distance = STAGGER.distance,
+  entrance = true,
   className,
   children,
   ...props
 }: StaggerItemProps) {
   const Component = motionTags[as]
   const from = offsetFor(direction, distance)
+  // Latch on mount — parent re-renders must not flip entrance mid-cascade
+  // (e.g. kanban column sync) or the transition snaps to duration 0.
+  const playEntrance = useRef(entrance).current
 
   return (
     <Component
-      initial={{ opacity: 0, ...from }}
+      initial={playEntrance ? { opacity: 0, ...from } : false}
       animate={{ opacity: 1, x: 0, y: 0 }}
-      transition={staggerTransition(index, { count, delay, duration })}
+      transition={
+        playEntrance
+          ? staggerTransition(index, { count, delay, duration })
+          : { duration: 0 }
+      }
       className={cn(className)}
       {...(props as object)}
     >

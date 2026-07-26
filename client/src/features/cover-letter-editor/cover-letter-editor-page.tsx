@@ -167,6 +167,7 @@ function CoverLetterEditorLoaded({
       </div>
       <div id="editor-tour-rail" className="flex h-full min-h-0 shrink-0">
         <EditorRail
+          letterId={seed.id}
           activeTemplateId={session.templateId}
           onTemplateChange={session.selectTemplate}
           style={session.style}
@@ -174,6 +175,7 @@ function CoverLetterEditorLoaded({
           document={session.document}
           handlers={session.handlers}
           permissions={session.permissions}
+          onHistoryRestored={session.applyRestoredVersion}
         />
       </div>
       <DocumentEditorOnboarding />

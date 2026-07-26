@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, type RefObject } from "react"
 import { cn } from "@/lib/utils"
+import { useDiffHtml } from "./diff-html-context"
 import { useGrammar } from "./grammar/use-grammar"
 import { TextGrammarOverlay } from "./grammar/text-grammar-overlay"
 import type { GrammarPopoverLabels } from "./grammar/grammar-popover"
@@ -32,13 +33,33 @@ function ReadOnlyText({
   multiline,
   autoSize,
   className,
+  asHtml,
 }: {
   readonly value: string
   readonly multiline?: boolean
   readonly autoSize?: boolean
   readonly className?: string
+  /** Version-history word diff: render value as trusted HTML. */
+  readonly asHtml?: boolean
 }) {
   if (!value?.trim()) return null
+  if (asHtml) {
+    if (multiline) {
+      return (
+        <p
+          className={cn("whitespace-pre-wrap", className)}
+          dangerouslySetInnerHTML={{ __html: value }}
+        />
+      )
+    }
+    const Tag = autoSize ? "span" : "div"
+    return (
+      <Tag
+        className={className}
+        dangerouslySetInnerHTML={{ __html: value }}
+      />
+    )
+  }
   if (multiline) {
     return <p className={cn("whitespace-pre-wrap", className)}>{value}</p>
   }
@@ -75,6 +96,7 @@ export function EditableText({
   // Coerce so missing API fields never throw on `.slice` / controlled inputs.
   const value = valueProp ?? ""
   const ref = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
+  const asHtml = useDiffHtml()
   const grammarOn = Boolean(grammar && grammarLabels && !readOnly && onChange)
   const issues = useGrammar(value, grammarOn)
   const targetProps = analysisTarget ? { "data-analysis-target": analysisTarget } : undefined
@@ -103,7 +125,13 @@ export function EditableText({
 
   if (readOnly || !onChange) {
     return (
-      <ReadOnlyText value={value} multiline={multiline} autoSize={autoSize} className={className} />
+      <ReadOnlyText
+        value={value}
+        multiline={multiline}
+        autoSize={autoSize}
+        className={className}
+        asHtml={asHtml}
+      />
     )
   }
 

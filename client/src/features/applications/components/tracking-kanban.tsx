@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useMemo, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   Kanban,
@@ -7,6 +7,7 @@ import {
   KanbanItem,
   KanbanOverlay,
 } from "@/components/ui/kanban"
+import { StaggerItem } from "@/components/ui/stagger"
 import { KanbanJobCard } from "./kanban-job-card"
 import { KanbanStatusBar } from "./kanban-status-bar"
 import { useTrackingBoard } from "../hooks/use-tracking-board"
@@ -21,6 +22,41 @@ interface TrackingKanbanProps {
   readonly onRemove?: (id: string) => void
 }
 
+interface KanbanStaggerCardProps {
+  readonly job: TrackedJob
+  readonly index: number
+  readonly seenEntranceIds: Set<string>
+  readonly onRemove?: (id: string) => void
+}
+
+/**
+ * Per-card mount latches `entrance` once. Do not mark ids during parent render —
+ * that + board re-sync / StrictMode remount flipped entrance off and killed the
+ * cascade (duration: 0) before it was visible.
+ */
+function KanbanStaggerCard({
+  job,
+  index,
+  seenEntranceIds,
+  onRemove,
+}: KanbanStaggerCardProps) {
+  const [entrance] = useState(() => !seenEntranceIds.has(job.id))
+
+  return (
+    <StaggerItem
+      index={index}
+      entrance={entrance}
+      onAnimationComplete={() => {
+        seenEntranceIds.add(job.id)
+      }}
+    >
+      <KanbanItem value={job.id} asHandle>
+        <KanbanJobCard job={job} onRemove={onRemove} />
+      </KanbanItem>
+    </StaggerItem>
+  )
+}
+
 export function TrackingKanban({
   jobs,
   onStatusesChange,
@@ -28,6 +64,8 @@ export function TrackingKanban({
 }: TrackingKanbanProps) {
   const { t } = useTranslation("common")
   const { columns, onColumnsChange } = useTrackingBoard(jobs, onStatusesChange)
+  /** Job ids that finished entrance — skip stagger on column remount (drag). */
+  const seenEntranceIdsRef = useRef(new Set<string>())
 
   const counts = useMemo(
     () =>
@@ -68,10 +106,14 @@ export function TrackingKanban({
                         {t("applications.kanban.empty")}
                       </div>
                     ) : (
-                      items.map((job) => (
-                        <KanbanItem key={job.id} value={job.id} asHandle>
-                          <KanbanJobCard job={job} onRemove={onRemove} />
-                        </KanbanItem>
+                      items.map((job, index) => (
+                        <KanbanStaggerCard
+                          key={job.id}
+                          job={job}
+                          index={index}
+                          seenEntranceIds={seenEntranceIdsRef.current}
+                          onRemove={onRemove}
+                        />
                       ))
                     )}
                   </div>

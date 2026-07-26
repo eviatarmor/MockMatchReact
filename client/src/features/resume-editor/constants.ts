@@ -4,6 +4,7 @@ import {
   ListChecks,
   ClipboardCheck,
   Sparkles,
+  History,
   AlignLeft,
   Briefcase,
   GraduationCap,
@@ -51,6 +52,7 @@ export const EDITOR_RAIL_ITEMS: readonly EditorRailItem[] = [
   { id: "sections", icon: ListChecks, labelKey: "rail.sections" },
   { id: "analysis", icon: ClipboardCheck, labelKey: "rail.analysis" },
   { id: "ai", icon: Sparkles, labelKey: "rail.ai" },
+  { id: "history", icon: History, labelKey: "rail.history" },
 ]
 
 export const EDITOR_TEMPLATES: readonly EditorTemplate[] = [

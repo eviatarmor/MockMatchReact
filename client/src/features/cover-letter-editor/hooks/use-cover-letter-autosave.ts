@@ -63,6 +63,9 @@ export function useCoverLetterAutosave({
     },
     onSaved: () => {
       utils.coverLetters.list.invalidate().catch(() => {})
+      utils.documentVersions.list
+        .invalidate({ kind: "cover_letter", id: letterId })
+        .catch(() => {})
     },
   })
 }

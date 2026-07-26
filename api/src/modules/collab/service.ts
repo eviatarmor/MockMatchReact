@@ -414,10 +414,14 @@ export async function persistDocumentSnapshot(
     templateId: string
     style: unknown
     document: unknown
+    lastEditorUserId?: string
   }
 ): Promise<void> {
   // Lazy import avoids circular deps with document services
   const { syncCandidateProfile } = await import("../candidate-profile/sync.js")
+  const { maybeRecordDocumentVersion } = await import(
+    "../document-versions/service.js"
+  )
 
   if (kind === "resume") {
     await db
@@ -431,6 +435,16 @@ export async function persistDocumentSnapshot(
       })
       .where(and(eq(resumes.id, documentId), eq(resumes.userId, ownerUserId)))
     await syncCandidateProfile(db, ownerUserId)
+    await maybeRecordDocumentVersion(db, {
+      kind,
+      documentId,
+      actorUserId: snapshot.lastEditorUserId ?? ownerUserId,
+      title: snapshot.title,
+      templateId: snapshot.templateId,
+      style: snapshot.style,
+      document: snapshot.document,
+      source: "collab_flush",
+    })
     return
   }
   await db
@@ -449,4 +463,14 @@ export async function persistDocumentSnapshot(
       )
     )
   await syncCandidateProfile(db, ownerUserId)
+  await maybeRecordDocumentVersion(db, {
+    kind,
+    documentId,
+    actorUserId: snapshot.lastEditorUserId ?? ownerUserId,
+    title: snapshot.title,
+    templateId: snapshot.templateId,
+    style: snapshot.style,
+    document: snapshot.document,
+    source: "collab_flush",
+  })
 }

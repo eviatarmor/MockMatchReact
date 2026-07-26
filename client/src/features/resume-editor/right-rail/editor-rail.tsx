@@ -10,6 +10,7 @@ import { EDITOR_RAIL_ITEMS } from "../constants"
 import type { DocumentStyle } from "@/components/document-editor"
 import type { ResumeHandlers } from "../hooks/use-resume-document"
 import type { ResumeDocument, EditorPanelId, EditorTemplateId } from "../types"
+import { HistoryPanel } from "@/features/document-history/history-panel"
 import { TemplatesPanel } from "./templates-panel"
 import { StylePanel } from "./style-panel"
 import { SectionsPanel } from "./sections-panel"
@@ -17,6 +18,7 @@ import { GeneralAnalysisPanel } from "./general-analysis-panel"
 import { AiPanel } from "./ai-panel"
 
 interface EditorRailProps {
+  readonly resumeId: string
   readonly activeTemplateId: EditorTemplateId
   readonly onTemplateChange: (id: EditorTemplateId) => void
   readonly style: DocumentStyle
@@ -28,16 +30,36 @@ interface EditorRailProps {
     canEditDesign: boolean
     canUseAi: boolean
   }
+  readonly onHistoryRestored?: (detail: {
+    title: string
+    templateId: string
+    style: unknown
+    document: unknown
+  }) => void
 }
 
-function PanelBody({ panel, activeTemplateId, onTemplateChange, style, onStyleChange, document, handlers }: {
+function PanelBody({
+  panel,
+  resumeId,
+  activeTemplateId,
+  onTemplateChange,
+  style,
+  onStyleChange,
+  document,
+  handlers,
+  canRestore,
+  onHistoryRestored,
+}: {
   readonly panel: EditorPanelId
+  readonly resumeId: string
   readonly activeTemplateId: EditorTemplateId
   readonly onTemplateChange: (id: EditorTemplateId) => void
   readonly style: DocumentStyle
   readonly onStyleChange: (patch: Partial<DocumentStyle>) => void
   readonly document: ResumeDocument
   readonly handlers: ResumeHandlers
+  readonly canRestore: boolean
+  readonly onHistoryRestored?: EditorRailProps["onHistoryRestored"]
 }) {
   switch (panel) {
     case "templates":
@@ -50,6 +72,16 @@ function PanelBody({ panel, activeTemplateId, onTemplateChange, style, onStyleCh
       return <GeneralAnalysisPanel document={document} />
     case "ai":
       return <AiPanel />
+    case "history":
+      return (
+        <HistoryPanel
+          kind="resume"
+          documentId={resumeId}
+          canRestore={canRestore}
+          onRestored={onHistoryRestored}
+          i18nNs="resume-editor"
+        />
+      )
   }
 }
 
@@ -61,11 +93,12 @@ function railItemAllowed(
   if (id === "templates" || id === "style") return permissions.canEditDesign
   if (id === "sections") return permissions.canEditContent
   if (id === "ai") return permissions.canUseAi
-  if (id === "analysis") return true
+  if (id === "analysis" || id === "history") return true
   return true
 }
 
 export function EditorRail({
+  resumeId,
   activeTemplateId,
   onTemplateChange,
   style,
@@ -73,6 +106,7 @@ export function EditorRail({
   document,
   handlers,
   permissions,
+  onHistoryRestored,
 }: EditorRailProps) {
   const { t } = useTranslation("resume-editor")
   const visibleItems = EDITOR_RAIL_ITEMS.filter((item) =>
@@ -122,7 +156,18 @@ export function EditorRail({
                 <ScrollArea className="min-h-0 flex-1">
                   {/* Remount on panel switch so StaggerItem entrance re-runs. */}
                   <div key={activePanel} className="px-4 py-4">
-                    <PanelBody panel={activePanel} activeTemplateId={activeTemplateId} onTemplateChange={onTemplateChange} style={style} onStyleChange={onStyleChange} document={document} handlers={handlers} />
+                    <PanelBody
+                      panel={activePanel}
+                      resumeId={resumeId}
+                      activeTemplateId={activeTemplateId}
+                      onTemplateChange={onTemplateChange}
+                      style={style}
+                      onStyleChange={onStyleChange}
+                      document={document}
+                      handlers={handlers}
+                      canRestore={permissions?.canEditContent ?? true}
+                      onHistoryRestored={onHistoryRestored}
+                    />
                   </div>
                 </ScrollArea>
               </div>

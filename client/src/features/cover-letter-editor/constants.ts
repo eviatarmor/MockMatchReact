@@ -1,4 +1,16 @@
-import { LayoutTemplate, Palette, ListChecks, ClipboardCheck, Sparkles, Hand, Heading, Pilcrow, PenLine, SquarePlus } from "lucide-react"
+import {
+  LayoutTemplate,
+  Palette,
+  ListChecks,
+  ClipboardCheck,
+  Sparkles,
+  History,
+  Hand,
+  Heading,
+  Pilcrow,
+  PenLine,
+  SquarePlus,
+} from "lucide-react"
 import type { BlockTypeMeta } from "@/components/document-editor"
 import type {
   CoverLetterDocument,
@@ -18,6 +30,7 @@ export const EDITOR_RAIL_ITEMS: readonly EditorRailItem[] = [
   { id: "sections", icon: ListChecks, labelKey: "rail.sections" },
   { id: "analysis", icon: ClipboardCheck, labelKey: "rail.analysis" },
   { id: "ai", icon: Sparkles, labelKey: "rail.ai" },
+  { id: "history", icon: History, labelKey: "rail.history" },
 ]
 
 export const EDITOR_TEMPLATES: readonly EditorTemplate[] = [

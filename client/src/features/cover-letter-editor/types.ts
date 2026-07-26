@@ -147,7 +147,13 @@ export interface StyleSegmentOption {
   readonly labelKey: string
 }
 
-export type EditorPanelId = "templates" | "style" | "sections" | "analysis" | "ai"
+export type EditorPanelId =
+  | "templates"
+  | "style"
+  | "sections"
+  | "analysis"
+  | "ai"
+  | "history"
 
 /** Right-rail entry: icon button that toggles its panel. */
 export interface EditorRailItem {
