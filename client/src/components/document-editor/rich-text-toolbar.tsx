@@ -12,7 +12,7 @@ import {
 import { INSERT_UNORDERED_LIST_COMMAND } from "@lexical/list"
 import { TOGGLE_LINK_COMMAND } from "@lexical/link"
 import { mergeRegister } from "@lexical/utils"
-import { Bold, Italic, Underline, List, Link, RemoveFormatting } from "lucide-react"
+import { Bold, Italic, Underline, List, Link, RemoveFormatting, Sparkles } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export interface RichTextToolbarLabels {
@@ -23,6 +23,8 @@ export interface RichTextToolbarLabels {
   readonly link: string
   readonly clear: string
   readonly linkPrompt: string
+  /** Optional AI assist on selection (omitted → no Sparkles button). */
+  readonly aiAssist?: string
 }
 
 interface ToolbarButtonProps {
@@ -58,7 +60,13 @@ function ToolbarButton({ label, active, onClick, children }: ToolbarButtonProps)
  * Lexical editor. Portaled to the body and positioned in viewport coordinates,
  * so it sits correctly even inside a zoom/pan canvas.
  */
-export function FloatingTextToolbar({ labels }: { readonly labels: RichTextToolbarLabels }) {
+export function FloatingTextToolbar({
+  labels,
+  onAiAssist,
+}: {
+  readonly labels: RichTextToolbarLabels
+  readonly onAiAssist?: (selectedText: string) => void
+}) {
   const [editor] = useLexicalComposerContext()
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
   const [active, setActive] = useState({ bold: false, italic: false, underline: false })
@@ -147,12 +155,31 @@ export function FloatingTextToolbar({ labels }: { readonly labels: RichTextToolb
     if (url) editor.dispatchCommand(TOGGLE_LINK_COMMAND, url)
   }
 
+  const runAiAssist = () => {
+    if (!onAiAssist) return
+    editor.getEditorState().read(() => {
+      const selection = $getSelection()
+      if (!$isRangeSelection(selection) || selection.isCollapsed()) return
+      const text = selection.getTextContent().trim()
+      if (!text) return
+      onAiAssist(text)
+    })
+  }
+
   return createPortal(
     <div
       data-rte-toolbar
       className="pan-ignore fixed z-50 flex -translate-x-1/2 -translate-y-[calc(100%+8px)] items-center gap-0.5 rounded-lg border border-neutral-200 bg-white p-1 shadow-xl ring-1 ring-black/5 dark:border-transparent dark:bg-neutral-900 dark:ring-black/30"
       style={{ top: pos.top, left: pos.left }}
     >
+      {onAiAssist && labels.aiAssist && (
+        <>
+          <ToolbarButton label={labels.aiAssist} onClick={runAiAssist}>
+            <Sparkles className="size-4 text-blue-400" />
+          </ToolbarButton>
+          <span className="mx-0.5 h-5 w-px bg-neutral-200 dark:bg-white/15" />
+        </>
+      )}
       <ToolbarButton label={labels.bold} active={active.bold} onClick={() => format("bold")}>
         <Bold className="size-4" />
       </ToolbarButton>

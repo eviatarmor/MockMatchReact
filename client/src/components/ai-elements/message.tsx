@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { cjk } from "@streamdown/cjk";
-import { code } from "@streamdown/code";
+import { createCodePlugin } from "@streamdown/code";
 import { math } from "@streamdown/math";
 import { mermaid } from "@streamdown/mermaid";
 import type { UIMessage } from "ai";
@@ -321,16 +321,23 @@ export const MessageBranchPage = ({
 
 export type MessageResponseProps = ComponentProps<typeof Streamdown>;
 
-const streamdownPlugins = { cjk, code, math, mermaid };
+/** Dual Shiki themes — light/dark pair; CSS maps to `.dark` class (not OS preference). */
+const streamdownPlugins = {
+  cjk,
+  code: createCodePlugin({ themes: ["github-light", "github-dark"] }),
+  math,
+  mermaid,
+};
 
 export const MessageResponse = memo(
-  ({ className, ...props }: MessageResponseProps) => (
+  ({ className, shikiTheme, ...props }: MessageResponseProps) => (
     <Streamdown
       className={cn(
-        "size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
+        "streamdown-message size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0",
         className
       )}
       plugins={streamdownPlugins}
+      shikiTheme={shikiTheme ?? ["github-light", "github-dark"]}
       {...props}
     />
   ),

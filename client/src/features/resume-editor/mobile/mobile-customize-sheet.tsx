@@ -31,22 +31,42 @@ export function MobileCustomizeSheet({
   document,
 }: MobileCustomizeSheetProps) {
   const { t } = useTranslation("resume-editor")
+  const isAi = panel === "ai"
 
   return (
     <Sheet open={panel !== null} onOpenChange={(next) => !next && onClose()}>
-      <SheetContent side="bottom" className="grid max-h-[85svh] grid-rows-[auto_minmax(0,1fr)] gap-0 p-0">
+      <SheetContent
+        side="bottom"
+        className="grid max-h-[85svh] grid-rows-[auto_minmax(0,1fr)] gap-0 p-0"
+      >
         <SheetHeader className="border-b">
           <SheetTitle>{panel ? t(`rail.${panel}`) : ""}</SheetTitle>
         </SheetHeader>
 
-        <ScrollArea className="min-h-0">
-          <div className="p-4">
-            {panel === "templates" && <TemplatesPanel activeTemplateId={activeTemplateId} onSelect={onTemplateChange} />}
-            {panel === "style" && <StylePanel style={style} onChange={onStyleChange} />}
-            {panel === "analysis" && <GeneralAnalysisPanel document={document} />}
-            {panel === "ai" && <AiPanel />}
+        {isAi ? (
+          <div className="min-h-0 flex-1 overflow-hidden">
+            <div className="flex h-[min(70svh,560px)] min-h-0 flex-col">
+              <AiPanel />
+            </div>
           </div>
-        </ScrollArea>
+        ) : (
+          <ScrollArea className="min-h-0">
+            <div className="p-4">
+              {panel === "templates" && (
+                <TemplatesPanel
+                  activeTemplateId={activeTemplateId}
+                  onSelect={onTemplateChange}
+                />
+              )}
+              {panel === "style" && (
+                <StylePanel style={style} onChange={onStyleChange} />
+              )}
+              {panel === "analysis" && (
+                <GeneralAnalysisPanel document={document} />
+              )}
+            </div>
+          </ScrollArea>
+        )}
       </SheetContent>
     </Sheet>
   )

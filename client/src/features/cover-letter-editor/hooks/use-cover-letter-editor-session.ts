@@ -334,6 +334,16 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
     [applyExternalSnapshot, collab.live, collab.sendOp]
   )
 
+  /** AI assistant (and similar) full-document replacements — undoable + collab. */
+  const replaceDocumentFromAi = useCallback(
+    (next: CoverLetterDocument) => {
+      if (!permissions.canEditContent) return
+      markDiscreteRef.current()
+      replaceDocument(next)
+    },
+    [permissions.canEditContent, replaceDocument]
+  )
+
   return {
     document,
     handlers: liveHandlers,
@@ -349,6 +359,7 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
     permissions,
     history: historyControls,
     applyRestoredVersion,
+    replaceDocument: replaceDocumentFromAi,
     documentViewKey: collab.remoteEpoch,
   }
 }

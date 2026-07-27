@@ -113,6 +113,7 @@ export function BlockFields({ block, style, update, tone = "page" }: BlockFields
     link: t("richText.link"),
     clear: t("richText.clear"),
     linkPrompt: t("richText.linkPrompt"),
+    aiAssist: t("richText.aiAssist"),
   }
   const grammarLabels: GrammarPopoverLabels = {
     apply: t("grammar.apply"),

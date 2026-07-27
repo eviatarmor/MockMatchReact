@@ -334,6 +334,16 @@ export function useResumeEditorSession(seed: SessionSeed) {
     [applyExternalSnapshot, collab.live, collab.sendOp]
   )
 
+  /** AI assistant (and similar) full-document replacements — undoable + collab. */
+  const replaceDocumentFromAi = useCallback(
+    (next: ResumeDocument) => {
+      if (!permissions.canEditContent) return
+      markDiscreteRef.current()
+      replaceDocument(next)
+    },
+    [permissions.canEditContent, replaceDocument]
+  )
+
   return {
     document,
     handlers: liveHandlers,
@@ -349,6 +359,7 @@ export function useResumeEditorSession(seed: SessionSeed) {
     permissions,
     history: historyControls,
     applyRestoredVersion,
+    replaceDocument: replaceDocumentFromAi,
     /** Kept for API compat — in-place Lexical/input sync; no full remount. */
     documentViewKey: collab.remoteEpoch,
   }

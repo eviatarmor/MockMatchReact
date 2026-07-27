@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { motion, AnimatePresence } from "motion/react"
 import { PanelRightClose } from "lucide-react"
@@ -6,6 +6,9 @@ import { cn } from "@/lib/utils"
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
+import { SidePanelResizeHandle } from "@/components/ui/side-panel-resize-handle"
+import { useSidePanelWidth } from "@/hooks/use-side-panel-width"
+import { useDocumentAssistantOptional } from "@/features/document-assistant"
 import { EDITOR_RAIL_ITEMS } from "../constants"
 import type { DocumentStyle } from "@/components/document-editor"
 import type { CoverLetterHandlers } from "../hooks/use-cover-letter-document"
@@ -16,6 +19,14 @@ import { StylePanel } from "./style-panel"
 import { SectionsPanel } from "./sections-panel"
 import { GeneralAnalysisPanel } from "./general-analysis-panel"
 import { AiPanel } from "./ai-panel"
+
+/** Shared width for every rail tab (templates, style, AI, …). */
+const PANEL_DEFAULT_PX = 320
+const PANEL_MIN_PX = 280
+const PANEL_MAX_PX = 720
+const PANEL_WIDTH_STORAGE_KEY = "mockmatch.cover-letter-editor.rail-width"
+
+const PANEL_SPRING = { type: "spring" as const, stiffness: 320, damping: 34 }
 
 interface EditorRailProps {
   readonly letterId: string
@@ -36,6 +47,7 @@ interface EditorRailProps {
     style: unknown
     document: unknown
   }) => void
+  readonly children: ReactNode
 }
 
 function PanelBody({
@@ -107,41 +119,75 @@ export function EditorRail({
   handlers,
   permissions,
   onHistoryRestored,
+  children,
 }: EditorRailProps) {
   const { t } = useTranslation("cover-letter-editor")
+  const assistant = useDocumentAssistantOptional()
   const visibleItems = EDITOR_RAIL_ITEMS.filter((item) =>
     railItemAllowed(item.id, permissions)
   )
   const defaultPanel = visibleItems[0]?.id ?? null
   const [activePanel, setActivePanel] = useState<EditorPanelId | null>(defaultPanel)
 
-  const toggle = (id: EditorPanelId) => setActivePanel((current) => (current === id ? null : id))
+  const { width: panelWidth, startResize, isDragging } = useSidePanelWidth({
+    defaultWidth: PANEL_DEFAULT_PX,
+    min: PANEL_MIN_PX,
+    max: PANEL_MAX_PX,
+    storageKey: PANEL_WIDTH_STORAGE_KEY,
+  })
 
-  if (visibleItems.length === 0) return null
+  const lastOpenRequestKey = useRef(0)
+  const openRequestKey = assistant?.openRequestKey ?? 0
+  useEffect(() => {
+    if (openRequestKey === 0 || openRequestKey === lastOpenRequestKey.current) return
+    lastOpenRequestKey.current = openRequestKey
+    if (!railItemAllowed("ai", permissions)) return
+    setActivePanel("ai")
+  }, [openRequestKey, permissions])
+
+  const toggle = (id: EditorPanelId) =>
+    setActivePanel((current) => (current === id ? null : id))
+
+  if (visibleItems.length === 0) {
+    return <div className="flex h-full min-h-0 w-full">{children}</div>
+  }
+
+  const panelOpen =
+    activePanel != null && railItemAllowed(activePanel, permissions)
+  const isAiPanel = activePanel === "ai"
 
   return (
     <TooltipProvider delay={300}>
-      <div className="relative z-10 flex h-full shrink-0 overflow-hidden border-l bg-background text-foreground">
+      <div className="relative z-10 flex h-full min-h-0 w-full overflow-hidden">
+        <div className="relative min-h-0 min-w-0 flex-1">{children}</div>
 
-        {/*
-          Do not set AnimatePresence initial={false} — it suppresses initial
-          animations for every nested motion node (StaggerItem included).
-        */}
         <AnimatePresence>
-          {activePanel && railItemAllowed(activePanel, permissions) && (
+          {panelOpen && activePanel && (
             <motion.aside
-              key="panel"
+              key="editor-side-panel"
               initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 320, opacity: 1 }}
+              animate={{ width: panelWidth, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 320, damping: 34 }}
-              className="overflow-hidden border-r border-border/60"
+              transition={isDragging ? { duration: 0 } : PANEL_SPRING}
+              className="relative h-full shrink-0 overflow-hidden border-l border-border/60 bg-background text-foreground"
             >
-              <div className="flex h-full min-h-0 w-80 flex-col">
+              <div
+                className="relative flex h-full min-h-0 flex-col"
+                style={{ width: panelWidth }}
+              >
+                <SidePanelResizeHandle
+                  onPointerDown={startResize}
+                  label={t("rail.resize")}
+                />
+
                 <div className="flex items-start justify-between gap-2 border-b border-border/60 px-4 pb-4 pt-4">
                   <div className="min-w-0">
-                    <h2 className="text-base font-semibold text-foreground">{t(`${activePanel}.title`)}</h2>
-                    <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{t(`${activePanel}.description`)}</p>
+                    <h2 className="text-base font-semibold text-foreground">
+                      {t(`${activePanel}.title`)}
+                    </h2>
+                    <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+                      {t(`${activePanel}.description`)}
+                    </p>
                   </div>
                   <Button
                     variant="ghost"
@@ -153,29 +199,35 @@ export function EditorRail({
                     <PanelRightClose className="size-4" />
                   </Button>
                 </div>
-                <ScrollArea className="min-h-0 flex-1">
-                  {/* Remount on panel switch so StaggerItem entrance re-runs. */}
-                  <div key={activePanel} className="px-4 py-4">
-                    <PanelBody
-                      panel={activePanel}
-                      letterId={letterId}
-                      activeTemplateId={activeTemplateId}
-                      onTemplateChange={onTemplateChange}
-                      style={style}
-                      onStyleChange={onStyleChange}
-                      document={document}
-                      handlers={handlers}
-                      canRestore={permissions?.canEditContent ?? true}
-                      onHistoryRestored={onHistoryRestored}
-                    />
+
+                {isAiPanel ? (
+                  <div className="flex min-h-0 flex-1 flex-col">
+                    <AiPanel />
                   </div>
-                </ScrollArea>
+                ) : (
+                  <ScrollArea className="min-h-0 flex-1">
+                    <div key={activePanel} className="px-4 py-4">
+                      <PanelBody
+                        panel={activePanel}
+                        letterId={letterId}
+                        activeTemplateId={activeTemplateId}
+                        onTemplateChange={onTemplateChange}
+                        style={style}
+                        onStyleChange={onStyleChange}
+                        document={document}
+                        handlers={handlers}
+                        canRestore={permissions?.canEditContent ?? true}
+                        onHistoryRestored={onHistoryRestored}
+                      />
+                    </div>
+                  </ScrollArea>
+                )}
               </div>
             </motion.aside>
           )}
         </AnimatePresence>
 
-        <nav className="flex w-12 shrink-0 flex-col items-center gap-1 py-3">
+        <nav className="flex w-12 shrink-0 flex-col items-center gap-1 border-l border-border/60 bg-background py-3 text-foreground">
           {visibleItems.map((item) => {
             const Icon = item.icon
             const isActive = activePanel === item.id

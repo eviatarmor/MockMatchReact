@@ -4,6 +4,7 @@
   "placeholder": "Ask anything...",
   "newChat": "New chat",
   "close": "Close",
+  "resize": "Resize panel",
   "send": "Send",
   "stop": "Stop generating",
   "thinkingPlaceholder": "Looking up how MockMatch works…",

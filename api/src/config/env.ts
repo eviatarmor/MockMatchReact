@@ -108,6 +108,14 @@ const envSchema = z
       .string()
       .min(1)
       .default("openai/gpt-oss-20b:free"),
+    /**
+     * Free OpenRouter model for resume / cover-letter editor AI assistant.
+     * Catalog: https://openrouter.ai/collections/free-models
+     */
+    OPENROUTER_DOCUMENT_AI_MODEL: z
+      .string()
+      .min(1)
+      .default("openai/gpt-oss-20b:free"),
     /** Credits charged per uncached AI-scored job. 0 = free AI when key configured. */
     JOB_FIT_AI_CREDIT_COST: z.coerce.number().int().nonnegative().default(0),
     /**

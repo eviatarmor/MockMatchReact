@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   DndContext,
@@ -14,6 +14,7 @@ import { ChevronRight, GripVertical, UserRound, LayoutTemplate, Palette, Clipboa
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 import { SpeedDial, type DocumentStyle, type ResolvedStyle } from "@/components/document-editor"
+import { useDocumentAssistantOptional } from "@/features/document-assistant"
 import { RESUME_SECTION_TYPES } from "../constants"
 import { snippet } from "../section-snippet"
 import type { ResumeHandlers } from "../hooks/use-resume-document"
@@ -101,9 +102,18 @@ function SectionRow({ section, onOpen }: { readonly section: ResumeSection; read
 
 export function MobileEditor({ document, style, documentStyle, onStyleChange, templateId, onTemplateChange, handlers }: MobileEditorProps) {
   const { t } = useTranslation("resume-editor")
+  const assistant = useDocumentAssistantOptional()
   const [activeRow, setActiveRow] = useState<MobileRow | null>(null)
   const [customizePanel, setCustomizePanel] = useState<CustomizePanel | null>(null)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
+
+  const lastOpenRequestKey = useRef(0)
+  const openRequestKey = assistant?.openRequestKey ?? 0
+  useEffect(() => {
+    if (openRequestKey === 0 || openRequestKey === lastOpenRequestKey.current) return
+    lastOpenRequestKey.current = openRequestKey
+    setCustomizePanel("ai")
+  }, [openRequestKey])
 
   const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event

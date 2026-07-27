@@ -5,6 +5,7 @@ import { env } from "./config/env.js"
 import { healthRoutes } from "./modules/health/routes.js"
 import { oauthRoutes } from "./modules/auth/oauth-routes.js"
 import { askRoutes } from "./modules/ask/routes.js"
+import { documentAiRoutes } from "./modules/document-ai/routes.js"
 import { billingWebhookRoutes } from "./modules/billing/webhook-routes.js"
 import { exportRoutes } from "./modules/export/routes.js"
 import { createContext } from "./trpc/context.js"
@@ -31,6 +32,8 @@ export function createApp() {
   app.route("/export", exportRoutes)
   // In-app Ask assistant (AI SDK UI message stream).
   app.route("/ask", askRoutes)
+  // Resume / cover-letter editor AI assistant (AI SDK UI message stream).
+  app.route("/document-ai", documentAiRoutes)
 
   app.use(
     "/trpc/*",

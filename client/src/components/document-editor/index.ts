@@ -7,6 +7,11 @@ export { DiffHtmlProvider, useDiffHtml } from "./diff-html-context"
 export { EditableText } from "./editable-text"
 export { RichTextField } from "./rich-text-field"
 export { type RichTextToolbarLabels } from "./rich-text-toolbar"
+export {
+  DocumentAiAssistProvider,
+  useDocumentAiAssist,
+  type DocumentAiAssistHandler,
+} from "./ai-assist-context"
 export { BlockToolbar, type BlockToolbarLabels } from "./block-toolbar"
 export { SortableBlock, type SortableBlockLabels } from "./sortable-block"
 export { SectionInserter, type InserterItem } from "./section-inserter"

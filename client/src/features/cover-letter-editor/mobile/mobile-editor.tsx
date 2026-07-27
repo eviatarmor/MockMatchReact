@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import {
   DndContext,
@@ -20,6 +20,7 @@ import type { CoverLetterDocument, EditorTemplateId, LetterBlock } from "../type
 import { MobileEditSheet } from "./mobile-edit-sheet"
 import { MobileCustomizeSheet, type CustomizePanel } from "./mobile-customize-sheet"
 import { SpeedDial, type DocumentStyle, type ResolvedStyle } from "@/components/document-editor"
+import { useDocumentAssistantOptional } from "@/features/document-assistant"
 import type { MobileRow } from "./mobile-rows"
 
 interface MobileEditorProps {
@@ -101,9 +102,18 @@ function BlockRow({ block, onOpen }: { readonly block: LetterBlock; readonly onO
 
 export function MobileEditor({ document, style, documentStyle, onStyleChange, templateId, onTemplateChange, handlers }: MobileEditorProps) {
   const { t } = useTranslation("cover-letter-editor")
+  const assistant = useDocumentAssistantOptional()
   const [activeRow, setActiveRow] = useState<MobileRow | null>(null)
   const [customizePanel, setCustomizePanel] = useState<CustomizePanel | null>(null)
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
+
+  const lastOpenRequestKey = useRef(0)
+  const openRequestKey = assistant?.openRequestKey ?? 0
+  useEffect(() => {
+    if (openRequestKey === 0 || openRequestKey === lastOpenRequestKey.current) return
+    lastOpenRequestKey.current = openRequestKey
+    setCustomizePanel("ai")
+  }, [openRequestKey])
 
   const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event

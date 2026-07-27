@@ -4,6 +4,7 @@ import type { UIMessage } from "ai"
 import {
   Message,
   MessageContent,
+  MessageResponse,
 } from "@/components/ai-elements/message"
 import {
   Reasoning,
@@ -67,11 +68,15 @@ function MessageParts({
             </p>
           )
         }
-        // Assistant (incl. welcome): same type style as the greeting line.
+        // Assistant (incl. welcome): GFM via AI Elements Streamdown.
         return (
-          <p key={`${message.id}-${i}`} className={ASK_ASSISTANT_TEXT_CLASS}>
+          <MessageResponse
+            key={`${message.id}-${i}`}
+            className={ASK_ASSISTANT_TEXT_CLASS}
+            isAnimating={isLastMessage && isStreaming}
+          >
             {part.text}
-          </p>
+          </MessageResponse>
         )
       })}
     </>

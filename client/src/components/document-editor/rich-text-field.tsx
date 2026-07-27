@@ -21,6 +21,7 @@ import {
 import { isBlankHtml } from "@/lib/blank-html"
 import { cn } from "@/lib/utils"
 import { FloatingTextToolbar, type RichTextToolbarLabels } from "./rich-text-toolbar"
+import { useDocumentAiAssist } from "./ai-assist-context"
 import { LexicalGrammarPlugin } from "./grammar/lexical-grammar-plugin"
 import type { GrammarPopoverLabels } from "./grammar/grammar-popover"
 
@@ -39,6 +40,8 @@ interface RichTextFieldProps {
   readonly grammar?: boolean
   readonly grammarLabels?: GrammarPopoverLabels
   readonly analysisTarget?: string
+  /** Selection → AI assistant (attachment). */
+  readonly onAiAssist?: (selectedText: string) => void
 }
 
 const theme = {
@@ -136,7 +139,10 @@ export function RichTextField({
   grammar,
   grammarLabels,
   analysisTarget,
+  onAiAssist,
 }: RichTextFieldProps) {
+  const contextAiAssist = useDocumentAiAssist()
+  const resolvedAiAssist = onAiAssist ?? contextAiAssist ?? undefined
   const value = valueProp ?? ""
   const reactId = useId()
   // Unique namespace per instance — shared namespace broke multi-field + collab state
@@ -225,7 +231,10 @@ export function RichTextField({
         <LinkPlugin />
         <OnChangePlugin ignoreSelectionChange onChange={handleChange} />
         <ExternalHtmlSyncPlugin html={value} />
-        <FloatingTextToolbar labels={labels} />
+        <FloatingTextToolbar
+          labels={labels}
+          onAiAssist={resolvedAiAssist}
+        />
         <BlurOnOutsidePointer />
         {grammar && grammarLabels && (
           <LexicalGrammarPlugin labels={grammarLabels} />

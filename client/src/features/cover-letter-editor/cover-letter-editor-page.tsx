@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useCallback, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { AlertCircle, Loader2 } from "lucide-react"
@@ -6,9 +6,14 @@ import { useNavbarSlots } from "@/hooks/use-navbar-slots"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useCanvasViewport } from "@/hooks/use-canvas-viewport"
 import {
+  DocumentAiAssistProvider,
   EditorSecondaryBar,
   resolveStyleClasses,
 } from "@/components/document-editor"
+import {
+  DocumentAssistantProvider,
+  useDocumentAssistant,
+} from "@/features/document-assistant"
 import { DocumentEditorOnboarding } from "@/components/onboarding/document-editor-onboarding"
 import { SaveStatusBadge } from "@/components/data/save-status-badge"
 import { Button } from "@/components/ui/button"
@@ -51,6 +56,74 @@ function CoverLetterEditorLoaded({
   const resolvedStyle = useMemo(
     () => resolveStyleClasses(session.style),
     [session.style]
+  )
+
+  const replaceDocument = session.replaceDocument
+  const onDocumentReplace = useCallback(
+    (next: unknown) => {
+      replaceDocument(next as Parameters<typeof replaceDocument>[0])
+    },
+    [replaceDocument]
+  )
+
+  return (
+    <DocumentAssistantProvider
+      kind="cover_letter"
+      document={session.document}
+      i18nNs="cover-letter-editor"
+      onDocumentReplace={onDocumentReplace}
+    >
+      <CoverLetterEditorSessionBody
+        seed={seed}
+        session={session}
+        resolvedStyle={resolvedStyle}
+        isMobile={isMobile}
+        viewport={viewport}
+        t={t}
+      />
+    </DocumentAssistantProvider>
+  )
+}
+
+function CoverLetterEditorSessionBody({
+  seed,
+  session,
+  resolvedStyle,
+  isMobile,
+  viewport,
+  t,
+}: {
+  readonly seed: {
+    id: string
+    title: string
+    templateId: ReturnType<typeof parseEditorTemplateId>
+    style: ReturnType<typeof parseDocumentStyle>
+    document: ReturnType<typeof parseCoverLetterDocument>
+    shareToken?: string | null
+  }
+  readonly session: ReturnType<typeof useCoverLetterEditorSession>
+  readonly resolvedStyle: ReturnType<typeof resolveStyleClasses>
+  readonly isMobile: boolean
+  readonly viewport: ReturnType<typeof useCanvasViewport>
+  readonly t: ReturnType<typeof useTranslation>["t"]
+}) {
+  const assistant = useDocumentAssistant()
+  const canUseAi = session.permissions?.canUseAi !== false
+
+  const onAiBlock = useCallback(
+    (id: string) => {
+      if (!canUseAi) return
+      assistant.openWithMention(id)
+    },
+    [assistant, canUseAi]
+  )
+
+  const onAiAssist = useCallback(
+    (text: string) => {
+      if (!canUseAi) return
+      assistant.openWithAttachment(text, t("ai.attachment.selectedText"))
+    },
+    [assistant, canUseAi, t]
   )
 
   const saveLabels = useMemo(
@@ -107,79 +180,84 @@ function CoverLetterEditorLoaded({
 
   if (isMobile) {
     return (
-      <MobileEditor
-        document={session.document}
-        style={resolvedStyle}
-        documentStyle={session.style}
-        onStyleChange={session.updateStyle}
-        templateId={session.templateId}
-        onTemplateChange={session.selectTemplate}
-        handlers={session.handlers}
-      />
+      <DocumentAiAssistProvider onAiAssist={canUseAi ? onAiAssist : null}>
+        <MobileEditor
+          document={session.document}
+          style={resolvedStyle}
+          documentStyle={session.style}
+          onStyleChange={session.updateStyle}
+          templateId={session.templateId}
+          onTemplateChange={session.selectTemplate}
+          handlers={session.handlers}
+        />
+      </DocumentAiAssistProvider>
     )
   }
 
   return (
-    // Canvas column (secondary bar overlays dots) + rail as sibling so bar never covers panels.
-    <div className="flex h-full min-h-0">
-      <div className="relative min-h-0 min-w-0 flex-1">
-        <EditorSecondaryBar
-          className="absolute inset-x-0 top-0 z-20"
-          left={
-            <>
-              <div id="editor-tour-collab" className="flex items-center gap-2">
-                <PresenceAvatarStack
-                  self={session.collab.self}
+    <DocumentAiAssistProvider onAiAssist={canUseAi ? onAiAssist : null}>
+      <div className="flex h-full min-h-0 w-full">
+        <div id="editor-tour-rail" className="flex h-full min-h-0 w-full min-w-0">
+          <EditorRail
+            letterId={seed.id}
+            activeTemplateId={session.templateId}
+            onTemplateChange={session.selectTemplate}
+            style={session.style}
+            onStyleChange={session.updateStyle}
+            document={session.document}
+            handlers={session.handlers}
+            permissions={session.permissions}
+            onHistoryRestored={session.applyRestoredVersion}
+          >
+            <div className="relative h-full min-h-0 min-w-0">
+              <EditorSecondaryBar
+                className="absolute inset-x-0 top-0 z-20"
+                left={
+                  <>
+                    <div id="editor-tour-collab" className="flex items-center gap-2">
+                      <PresenceAvatarStack
+                        self={session.collab.self}
+                        peers={session.collab.peers}
+                      />
+                    </div>
+                    <BreadcrumbName
+                      value={session.letterName}
+                      onChange={session.setLetterName}
+                    />
+                    <SaveStatusBadge status={session.saveStatus} labels={saveLabels} />
+                  </>
+                }
+                right={
+                  <div id="editor-tour-actions">
+                    <EditorToolbarActions
+                      letterId={seed.id}
+                      title={session.letterName}
+                      permissions={session.permissions}
+                      preview={previewNode}
+                    />
+                  </div>
+                }
+              />
+              <div id="editor-tour-canvas" className="h-full min-h-0">
+                <EditorCanvas
+                  document={session.document}
+                  template={session.template}
+                  style={resolvedStyle}
+                  viewport={viewport}
+                  handlers={session.handlers}
+                  onAiBlock={canUseAi ? onAiBlock : undefined}
                   peers={session.collab.peers}
+                  sendCursor={session.collab.sendCursor}
+                  clearCursor={session.collab.clearCursor}
                 />
               </div>
-              <BreadcrumbName
-                value={session.letterName}
-                onChange={session.setLetterName}
-              />
-              <SaveStatusBadge status={session.saveStatus} labels={saveLabels} />
-            </>
-          }
-          right={
-            <div id="editor-tour-actions">
-              <EditorToolbarActions
-                letterId={seed.id}
-                title={session.letterName}
-                permissions={session.permissions}
-                preview={previewNode}
-              />
+              <EditorBottomBar viewport={viewport} history={session.history} />
             </div>
-          }
-        />
-        <div id="editor-tour-canvas" className="h-full min-h-0">
-          <EditorCanvas
-            document={session.document}
-            template={session.template}
-            style={resolvedStyle}
-            viewport={viewport}
-            handlers={session.handlers}
-            peers={session.collab.peers}
-            sendCursor={session.collab.sendCursor}
-            clearCursor={session.collab.clearCursor}
-          />
+          </EditorRail>
         </div>
-        <EditorBottomBar viewport={viewport} history={session.history} />
+        <DocumentEditorOnboarding />
       </div>
-      <div id="editor-tour-rail" className="flex h-full min-h-0 shrink-0">
-        <EditorRail
-          letterId={seed.id}
-          activeTemplateId={session.templateId}
-          onTemplateChange={session.selectTemplate}
-          style={session.style}
-          onStyleChange={session.updateStyle}
-          document={session.document}
-          handlers={session.handlers}
-          permissions={session.permissions}
-          onHistoryRestored={session.applyRestoredVersion}
-        />
-      </div>
-      <DocumentEditorOnboarding />
-    </div>
+    </DocumentAiAssistProvider>
   )
 }
 

@@ -30,7 +30,8 @@
     "analysis": "General analysis",
     "ai": "AI",
     "history": "History",
-    "collapse": "Collapse panel"
+    "collapse": "Collapse panel",
+    "resize": "Resize panel"
   },
   "history": {
     "title": "History",
@@ -132,7 +133,8 @@
     "list": "Bullet list",
     "link": "Link",
     "clear": "Clear formatting",
-    "linkPrompt": "Enter a URL"
+    "linkPrompt": "Enter a URL",
+    "aiAssist": "Ask AI about selection"
   },
   "grammar": {
     "apply": "Apply suggestion",
@@ -204,15 +206,48 @@
   },
   "ai": {
     "title": "AI assistant",
-    "description": "Rewrite, shorten, or tailor your resume in one click.",
-    "actions": {
-      "improve": "Improve writing",
-      "shorten": "Make shorter",
-      "tailor": "Tailor to job",
-      "grammar": "Fix grammar"
+    "description": "Chat about this resume. Use @ to focus a section.",
+    "greeting": "Hi! Ask me to improve any part of your resume.",
+    "placeholder": "Ask about your resume… (@ for sections)",
+    "newChat": "New chat",
+    "send": "Send",
+    "stop": "Stop generating",
+    "thinkingPlaceholder": "Reading your resume…",
+    "errorGeneric": "Something went wrong. Try again in a moment.",
+    "speech": {
+      "placeholderListening": "Listening — keep talking…",
+      "startListening": "Start voice input",
+      "stopListening": "Stop voice input"
     },
-    "promptPlaceholder": "Ask AI to edit your resume…",
-    "send": "Send"
+    "mention": {
+      "header": "Header",
+      "empty": "No matching sections",
+      "focusHint": "Focus: {{labels}}",
+      "listLabel": "Document sections",
+      "remove": "Remove @{{label}}"
+    },
+    "attachment": {
+      "selectedText": "Selected text",
+      "remove": "Remove attachment"
+    },
+    "suggestions": {
+      "improveClarity": "Make my summary clearer",
+      "addMetrics": "Add metrics to experience",
+      "shorten": "Make this more concise",
+      "strongerOpening": "Strengthen the opening",
+      "fixGrammar": "Fix grammar issues",
+      "tailorRole": "Tailor for a target role"
+    },
+    "replace": {
+      "requestTitle": "Replace text in {{location}}?",
+      "somewhere": "this document",
+      "current": "Current",
+      "proposed": "Proposed",
+      "approve": "Apply",
+      "reject": "Keep original",
+      "accepted": "Applied to your resume",
+      "rejected": "Kept the original text"
+    }
   },
   "analysis": {
     "title": "General analysis",
