@@ -1,4 +1,4 @@
-/** Strip tags for mention labels / AI context (browser DOMParser). */
+/** Strip tags for AI context / attachment text (browser DOMParser). */
 export function stripHtml(html: string): string {
   if (!html?.trim()) return ""
   const doc = new DOMParser().parseFromString(html, "text/html")

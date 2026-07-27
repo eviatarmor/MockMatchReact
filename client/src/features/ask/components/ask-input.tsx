@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ArrowUp, Square } from "lucide-react"
+import { appendTranscript } from "@/components/assistant"
 import { SpeechInput } from "@/components/ai-elements/speech-input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -15,14 +16,6 @@ type AskInputProps = {
   /** Bumped on New chat / send so speech session state resets. */
   readonly resetKey?: string | number
   readonly className?: string
-}
-
-function appendTranscript(current: string, next: string): string {
-  const piece = next.trim()
-  if (!piece) return current
-  const base = current.trimEnd()
-  if (!base) return piece
-  return `${base} ${piece}`
 }
 
 export function AskInput({
@@ -89,7 +82,7 @@ export function AskInput({
             isListening ? t("speech.placeholderListening") : t("placeholder")
           }
           rows={3}
-          className="min-h-[88px] max-h-48 resize-none border-0 bg-transparent px-4 py-4 pr-24 text-sidebar-foreground shadow-none placeholder:text-sidebar-foreground/45 focus-visible:border-transparent focus-visible:ring-0 dark:bg-transparent"
+          className="min-h-[88px] max-h-48 resize-none border-0 bg-transparent px-4 py-4 pr-24 text-sm leading-relaxed text-sidebar-foreground shadow-none placeholder:text-sidebar-foreground/45 focus-visible:border-transparent focus-visible:ring-0 dark:bg-transparent"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault()

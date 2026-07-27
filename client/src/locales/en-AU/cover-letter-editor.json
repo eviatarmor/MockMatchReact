@@ -63,15 +63,42 @@
     "title": "Templates",
     "description": "Switch layouts instantly — your content carries over.",
     "items": {
-      "modern": { "name": "Modern", "description": "Bold name, accent headings" },
-      "classic": { "name": "Classic", "description": "Centered, serif, rule lines" },
-      "minimal": { "name": "Minimal", "description": "Airy, small caps, no rules" },
-      "technical": { "name": "Technical", "description": "Mono accents, tight grid" },
-      "executive": { "name": "Executive", "description": "Large serif name, bold rule" },
-      "compact": { "name": "Compact", "description": "Dense, plain headings" },
-      "banner": { "name": "Banner", "description": "Accent color header band" },
-      "editorial": { "name": "Editorial", "description": "Oversized name, airy" },
-      "elegant": { "name": "Elegant", "description": "Centered small caps, serif" }
+      "modern": {
+        "name": "Modern",
+        "description": "Bold name, accent headings"
+      },
+      "classic": {
+        "name": "Classic",
+        "description": "Centered, serif, rule lines"
+      },
+      "minimal": {
+        "name": "Minimal",
+        "description": "Airy, small caps, no rules"
+      },
+      "technical": {
+        "name": "Technical",
+        "description": "Mono accents, tight grid"
+      },
+      "executive": {
+        "name": "Executive",
+        "description": "Large serif name, bold rule"
+      },
+      "compact": {
+        "name": "Compact",
+        "description": "Dense, plain headings"
+      },
+      "banner": {
+        "name": "Banner",
+        "description": "Accent color header band"
+      },
+      "editorial": {
+        "name": "Editorial",
+        "description": "Oversized name, airy"
+      },
+      "elegant": {
+        "name": "Elegant",
+        "description": "Centered small caps, serif"
+      }
     }
   },
   "style": {
@@ -82,10 +109,22 @@
     "headings": "Section headings",
     "density": "Density",
     "typefaces": {
-      "geist": { "name": "Geist Sans", "description": "Clean & modern" },
-      "sourceSerif": { "name": "Source Serif", "description": "Classic & warm" },
-      "newsreader": { "name": "Newsreader", "description": "Editorial headings" },
-      "mono": { "name": "Mono accent", "description": "Technical feel" }
+      "geist": {
+        "name": "Geist Sans",
+        "description": "Clean & modern"
+      },
+      "sourceSerif": {
+        "name": "Source Serif",
+        "description": "Classic & warm"
+      },
+      "newsreader": {
+        "name": "Newsreader",
+        "description": "Editorial headings"
+      },
+      "mono": {
+        "name": "Mono accent",
+        "description": "Technical feel"
+      }
     },
     "headingStyles": {
       "accent": "Accent",
@@ -168,9 +207,9 @@
   },
   "ai": {
     "title": "AI assistant",
-    "description": "Chat about this letter. Use @ to focus a section.",
+    "description": "Chat about this letter. Attach a selection or use the section AI icon to focus.",
     "greeting": "Hi! Ask me to improve any part of your cover letter.",
-    "placeholder": "Ask about your letter… (@ for sections)",
+    "placeholder": "Ask about your letter…",
     "newChat": "New chat",
     "send": "Send",
     "stop": "Stop generating",
@@ -180,15 +219,6 @@
       "placeholderListening": "Listening — keep talking…",
       "startListening": "Start voice input",
       "stopListening": "Stop voice input"
-    },
-    "mention": {
-      "header": "Header",
-      "sender": "Sender",
-      "recipient": "Recipient",
-      "empty": "No matching sections",
-      "focusHint": "Focus: {{labels}}",
-      "listLabel": "Letter sections",
-      "remove": "Remove @{{label}}"
     },
     "attachment": {
       "selectedText": "Selected text",

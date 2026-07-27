@@ -30,32 +30,35 @@ export function DocumentAssistantProvider({
 }: DocumentAssistantProviderProps) {
   const [openRequestKey, setOpenRequestKey] = useState(0)
   const [chatResetKey, setChatResetKey] = useState(0)
-  const [mentionIds, setMentionIds] = useState<string[]>([])
   const [attachments, setAttachments] = useState<TextAttachment[]>([])
-  const [pendingInsertId, setPendingInsertId] = useState<string | null>(null)
 
   const requestOpenAi = useCallback(() => {
     setOpenRequestKey((k) => k + 1)
   }, [])
 
+  /** Block AI icon → open rail + stage section body as attachment (no @ mentions). */
   const openWithMention = useCallback(
     (targetId: string) => {
       const id = targetId.trim()
       if (!id) return
-      // DiceUI inserts the in-field @ tag; mentionIds update via onValueChange.
-      setPendingInsertId(id)
-      // Also stage section body as an attachment (same chip as Lexical selection AI).
       const attachment = resolveTargetAttachment(kind, document, id)
       if (attachment) {
         setAttachments((prev) => {
-          // Replace any prior chip for the same section text to avoid stacking.
-          const withoutDup = prev.filter((a) => a.text !== attachment.text)
+          const withoutDup = prev.filter(
+            (a) =>
+              a.text !== attachment.text &&
+              a.targetId !== attachment.targetId
+          )
           return [
             ...withoutDup,
             {
               id: crypto.randomUUID(),
               title: attachment.title,
               text: attachment.text,
+              targetId: attachment.targetId,
+              primaryLabel: attachment.primaryLabel,
+              groupLabel: attachment.groupLabel,
+              icon: attachment.icon,
             },
           ]
         })
@@ -64,10 +67,6 @@ export function DocumentAssistantProvider({
     },
     [kind, document]
   )
-
-  const clearPendingInsert = useCallback(() => {
-    setPendingInsertId(null)
-  }, [])
 
   const openWithAttachment = useCallback((text: string, title?: string) => {
     const trimmed = text.trim()
@@ -83,25 +82,17 @@ export function DocumentAssistantProvider({
     setOpenRequestKey((k) => k + 1)
   }, [])
 
-  const removeMention = useCallback((id: string) => {
-    setMentionIds((prev) => prev.filter((x) => x !== id))
-  }, [])
-
   const removeAttachment = useCallback((id: string) => {
     setAttachments((prev) => prev.filter((a) => a.id !== id))
   }, [])
 
   const clearPending = useCallback(() => {
-    setMentionIds([])
     setAttachments([])
-    setPendingInsertId(null)
   }, [])
 
   const newChat = useCallback(() => {
     setChatResetKey((k) => k + 1)
-    setMentionIds([])
     setAttachments([])
-    setPendingInsertId(null)
     setOpenRequestKey((k) => k + 1)
   }, [])
 
@@ -127,11 +118,6 @@ export function DocumentAssistantProvider({
       requestOpenAi,
       openWithMention,
       openWithAttachment,
-      pendingInsertId,
-      clearPendingInsert,
-      mentionIds,
-      setMentionIds,
-      removeMention,
       attachments,
       removeAttachment,
       clearPending,
@@ -147,10 +133,6 @@ export function DocumentAssistantProvider({
       requestOpenAi,
       openWithMention,
       openWithAttachment,
-      pendingInsertId,
-      clearPendingInsert,
-      mentionIds,
-      removeMention,
       attachments,
       removeAttachment,
       clearPending,

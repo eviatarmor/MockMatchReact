@@ -32,12 +32,12 @@ application tracking, practice, and readiness insights.
    - General resume health score lives here; **job-specific ATS fit** is scored in Discover when matching a job.
    - Templates: browse role templates and start a new resume from one.
    - Editor: open a resume → canvas editor with sections, rich text, autosave, history, collab share, PDF export.
-   - In-editor **AI rail**: chat coach with \`@\` section mentions and selection attachments (not the same as this Ask product guide).
+   - In-editor **AI rail**: chat coach with selection/section attachments (not the same as this Ask product guide).
 
 2. **Cover Letters** (\`/cover-letters\`)
    - Same document lifecycle as resumes: list, create, import PDF, templates, editor, export PDF.
    - Editor supports tone/structure suited to cover letters.
-   - Same in-editor **AI rail** as the resume editor (\`@\` blocks / selection assist).
+   - Same in-editor **AI rail** as the resume editor (section + selection attachments).
 
 3. **Discover** (\`/discover\`)
    - Search/browse jobs (Adzuna when configured).

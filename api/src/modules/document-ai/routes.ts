@@ -14,7 +14,6 @@ import {
   buildDocumentAiSystemPrompt,
   type DocumentAiAttachment,
   type DocumentAiKind,
-  type DocumentAiMention,
 } from "./system-prompt.js"
 import { documentAiTools } from "./tools.js"
 
@@ -62,7 +61,6 @@ documentAiRoutes.post("/chat", async (c) => {
     messages?: UIMessage[]
     kind?: unknown
     document?: unknown
-    mentions?: DocumentAiMention[]
     attachments?: DocumentAiAttachment[]
   }
   try {
@@ -81,7 +79,6 @@ documentAiRoutes.post("/chat", async (c) => {
     return c.json({ error: "messages required" }, 400)
   }
 
-  const mentions = Array.isArray(body.mentions) ? body.mentions : []
   const attachments = Array.isArray(body.attachments) ? body.attachments : []
 
   // Cap history so free models stay within context / cost bounds.
@@ -101,7 +98,6 @@ documentAiRoutes.post("/chat", async (c) => {
       system: buildDocumentAiSystemPrompt({
         kind,
         document: body.document,
-        mentions,
         attachments,
       }),
       messages: modelMessages,

@@ -2,14 +2,6 @@ export type DocumentAiKind = "resume" | "cover_letter"
 
 const MAX_DOCUMENT_CHARS = 24_000
 const MAX_ATTACHMENT_CHARS = 4_000
-const MAX_MENTION_CONTEXT_CHARS = 6_000
-
-export type DocumentAiMention = {
-  id: string
-  label: string
-  kind?: string
-  context?: string
-}
 
 export type DocumentAiAttachment = {
   id: string
@@ -205,23 +197,10 @@ function serializeResumeSection(
 export function buildDocumentAiSystemPrompt(input: {
   kind: DocumentAiKind
   document: unknown
-  mentions?: DocumentAiMention[]
   attachments?: DocumentAiAttachment[]
 }): string {
   const kindLabel = input.kind === "resume" ? "resume" : "cover letter"
   const docText = serializeDocument(input.kind, input.document)
-
-  const mentionLines =
-    input.mentions && input.mentions.length > 0
-      ? input.mentions
-          .map((m) => {
-            const ctx = m.context?.trim()
-              ? truncate(m.context.trim(), MAX_MENTION_CONTEXT_CHARS / Math.max(input.mentions!.length, 1))
-              : "(no extra context)"
-            return `- @${m.label} [id=${m.id}${m.kind ? ` kind=${m.kind}` : ""}]\n  ${ctx}`
-          })
-          .join("\n")
-      : "(none)"
 
   const attachmentLines =
     input.attachments && input.attachments.length > 0
@@ -237,7 +216,7 @@ export function buildDocumentAiSystemPrompt(input: {
     `You are MockMatch Document AI — a writing coach inside the ${kindLabel} editor.`,
     "Help the user improve structure, clarity, impact, grammar, and tailoring.",
     "Be concise and practical.",
-    "When the user @-mentions a section or attaches selected text, prioritize that focus.",
+    "When the user attaches selected text or a section, prioritize that focus.",
     "Do not invent employment history, degrees, metrics, or employers the document does not support.",
     "Stay on resume/cover-letter writing topics. Decline unrelated harmful requests.",
     "",
@@ -245,7 +224,7 @@ export function buildDocumentAiSystemPrompt(input: {
     "You have a tool `replace_document_text` that proposes a find→replace in the live document.",
     "The user must approve each replacement in the UI before it is applied.",
     "Use the tool when the user wants a rewrite written into the document (e.g. improve this bullet, fix grammar, replace selection).",
-    "Set `find` to an exact contiguous substring from the current document (prefer the selected text or @-mentioned content).",
+    "Set `find` to an exact contiguous substring from the current document (prefer the selected or attached text).",
     "Set `replacement` to the improved text. Optionally set `targetId` and `locationLabel` for clarity.",
     "You may still explain the change in chat; do not claim the document was edited until the tool is approved.",
     "If no exact match exists, ask the user to select text or clarify instead of inventing a find string.",
@@ -253,10 +232,7 @@ export function buildDocumentAiSystemPrompt(input: {
     `## Current ${kindLabel} document`,
     docText,
     "",
-    "## Focus mentions (@)",
-    mentionLines,
-    "",
-    "## Selected text attachments",
+    "## Focus attachments",
     attachmentLines,
   ].join("\n")
 }

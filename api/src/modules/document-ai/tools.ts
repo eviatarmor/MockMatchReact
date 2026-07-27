@@ -15,7 +15,7 @@ export const replaceDocumentTextInputSchema = z.object({
     .string()
     .optional()
     .describe(
-      "Optional section/entry/block id from the document dump (or @ mention id) to limit the search."
+      "Optional section/entry/block id from the document dump to limit the search."
     ),
   locationLabel: z
     .string()
