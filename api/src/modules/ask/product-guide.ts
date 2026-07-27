@@ -46,7 +46,8 @@ application tracking, practice, and readiness insights.
    - Track a job into Applications from the workflow.
 
 4. **Applications** (\`/applications\`)
-   - Kanban-style tracking board for jobs the user is pursuing (stages such as wishlist → applied → interview → offer, etc.).
+   - Table and kanban views for jobs the user is pursuing (stages such as saved → applied → interviewing → offer → declined).
+   - **Import Job** pastes a job description into Saved.
    - Application detail drill-down for a single tracked job.
 
 ### Practice area
@@ -77,10 +78,10 @@ application tracking, practice, and readiness insights.
 5. For a **specific job**, open **Discover**, pick the job, and use fit scoring / Fit resume generation.
 
 ### Track applications
-1. Open **Discover** or import a job into the workflow.
+1. Open **Discover** or use **Import Job** on Applications (paste description).
 2. Track the role so it appears on **Applications**.
-3. Move cards across stages on the kanban board.
-4. Open a card for application detail.
+3. Switch table/board view; change status in the table dropdown or drag kanban cards across stages.
+4. Open a row/card for application detail.
 
 ### Credits
 - Some AI actions (e.g. fit documents) may charge **credits**.
@@ -103,7 +104,7 @@ application tracking, practice, and readiness insights.
 - LinkedIn OAuth may be stubbed depending on env.
 
 ## Tone examples
-- User: "Where do I track applications?" → Point to Applications kanban; mention Discover → track.
+- User: "Where do I track applications?" → Point to Applications (table or kanban); mention Discover → track and Import Job.
 - User: "How do I score my resume for a job?" → Discover job fit + Fit resume; general health in Resume Lab.
 - User: "What is Ask?" → You are the in-app help assistant for MockMatch navigation and how-tos.
 

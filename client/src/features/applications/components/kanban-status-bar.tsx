@@ -2,16 +2,8 @@ import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { SECONDARY_BAR_SURFACE_STUCK } from "@/components/document-editor"
 import { cn } from "@/lib/utils"
-import { TRACKING_STATUS_ORDER } from "../constants"
+import { STATUS_DOT_CLASS, TRACKING_STATUS_ORDER } from "../constants"
 import type { TrackingStatus } from "../types"
-
-const COLUMN_DOT_CLASS: Record<TrackingStatus, string> = {
-  saved: "bg-neutral-400",
-  applied: "bg-blue-500",
-  interviewing: "bg-amber-500",
-  offer: "bg-emerald-500",
-  declined: "bg-rose-500",
-}
 
 interface KanbanStatusBarProps {
   readonly counts: Readonly<Record<TrackingStatus, number>>
@@ -70,7 +62,7 @@ export function KanbanStatusBar({ counts, className }: KanbanStatusBarProps) {
               <span
                 className={cn(
                   "size-2 shrink-0 rounded-full",
-                  COLUMN_DOT_CLASS[status]
+                  STATUS_DOT_CLASS[status]
                 )}
                 aria-hidden
               />

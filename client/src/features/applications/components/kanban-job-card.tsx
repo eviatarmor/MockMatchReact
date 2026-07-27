@@ -32,6 +32,7 @@ import {
 import { useFitDocument } from "@/features/discover/hooks/use-fit-document"
 import { jobDetailPath, cacheJobSnapshot } from "@/features/discover/lib/job-snapshot"
 import { trackedJobToDiscover } from "@/features/discover/lib/tracked-to-discover"
+import { ApplicationMatchBadge } from "./application-match-badge"
 import { TrackingProgressDots } from "./tracking-progress-dots"
 import type { TrackedJob } from "../types"
 
@@ -52,8 +53,6 @@ export function KanbanJobCard({ job, onRemove }: KanbanJobCardProps) {
       state: { job: discoverJob, backTo: "/applications" },
     })
   }
-  const hasMatch = job.matchScore > 0
-
   function handleConfirmRemove() {
     setRemoveConfirmOpen(false)
     onRemove?.(job.id)
@@ -175,15 +174,9 @@ export function KanbanJobCard({ job, onRemove }: KanbanJobCardProps) {
           completedSteps={job.progressCompleted}
           activeStepIndex={job.activeStepIndex}
         />
-        {hasMatch && (
-          <span className="text-xs font-semibold text-foreground">
-            {job.matchScore}
-            <span className="font-normal text-muted-foreground">
-              {" "}
-              {t("discover.matchSuffix")}
-            </span>
-          </span>
-        )}
+        <ApplicationMatchBadge
+          score={job.matchScore > 0 ? job.matchScore : null}
+        />
       </div>
 
       {job.nextStep && (

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { FileText, Plus } from "lucide-react"
+import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -42,18 +42,13 @@ export function AddJobDialog({ trigger, onAdd }: AddJobDialogProps) {
           <DialogDescription>{t("applications.addJob.description")}</DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-2">
-          <label className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-            <FileText className="size-4 text-muted-foreground" />
-            {t("applications.addJob.pasteLabel")}
-          </label>
-          <Textarea
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            placeholder={t("applications.addJob.pastePlaceholder")}
-            className="min-h-48 resize-none"
-          />
-        </div>
+        <Textarea
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+          placeholder={t("applications.addJob.pastePlaceholder")}
+          className="min-h-48 resize-none"
+          aria-label={t("applications.addJob.pasteLabel")}
+        />
 
         <div className="-mx-4 -mb-4 flex flex-col-reverse gap-2 rounded-b-xl border-t bg-muted/50 p-4 sm:flex-row sm:justify-end">
           <DialogClose render={<Button variant="outline" className="cursor-pointer" />}>

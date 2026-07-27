@@ -1,4 +1,4 @@
-import type { EmailProviderDef } from "./types"
+import type { EmailProviderDef, TrackingStatus } from "./types"
 
 export {
   TRACKING_STATUS_ORDER,
@@ -6,6 +6,15 @@ export {
   TRACKING_STATUS_TRENDS,
   MOCK_TRACKED_JOBS,
 } from "@/features/discover/constants"
+
+/** Status color dots — shared by kanban header + table status select. */
+export const STATUS_DOT_CLASS: Record<TrackingStatus, string> = {
+  saved: "bg-neutral-400",
+  applied: "bg-blue-500",
+  interviewing: "bg-amber-500",
+  offer: "bg-emerald-500",
+  declined: "bg-rose-500",
+}
 
 export const EMAIL_PROVIDERS: readonly EmailProviderDef[] = [
   {

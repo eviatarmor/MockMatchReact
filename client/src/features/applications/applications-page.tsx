@@ -7,7 +7,12 @@ import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
 import { TableToolbar } from "@/components/dashboard/table-toolbar"
 import { EntityEmptyState } from "@/components/data/entity-empty-state"
+import {
+  ViewModeTabs,
+  type ListViewMode,
+} from "@/components/data/view-mode-tabs"
 import { TrackingKanban } from "./components/tracking-kanban"
+import { ApplicationsTable } from "./components/applications-table"
 import { EmailConnectBar } from "./components/email-connect-bar"
 import { ApplicationsWelcomeDialog } from "./components/applications-welcome-dialog"
 import { ApplicationsTour } from "./components/applications-tour"
@@ -19,7 +24,8 @@ import type { EmailProvider } from "./types"
 export function ApplicationsPageContent() {
   const { t } = useTranslation("common")
   const [search, setSearch] = useState("")
-  const { jobs, addFromPaste, untrack, replaceStatuses } = useTrackedJobs()
+  const [viewMode, setViewMode] = useState<ListViewMode>("table")
+  const { jobs, addFromPaste, untrack, replaceStatuses, updateStatus } = useTrackedJobs()
   const { connectedProvider, connect, disconnect } = useEmailConnect()
   const {
     welcomeOpen,
@@ -84,6 +90,9 @@ export function ApplicationsPageContent() {
           searchPlaceholder={t("dashboard.search.applications")}
           search={search}
           onSearchChange={setSearch}
+          filters={
+            <ViewModeTabs value={viewMode} onValueChange={setViewMode} />
+          }
           actions={
             <div id="applications-tour-import">
               <AddJobDialog
@@ -116,6 +125,12 @@ export function ApplicationsPageContent() {
               icon={Bookmark}
               title={t("applications.empty.noSearchTitle")}
               description={t("applications.empty.noSearchDescription")}
+            />
+          ) : viewMode === "table" ? (
+            <ApplicationsTable
+              jobs={filteredJobs}
+              onStatusChange={updateStatus}
+              onRemove={untrack}
             />
           ) : (
             <TrackingKanban

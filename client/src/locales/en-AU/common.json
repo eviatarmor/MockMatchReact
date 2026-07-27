@@ -67,7 +67,7 @@
       "generateResumeForJob": "Generate for a job based on past resumes",
       "importCoverLetter": "Import",
       "newCoverLetter": "New cover letter",
-      "importJob": "Import",
+      "importJob": "Import Job",
       "newJob": "New job",
       "newWorkflow": "New workflow",
       "startSimulation": "Start simulation",
@@ -590,6 +590,15 @@
     },
     "kanban": {
       "empty": "No applications"
+    },
+    "table": {
+      "columns": {
+        "job": "Job",
+        "status": "Status",
+        "match": "Match",
+        "location": "Location",
+        "nextStep": "Next step"
+      }
     },
     "addJob": {
       "title": "Import a job",
