@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { DocumentStatusBadge } from "@/components/data/document-status-badge"
 import { EntityRowActions } from "@/components/data/entity-row-actions"
-import { StaggerItem } from "@/components/ui/stagger"
 import { formatRelativeTime } from "@/lib/format-relative-time"
 import { avatarClassFor } from "@/lib/title-avatar"
 import { CoverLetterScoreBadge } from "./cover-letter-score-badge"
@@ -10,7 +9,6 @@ import type { CoverLetterItem } from "../types"
 
 interface CoverLetterTableRowProps {
   readonly coverLetter: CoverLetterItem
-  readonly index: number
   readonly onDelete: () => void
   readonly onExport: () => void
   readonly onDuplicate: () => void
@@ -22,7 +20,6 @@ interface CoverLetterTableRowProps {
 
 export function CoverLetterTableRow({
   coverLetter,
-  index,
   onDelete,
   onExport,
   onDuplicate,
@@ -38,11 +35,7 @@ export function CoverLetterTableRow({
   const openEditor = () => navigate(`/cover-letters/${coverLetter.id}`)
 
   return (
-    <StaggerItem
-      as="tr"
-      index={index}
-      className="group border-b border-border/40 transition-colors hover:bg-muted/5"
-    >
+    <tr className="group border-b border-border/40 transition-colors hover:bg-muted/5">
       <td className="py-3 px-4">
         <button type="button" onClick={openEditor} className="flex w-full items-center gap-3 text-left cursor-pointer">
           <div
@@ -88,6 +81,6 @@ export function CoverLetterTableRow({
           isDuplicating={isDuplicating}
         />
       </td>
-    </StaggerItem>
+    </tr>
   )
 }

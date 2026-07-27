@@ -34,7 +34,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { StaggerItem } from "@/components/ui/stagger"
 import { cn } from "@/lib/utils"
 import { useFitDocument } from "@/features/discover/hooks/use-fit-document"
 import { jobDetailPath, cacheJobSnapshot } from "@/features/discover/lib/job-snapshot"
@@ -45,14 +44,12 @@ import type { TrackedJob, TrackingStatus } from "../types"
 
 interface ApplicationsTableRowProps {
   readonly job: TrackedJob
-  readonly index: number
   readonly onStatusChange: (status: TrackingStatus) => void
   readonly onRemove: () => void
 }
 
 export function ApplicationsTableRow({
   job,
-  index,
   onStatusChange,
   onRemove,
 }: ApplicationsTableRowProps) {
@@ -81,11 +78,7 @@ export function ApplicationsTableRow({
   }
 
   return (
-    <StaggerItem
-      as="tr"
-      index={index}
-      className="group border-b border-border/40 transition-colors hover:bg-muted/5"
-    >
+    <tr className="group border-b border-border/40 transition-colors hover:bg-muted/5">
       <td className="py-3 px-4">
         <button
           type="button"
@@ -241,6 +234,6 @@ export function ApplicationsTableRow({
           </DialogContent>
         </Dialog>
       </td>
-    </StaggerItem>
+    </tr>
   )
 }

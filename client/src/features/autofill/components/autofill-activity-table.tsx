@@ -42,7 +42,7 @@ export function AutofillActivityTable({ rows }: AutofillActivityTableProps) {
               <th className="py-2 font-medium">{t("autofill.activity.columns.status")}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border/40">
+          <tbody className="entity-table-body divide-y divide-border/40">
             {rows.map((row) => (
               <tr key={row.id} className="group hover:bg-muted/5 transition-colors">
                 <td className="py-3 pr-6 text-sm font-semibold group-hover:text-primary transition-colors">{row.company}</td>

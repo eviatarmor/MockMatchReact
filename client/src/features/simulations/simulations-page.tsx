@@ -1,14 +1,50 @@
 import { useTranslation } from "react-i18next"
-import { Settings2 } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { History, Play } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
-import { SimulationTrackCard } from "./components/simulation-track-card"
-import { SimulationRecentSessions } from "./components/simulation-recent-sessions"
-import { INTERVIEW_TRACKS, MOCK_RECENT_SESSIONS } from "./constants"
+import { TableToolbar } from "@/components/dashboard/table-toolbar"
+import { EntityEmptyState } from "@/components/data/entity-empty-state"
+import { EntityListStates } from "@/components/data/entity-list-states"
+import { EntityTablePagination } from "@/components/data/entity-table-pagination"
+import { SessionTable } from "./components/session-table"
+import { TrackBrowserSection } from "./components/track-browser-section"
+import { useSessionsList } from "./hooks/use-sessions-list"
+import { FEATURED_TRACKS } from "./constants"
 
 export function SimulationsPageContent() {
   const { t } = useTranslation("common")
+  const navigate = useNavigate()
+  const list = useSessionsList()
+
+  const goToTracks = () => navigate("/simulations/tracks")
+
+  const emptyState = (
+    <EntityEmptyState
+      icon={History}
+      title={
+        list.hasActiveSearch
+          ? t("simulations.recentSessions.emptySearchTitle")
+          : t("simulations.recentSessions.emptyTitle")
+      }
+      description={
+        list.hasActiveSearch
+          ? t("simulations.recentSessions.emptySearchDescription")
+          : t("simulations.recentSessions.emptyDescription")
+      }
+      action={
+        list.hasActiveSearch
+          ? undefined
+          : {
+              label: t("dashboard.actions.startSimulation"),
+              icon: Play,
+              onClick: goToTracks,
+            }
+      }
+    />
+  )
 
   return (
     <DashboardPageShell title={t("simulations.title")}>
@@ -16,21 +52,47 @@ export function SimulationsPageContent() {
         <DashboardPageHeader
           title={t("simulations.title")}
           description={t("simulations.description")}
+        />
+
+        <TableToolbar
+          searchPlaceholder={t("dashboard.search.simulations")}
+          search={list.search}
+          onSearchChange={list.setSearch}
           actions={
-            <Button variant="outline" className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer">
-              <Settings2 className="size-4" />
-              <span className="hidden sm:inline">{t("simulations.configureRole")}</span>
+            <Button
+              variant="default"
+              className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
+              onClick={goToTracks}
+            >
+              <Play className="size-4" />
+              <span className="hidden sm:inline">{t("dashboard.actions.startSimulation")}</span>
             </Button>
           }
         />
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {INTERVIEW_TRACKS.map((track) => (
-            <SimulationTrackCard key={track.id} track={track} />
-          ))}
-        </div>
+        <EntityListStates
+          isError={list.isError}
+          isLoading={list.isLoading}
+          isEmpty={list.isEmpty}
+          errorMessage={t("simulations.recentSessions.loadError")}
+          loadingMessage={t("simulations.recentSessions.loading")}
+          emptyState={emptyState}
+        >
+          <SessionTable sessions={list.items} />
+          <EntityTablePagination
+            page={list.page}
+            totalPages={list.totalPages}
+            total={list.total}
+            onPageChange={list.setPage}
+            disabled={list.isFetching}
+          />
+        </EntityListStates>
 
-        <SimulationRecentSessions sessions={MOCK_RECENT_SESSIONS} />
+        <Separator className="my-2" />
+        <TrackBrowserSection
+          tracks={FEATURED_TRACKS}
+          browseAllTo="/simulations/tracks"
+        />
       </div>
     </DashboardPageShell>
   )

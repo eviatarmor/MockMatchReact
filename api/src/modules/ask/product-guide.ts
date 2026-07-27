@@ -51,7 +51,7 @@ application tracking, practice, and readiness insights.
    - Application detail drill-down for a single tracked job.
 
 ### Practice area
-5. **Simulations** (\`/simulations\`) — mock interview practice sessions (product surface; depth may still grow).
+5. **Simulations** (\`/simulations\`) — recent practice **sessions** (searchable list) plus a featured **interview tracks** strip; **Browse all** opens \`/simulations/tracks\` (question-bank style: sidebar filters for difficulty/format + searchable track table). Depth of live interviews may still grow.
 6. **Assessments** (\`/assessments\`) — structured assessments for readiness.
 7. **Question Bank** (\`/question-bank\`) — practice question library by domain/difficulty.
 

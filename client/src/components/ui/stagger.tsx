@@ -109,6 +109,9 @@ export type StaggerItemProps =
  * Set `entrance={false}` when the same identity remounts (e.g. kanban column move)
  * so the cascade does not re-run.
  *
+ * Prefer `EntityTable` / `tbody.entity-table-body` for table rows (CSS cascade).
+ * Use this component for cards, lists, kanban, and non-table rails.
+ *
  * @example
  * ```tsx
  * {jobs.map((job, i) => (
@@ -116,9 +119,6 @@ export type StaggerItemProps =
  *     <JobCard job={job} />
  *   </StaggerItem>
  * ))}
- *
- * // Table rows (valid HTML — no wrapper div)
- * <StaggerItem as="tr" index={i} className="...">...</StaggerItem>
  *
  * // Horizontal template strip
  * <StaggerItem index={i} direction="left">...</StaggerItem>

@@ -1,4 +1,9 @@
-import type { InterviewTrack, RecentSession } from "./types"
+import type {
+  DifficultyLevel,
+  InterviewTrack,
+  RecentSession,
+  TrackMetaKind,
+} from "./types"
 
 export const INTERVIEW_TRACKS: readonly InterviewTrack[] = [
   {
@@ -101,6 +106,23 @@ export const INTERVIEW_TRACKS: readonly InterviewTrack[] = [
     titleKey: "simulations.tracks.communication.title",
     descriptionKey: "simulations.tracks.communication.description",
   },
+] as const
+
+/** Featured strip on hub — first five tracks. */
+export const FEATURED_TRACKS: readonly InterviewTrack[] = INTERVIEW_TRACKS.slice(0, 5)
+
+export const TRACK_DIFFICULTIES: readonly DifficultyLevel[] = [
+  "adaptive",
+  "easy",
+  "medium",
+  "hard",
+] as const
+
+export const TRACK_META_KINDS: readonly TrackMetaKind[] = [
+  "questions",
+  "problems",
+  "prompt",
+  "cases",
 ] as const
 
 export const MOCK_RECENT_SESSIONS: readonly RecentSession[] = [

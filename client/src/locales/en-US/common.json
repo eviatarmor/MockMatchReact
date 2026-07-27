@@ -1065,8 +1065,7 @@
   "simulations": {
     "documentTitle": "Simulations — MockMatch",
     "title": "Simulations",
-    "description": "Practice role-specific interviews with an AI interviewer. Pick a track to begin.",
-    "configureRole": "Configure role",
+    "description": "Review past practice sessions and start a new interview track when you are ready.",
     "startPractice": "Start practice",
     "interviewTracksLabel": "Interview tracks",
     "difficulty": {
@@ -1083,8 +1082,7 @@
     },
     "recentSessions": {
       "title": "Recent sessions",
-      "description": "Your last four practice runs and how they scored.",
-      "viewAll": "View all",
+      "description": "Your practice runs and how they scored.",
       "columns": {
         "role": "Role",
         "track": "Track",
@@ -1098,6 +1096,34 @@
         "completed": "Completed",
         "in_progress": "In progress",
         "abandoned": "Abandoned"
+      },
+      "emptyTitle": "No sessions yet",
+      "emptyDescription": "Start a simulation track to practice with an AI interviewer.",
+      "emptySearchTitle": "No matching sessions",
+      "emptySearchDescription": "Try a different search term, or clear the search to see all sessions.",
+      "loading": "Loading sessions…",
+      "loadError": "Could not load sessions. Try again."
+    },
+    "tracksBrowser": {
+      "title": "Interview tracks",
+      "description": "Pick a practice format — behavioral, coding, system design, and more.",
+      "browseAll": "Browse all",
+      "browseTitle": "Browse interview tracks",
+      "browseBackLink": "Back to Simulations",
+      "browseDescription": "{{count}} interview tracks. Filter by difficulty or format.",
+      "searchPlaceholder": "Search tracks...",
+      "noResults": "No tracks found",
+      "columns": {
+        "track": "Track",
+        "format": "Format",
+        "difficulty": "Difficulty",
+        "duration": "Duration",
+        "action": "Action"
+      },
+      "filters": {
+        "title": "Filters",
+        "difficulty": "Difficulty",
+        "format": "Format"
       }
     },
     "tracks": {

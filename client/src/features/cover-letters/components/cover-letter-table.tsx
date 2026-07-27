@@ -38,11 +38,10 @@ export function CoverLetterTable({
   return (
     <>
       <EntityTable columns={columns} isEmpty={false} emptyMessage="">
-        {coverLetters.map((coverLetter, index) => (
+        {coverLetters.map((coverLetter) => (
           <CoverLetterTableRow
             key={coverLetter.id}
             coverLetter={coverLetter}
-            index={index}
             onDelete={() => onDelete(coverLetter)}
             onExport={() => onExport(coverLetter)}
             onDuplicate={() => onDuplicate(coverLetter)}

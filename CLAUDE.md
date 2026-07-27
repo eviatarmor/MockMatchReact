@@ -171,36 +171,39 @@ Exception: small self-contained UI animations (e.g. `ReadinessSummaryCard`'s rol
 ### UI components — shadcnspace first
 All new UI must come from **shadcnspace** (`mcp__shadcnspace-mcp__*` — `searchBlocks`/`listComponents` then `getBlockInstall`, installed via `npx shadcn@latest add @shadcn-space/<name>`) into `components/shadcn-space/<category>/`. Only fall back to plain **shadcn/ui** (`npx shadcn@latest add <component>` into `components/ui/`) when no shadcnspace equivalent exists. Do not hand-roll custom UI primitives (e.g. a bespoke `animated-text` component) when a shadcnspace/shadcn block covers it — `components/shadcn-space/animated-text/animated-text-04.tsx` (rolling text) is the pattern used by `ReadinessSummaryCard`.
 
-### List / grid entrance — `StaggerItem` (required for similar UIs)
-Shared fast cascade for lists, tables, and horizontal strips. **Do not re-implement** per-feature `motion` delays — use the library.
+### List / grid entrance — `StaggerItem` + table body stagger
+Shared fast cascade for lists and horizontal strips. **Do not re-implement** per-feature `motion` delays.
 
-- **Module:** `@/components/ui/stagger` (`StaggerItem`, `STAGGER`, `staggerDelay`, `staggerTransition`)
-- **Stack:** `motion` (already a client dep). First `STAGGER.count` (12) items delay by `index * STAGGER.delay` (0.04s); later indices mount with delay `0` (infinite scroll / long pages).
-- **API:** `index` required; `as` = `"div"` | `"tr"` | `"li"` (use `as="tr"` for table rows — never wrap `<tr>` in a `<div>`); `direction` = `"up"` | `"down"` | `"left"` | `"right"` (default `"up"`).
+- **Cards / lists / strips:** `@/components/ui/stagger` (`StaggerItem`, `STAGGER`, `staggerDelay`, `staggerTransition`)
+- **Tables:** cascade is built into `EntityTable` via `tbody.entity-table-body` CSS (see `client/src/index.css`). Values match `STAGGER` (first 12 rows). Row components render plain `<tr>` — **do not** wrap table rows in `StaggerItem`. Custom tables that are not `EntityTable` should put `entity-table-body` on their `<tbody>`.
+- **Stack:** `motion` (already a client dep). First `STAGGER.count` (12) items delay by `index * STAGGER.delay` (0.04s); later indices mount with delay `0`.
+- **API (non-table):** `index` required; `as` = `"div"` | `"li"` (default `"div"`); `direction` = `"up"` | `"down"` | `"left"` | `"right"` (default `"up"`).
 
 ```tsx
 import { StaggerItem } from "@/components/ui/stagger"
+import { EntityTable } from "@/components/data/entity-table"
 
-// Vertical list / table
+// Vertical list / card grid
 {items.map((item, i) => (
   <StaggerItem key={item.id} index={i}>{/* card */}</StaggerItem>
 ))}
-// Table rows
-<StaggerItem as="tr" index={i} className="...">...</StaggerItem>
+// Table — stagger is automatic; rows are plain <tr>
+<EntityTable columns={columns} isEmpty={false} emptyMessage="">
+  {items.map((item) => (
+    <tr key={item.id} className="...">...</tr>
+  ))}
+</EntityTable>
 // Horizontal template / card strip
 <StaggerItem index={i} direction="left">...</StaggerItem>
 ```
 
 **Already wired**
-| Surface | Direction / notes |
-|---------|-------------------|
-| Discover job list | `up` |
-| Resume Lab + Cover Letters tables | `as="tr"`, `up` |
-| Template strip + full template browse | `left` (re-stagger on filter key ok) |
-
-**Planned / use same pattern**
-- **Applications kanban** (`features/applications` — `tracking-kanban.tsx` / `kanban-job-card.tsx`): stagger cards on column mount (per-column `index`, usually `direction="up"`). Avoid fighting `@dnd-kit` drag transforms — animate entrance only, not while dragging.
-- Any new entity list, table body, or horizontal card rail should use `StaggerItem` by default.
+| Surface | Notes |
+|---------|--------|
+| All `EntityTable` surfaces | Auto row cascade via `.entity-table-body` |
+| Discover job list | `StaggerItem` `up` |
+| Template strip + full template browse | `StaggerItem` `left` |
+| Applications kanban | `StaggerItem` on cards (not while dragging) |
 
 **Do not use for:** Magic UI `progressive-blur` on page-scroll lists (bleeds borders / sticky hacks) — only if content lives in a **fixed-height clipped scroller**. Magic UI `AnimatedList` is for landing-page notification demos (reverses order) — not product data lists.
 

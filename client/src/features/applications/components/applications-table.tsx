@@ -27,11 +27,10 @@ export function ApplicationsTable({
 
   return (
     <EntityTable columns={columns} isEmpty={false} emptyMessage="">
-      {jobs.map((job, index) => (
+      {jobs.map((job) => (
         <ApplicationsTableRow
           key={job.id}
           job={job}
-          index={index}
           onStatusChange={(status) => onStatusChange(job.id, status)}
           onRemove={() => onRemove(job.id)}
         />

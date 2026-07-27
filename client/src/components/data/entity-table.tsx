@@ -12,13 +12,30 @@ interface EntityTableProps {
   readonly isEmpty: boolean
   readonly emptyMessage: string
   readonly children: ReactNode // <tr> rows for the table body
+  readonly className?: string
 }
 
-// Card-framed table shell: shared header row, body, and empty state. Callers
-// own the row markup so each entity renders its own columns.
-export function EntityTable({ columns, isEmpty, emptyMessage, children }: EntityTableProps) {
+/**
+ * Card-framed table shell: shared header, body, empty state.
+ *
+ * Row entrance stagger is applied here via `.entity-table-body` (see index.css) —
+ * row components should render plain `<tr>`, not `StaggerItem as="tr"`.
+ * Matches `STAGGER` in `@/components/ui/stagger` (first 12 rows cascade).
+ */
+export function EntityTable({
+  columns,
+  isEmpty,
+  emptyMessage,
+  children,
+  className,
+}: EntityTableProps) {
   return (
-    <div className="w-full overflow-x-auto rounded-xl border bg-card shadow-sm">
+    <div
+      className={cn(
+        "w-full overflow-x-auto rounded-xl border bg-card shadow-sm",
+        className
+      )}
+    >
       <table className="w-full border-collapse text-left">
         <thead>
           <tr className="border-b border-border bg-muted/5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground select-none">
@@ -29,7 +46,7 @@ export function EntityTable({ columns, isEmpty, emptyMessage, children }: Entity
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-border/40">
+        <tbody className="entity-table-body divide-y divide-border/40">
           {isEmpty ? (
             <tr>
               <td colSpan={columns.length} className="py-8 text-center text-sm text-muted-foreground">

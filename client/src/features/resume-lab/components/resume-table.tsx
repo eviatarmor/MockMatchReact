@@ -38,11 +38,10 @@ export function ResumeTable({
   return (
     <>
       <EntityTable columns={columns} isEmpty={false} emptyMessage="">
-        {resumes.map((resume, index) => (
+        {resumes.map((resume) => (
           <ResumeTableRow
             key={resume.id}
             resume={resume}
-            index={index}
             onDelete={() => onDelete(resume)}
             onExport={() => onExport(resume)}
             onDuplicate={() => onDuplicate(resume)}

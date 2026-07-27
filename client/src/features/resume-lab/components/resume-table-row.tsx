@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { DocumentStatusBadge } from "@/components/data/document-status-badge"
 import { EntityRowActions } from "@/components/data/entity-row-actions"
-import { StaggerItem } from "@/components/ui/stagger"
 import { formatRelativeTime } from "@/lib/format-relative-time"
 import { avatarClassFor } from "@/lib/title-avatar"
 import { ResumeScoreBadge } from "./resume-score-badge"
@@ -10,7 +9,6 @@ import type { ResumeItem } from "../types"
 
 interface ResumeTableRowProps {
   readonly resume: ResumeItem
-  readonly index: number
   readonly onDelete: () => void
   readonly onExport: () => void
   readonly onDuplicate: () => void
@@ -22,7 +20,6 @@ interface ResumeTableRowProps {
 
 export function ResumeTableRow({
   resume,
-  index,
   onDelete,
   onExport,
   onDuplicate,
@@ -38,11 +35,7 @@ export function ResumeTableRow({
   const openEditor = () => navigate(`/resumes/${resume.id}`)
 
   return (
-    <StaggerItem
-      as="tr"
-      index={index}
-      className="group border-b border-border/40 transition-colors hover:bg-muted/5"
-    >
+    <tr className="group border-b border-border/40 transition-colors hover:bg-muted/5">
       <td className="py-3 px-4">
         <button type="button" onClick={openEditor} className="flex w-full items-center gap-3 text-left cursor-pointer">
           <div
@@ -85,6 +78,6 @@ export function ResumeTableRow({
           isDuplicating={isDuplicating}
         />
       </td>
-    </StaggerItem>
+    </tr>
   )
 }
