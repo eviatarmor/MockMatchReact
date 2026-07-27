@@ -5,7 +5,7 @@ let stripeClient: Stripe | null = null
 
 function stripeSecret(): string {
   const key = env.STRIPE_SECRET_KEY.trim()
-  // Terraform placeholders use "UNSET" until real secrets are added.
+  // Placeholder "UNSET" treated as missing until real secrets are added.
   if (!key || key === "UNSET") return ""
   return key
 }

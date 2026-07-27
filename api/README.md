@@ -51,22 +51,22 @@ LinkedIn OAuth secrets: `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`, `LINKEDI
 
 Schema ER diagram: `npm run db:schema:mermaid` → `api/docs/schema.md`.
 
-### Docker / K8s
+### Docker
 
 ```bash
 docker build -f api/Dockerfile -t mockmatch-api .
 ```
 
 Probes: `GET /health` (liveness), `GET /ready` (Postgres + Redis).  
-Production stack: `infra/terraform/` (DOKS + GCP Secret Manager).
+No production host stack in-repo yet (local Compose only).
 
 ## Event-driven path
 
-| Local | Production |
-|-------|------------|
-| Redis + BullMQ | DO managed Valkey + same BullMQ |
+| Local | Production (when hosted) |
+|-------|--------------------------|
+| Redis + BullMQ | Managed Redis + same BullMQ |
 | Outbox table | Same pattern; relay task |
-| Postgres Docker | DO managed Postgres (private VPC) |
-| Worker process | DOKS `worker` Deployment |
+| Postgres Docker | Managed Postgres |
+| Worker process | Separate worker process / service |
 
 Domain events live in `src/events/`. Publish via `EventBus`.

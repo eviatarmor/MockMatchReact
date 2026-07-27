@@ -29,7 +29,7 @@ In-app **Ask** chat (navbar) uses a free OpenRouter model and a product system p
 
 MockMatch — interview prep app (resume scoring, AI mock interviews, readiness tracking). Monorepo: React client + Hono/tRPC API scaffold + Docker infra.
 
-Workspaces: `client/`, `api/`, `packages/*`. Local infra: `infra/` (Postgres+pgvector+pgaudit, Redis, optional Drizzle Studio). Production: `infra/terraform/` (DOKS + managed Postgres/Valkey + GCP Secret Manager).
+Workspaces: `client/`, `api/`, `packages/*`. Local infra: `infra/` (Postgres+pgvector+pgaudit, Redis). Production hosting: TBD (DigitalOcean / Terraform removed).
 
 ## Project memory (durable decisions)
 
@@ -38,20 +38,20 @@ Detailed memories live in **`.claude/rules/`** (and mirror **`.grok/rules/`**). 
 | File | Topic |
 |------|--------|
 | `domain-auth-concepts.md` | JWT, refresh, OTP, oauth_accounts, outbox, Redis vs Postgres |
-| `stateless-api-contract.md` | Multi-replica / K8s hard rules, probes, prod env guards |
-| `infra-production.md` | Terraform layout, DOKS, GCP SM, LinkedIn secrets, phases |
-| `ops-checklist.md` | Local + prod ordered steps (migrate, apply, image, DNS) |
+| `stateless-api-contract.md` | Multi-replica hard rules, probes, prod env guards |
+| `infra-production.md` | Local vs prod status (prod TBD; DO removed) |
+| `ops-checklist.md` | Local boot steps |
 
 ### Auth state placement (do not reverse)
 
 - **Access JWT** — client only; verify in-process (stateless hot path)
 - **Refresh token hash + OTP** — **Redis** (`api/src/lib/auth-store.ts`); enables any API replica
-- **users / oauth_accounts** — **Postgres**; oauth rows created at runtime only (never TF seed)
+- **users / oauth_accounts** — **Postgres**; oauth rows created at runtime only (never seed via IaC)
 - Tables `otp_challenges` / `refresh_tokens` **removed** (migration `0001`)
 
-### Stateless + K8s intent
+### Stateless multi-replica intent
 
-API must stay **process-stateless** for easy DOKS/HPA and future WebSocket autoscaling. Shared state only in Redis/Postgres/object storage. No sticky sessions for REST. Future `ws` Deployment uses Redis pub/sub adapter.
+API must stay **process-stateless** for horizontal scaling and future WebSocket autoscaling. Shared state only in Redis/Postgres/object storage. No sticky sessions for REST. Future `ws` service uses Redis pub/sub adapter.
 
 ### Schema diagram
 
@@ -98,7 +98,7 @@ npm run db:schema:mermaid
 
 Docker API image (repo root): `docker build -f api/Dockerfile -t mockmatch-api .`
 
-Prod Terraform: see `infra/terraform/README.md` and `.claude/rules/ops-checklist.md`.
+Local ops: see `infra/README.md` and `.claude/rules/ops-checklist.md`. No production provider stack in-repo.
 
 No test runner is configured yet.
 
@@ -120,8 +120,8 @@ No test runner is configured yet.
 - LinkedIn OAuth env slots; handlers may still be stubs
 
 **Infra** (`infra/`)
-- Local: docker-compose postgres (pgvector + pgaudit) + redis
-- Prod: Terraform DOKS + managed Postgres/Valkey + DOCR + GCP Secret Manager + ESO + ingress-nginx/cert-manager (`infra/terraform/`)
+- Local only: docker-compose postgres (pgvector + pgaudit) + redis
+- Production: TBD (DigitalOcean / Terraform removed)
 
 ### Path aliases (`@/*` → `client/src/*`)
 - `@/features` — feature modules (route content, panels, hooks, types, constants)

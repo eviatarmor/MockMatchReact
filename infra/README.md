@@ -19,12 +19,6 @@ Init SQL runs only on first volume create. Re-init: `docker compose -f infra/doc
 
 API / worker / Drizzle Studio run on the host (`npm run dev`, etc.) — not in Compose.
 
-## Production (Terraform)
+## Production
 
-See **[terraform/README.md](./terraform/README.md)**.
-
-- DigitalOcean: VPC, managed Postgres, managed Valkey, DOKS, DOCR, ingress LB  
-- GCP: Secret Manager (+ SA for External Secrets)  
-- Stateless API: OTP + refresh token hashes in Valkey; identity in Postgres  
-
-K8s workload conventions / future WebSocket notes: **[k8s/README.md](./k8s/README.md)**.
+No production provider stack in-repo yet (DigitalOcean / Terraform removed). Local Compose only for now.

@@ -1,14 +1,14 @@
-# Stateless API contract (K8s-ready)
+# Stateless API contract (multi-replica ready)
 
-Hard rules for all API / worker / future WebSocket work. Violating these makes multi-replica and DOKS hard.
+Hard rules for all API / worker / future WebSocket work. Violating these makes horizontal scaling hard on any host.
 
 ## Rules
 
 1. **No in-process session state** — no module-level Maps for sessions, OTP, refresh allowlists.
-2. **No local disk for user data** — uploads → S3/Spaces signed URLs.
-3. **Config via env only** — secrets from env / K8s Secret (GCP SM via External Secrets).
+2. **No local disk for user data** — uploads → object storage signed URLs.
+3. **Config via env only** — secrets from env / platform secret store.
 4. **Access JWT** — verify only; no DB/Redis on hot path.
-5. **Refresh / OTP / logout** — shared Redis so any pod works.
+5. **Refresh / OTP / logout** — shared Redis so any replica works.
 6. **BullMQ** — Redis-backed queues only.
 7. **No sticky sessions** for REST/tRPC. WebSockets: prefer Redis pub/sub adapter over stickiness.
 8. **Health probes**
@@ -20,9 +20,9 @@ Hard rules for all API / worker / future WebSocket work. Violating these makes m
 ## Scaling model
 
 ```
-Ingress → api Deployment (HPA)     # stateless REST/tRPC
-       → worker Deployment         # BullMQ consumers
-       → ws Deployment (future)    # sockets + Redis adapter
+Load balancer → api (HPA / multi-instance)   # stateless REST/tRPC
+             → worker                         # BullMQ consumers
+             → ws (future)                    # sockets + Redis adapter
 ```
 
 Adding WS autoscaling must **not** require redesigning auth storage if Redis rules above hold.

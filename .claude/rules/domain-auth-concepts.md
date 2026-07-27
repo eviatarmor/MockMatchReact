@@ -26,7 +26,7 @@ Permanent project memory. Keep when changing auth, infra, or schema.
 ### OAuth accounts (`oauth_accounts` table)
 - **Runtime** link: MockMatch `users.id` ↔ IdP (`provider` + `provider_user_id`).
 - UNIQUE(`provider`, `provider_user_id`).
-- Created on successful OAuth callback — **never seed via Terraform/SQL init**.
+- Created on successful OAuth callback — **never seed via IaC/SQL init**.
 - LinkedIn only for now; routes under `/auth/oauth/*` may still be stubs until handlers land.
 - Secrets: `LINKEDIN_CLIENT_ID`, `LINKEDIN_CLIENT_SECRET`, `LINKEDIN_REDIRECT_URI` (prod via GCP Secret Manager).
 
