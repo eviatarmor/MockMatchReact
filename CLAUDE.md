@@ -36,7 +36,7 @@ Workspaces: `client/`, `api/`, `packages/*` (`schemas`, `ui`, `ai-chat`). Local 
 | Package | Path | Role |
 |---------|------|------|
 | `@mockmatch/schemas` | `packages/schemas` | Shared Zod DTOs (API + client) |
-| `@mockmatch/ui` | `packages/ui` | shadcn primitives + shadcnspace blocks + `cn()` — shared by web + future extensions |
+| `@mockmatch/ui` | `packages/ui` | Shared UI kits: `src/shadcn/`, `src/shadcn-space/`, `src/kibo-ui/` + `cn()` — web + future extensions |
 | `@mockmatch/ai-chat` | `packages/ai-chat` | Product-agnostic chat shell (hooks + message UI); host supplies transport/labels. Later OSS extract. |
 
 Imports: `@mockmatch/ui/button`, `@mockmatch/ai-chat`, `@mockmatch/ai-chat/ai-elements/speech-input`. Theme CSS tokens stay in the host (`client/src/index.css`); Tailwind must `@source` package `src/**` (paths relative to `client/src`: `../../packages/<name>/src/**/*.{ts,tsx}`).
@@ -45,7 +45,7 @@ Imports: `@mockmatch/ui/button`, `@mockmatch/ai-chat`, `@mockmatch/ai-chat/ai-el
 
 | Kind | Destination | Rule |
 |------|-------------|------|
-| **UI library / primitives** | `packages/ui` | **Always.** New shadcn/magic-ui primitives → `packages/ui/src/`; shadcnspace blocks → `packages/ui/src/shadcn-space/<category>/`. Never `client/src/components/ui/` or `client/src/components/shadcn-space/`. Import `@mockmatch/ui/<name>` or `@mockmatch/ui/shadcn-space/...`. After add: relative imports inside package; Tailwind `@source` already covers `packages/ui/src/**`. |
+| **UI library / primitives** | `packages/ui` | **Always.** Folder by registry: shadcn/magic-ui → `packages/ui/src/shadcn/`; shadcnspace → `packages/ui/src/shadcn-space/<category>/`; kibo-ui → `packages/ui/src/kibo-ui/`. Never install into `client/src/components/`. Imports: `@mockmatch/ui/<name>` or `@mockmatch/ui/shadcn/<name>` (shadcn), `@mockmatch/ui/shadcn-space/...`, `@mockmatch/ui/kibo-ui/...`. After add: relative imports; Tailwind `@source` covers `packages/ui/src/**`. |
 | **Reusable product-agnostic shells** (chat, etc.) | `packages/*` | Extract when host-agnostic (web + extensions). See `@mockmatch/ai-chat`. |
 | **Heavy surface engines** (IDE-like editor, whiteboard/canvas, spreadsheet/Excel-like grid, code playground, diagram tool, etc.) | `packages/*` (new package) | **Do not invent package layout alone.** If building or extracting something in this class, **stop and ask the user** (name, scope, peers, stay monorepo vs OSS later). Then scaffold under `packages/` only after confirmation. |
 | **App-only feature UI** | `client/src/features/` or `client/src/components/` | MockMatch-specific chrome, pages, dashboard, product adapters. |
@@ -147,7 +147,7 @@ No test runner is configured yet.
 ### Path aliases (`@/*` → `client/src/*`)
 - `@/features` — feature modules (route content, panels, hooks, types, constants)
 - `@/components` — shared, cross-feature components (e.g. `@/components/icons`)
-- `@mockmatch/ui` — shadcn primitives (button, input, label, checkbox, separator, card); live in `packages/ui`
+- `@mockmatch/ui` — UI kits in `packages/ui` (`src/shadcn/`, `shadcn-space/`, `kibo-ui/`)
 - `@/lib` — utilities and cross-cutting setup (e.g. `@/lib/i18n`)
 - `@/hooks` — shared cross-feature hooks
 - `@/locales` — i18next translation resource files
@@ -190,7 +190,7 @@ Exception: small self-contained UI animations (e.g. `ReadinessSummaryCard`'s rol
 - API scaffold exists (`api/`) with tRPC stubs; client forms still use dummy timeouts until auth is wired to `trpc.auth.*`.
 
 ### UI components — shadcnspace first
-All new UI must come from **shadcnspace** (`mcp__shadcnspace-mcp__*` — `searchBlocks`/`listComponents` then `getBlockInstall`, installed via `npx shadcn@latest add @shadcn-space/<name>`). **Primitives and shadcnspace blocks go in `packages/ui/`** — shadcn → `packages/ui/src/`, shadcnspace → `packages/ui/src/shadcn-space/<category>/`. Import `@mockmatch/ui/...` or `@mockmatch/ui/shadcn-space/...`. Never install into `client/src/components/ui/` or `client/src/components/shadcn-space/`. Only fall back to plain **shadcn/ui** when no shadcnspace equivalent exists. Do not hand-roll custom UI primitives (e.g. a bespoke `animated-text` component) when a shadcnspace/shadcn block covers it — `packages/ui/src/shadcn-space/` (e.g. number-ticker) is the pattern used by `ReadinessSummaryCard`.
+All new UI must come from **shadcnspace** (`mcp__shadcnspace-mcp__*` — `searchBlocks`/`listComponents` then `getBlockInstall`, installed via `npx shadcn@latest add @shadcn-space/<name>`), or other registries (kibo-ui, magic-ui) when needed. **All registry UI goes in `packages/ui/src/` by kit folder** — shadcn/magic-ui → `shadcn/`, shadcnspace → `shadcn-space/<category>/`, kibo-ui → `kibo-ui/`. Import `@mockmatch/ui/...` (shadcn short paths stay `@mockmatch/ui/button`). Never install into `client/src/components/`. Only fall back to plain **shadcn/ui** when no shadcnspace equivalent exists. Do not hand-roll custom UI primitives when a registry block covers it.
 
 ### List / grid entrance — `StaggerItem` + table body stagger
 Shared fast cascade for lists and horizontal strips. **Do not re-implement** per-feature `motion` delays.

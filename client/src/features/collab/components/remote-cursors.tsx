@@ -1,4 +1,4 @@
-import { Cursor } from "@/components/kibo-ui/cursor"
+import { Cursor } from "@mockmatch/ui/kibo-ui/cursor"
 import type { CollabPeer } from "../types"
 
 interface RemoteCursorsProps {

@@ -16,8 +16,10 @@
     },
     "./lib/*": "./src/lib/*.ts",
     "./hooks/*": "./src/hooks/*.ts",
+    "./shadcn/*": "./src/shadcn/*.tsx",
     "./shadcn-space/*": "./src/shadcn-space/*.tsx",
-    "./*": "./src/*.tsx"
+    "./kibo-ui/*": "./src/kibo-ui/*.tsx",
+    "./*": "./src/shadcn/*.tsx"
   },
   "peerDependencies": {
     "react": "^19.0.0",
