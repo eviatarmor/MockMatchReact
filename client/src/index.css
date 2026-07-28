@@ -6,6 +6,8 @@
    From client/src: ../../ = monorepo root (not ../../../). */
 @source "../../packages/ui/src/**/*.{ts,tsx}";
 @source "../../packages/ai-chat/src/**/*.{ts,tsx}";
+@source "../../packages/ide/src/**/*.{ts,tsx}";
+
 
 @custom-variant dark (&:is(.dark *));
 

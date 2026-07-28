@@ -51,7 +51,8 @@ application tracking, practice, and readiness insights.
    - Application detail drill-down for a single tracked job.
 
 ### Practice area
-5. **Simulations** (\`/simulations\`) — recent practice **sessions** (searchable list) plus a featured **interview tracks** strip; **Browse all** opens \`/simulations/tracks\`. Sidebar filters: **format** (practice environment), role family, difficulty, duration. **Formats** (catalog only; runners not built yet): **Code run** (submit/execute code on a server), **Dev workspace** (live WS session: editor + files + terminal), **Terminal lab** (shell-only ops/DevOps tasks), **Conversation** (AI interviewer dialogue). Tracks matching the user's resume role can sort first and show a "For you" badge (not a filter).
+5. **Simulations** (\`/simulations\`) — recent practice **sessions** (searchable list) plus a featured **interview tracks** strip; **Browse all** opens \`/simulations/tracks\`. Sidebar filters: **format** (practice environment), role family, difficulty, duration. **Formats** (catalog; full runners not complete): **Code run** (submit/execute code on a server), **Dev workspace** (live WS session: editor + files + terminal), **Terminal lab** (shell-only ops/DevOps tasks), **Conversation** (AI interviewer dialogue). Tracks matching the user's resume role can sort first and show a "For you" badge (not a filter).
+   - **Practice IDE preview** (editor shell only, no judge/terminal yet): \`/simulations/ide/code-run\` (tabs + Monaco; file tree off by default, toggleable) and \`/simulations/ide/workspace\` (file tree + Monaco; tree on by default). Built on \`@mockmatch/ide\`.
 6. **Question Bank** (\`/question-bank\`) — practice question library by domain/difficulty.
 
 ### Insights area

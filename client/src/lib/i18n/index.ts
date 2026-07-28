@@ -12,6 +12,7 @@ import coverLetterEditorEnUS from "@/locales/en-US/cover-letter-editor.json"
 import resumeEditorEnUS from "@/locales/en-US/resume-editor.json"
 import collabEnUS from "@/locales/en-US/collab.json"
 import askEnUS from "@/locales/en-US/ask.json"
+import simulationIdeEnUS from "@/locales/en-US/simulation-ide.json"
 
 import commonEnGB from "@/locales/en-GB/common.json"
 import loginEnGB from "@/locales/en-GB/login.json"
@@ -23,6 +24,7 @@ import coverLetterEditorEnGB from "@/locales/en-GB/cover-letter-editor.json"
 import resumeEditorEnGB from "@/locales/en-GB/resume-editor.json"
 import collabEnGB from "@/locales/en-GB/collab.json"
 import askEnGB from "@/locales/en-GB/ask.json"
+import simulationIdeEnGB from "@/locales/en-GB/simulation-ide.json"
 
 import commonEnAU from "@/locales/en-AU/common.json"
 import loginEnAU from "@/locales/en-AU/login.json"
@@ -34,6 +36,7 @@ import coverLetterEditorEnAU from "@/locales/en-AU/cover-letter-editor.json"
 import resumeEditorEnAU from "@/locales/en-AU/resume-editor.json"
 import collabEnAU from "@/locales/en-AU/collab.json"
 import askEnAU from "@/locales/en-AU/ask.json"
+import simulationIdeEnAU from "@/locales/en-AU/simulation-ide.json"
 
 import {
   DEFAULT_LANGUAGE,
@@ -55,6 +58,7 @@ const enUS = {
   "resume-editor": resumeEditorEnUS,
   collab: collabEnUS,
   ask: askEnUS,
+  "simulation-ide": simulationIdeEnUS,
 }
 
 const enGB = {
@@ -68,6 +72,7 @@ const enGB = {
   "resume-editor": resumeEditorEnGB,
   collab: collabEnGB,
   ask: askEnGB,
+  "simulation-ide": simulationIdeEnGB,
 }
 
 const enAU = {
@@ -81,6 +86,7 @@ const enAU = {
   "resume-editor": resumeEditorEnAU,
   collab: collabEnAU,
   ask: askEnAU,
+  "simulation-ide": simulationIdeEnAU,
 }
 
 const initialLanguage = readStoredLanguage() ?? DEFAULT_LANGUAGE

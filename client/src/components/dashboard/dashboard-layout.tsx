@@ -23,7 +23,8 @@ function DashboardShell() {
   const isEditor = Boolean(
     (matchPath("/cover-letters/:letterId", pathname) &&
       !matchPath("/cover-letters/templates", pathname)) ||
-      matchPath("/resumes/:resumeId", pathname)
+      matchPath("/resumes/:resumeId", pathname) ||
+      matchPath("/simulations/ide/:format", pathname)
   )
 
   return (

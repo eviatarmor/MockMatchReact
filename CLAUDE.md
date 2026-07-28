@@ -29,7 +29,7 @@ In-app **Ask** chat (navbar) uses a free OpenRouter model and a product system p
 
 MockMatch — interview prep app (resume scoring, AI mock interviews, readiness tracking). Monorepo: React client + Hono/tRPC API scaffold + Docker infra.
 
-Workspaces: `client/`, `api/`, `packages/*` (`schemas`, `ui`, `ai-chat`). Local infra: `infra/` (Postgres+pgvector+pgaudit, Redis). Production hosting: TBD (DigitalOcean / Terraform removed).
+Workspaces: `client/`, `api/`, `packages/*` (`schemas`, `ui`, `ai-chat`, `ide`). Local infra: `infra/` (Postgres+pgvector+pgaudit, Redis). Production hosting: TBD (DigitalOcean / Terraform removed).
 
 ### Shared packages
 
@@ -38,8 +38,9 @@ Workspaces: `client/`, `api/`, `packages/*` (`schemas`, `ui`, `ai-chat`). Local 
 | `@mockmatch/schemas` | `packages/schemas` | Shared Zod DTOs (API + client) |
 | `@mockmatch/ui` | `packages/ui` | Shared UI kits: `src/shadcn/`, `src/shadcn-space/`, `src/kibo-ui/` + `cn()` — web + future extensions |
 | `@mockmatch/ai-chat` | `packages/ai-chat` | Product-agnostic chat shell (hooks + message UI); host supplies transport/labels. Later OSS extract. |
+| `@mockmatch/ide` | `packages/ide` | IDE shell: optional file tree, resizable split, Monaco, tabs, settings bar. Host supplies tree/tabs/session. |
 
-Imports: `@mockmatch/ui/button`, `@mockmatch/ai-chat`, `@mockmatch/ai-chat/ai-elements/speech-input`. Theme CSS tokens stay in the host (`client/src/index.css`); Tailwind must `@source` package `src/**` (paths relative to `client/src`: `../../packages/<name>/src/**/*.{ts,tsx}`).
+Imports: `@mockmatch/ui/button`, `@mockmatch/ai-chat`, `@mockmatch/ai-chat/ai-elements/speech-input`, `@mockmatch/ide`. Theme CSS tokens stay in the host (`client/src/index.css`); Tailwind must `@source` package `src/**` (paths relative to `client/src`: `../../packages/<name>/src/**/*.{ts,tsx}`).
 
 ### Where new shared code goes
 

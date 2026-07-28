@@ -19,6 +19,7 @@ import { BillingPage } from "@/pages/dashboard/billing-page";
 import { PrivacyPage } from "@/pages/dashboard/privacy-page"
 import { SimulationsPage } from "@/pages/dashboard/simulations-page"
 import { SimulationTracksPage } from "@/pages/dashboard/simulation-tracks-page"
+import { SimulationIdePage } from "@/pages/dashboard/simulation-ide-page"
 import { QuestionBankPage } from "@/pages/dashboard/question-bank-page"
 import { ReadinessPage } from "@/pages/dashboard/readiness-page"
 import { PerformancePage } from "@/pages/dashboard/performance-page"
@@ -57,6 +58,7 @@ export function dashboardRoutes() {
         <Route path="cover-letters/:letterId" element={<CoverLetterEditorPage />} />
         <Route path="resume-lab/templates" element={<ResumeTemplatesPage />} />
         <Route path="simulations/tracks" element={<SimulationTracksPage />} />
+        <Route path="simulations/ide/:format" element={<SimulationIdePage />} />
         <Route path="resumes/:resumeId" element={<ResumeEditorPage />} />
         {DASHBOARD_ROUTES.map(({ path, titleKey }) => {
           if (path === "resume-lab") {
