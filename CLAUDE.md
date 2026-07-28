@@ -39,7 +39,18 @@ Workspaces: `client/`, `api/`, `packages/*` (`schemas`, `ui`, `ai-chat`). Local 
 | `@mockmatch/ui` | `packages/ui` | shadcn UI primitives + `cn()` — shared by web + future extensions |
 | `@mockmatch/ai-chat` | `packages/ai-chat` | Product-agnostic chat shell (hooks + message UI); host supplies transport/labels. Later OSS extract. |
 
-Imports: `@mockmatch/ui/button`, `@mockmatch/ai-chat`, `@mockmatch/ai-chat/ai-elements/speech-input`. Theme CSS tokens stay in the host (`client/src/index.css`); Tailwind must `@source` package `src/**`.
+Imports: `@mockmatch/ui/button`, `@mockmatch/ai-chat`, `@mockmatch/ai-chat/ai-elements/speech-input`. Theme CSS tokens stay in the host (`client/src/index.css`); Tailwind must `@source` package `src/**` (paths relative to `client/src`: `../../packages/<name>/src/**/*.{ts,tsx}`).
+
+### Where new shared code goes
+
+| Kind | Destination | Rule |
+|------|-------------|------|
+| **UI library / primitives** | `packages/ui` | **Always.** New shadcn/shadcnspace/magic-ui/etc. primitives → `packages/ui/src/`, never `client/src/components/ui/`. Import as `@mockmatch/ui/<name>`. After add: relative imports inside package; ensure Tailwind `@source` covers package. |
+| **Reusable product-agnostic shells** (chat, etc.) | `packages/*` | Extract when host-agnostic (web + extensions). See `@mockmatch/ai-chat`. |
+| **Heavy surface engines** (IDE-like editor, whiteboard/canvas, spreadsheet/Excel-like grid, code playground, diagram tool, etc.) | `packages/*` (new package) | **Do not invent package layout alone.** If building or extracting something in this class, **stop and ask the user** (name, scope, peers, stay monorepo vs OSS later). Then scaffold under `packages/` only after confirmation. |
+| **App-only feature UI** | `client/src/features/` or `client/src/components/` | MockMatch-specific chrome, pages, dashboard, product adapters. |
+
+**Do not** drop a new shared UI kit into `client/` “for now.” Extensions reuse `packages/ui` (+ other packages). When unsure whether something is a package → **ask**.
 
 ## Project memory (durable decisions)
 
@@ -179,7 +190,7 @@ Exception: small self-contained UI animations (e.g. `ReadinessSummaryCard`'s rol
 - API scaffold exists (`api/`) with tRPC stubs; client forms still use dummy timeouts until auth is wired to `trpc.auth.*`.
 
 ### UI components — shadcnspace first
-All new UI must come from **shadcnspace** (`mcp__shadcnspace-mcp__*` — `searchBlocks`/`listComponents` then `getBlockInstall`, installed via `npx shadcn@latest add @shadcn-space/<name>`) into `components/shadcn-space/<category>/`. Only fall back to plain **shadcn/ui** (`npx shadcn@latest add <component>` into `packages/ui/src/`) when no shadcnspace equivalent exists. Do not hand-roll custom UI primitives (e.g. a bespoke `animated-text` component) when a shadcnspace/shadcn block covers it — `components/shadcn-space/animated-text/animated-text-04.tsx` (rolling text) is the pattern used by `ReadinessSummaryCard`.
+All new UI must come from **shadcnspace** (`mcp__shadcnspace-mcp__*` — `searchBlocks`/`listComponents` then `getBlockInstall`, installed via `npx shadcn@latest add @shadcn-space/<name>`). **Primitives go in `packages/ui/src/`** (import `@mockmatch/ui/...`), not `client/src/components/ui/`. Product-only shadcnspace blocks (rare) may live under `client/src/components/shadcn-space/<category>/` when they are not reusable primitives. Only fall back to plain **shadcn/ui** (`npx shadcn@latest add <component>` into `packages/ui/src/`) when no shadcnspace equivalent exists. Do not hand-roll custom UI primitives (e.g. a bespoke `animated-text` component) when a shadcnspace/shadcn block covers it — `components/shadcn-space/animated-text/animated-text-04.tsx` (rolling text) is the pattern used by `ReadinessSummaryCard`.
 
 ### List / grid entrance — `StaggerItem` + table body stagger
 Shared fast cascade for lists and horizontal strips. **Do not re-implement** per-feature `motion` delays.
