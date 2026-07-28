@@ -1,7 +1,7 @@
 import { type Ref } from "react"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { Button } from "@mockmatch/ui/button"
 import type { PrepStep } from "../types"
 import { PrepTaskRow } from "./prep-task-row"
 

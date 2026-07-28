@@ -4,9 +4,9 @@ import { useQueryClient } from "@tanstack/react-query"
 import { PanelLeftOpen } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { forceLogout } from "@/lib/auth/session-guard"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { UserMenu, initials } from "@/components/ui/user-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@mockmatch/ui/avatar"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@mockmatch/ui/tooltip"
+import { UserMenu, initials } from "@mockmatch/ui/user-menu"
 import { AppLogo } from "@/components/icons/app-logo"
 import {
   NAV_SECTIONS,

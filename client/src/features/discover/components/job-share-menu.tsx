@@ -1,13 +1,13 @@
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { Copy, Share2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@mockmatch/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@mockmatch/ui/dropdown-menu"
 import { TelegramIcon } from "@/components/icons/telegram-icon"
 import { WhatsappIcon } from "@/components/icons/whatsapp-icon"
 import {

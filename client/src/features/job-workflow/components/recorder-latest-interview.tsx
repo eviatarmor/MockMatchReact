@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { FileText, Play, Sparkles } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Button } from "@mockmatch/ui/button"
+import { Badge } from "@mockmatch/ui/badge"
 import { LATEST_INTERVIEW, KEY_MOMENTS } from "../constants"
 
 export function RecorderLatestInterview() {

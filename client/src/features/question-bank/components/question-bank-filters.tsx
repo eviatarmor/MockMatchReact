@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Checkbox } from "@mockmatch/ui/checkbox"
 import { MOCK_QUESTIONS, QUESTION_DOMAINS, QUESTION_DIFFICULTIES, QUESTION_STATUSES } from "../constants"
 import type { QuestionDomain, QuestionDifficulty, QuestionStatus } from "../types"
 

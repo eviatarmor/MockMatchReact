@@ -1,7 +1,7 @@
 import { AlignJustify, Clock } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Button } from "@mockmatch/ui/button"
+import { Badge } from "@mockmatch/ui/badge"
 import { resolveIcon } from "@/lib/icon-map"
 import type { InterviewTrack, DifficultyLevel } from "../types"
 

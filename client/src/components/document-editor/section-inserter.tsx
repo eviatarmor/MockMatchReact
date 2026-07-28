@@ -5,7 +5,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-} from "@/components/ui/dropdown-menu"
+} from "@mockmatch/ui/dropdown-menu"
 
 export interface InserterItem {
   readonly id: string

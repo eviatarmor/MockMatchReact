@@ -1,9 +1,9 @@
 import { MapPin, DollarSign, Clock } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
-import { SelectCard } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
+import { Badge } from "@mockmatch/ui/badge"
+import { SelectCard } from "@mockmatch/ui/card"
+import { Skeleton } from "@mockmatch/ui/skeleton"
 import { DocumentScoreBadge } from "@/components/data/document-score-badge"
 import type { DiscoverJob } from "../types"
 

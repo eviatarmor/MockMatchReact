@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { AssistantSuggestions } from "@/components/assistant"
+import { AssistantSuggestions } from "@mockmatch/ai-chat"
 import { ASK_SUGGESTION_IDS } from "../constants"
 
 type AskSuggestionsProps = {

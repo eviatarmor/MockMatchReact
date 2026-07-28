@@ -1,6 +1,6 @@
 import { AlignJustify, Clock, Play, RotateCcw } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { Button } from "@/components/ui/button"
+import { Button } from "@mockmatch/ui/button"
 import { resolveIcon } from "@/lib/icon-map"
 import { DifficultyBadge } from "@/components/data/difficulty-badge"
 import { AssessmentStatusBadge } from "./assessment-status-badge"

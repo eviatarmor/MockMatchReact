@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ArrowUp, Square } from "lucide-react"
-import { appendTranscript } from "@/components/assistant"
-import { SpeechInput } from "@/components/ai-elements/speech-input"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
+import { appendTranscript } from "@mockmatch/ai-chat"
+import { SpeechInput } from "@mockmatch/ai-chat/ai-elements/speech-input"
+import { Button } from "@mockmatch/ui/button"
+import { Textarea } from "@mockmatch/ui/textarea"
 import { cn } from "@/lib/utils"
 
 type AskInputProps = {

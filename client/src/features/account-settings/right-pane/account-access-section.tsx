@@ -3,9 +3,9 @@ import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
+import { Button } from "@mockmatch/ui/button"
+import { Card, CardContent } from "@mockmatch/ui/card"
+import { Separator } from "@mockmatch/ui/separator"
 import {
   Dialog,
   DialogClose,
@@ -14,7 +14,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@mockmatch/ui/dialog"
 import { SectionShell } from "@/components/layout/section-shell"
 import { forceLogout } from "@/lib/auth/session-guard"
 import { clearUser } from "@/lib/auth/session"

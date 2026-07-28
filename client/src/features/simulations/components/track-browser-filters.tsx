@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Checkbox } from "@mockmatch/ui/checkbox"
 import {
   INTERVIEW_TRACKS,
   TRACK_DIFFICULTIES,

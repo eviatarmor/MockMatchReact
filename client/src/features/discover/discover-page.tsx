@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next"
 import { Globe } from "lucide-react"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@mockmatch/ui/badge"
 import { DiscoverTab } from "./components/discover-tab"
 import { useDiscoverJobs } from "./hooks/use-discover-jobs"
 

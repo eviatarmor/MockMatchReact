@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { Zap, Check } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Badge } from "@mockmatch/ui/badge"
+import { Button } from "@mockmatch/ui/button"
 
 const BROWSERS = [
   { id: "chrome",  labelKey: "autofill.extension.chrome",  active: true  },

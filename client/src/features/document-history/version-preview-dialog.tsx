@@ -16,8 +16,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+} from "@mockmatch/ui/dialog"
+import { Button } from "@mockmatch/ui/button"
 import { parseDocumentStyle } from "@/lib/parse-document-style"
 import { trpc } from "@/lib/trpc"
 import { ResumeDocumentView } from "@/features/resume-editor/canvas/resume-document"

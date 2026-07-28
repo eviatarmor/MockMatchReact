@@ -1,11 +1,11 @@
 import { useTranslation } from "react-i18next"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@mockmatch/ui/avatar"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@mockmatch/ui/tooltip"
 import { cn } from "@/lib/utils"
 import type { CollabPeer } from "../types"
 

@@ -12,7 +12,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-
 import { CSS } from "@dnd-kit/utilities"
 import { ChevronRight, GripVertical, UserRound, LayoutTemplate, Palette, ClipboardCheck, Sparkles, type LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Label } from "@/components/ui/label"
+import { Label } from "@mockmatch/ui/label"
 import { SpeedDial, type DocumentStyle, type ResolvedStyle } from "@/components/document-editor"
 import { useDocumentAssistantOptional } from "@/features/document-assistant"
 import { RESUME_SECTION_TYPES } from "../constants"

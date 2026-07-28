@@ -1,8 +1,8 @@
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { CheckCircle2, ClipboardCheck, Loader2 } from "lucide-react"
-import { Progress } from "@/components/ui/progress"
-import { StaggerItem } from "@/components/ui/stagger"
+import { Progress } from "@mockmatch/ui/progress"
+import { StaggerItem } from "@mockmatch/ui/stagger"
 import { cn } from "@/lib/utils"
 import {
   SCORE_BAND_PROGRESS_CLASS,

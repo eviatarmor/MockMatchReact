@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react"
 import { MoreHorizontal, Eye, Pencil, Download, Copy, Trash2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { Button } from "@/components/ui/button"
+import { Button } from "@mockmatch/ui/button"
 import { cn } from "@/lib/utils"
 import {
   DropdownMenu,
@@ -9,7 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu"
+} from "@mockmatch/ui/dropdown-menu"
 import {
   Dialog,
   DialogClose,
@@ -18,7 +18,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@mockmatch/ui/dialog"
 
 interface EntityRowActionsProps {
   /** i18n prefix for rowActions + deleteConfirm, e.g. "resumeLab.table" */

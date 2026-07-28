@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { ScrollArea } from "@mockmatch/ui/scroll-area"
 import type { SessionHistoryRow } from "../types"
 
 interface ReadinessSessionHistoryProps {

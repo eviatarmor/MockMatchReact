@@ -1,7 +1,7 @@
 import { useCallback } from "react"
 import { useTranslation } from "react-i18next"
 import type { UIMessage } from "ai"
-import { AssistantMessages as SharedAssistantMessages } from "@/components/assistant"
+import { AssistantMessages as SharedAssistantMessages } from "@mockmatch/ai-chat"
 import { DOCUMENT_AI_WELCOME_ID } from "../constants"
 import { isReplaceDocumentTextPart } from "../lib/replace-tool"
 import { ReplaceConfirmation } from "./replace-confirmation"

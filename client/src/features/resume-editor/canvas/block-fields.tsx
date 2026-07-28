@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import { Plus, X } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
-import { FreeformAutocomplete } from "@/components/ui/autocomplete"
+import { FreeformAutocomplete } from "@mockmatch/ui/autocomplete"
 import {
   EditableText,
   RichTextField,

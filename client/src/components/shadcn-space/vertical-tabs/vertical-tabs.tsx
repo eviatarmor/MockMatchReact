@@ -2,7 +2,7 @@ import { useState, type ReactNode } from "react"
 import type { LucideIcon } from "lucide-react"
 import { motion, AnimatePresence } from "motion/react"
 import { cn } from "@/lib/utils"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@mockmatch/ui/tabs"
 
 export interface VerticalTabItem {
   readonly id: string

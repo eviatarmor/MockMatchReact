@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { DefaultChatTransport } from "ai"
-import { useAssistantChat } from "@/components/assistant"
+import { useAssistantChat } from "@mockmatch/ai-chat"
 import { WELCOME_MESSAGE_ID } from "../constants"
 import { useAskPanel } from "../ask-context"
 

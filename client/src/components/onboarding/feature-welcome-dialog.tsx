@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@mockmatch/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -7,7 +7,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@mockmatch/ui/dialog"
 
 interface FeatureWelcomeDialogProps {
   readonly open: boolean

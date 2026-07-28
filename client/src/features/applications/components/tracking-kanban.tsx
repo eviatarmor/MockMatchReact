@@ -6,8 +6,8 @@ import {
   KanbanColumn,
   KanbanItem,
   KanbanOverlay,
-} from "@/components/ui/kanban"
-import { StaggerItem } from "@/components/ui/stagger"
+} from "@mockmatch/ui/kanban"
+import { StaggerItem } from "@mockmatch/ui/stagger"
 import { KanbanJobCard } from "./kanban-job-card"
 import { KanbanStatusBar } from "./kanban-status-bar"
 import { useTrackingBoard } from "../hooks/use-tracking-board"

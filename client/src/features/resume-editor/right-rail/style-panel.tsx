@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
-import { Label } from "@/components/ui/label"
-import { StaggerItem } from "@/components/ui/stagger"
+import { Label } from "@mockmatch/ui/label"
+import { StaggerItem } from "@mockmatch/ui/stagger"
 import type {
   DocumentStyle,
   StyleAccentId,

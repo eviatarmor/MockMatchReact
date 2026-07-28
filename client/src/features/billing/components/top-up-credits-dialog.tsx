@@ -2,16 +2,16 @@ import { Loader2 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
+import { Button } from "@mockmatch/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Separator } from "@/components/ui/separator"
-import { ShineBorder } from "@/components/ui/shine-border"
+} from "@mockmatch/ui/dialog"
+import { Separator } from "@mockmatch/ui/separator"
+import { ShineBorder } from "@mockmatch/ui/shine-border"
 import {
   useBillingActions,
   useBillingPacks,

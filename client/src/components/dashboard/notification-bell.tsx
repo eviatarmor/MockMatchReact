@@ -1,5 +1,5 @@
 import { Bell } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@mockmatch/ui/button"
 
 export function NotificationBell() {
   return (

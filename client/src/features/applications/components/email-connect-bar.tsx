@@ -5,7 +5,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@mockmatch/ui/tooltip"
 import { GoogleIcon } from "@/components/icons/google-icon"
 import { MicrosoftIcon } from "@/components/icons/microsoft-icon"
 import { AppleIcon } from "@/components/icons/apple-icon"

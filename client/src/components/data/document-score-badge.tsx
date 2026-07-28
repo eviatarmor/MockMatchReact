@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils"
 import { SCORE_BAND_BADGE_CLASS, scoreBand } from "@/lib/score-tier"
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@mockmatch/ui/badge"
 
 interface DocumentScoreBadgeProps {
   /** 0–100 general score, or null when not yet computed. */

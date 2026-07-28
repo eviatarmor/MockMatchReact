@@ -4,22 +4,22 @@ import { useCopyToClipboard } from "@uidotdev/usehooks"
 import { Link as LinkIcon, Loader2, Copy, Check, Trash2, UserRound } from "lucide-react"
 import { toast } from "sonner"
 import type { CollabRole, DocumentKind } from "@mockmatch/schemas"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
+import { Avatar, AvatarFallback } from "@mockmatch/ui/avatar"
+import { Button } from "@mockmatch/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@mockmatch/ui/dialog"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@mockmatch/ui/select"
 import { CreditsGate } from "@/features/billing/components/credits-gate"
 import { trpc } from "@/lib/trpc"
 import { formatDateTime } from "@/lib/format-datetime"

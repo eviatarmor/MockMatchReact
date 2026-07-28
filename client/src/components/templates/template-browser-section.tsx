@@ -1,7 +1,7 @@
 import { ArrowRight } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { StaggerItem } from "@/components/ui/stagger"
+import { StaggerItem } from "@mockmatch/ui/stagger"
 import { TemplateCard } from "./template-card"
 import type { TemplateItem } from "./types"
 

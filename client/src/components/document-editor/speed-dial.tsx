@@ -7,7 +7,7 @@ import {
   SpeedDialItem,
   SpeedDialLabel,
   SpeedDialAction,
-} from "@/components/ui/speed-dial"
+} from "@mockmatch/ui/speed-dial"
 
 export interface SpeedDialAction {
   readonly id: string

@@ -10,7 +10,7 @@ import {
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
+import { Button } from "@mockmatch/ui/button"
 import {
   Dialog,
   DialogClose,
@@ -19,21 +19,21 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@mockmatch/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@mockmatch/ui/dropdown-menu"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@mockmatch/ui/select"
 import { cn } from "@/lib/utils"
 import { useFitDocument } from "@/features/discover/hooks/use-fit-document"
 import { jobDetailPath, cacheJobSnapshot } from "@/features/discover/lib/job-snapshot"

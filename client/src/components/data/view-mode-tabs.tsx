@@ -1,6 +1,6 @@
 import { LayoutGrid, List } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@mockmatch/ui/tabs"
 import { cn } from "@/lib/utils"
 
 export type ListViewMode = "table" | "grid"

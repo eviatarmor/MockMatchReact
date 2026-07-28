@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { AudioWaveform, Check, Shield } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Badge } from "@mockmatch/ui/badge"
+import { Button } from "@mockmatch/ui/button"
 
 const INTEGRATIONS = [
   { id: "zoom",   labelKey: "recorder.banner.zoom" },

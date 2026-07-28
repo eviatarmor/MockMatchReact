@@ -2,13 +2,13 @@ import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { ArrowLeft, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { Button } from "@mockmatch/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@mockmatch/ui/dropdown-menu"
 import { MOCK_TRACKED_JOBS } from "@/features/discover/constants"
 import type { TrackedJob } from "@/features/discover/types"
 

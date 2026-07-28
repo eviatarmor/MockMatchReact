@@ -1,16 +1,16 @@
 import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Controller, type UseFormReturn } from "react-hook-form"
-import { Card, CardContent } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@mockmatch/ui/card"
+import { Label } from "@mockmatch/ui/label"
+import { Badge } from "@mockmatch/ui/badge"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@mockmatch/ui/select"
 import { SectionShell } from "@/components/layout/section-shell"
 import {
   COUNTRY_OPTIONS,

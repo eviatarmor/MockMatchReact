@@ -1,14 +1,14 @@
 import { useState, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { Shuffle } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@mockmatch/ui/button"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@mockmatch/ui/select"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
 import { SearchBar } from "@/components/dashboard/search-bar"

@@ -8,7 +8,7 @@ import {
   ConfirmationRejected,
   ConfirmationRequest,
   ConfirmationTitle,
-} from "@/components/ai-elements/confirmation"
+} from "@mockmatch/ai-chat/ai-elements/confirmation"
 import { useDocumentAssistant } from "../document-assistant-context"
 import type { ReplaceDocumentTextToolUIPart } from "../lib/replace-tool"
 

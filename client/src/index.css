@@ -2,6 +2,11 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Shared packages live outside client/src — scan for class names.
+   From client/src: ../../ = monorepo root (not ../../../). */
+@source "../../packages/ui/src/**/*.{ts,tsx}";
+@source "../../packages/ai-chat/src/**/*.{ts,tsx}";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

@@ -2,8 +2,8 @@ import { useTranslation } from "react-i18next"
 import { useRef } from "react"
 import { ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { Button } from "@mockmatch/ui/button"
+import { ScrollArea, ScrollBar } from "@mockmatch/ui/scroll-area"
 import type { PrepStep } from "../types"
 
 interface PrepStepNavProps {

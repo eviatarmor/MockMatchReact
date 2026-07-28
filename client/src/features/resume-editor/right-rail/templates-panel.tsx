@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { StaggerItem } from "@/components/ui/stagger"
+import { StaggerItem } from "@mockmatch/ui/stagger"
 import { resolveStyleClasses } from "@/components/document-editor"
 import { EDITOR_TEMPLATES } from "../constants"
 import type { EditorTemplate, EditorTemplateId } from "../types"

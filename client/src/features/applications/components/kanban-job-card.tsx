@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { Button } from "@mockmatch/ui/button"
 import {
   Dialog,
   DialogClose,
@@ -21,14 +21,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@mockmatch/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@mockmatch/ui/dropdown-menu"
 import { useFitDocument } from "@/features/discover/hooks/use-fit-document"
 import { jobDetailPath, cacheJobSnapshot } from "@/features/discover/lib/job-snapshot"
 import { trackedJobToDiscover } from "@/features/discover/lib/tracked-to-discover"

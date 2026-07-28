@@ -21,7 +21,7 @@ In-app **Ask** chat (navbar) uses a free OpenRouter model and a product system p
 - **Runtime guide (source of truth):** `api/src/modules/ask/product-guide.ts`
 - **System prompt builder:** `api/src/modules/ask/system-prompt.ts`
 - **Stream route:** `POST /ask/chat` (`api/src/modules/ask/routes.ts`)
-- **Client UI:** `client/src/features/ask/`
+- **Client UI:** `client/src/features/ask/` (shell); shared chat: `@mockmatch/ai-chat`
 
 **When adding or changing user-facing features, routes, or nav items, update `product-guide.ts`** so the assistant stays accurate (page map + how-tos). Do not put the full prompt only in this file — keep the guide co-located with the API module.
 
@@ -29,7 +29,17 @@ In-app **Ask** chat (navbar) uses a free OpenRouter model and a product system p
 
 MockMatch — interview prep app (resume scoring, AI mock interviews, readiness tracking). Monorepo: React client + Hono/tRPC API scaffold + Docker infra.
 
-Workspaces: `client/`, `api/`, `packages/*`. Local infra: `infra/` (Postgres+pgvector+pgaudit, Redis). Production hosting: TBD (DigitalOcean / Terraform removed).
+Workspaces: `client/`, `api/`, `packages/*` (`schemas`, `ui`, `ai-chat`). Local infra: `infra/` (Postgres+pgvector+pgaudit, Redis). Production hosting: TBD (DigitalOcean / Terraform removed).
+
+### Shared packages
+
+| Package | Path | Role |
+|---------|------|------|
+| `@mockmatch/schemas` | `packages/schemas` | Shared Zod DTOs (API + client) |
+| `@mockmatch/ui` | `packages/ui` | shadcn UI primitives + `cn()` — shared by web + future extensions |
+| `@mockmatch/ai-chat` | `packages/ai-chat` | Product-agnostic chat shell (hooks + message UI); host supplies transport/labels. Later OSS extract. |
+
+Imports: `@mockmatch/ui/button`, `@mockmatch/ai-chat`, `@mockmatch/ai-chat/ai-elements/speech-input`. Theme CSS tokens stay in the host (`client/src/index.css`); Tailwind must `@source` package `src/**`.
 
 ## Project memory (durable decisions)
 
@@ -116,7 +126,7 @@ No test runner is configured yet.
 - Hono + tRPC (`/trpc/*`); `GET /health` (liveness), `GET /ready` (Postgres+Redis)
 - Drizzle ORM + PostgreSQL; BullMQ + Redis (queues + OTP + refresh hashes)
 - jose (JWT access 15m / refresh 30d); OpenRouter SDK, AWS S3 SDK (stubs)
-- Shared Zod DTOs: `@mockmatch/schemas`
+- Shared Zod DTOs: `@mockmatch/schemas`; UI primitives: `@mockmatch/ui`; AI chat shell: `@mockmatch/ai-chat`
 - LinkedIn OAuth env slots; handlers may still be stubs
 
 **Infra** (`infra/`)
@@ -126,7 +136,7 @@ No test runner is configured yet.
 ### Path aliases (`@/*` → `client/src/*`)
 - `@/features` — feature modules (route content, panels, hooks, types, constants)
 - `@/components` — shared, cross-feature components (e.g. `@/components/icons`)
-- `@/components/ui` — shadcn primitives (button, input, label, checkbox, separator, card)
+- `@mockmatch/ui` — shadcn primitives (button, input, label, checkbox, separator, card); live in `packages/ui`
 - `@/lib` — utilities and cross-cutting setup (e.g. `@/lib/i18n`)
 - `@/hooks` — shared cross-feature hooks
 - `@/locales` — i18next translation resource files
@@ -169,18 +179,18 @@ Exception: small self-contained UI animations (e.g. `ReadinessSummaryCard`'s rol
 - API scaffold exists (`api/`) with tRPC stubs; client forms still use dummy timeouts until auth is wired to `trpc.auth.*`.
 
 ### UI components — shadcnspace first
-All new UI must come from **shadcnspace** (`mcp__shadcnspace-mcp__*` — `searchBlocks`/`listComponents` then `getBlockInstall`, installed via `npx shadcn@latest add @shadcn-space/<name>`) into `components/shadcn-space/<category>/`. Only fall back to plain **shadcn/ui** (`npx shadcn@latest add <component>` into `components/ui/`) when no shadcnspace equivalent exists. Do not hand-roll custom UI primitives (e.g. a bespoke `animated-text` component) when a shadcnspace/shadcn block covers it — `components/shadcn-space/animated-text/animated-text-04.tsx` (rolling text) is the pattern used by `ReadinessSummaryCard`.
+All new UI must come from **shadcnspace** (`mcp__shadcnspace-mcp__*` — `searchBlocks`/`listComponents` then `getBlockInstall`, installed via `npx shadcn@latest add @shadcn-space/<name>`) into `components/shadcn-space/<category>/`. Only fall back to plain **shadcn/ui** (`npx shadcn@latest add <component>` into `packages/ui/src/`) when no shadcnspace equivalent exists. Do not hand-roll custom UI primitives (e.g. a bespoke `animated-text` component) when a shadcnspace/shadcn block covers it — `components/shadcn-space/animated-text/animated-text-04.tsx` (rolling text) is the pattern used by `ReadinessSummaryCard`.
 
 ### List / grid entrance — `StaggerItem` + table body stagger
 Shared fast cascade for lists and horizontal strips. **Do not re-implement** per-feature `motion` delays.
 
-- **Cards / lists / strips:** `@/components/ui/stagger` (`StaggerItem`, `STAGGER`, `staggerDelay`, `staggerTransition`)
+- **Cards / lists / strips:** `@mockmatch/ui/stagger` (`StaggerItem`, `STAGGER`, `staggerDelay`, `staggerTransition`)
 - **Tables:** cascade is built into `EntityTable` via `tbody.entity-table-body` CSS (see `client/src/index.css`). Values match `STAGGER` (first 12 rows). Row components render plain `<tr>` — **do not** wrap table rows in `StaggerItem`. Custom tables that are not `EntityTable` should put `entity-table-body` on their `<tbody>`.
 - **Stack:** `motion` (already a client dep). First `STAGGER.count` (12) items delay by `index * STAGGER.delay` (0.04s); later indices mount with delay `0`.
 - **API (non-table):** `index` required; `as` = `"div"` | `"li"` (default `"div"`); `direction` = `"up"` | `"down"` | `"left"` | `"right"` (default `"up"`).
 
 ```tsx
-import { StaggerItem } from "@/components/ui/stagger"
+import { StaggerItem } from "@mockmatch/ui/stagger"
 import { EntityTable } from "@/components/data/entity-table"
 
 // Vertical list / card grid

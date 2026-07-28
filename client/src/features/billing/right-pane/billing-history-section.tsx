@@ -1,8 +1,8 @@
 import { useTranslation } from "react-i18next"
 import { Download } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@mockmatch/ui/badge"
+import { Button } from "@mockmatch/ui/button"
+import { Card, CardContent } from "@mockmatch/ui/card"
 import {
   Table,
   TableBody,
@@ -10,7 +10,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@mockmatch/ui/table"
 import { SectionShell } from "@/components/layout/section-shell"
 import { formatInvoiceDate } from "@/features/billing/types"
 import { useBillingInvoices } from "@/features/billing/hooks/use-billing"

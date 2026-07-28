@@ -12,7 +12,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-
 import { CSS } from "@dnd-kit/utilities"
 import { ChevronRight, GripVertical, UserRound, Building2, CalendarDays, LayoutTemplate, Palette, ClipboardCheck, Sparkles, type LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Label } from "@/components/ui/label"
+import { Label } from "@mockmatch/ui/label"
 import { LETTER_BLOCK_TYPES } from "../constants"
 import { snippet } from "../section-snippet"
 import type { CoverLetterHandlers } from "../hooks/use-cover-letter-document"

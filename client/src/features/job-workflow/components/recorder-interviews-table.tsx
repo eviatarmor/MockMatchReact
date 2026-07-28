@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { History } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Badge } from "@mockmatch/ui/badge"
+import { ScrollArea } from "@mockmatch/ui/scroll-area"
 import type { RecordedInterview } from "../types"
 
 function statusVariant(status: RecordedInterview["status"]): "default" | "secondary" | "outline" {

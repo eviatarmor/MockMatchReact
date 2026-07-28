@@ -1,8 +1,8 @@
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Wifi, Eye, EyeOff } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@mockmatch/ui/card"
+import { Button } from "@mockmatch/ui/button"
 
 const ChipSVG = () => (
   <svg width="44" height="34" viewBox="0 0 44 34" fill="none" aria-hidden="true">

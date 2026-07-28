@@ -1,8 +1,8 @@
 import { useState } from "react"
 import { Loader2, Plus } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Button } from "@mockmatch/ui/button"
+import { Badge } from "@mockmatch/ui/badge"
 import type { TemplateItem } from "./types"
 
 interface TemplateCardProps {

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { Avatar, AvatarFallback, AvatarImage, AvatarGroupCount } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage, AvatarGroupCount } from "@mockmatch/ui/avatar"
 import { NumberTicker } from "@/components/shadcn-space/number-ticker/number-ticker-01"
 
 export function SignupSocialProof() {

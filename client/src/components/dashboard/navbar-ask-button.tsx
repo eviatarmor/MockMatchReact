@@ -1,6 +1,6 @@
 import { Sparkles } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { Button } from "@/components/ui/button"
+import { Button } from "@mockmatch/ui/button"
 import { useAskPanel } from "@/features/ask/ask-context"
 
 export function NavbarAskButton() {

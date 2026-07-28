@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@mockmatch/ui/badge"
 
 // Semantic states mapped onto the built-in shadcn Badge variants — no custom
 // colors. Every badge in the app renders through one of these variants so they

@@ -4,7 +4,7 @@ import {
   DefaultChatTransport,
   lastAssistantMessageIsCompleteWithApprovalResponses,
 } from "ai"
-import { useAssistantChat } from "@/components/assistant"
+import { useAssistantChat } from "@mockmatch/ai-chat"
 import { DOCUMENT_AI_WELCOME_ID } from "../constants"
 import { useDocumentAssistant } from "../document-assistant-context"
 import type { TextAttachment } from "../types"

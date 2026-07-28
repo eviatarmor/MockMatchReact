@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, type ReactNode } from "react"
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTitle } from "@mockmatch/ui/sheet"
 import {
   DetailPanelActionsContext,
   DetailPanelContentContext,

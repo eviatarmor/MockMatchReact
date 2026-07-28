@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { ArrowRight, Columns3 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { Button } from "@mockmatch/ui/button"
 import type { TrackedJob } from "@/features/discover/types"
 import type { PrepStep, PrepTask } from "../types"
 import { PipelineStatus } from "./pipeline-status"

@@ -16,8 +16,8 @@
   "menuAccent": "subtle",
   "aliases": {
     "components": "@/components",
-    "utils": "@/lib/utils",
-    "ui": "@/components/ui",
+    "utils": "@mockmatch/ui/utils",
+    "ui": "@mockmatch/ui",
     "lib": "@/lib",
     "hooks": "@/hooks"
   },

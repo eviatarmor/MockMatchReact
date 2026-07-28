@@ -8,7 +8,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
+} from "@mockmatch/ui/breadcrumb"
 import { useNavbarSlotsValue } from "@/hooks/use-navbar-slots"
 import { NAV_DATA } from "@/components/dashboard/constants"
 import type { NavItem } from "@/components/dashboard/types"

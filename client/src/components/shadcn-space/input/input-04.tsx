@@ -2,9 +2,9 @@
 
 import { CheckCircle2, EyeClosed, X, Eye } from "lucide-react";
 import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { Input } from "@mockmatch/ui/input";
+import { Label } from "@mockmatch/ui/label";
+import { Button } from "@mockmatch/ui/button";
 
 export const title = "Password Validation";
 

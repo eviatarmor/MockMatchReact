@@ -16,7 +16,7 @@ import {
 } from "@/features/document-assistant"
 import { DocumentEditorOnboarding } from "@/components/onboarding/document-editor-onboarding"
 import { SaveStatusBadge } from "@/components/data/save-status-badge"
-import { Button } from "@/components/ui/button"
+import { Button } from "@mockmatch/ui/button"
 import { trpc } from "@/lib/trpc"
 import { parseDocumentStyle } from "@/lib/parse-document-style"
 import { PresenceAvatarStack } from "@/features/collab/components/presence-avatar-stack"

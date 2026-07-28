@@ -1,11 +1,11 @@
 import { useTranslation } from "react-i18next"
 import { SquarePen, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@mockmatch/ui/button"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@mockmatch/ui/tooltip"
 import { useAskPanel } from "../ask-context"
 
 export function AskHeader() {

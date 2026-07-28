@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { useTheme } from "@/components/theme-provider"
-import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler"
+import { AnimatedThemeToggler } from "@mockmatch/ui/animated-theme-toggler"
 import { cn } from "@/lib/utils"
 
 interface ThemeToggleProps {

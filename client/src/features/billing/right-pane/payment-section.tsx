@@ -1,8 +1,8 @@
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
+import { Button } from "@mockmatch/ui/button"
+import { Card, CardContent } from "@mockmatch/ui/card"
+import { Separator } from "@mockmatch/ui/separator"
 import { PaymentCardVisual } from "@/components/shadcn-space/credit-card/credit-card"
 import { SectionShell } from "@/components/layout/section-shell"
 import {

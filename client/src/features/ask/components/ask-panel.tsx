@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { motion, AnimatePresence } from "motion/react"
 import { cn } from "@/lib/utils"
-import { SidePanelResizeHandle } from "@/components/ui/side-panel-resize-handle"
+import { SidePanelResizeHandle } from "@mockmatch/ui/side-panel-resize-handle"
 import { useSidePanelWidth } from "@/hooks/use-side-panel-width"
 import { useAskPanel } from "../ask-context"
 import { useAskChat } from "../hooks/use-ask-chat"

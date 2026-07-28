@@ -24,8 +24,8 @@ import {
   scoreBand,
 } from "@/lib/score-tier"
 import confetti from "canvas-confetti"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Badge } from "@mockmatch/ui/badge"
+import { Button } from "@mockmatch/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -33,9 +33,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Progress } from "@/components/ui/progress"
-import { Skeleton } from "@/components/ui/skeleton"
+} from "@mockmatch/ui/dialog"
+import { Progress } from "@mockmatch/ui/progress"
+import { Skeleton } from "@mockmatch/ui/skeleton"
 import { PanelShell } from "@/components/dashboard/panel-shell"
 import { useTrackedJobs } from "@/features/applications/hooks/use-tracked-jobs"
 import { useFitDocument } from "../hooks/use-fit-document"

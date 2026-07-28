@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { AssistantSuggestions as SharedAssistantSuggestions } from "@/components/assistant"
+import { AssistantSuggestions as SharedAssistantSuggestions } from "@mockmatch/ai-chat"
 import { DOCUMENT_AI_SUGGESTION_IDS } from "../constants"
 
 type AssistantSuggestionsProps = {

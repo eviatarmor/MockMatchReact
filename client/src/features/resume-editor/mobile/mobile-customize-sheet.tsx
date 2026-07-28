@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { ScrollArea } from "@/components/ui/scroll-area"
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@mockmatch/ui/sheet"
+import { ScrollArea } from "@mockmatch/ui/scroll-area"
 import { TemplatesPanel } from "../right-rail/templates-panel"
 import { StylePanel } from "../right-rail/style-panel"
 import { GeneralAnalysisPanel } from "../right-rail/general-analysis-panel"

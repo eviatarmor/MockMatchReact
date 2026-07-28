@@ -25,6 +25,8 @@
     "@lexical/utils": "^0.45.0",
     "@mockmatch/api": "*",
     "@mockmatch/schemas": "*",
+    "@mockmatch/ui": "*",
+    "@mockmatch/ai-chat": "*",
     "@radix-ui/react-use-controllable-state": "^1.2.3",
     "@streamdown/cjk": "^1.0.3",
     "@streamdown/code": "^1.1.1",

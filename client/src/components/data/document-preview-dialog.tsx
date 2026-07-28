@@ -5,8 +5,8 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { ScrollArea } from "@/components/ui/scroll-area"
+} from "@mockmatch/ui/dialog"
+import { ScrollArea } from "@mockmatch/ui/scroll-area"
 
 interface DocumentPreviewDialogProps {
   readonly open: boolean

@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@mockmatch/ui/skeleton"
 
 export function DiscoverJobListItemSkeleton() {
   return (

@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { SignupStepper } from "@/features/signup/right-pane/signup-stepper"
 import { SocialAuthButtons } from "@/components/auth/social-auth-buttons"
-import { Separator } from "@/components/ui/separator"
+import { Separator } from "@mockmatch/ui/separator"
 import { useSocialAuth } from "@/hooks/use-social-auth"
 
 export function SignupFormPanel() {

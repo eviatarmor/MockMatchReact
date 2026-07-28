@@ -11,8 +11,8 @@ import {
   Eye,
 } from "lucide-react"
 import { toast } from "sonner"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
+import { Button } from "@mockmatch/ui/button"
+import { Separator } from "@mockmatch/ui/separator"
 import { DocumentPreviewDialog } from "@/components/data/document-preview-dialog"
 import { downloadDocumentPdf, pdfFilename } from "@/lib/export-document-pdf"
 import type { useCanvasViewport } from "@/hooks/use-canvas-viewport"

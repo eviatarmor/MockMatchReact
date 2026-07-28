@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Upload, Plus, Play, Sparkles } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@mockmatch/ui/button"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 
 interface DashboardPageConfig {

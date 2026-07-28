@@ -1,8 +1,8 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Plus } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@mockmatch/ui/button"
+import { Textarea } from "@mockmatch/ui/textarea"
 import {
   Dialog,
   DialogClose,
@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@mockmatch/ui/dialog"
 
 interface AddJobDialogProps {
   readonly trigger: React.ReactElement

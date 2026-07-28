@@ -1,14 +1,14 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Video } from "lucide-react"
-import { Switch } from "@/components/ui/switch"
+import { Switch } from "@mockmatch/ui/switch"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@mockmatch/ui/select"
 import { PLATFORMS, RETENTION_OPTIONS } from "../constants"
 
 export function RecorderSettings() {

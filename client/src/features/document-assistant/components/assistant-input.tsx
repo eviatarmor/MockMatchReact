@@ -3,8 +3,8 @@ import { useTranslation } from "react-i18next"
 import { ArrowUp, Square, TextSelect } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import type { SourceDocumentUIPart } from "ai"
-import { appendTranscript } from "@/components/assistant"
-import { SpeechInput } from "@/components/ai-elements/speech-input"
+import { appendTranscript } from "@mockmatch/ai-chat"
+import { SpeechInput } from "@mockmatch/ai-chat/ai-elements/speech-input"
 import {
   Attachment,
   AttachmentHoverCard,
@@ -12,9 +12,9 @@ import {
   AttachmentHoverCardTrigger,
   AttachmentRemove,
   Attachments,
-} from "@/components/ai-elements/attachments"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
+} from "@mockmatch/ai-chat/ai-elements/attachments"
+import { Button } from "@mockmatch/ui/button"
+import { Textarea } from "@mockmatch/ui/textarea"
 import { cn } from "@/lib/utils"
 import { useDocumentAssistant } from "../document-assistant-context"
 

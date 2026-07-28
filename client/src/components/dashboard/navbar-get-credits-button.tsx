@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Sparkles } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { RainbowButton } from "@/components/ui/rainbow-button"
+import { RainbowButton } from "@mockmatch/ui/rainbow-button"
 import { NumberTicker } from "@/components/shadcn-space/number-ticker/number-ticker-01"
 import { TopUpCreditsDialog } from "@/features/billing/components/top-up-credits-dialog"
 import { useBillingSummary } from "@/features/billing/hooks/use-billing"

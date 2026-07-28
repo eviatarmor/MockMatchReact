@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import type { UIMessage } from "ai"
-import { AssistantMessages } from "@/components/assistant"
+import { AssistantMessages } from "@mockmatch/ai-chat"
 import { WELCOME_MESSAGE_ID } from "../constants"
 
 type AskMessagesProps = {

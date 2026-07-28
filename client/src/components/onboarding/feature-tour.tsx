@@ -14,7 +14,7 @@ import {
   TourStep,
   TourStepCounter,
   TourTitle,
-} from "@/components/ui/tour"
+} from "@mockmatch/ui/tour"
 
 export interface FeatureTourStep {
   readonly target: string

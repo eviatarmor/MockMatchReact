@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Checkbox } from "@mockmatch/ui/checkbox"
 import type { PrepTask } from "../types"
 
 interface PrepTaskRowProps {

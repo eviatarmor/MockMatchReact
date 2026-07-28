@@ -6,11 +6,11 @@ import {
   SheetHeader,
   SheetTitle,
   SheetFooter,
-} from "@/components/ui/sheet"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
+} from "@mockmatch/ui/sheet"
+import { ScrollArea } from "@mockmatch/ui/scroll-area"
+import { Input } from "@mockmatch/ui/input"
+import { Label } from "@mockmatch/ui/label"
+import { Button } from "@mockmatch/ui/button"
 import { BlockFields } from "../canvas/block-fields"
 import { LETTER_BLOCK_TYPES } from "../constants"
 import type { ResolvedStyle } from "@/components/document-editor"

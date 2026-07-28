@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Plus, Play } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@mockmatch/ui/button"
 import { EntityTable, type EntityTableColumn } from "@/components/data/entity-table"
 import { DifficultyBadge } from "@/components/data/difficulty-badge"
 import { QuestionStatusBadge } from "./question-status-badge"

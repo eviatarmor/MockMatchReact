@@ -7,7 +7,7 @@ import "./index.css"
 import "./lib/i18n"
 import { queryClient } from "./lib/query-client"
 import { ThemeProvider } from "./components/theme-provider"
-import { Toaster } from "./components/ui/sonner"
+import { ThemedToaster } from "./components/themed-toaster"
 import { TrpcProvider } from "./lib/trpc/provider"
 import { HomePage } from "./pages/home-page"
 import { LoginPage } from "./pages/login-page"
@@ -26,7 +26,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/signup" element={<SignupPage />} />
               {dashboardRoutes()}
             </Routes>
-            <Toaster />
+            <ThemedToaster />
           </BrowserRouter>
         </ThemeProvider>
       </TrpcProvider>

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next"
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@mockmatch/ui/badge"
 import type { RecentSession, SessionStatus } from "../types"
 
 function statusVariant(status: SessionStatus): "outline" | "secondary" | "default" {

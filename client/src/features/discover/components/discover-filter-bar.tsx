@@ -9,8 +9,8 @@ import {
   Loader2,
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Button } from "@mockmatch/ui/button"
+import { Input } from "@mockmatch/ui/input"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -18,12 +18,12 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@mockmatch/ui/dropdown-menu"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@mockmatch/ui/tooltip"
 import { SearchBar } from "@/components/dashboard/search-bar"
 import { cn } from "@/lib/utils"
 import {

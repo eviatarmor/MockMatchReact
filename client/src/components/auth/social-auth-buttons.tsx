@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button"
+import { Button } from "@mockmatch/ui/button"
 import { GoogleIcon } from "@/components/icons/google-icon"
 import { LinkedinIcon } from "@/components/icons/linkedin-icon"
 import type { SocialProvider } from "@/components/auth/types"
