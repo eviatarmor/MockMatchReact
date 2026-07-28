@@ -57,14 +57,6 @@ const PAGE_CONFIGS: Record<string, DashboardPageConfig> = {
       </Button>
     ),
   },
-  "assessments": {
-    actions: (t) => (
-      <Button variant="default" className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5">
-        <Play className="size-4" />
-        <span className="hidden sm:inline">{t("dashboard.actions.startAssessment")}</span>
-      </Button>
-    ),
-  },
   "question-bank": {},
   "readiness": {},
   "performance": {},

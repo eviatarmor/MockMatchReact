@@ -4,7 +4,6 @@ import {
   Compass,
   ClipboardList,
   MonitorPlay,
-  ClipboardCheck,
   HelpCircle,
   Gauge,
   TrendingUp,
@@ -41,7 +40,6 @@ export const NAV_SECTIONS: NavSection[] = [
     icon: Dumbbell,
     items: [
       { title: "navItems.simulations", icon: MonitorPlay, href: "/simulations" },
-      { title: "navItems.assessments", icon: ClipboardCheck, href: "/assessments" },
       { title: "navItems.questionBank", icon: HelpCircle, href: "/question-bank" },
     ],
   },

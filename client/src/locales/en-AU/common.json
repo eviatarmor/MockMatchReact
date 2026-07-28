@@ -21,7 +21,6 @@
     "coverLetters": "Cover Letters",
     "jobWorkflow": "Job Workflow",
     "simulations": "Simulations",
-    "assessments": "Assessments",
     "questionBank": "Question Bank",
     "readiness": "Readiness",
     "performance": "Performance",
@@ -50,7 +49,6 @@
       "jobs": "Search jobs...",
       "workflows": "Search workflows...",
       "simulations": "Search simulations...",
-      "assessments": "Search assessments...",
       "questions": "Search questions...",
       "readiness": "Search metrics...",
       "performance": "Search performance...",
@@ -71,7 +69,6 @@
       "newJob": "New job",
       "newWorkflow": "New workflow",
       "startSimulation": "Start simulation",
-      "startAssessment": "Start assessment",
       "addProfile": "Add profile"
     },
     "import": {
@@ -716,11 +713,11 @@
         "description": "Rehearse the rounds you'll actually face for this role.",
         "tasks": {
           "mockInterview": "Run a behavioral mock (STAR)",
-          "assessment": "Complete a role-specific assessment",
+          "assessment": "Complete a role-specific interview track",
           "researchInterviewers": "Research your interviewers"
         },
         "action": "Start mock interview",
-        "secondaryAction": "Browse assessments"
+        "secondaryAction": "Browse interview tracks"
       },
       "offer": {
         "title": "Offer & decide",
@@ -903,7 +900,7 @@
     },
     "byArea": {
       "title": "Readiness by area",
-      "description": "Weighted from your practice sessions and assessments."
+      "description": "Weighted from your practice sessions and interview tracks."
     },
     "areas": {
       "resume": "Resume health",
@@ -972,48 +969,6 @@
       "title": "Focus areas"
     }
   },
-  "assessments": {
-    "documentTitle": "Assessments — MockMatch",
-    "title": "Assessments",
-    "description": "Timed practice exercises across every domain — coding, case studies, clinical, and more.",
-    "surpriseMe": "Surprise me",
-    "searchPlaceholder": "Search exercises...",
-    "best": "Best",
-    "stats": {
-      "completed": "Completed",
-      "avgScore": "Avg score",
-      "dayStreak": "Day streak",
-      "hoursPracticed": "Hours practiced"
-    },
-    "difficulty": {
-      "easy": "Easy",
-      "medium": "Medium",
-      "hard": "Hard"
-    },
-    "filters": {
-      "anyDifficulty": "Any difficulty"
-    },
-    "domains": {
-      "all": "All",
-      "coding": "Coding",
-      "caseStudy": "Case study",
-      "behavioral": "Behavioral",
-      "product": "Product",
-      "systemDesign": "System design",
-      "finance": "Finance",
-      "clinical": "Clinical"
-    },
-    "status": {
-      "notStarted": "Not started",
-      "inProgress": "In progress",
-      "mastered": "Mastered"
-    },
-    "actions": {
-      "start": "Start exercise",
-      "continue": "Continue",
-      "retry": "Retry"
-    }
-  },
   "questionBank": {
     "documentTitle": "Question Bank — MockMatch",
     "title": "Question bank",
@@ -1068,17 +1023,33 @@
     "description": "Review past practice sessions and start a new interview track when you are ready.",
     "startPractice": "Start practice",
     "interviewTracksLabel": "Interview tracks",
+    "taskCount_one": "{{count}} task",
+    "taskCount_other": "{{count}} tasks",
     "difficulty": {
       "adaptive": "Adaptive",
       "easy": "Easy",
       "medium": "Medium",
       "hard": "Hard"
     },
-    "metaKind": {
-      "questions": "questions",
-      "problems": "problems",
-      "prompt": "prompt",
-      "cases": "cases"
+    "roleFamily": {
+      "engineering": "Engineering",
+      "product": "Product",
+      "design": "Design",
+      "finance": "Finance",
+      "consulting": "Consulting",
+      "clinical": "Clinical",
+      "general": "General"
+    },
+    "durationBucket": {
+      "short": "Short (≤25 min)",
+      "medium": "Medium (26–35 min)",
+      "long": "Long (36+ min)"
+    },
+    "format": {
+      "codeRun": "Code run",
+      "workspace": "Dev workspace",
+      "terminal": "Terminal lab",
+      "conversation": "Conversation"
     },
     "recentSessions": {
       "title": "Recent sessions",
@@ -1107,12 +1078,14 @@
     "tracksBrowser": {
       "title": "Interview tracks",
       "description": "Pick a practice format — behavioural, coding, system design, and more.",
+      "descriptionRecommended": "Suggested for your resume roles: {{roles}}.",
       "browseAll": "Browse all",
       "browseTitle": "Browse interview tracks",
       "browseBackLink": "Back to Simulations",
-      "browseDescription": "{{count}} interview tracks. Filter by difficulty or format.",
+      "browseDescription": "{{count}} interview tracks. Filter by role, difficulty, duration, or format.",
       "searchPlaceholder": "Search tracks...",
       "noResults": "No tracks found",
+      "recommendedBadge": "For you",
       "columns": {
         "track": "Track",
         "format": "Format",
@@ -1122,7 +1095,9 @@
       },
       "filters": {
         "title": "Filters",
+        "roleFamily": "Role family",
         "difficulty": "Difficulty",
+        "duration": "Duration",
         "format": "Format"
       }
     },
@@ -1132,8 +1107,16 @@
         "description": "STAR-method stories on leadership, conflict, and impact."
       },
       "technicalCoding": {
-        "title": "Technical · Coding",
-        "description": "Live coding with hints, edge cases, and complexity review."
+        "title": "Algorithms · Code run",
+        "description": "Write a solution and run it on the server — classic DSA / script tasks."
+      },
+      "liveCoding": {
+        "title": "Live coding · Workspace",
+        "description": "Full env over WebSocket: editor, files, and terminal — build and debug like on the job."
+      },
+      "opsTerminal": {
+        "title": "Ops · Terminal lab",
+        "description": "Shell-only tasks for DevOps/SRE — logs, services, networking, incident drills."
       },
       "systemDesign": {
         "title": "System Design",

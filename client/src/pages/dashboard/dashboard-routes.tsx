@@ -19,7 +19,6 @@ import { BillingPage } from "@/pages/dashboard/billing-page";
 import { PrivacyPage } from "@/pages/dashboard/privacy-page"
 import { SimulationsPage } from "@/pages/dashboard/simulations-page"
 import { SimulationTracksPage } from "@/pages/dashboard/simulation-tracks-page"
-import { AssessmentsPage } from "@/pages/dashboard/assessments-page"
 import { QuestionBankPage } from "@/pages/dashboard/question-bank-page"
 import { ReadinessPage } from "@/pages/dashboard/readiness-page"
 import { PerformancePage } from "@/pages/dashboard/performance-page"
@@ -34,7 +33,6 @@ const DASHBOARD_ROUTES = [
   { path: "applications", titleKey: "navItems.applications" },
   { path: "job-workflow", titleKey: "navItems.jobWorkflow" },
   { path: "simulations", titleKey: "navItems.simulations" },
-  { path: "assessments", titleKey: "navItems.assessments" },
   { path: "question-bank", titleKey: "navItems.questionBank" },
   { path: "readiness", titleKey: "navItems.readiness" },
   { path: "performance", titleKey: "navItems.performance" },
@@ -81,9 +79,6 @@ export function dashboardRoutes() {
           }
           if (path === "simulations") {
             return <Route key={path} path={path} element={<SimulationsPage />} />;
-          }
-          if (path === "assessments") {
-            return <Route key={path} path={path} element={<AssessmentsPage />} />;
           }
           if (path === "question-bank") {
             return <Route key={path} path={path} element={<QuestionBankPage />} />;

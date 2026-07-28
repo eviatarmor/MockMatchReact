@@ -1,4 +1,4 @@
-import { AlignJustify, Clock, Play } from "lucide-react"
+import { AlignJustify, Clock, Play, Sparkles } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@mockmatch/ui/button"
 import { Badge } from "@mockmatch/ui/badge"
@@ -12,9 +12,10 @@ function difficultyVariant(level: DifficultyLevel): "outline" | "secondary" {
 
 interface TrackBrowserTableProps {
   readonly tracks: readonly InterviewTrack[]
+  readonly recommendedTrackIds?: ReadonlySet<string>
 }
 
-export function TrackBrowserTable({ tracks }: TrackBrowserTableProps) {
+export function TrackBrowserTable({ tracks, recommendedTrackIds }: TrackBrowserTableProps) {
   const { t } = useTranslation("common")
 
   const columns: EntityTableColumn[] = [
@@ -45,6 +46,7 @@ export function TrackBrowserTable({ tracks }: TrackBrowserTableProps) {
     >
       {tracks.map((track) => {
         const Icon = resolveIcon(track.iconName, AlignJustify)
+        const isRecommended = recommendedTrackIds?.has(track.id) ?? false
         return (
           <tr key={track.id} className="group hover:bg-muted/5 transition-colors">
             <td className="py-3 px-4">
@@ -53,20 +55,35 @@ export function TrackBrowserTable({ tracks }: TrackBrowserTableProps) {
                   <Icon className="size-4" />
                 </div>
                 <div className="flex flex-col gap-0.5 min-w-0">
-                  <span className="text-sm font-medium group-hover:text-primary transition-colors truncate">
-                    {t(track.titleKey)}
-                  </span>
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-sm font-medium group-hover:text-primary transition-colors truncate">
+                      {t(track.titleKey)}
+                    </span>
+                    {isRecommended ? (
+                      <Badge
+                        variant="outline"
+                        className="shrink-0 gap-1 border-primary/30 text-primary text-[10px] px-1.5 py-0"
+                      >
+                        <Sparkles className="size-2.5" />
+                        {t("simulations.tracksBrowser.recommendedBadge")}
+                      </Badge>
+                    ) : null}
+                  </div>
                   <span className="text-xs text-muted-foreground line-clamp-1">
                     {t(track.descriptionKey)}
                   </span>
                 </div>
               </div>
             </td>
-            <td className="py-3 px-4 text-sm text-muted-foreground hidden sm:table-cell">
-              <span className="flex items-center gap-1">
-                <AlignJustify className="size-3.5 shrink-0" />
-                {track.metaCount} {t(`simulations.metaKind.${track.metaKind}`)}
-              </span>
+            <td className="py-3 px-4 hidden sm:table-cell">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-medium text-foreground">
+                  {t(`simulations.format.${track.format}`)}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {t("simulations.taskCount", { count: track.taskCount })}
+                </span>
+              </div>
             </td>
             <td className="py-3 px-4">
               <Badge variant={difficultyVariant(track.difficulty)}>

@@ -51,17 +51,16 @@ application tracking, practice, and readiness insights.
    - Application detail drill-down for a single tracked job.
 
 ### Practice area
-5. **Simulations** (\`/simulations\`) — recent practice **sessions** (searchable list) plus a featured **interview tracks** strip; **Browse all** opens \`/simulations/tracks\` (question-bank style: sidebar filters for difficulty/format + searchable track table). Depth of live interviews may still grow.
-6. **Assessments** (\`/assessments\`) — structured assessments for readiness.
-7. **Question Bank** (\`/question-bank\`) — practice question library by domain/difficulty.
+5. **Simulations** (\`/simulations\`) — recent practice **sessions** (searchable list) plus a featured **interview tracks** strip; **Browse all** opens \`/simulations/tracks\`. Sidebar filters: **format** (practice environment), role family, difficulty, duration. **Formats** (catalog only; runners not built yet): **Code run** (submit/execute code on a server), **Dev workspace** (live WS session: editor + files + terminal), **Terminal lab** (shell-only ops/DevOps tasks), **Conversation** (AI interviewer dialogue). Tracks matching the user's resume role can sort first and show a "For you" badge (not a filter).
+6. **Question Bank** (\`/question-bank\`) — practice question library by domain/difficulty.
 
 ### Insights area
-8. **Readiness** (\`/readiness\`) — readiness metrics / progress toward interview readiness.
-9. **Performance** (\`/performance\`) — performance trends and practice outcomes.
+7. **Readiness** (\`/readiness\`) — readiness metrics / progress toward interview readiness.
+8. **Performance** (\`/performance\`) — performance trends and practice outcomes.
 
 ### Automation area
-10. **Autofill** (\`/autofill\`) — application form autofill profiles.
-11. **Interview Recorder** (\`/interview-recorder\`) — connect to real interviews for transcription/insights (surface in nav).
+9. **Autofill** (\`/autofill\`) — application form autofill profiles.
+10. **Interview Recorder** (\`/interview-recorder\`) — connect to real interviews for transcription/insights (surface in nav).
 
 ### Account
 - **Account Settings** — profile and preferences.

@@ -12,7 +12,7 @@ import { EntityTablePagination } from "@/components/data/entity-table-pagination
 import { SessionTable } from "./components/session-table"
 import { TrackBrowserSection } from "./components/track-browser-section"
 import { useSessionsList } from "./hooks/use-sessions-list"
-import { FEATURED_TRACKS } from "./constants"
+import { INTERVIEW_TRACKS } from "./constants"
 
 export function SimulationsPageContent() {
   const { t } = useTranslation("common")
@@ -90,7 +90,7 @@ export function SimulationsPageContent() {
 
         <Separator className="my-2" />
         <TrackBrowserSection
-          tracks={FEATURED_TRACKS}
+          tracks={INTERVIEW_TRACKS}
           browseAllTo="/simulations/tracks"
         />
       </div>

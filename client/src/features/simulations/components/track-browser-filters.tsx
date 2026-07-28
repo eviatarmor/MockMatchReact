@@ -3,36 +3,78 @@ import { Checkbox } from "@mockmatch/ui/checkbox"
 import {
   INTERVIEW_TRACKS,
   TRACK_DIFFICULTIES,
-  TRACK_META_KINDS,
+  TRACK_DURATION_BUCKETS,
+  TRACK_FORMATS,
+  TRACK_ROLE_FAMILIES,
 } from "../constants"
-import type { DifficultyLevel, TrackMetaKind } from "../types"
+import { durationBucket } from "../lib/track-filters"
+import type {
+  DifficultyLevel,
+  DurationBucket,
+  TrackFormat,
+  TrackRoleFamily,
+} from "../types"
 
 function countByDifficulty(d: DifficultyLevel) {
   return INTERVIEW_TRACKS.filter((track) => track.difficulty === d).length
 }
 
-function countByMetaKind(kind: TrackMetaKind) {
-  return INTERVIEW_TRACKS.filter((track) => track.metaKind === kind).length
+function countByFormat(format: TrackFormat) {
+  return INTERVIEW_TRACKS.filter((track) => track.format === format).length
+}
+
+function countByRoleFamily(family: TrackRoleFamily) {
+  return INTERVIEW_TRACKS.filter((track) => track.roleFamilies.includes(family)).length
+}
+
+function countByDuration(bucket: DurationBucket) {
+  return INTERVIEW_TRACKS.filter((track) => durationBucket(track.durationMin) === bucket).length
 }
 
 interface TrackBrowserFiltersProps {
+  readonly selectedRoleFamilies: Set<TrackRoleFamily>
   readonly selectedDifficulties: Set<DifficultyLevel>
-  readonly selectedMetaKinds: Set<TrackMetaKind>
+  readonly selectedFormats: Set<TrackFormat>
+  readonly selectedDurations: Set<DurationBucket>
+  readonly onRoleFamilyToggle: (f: TrackRoleFamily) => void
   readonly onDifficultyToggle: (d: DifficultyLevel) => void
-  readonly onMetaKindToggle: (k: TrackMetaKind) => void
+  readonly onFormatToggle: (f: TrackFormat) => void
+  readonly onDurationToggle: (b: DurationBucket) => void
 }
 
 export function TrackBrowserFilters({
+  selectedRoleFamilies,
   selectedDifficulties,
-  selectedMetaKinds,
+  selectedFormats,
+  selectedDurations,
+  onRoleFamilyToggle,
   onDifficultyToggle,
-  onMetaKindToggle,
+  onFormatToggle,
+  onDurationToggle,
 }: TrackBrowserFiltersProps) {
   const { t } = useTranslation("common")
 
   return (
     <div className="flex flex-col gap-5">
       <span className="text-sm font-semibold">{t("simulations.tracksBrowser.filters.title")}</span>
+
+      <section className="flex flex-col gap-2">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          {t("simulations.tracksBrowser.filters.roleFamily")}
+        </p>
+        {TRACK_ROLE_FAMILIES.map((family) => (
+          <label key={family} className="flex cursor-pointer items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                checked={selectedRoleFamilies.has(family)}
+                onCheckedChange={() => onRoleFamilyToggle(family)}
+              />
+              <span className="text-sm">{t(`simulations.roleFamily.${family}`)}</span>
+            </div>
+            <span className="text-xs text-muted-foreground">{countByRoleFamily(family)}</span>
+          </label>
+        ))}
+      </section>
 
       <section className="flex flex-col gap-2">
         <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -54,18 +96,36 @@ export function TrackBrowserFilters({
 
       <section className="flex flex-col gap-2">
         <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-          {t("simulations.tracksBrowser.filters.format")}
+          {t("simulations.tracksBrowser.filters.duration")}
         </p>
-        {TRACK_META_KINDS.map((kind) => (
-          <label key={kind} className="flex cursor-pointer items-center justify-between gap-2">
+        {TRACK_DURATION_BUCKETS.map((bucket) => (
+          <label key={bucket} className="flex cursor-pointer items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <Checkbox
-                checked={selectedMetaKinds.has(kind)}
-                onCheckedChange={() => onMetaKindToggle(kind)}
+                checked={selectedDurations.has(bucket)}
+                onCheckedChange={() => onDurationToggle(bucket)}
               />
-              <span className="text-sm">{t(`simulations.metaKind.${kind}`)}</span>
+              <span className="text-sm">{t(`simulations.durationBucket.${bucket}`)}</span>
             </div>
-            <span className="text-xs text-muted-foreground">{countByMetaKind(kind)}</span>
+            <span className="text-xs text-muted-foreground">{countByDuration(bucket)}</span>
+          </label>
+        ))}
+      </section>
+
+      <section className="flex flex-col gap-2">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          {t("simulations.tracksBrowser.filters.format")}
+        </p>
+        {TRACK_FORMATS.map((format) => (
+          <label key={format} className="flex cursor-pointer items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <Checkbox
+                checked={selectedFormats.has(format)}
+                onCheckedChange={() => onFormatToggle(format)}
+              />
+              <span className="text-sm leading-snug">{t(`simulations.format.${format}`)}</span>
+            </div>
+            <span className="text-xs text-muted-foreground shrink-0">{countByFormat(format)}</span>
           </label>
         ))}
       </section>

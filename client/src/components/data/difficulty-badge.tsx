@@ -12,7 +12,7 @@ const DIFFICULTY_TONES: Record<Difficulty, BadgeTone> = {
 
 interface DifficultyBadgeProps {
   readonly difficulty: Difficulty
-  // i18n key prefix, e.g. "assessments.difficulty" -> "assessments.difficulty.easy"
+  // i18n key prefix, e.g. "questionBank.difficulty" -> "questionBank.difficulty.easy"
   readonly translationPrefix: string
 }
 
