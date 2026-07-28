@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn } from "../../lib/utils";
 import { motion, AnimatePresence } from "motion/react";
 import React, { useEffect, useState, useRef } from "react";
 import { OTPInput, OTPInputContext } from "input-otp";

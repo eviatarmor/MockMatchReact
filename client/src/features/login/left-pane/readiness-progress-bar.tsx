@@ -1,4 +1,4 @@
-import { NumberTicker } from "@/components/shadcn-space/number-ticker/number-ticker-01"
+import { NumberTicker } from "@mockmatch/ui/shadcn-space/number-ticker/number-ticker-01"
 
 interface ReadinessProgressBarProps {
   readonly score: number

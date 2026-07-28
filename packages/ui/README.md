@@ -35,3 +35,4 @@ Fix internal imports to relative paths (`./lib/utils`, `./button`) after CLI add
 | `@mockmatch/ui/utils` | `cn()` |
 | `@mockmatch/ui/hooks/*` | shared hooks |
 | `@mockmatch/ui/lib/*` | compose-refs, theme-view-transition |
+| `@mockmatch/ui/shadcn-space/...` | shadcnspace blocks (number-ticker, scroll-spy-tabs, …) |

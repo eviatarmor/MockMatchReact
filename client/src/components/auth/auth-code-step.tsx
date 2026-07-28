@@ -1,7 +1,7 @@
 import { Mail } from "lucide-react"
 import { Trans, useTranslation } from "react-i18next"
 import { Button } from "@mockmatch/ui/button"
-import { AnimatedOTP } from "@/components/shadcn-space/input-otp/input-otp-09"
+import { AnimatedOTP } from "@mockmatch/ui/shadcn-space/input-otp/input-otp-09"
 import { OTP_LENGTH } from "@/lib/auth/constants"
 import type { UseOtpVerificationResult } from "@/hooks/use-otp-verification"
 

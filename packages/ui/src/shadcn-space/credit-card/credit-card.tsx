@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { cn } from "@/lib/utils"
+import { cn } from "../../lib/utils"
 import { Wifi, Eye, EyeOff } from "lucide-react"
 import { Card, CardContent } from "@mockmatch/ui/card"
 import { Button } from "@mockmatch/ui/button"
