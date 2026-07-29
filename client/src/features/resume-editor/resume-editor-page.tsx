@@ -7,6 +7,7 @@ import { useIsMobile } from "@/hooks/use-mobile"
 import { useCanvasViewport } from "@/hooks/use-canvas-viewport"
 import {
   DocumentAiAssistProvider,
+  DocumentYjsProvider,
   EditorSecondaryBar,
   GrammarDialectProvider,
   resolveStyleClasses,
@@ -72,6 +73,12 @@ function ResumeEditorLoaded({
 
   return (
     <GrammarDialectProvider dialect={dialect}>
+    <DocumentYjsProvider
+      ydoc={session.ydoc}
+      enabled={session.collab.live}
+      userName={session.collab.self?.name}
+      userColor={session.collab.self?.color}
+    >
     <DocumentAssistantProvider
       kind="resume"
       document={session.document}
@@ -87,6 +94,7 @@ function ResumeEditorLoaded({
         t={t}
       />
     </DocumentAssistantProvider>
+    </DocumentYjsProvider>
     </GrammarDialectProvider>
   )
 }
@@ -179,6 +187,16 @@ function ResumeEditorSessionBody({
   if (session.collab.status === "room_full") {
     return (
       <RoomFullGate backHref="/resume-lab" message={session.collab.roomError} />
+    )
+  }
+
+  if (session.collab.status === "room_closed") {
+    return (
+      <RoomFullGate
+        backHref="/resume-lab"
+        message={session.collab.roomError}
+        variant="closed"
+      />
     )
   }
 

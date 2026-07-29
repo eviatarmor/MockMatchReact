@@ -91,6 +91,11 @@ export function useCollabRoom({
   const lastCursorSent = useRef(0)
   const docSavedTimerRef = useRef<number | undefined>(undefined)
   const pendingOpsRef = useRef(0)
+  /** Owner ended the session — do not reconnect. */
+  const roomClosedRef = useRef(false)
+  /** True after yjs.sync applied this connection. */
+  const yjsSyncedRef = useRef(false)
+  const yjsFallbackTimerRef = useRef<number | undefined>(undefined)
 
   const permissions: CollabPermissions = permissionsForRole(role)
 
@@ -137,13 +142,25 @@ export function useCollabRoom({
       setRole(msg.role)
       setPeers(msg.peers)
       setRev(msg.rev)
-      setStatus("synced")
+      yjsSyncedRef.current = false
+      // Stay "connecting" until yjs.sync — client must apply server CRDT state
+      // before broadcasting, or local JSON seed diverges from peers.
+      setStatus("connecting")
       setDocSaveStatus("saved")
       pendingOpsRef.current = 0
       if (docSavedTimerRef.current) {
         window.clearTimeout(docSavedTimerRef.current)
         docSavedTimerRef.current = undefined
       }
+      if (yjsFallbackTimerRef.current) {
+        window.clearTimeout(yjsFallbackTimerRef.current)
+      }
+      // If yjs.sync never arrives (server error), still go live so host can seed.
+      yjsFallbackTimerRef.current = window.setTimeout(() => {
+        if (!yjsSyncedRef.current && !roomClosedRef.current) {
+          setStatus("synced")
+        }
+      }, 2_500)
       setRoomError(null)
       onSnapshotRef.current?.(
         {
@@ -160,8 +177,55 @@ export function useCollabRoom({
 
     if (msg.type === "yjs.sync") {
       setRev(msg.rev)
-      setStatus("synced")
+      yjsSyncedRef.current = true
+      if (yjsFallbackTimerRef.current) {
+        window.clearTimeout(yjsFallbackTimerRef.current)
+        yjsFallbackTimerRef.current = undefined
+      }
       onYjsSyncRef.current?.(msg.update, msg.rev)
+      // Live only after shared Y.Doc state is applied
+      setStatus("synced")
+      return
+    }
+
+    if (msg.type === "room.closed") {
+      roomClosedRef.current = true
+      setStatus("room_closed")
+      setRoomError(
+        msg.reason === "owner_left"
+          ? "The owner left this document. Collaboration has ended."
+          : "This collaboration session has ended."
+      )
+      setPeers([])
+      try {
+        wsRef.current?.close()
+      } catch {
+        // ignore
+      }
+      return
+    }
+
+    if (msg.type === "access.revoked") {
+      // Owner removed us from share dialog — do not reconnect.
+      roomClosedRef.current = true
+      setStatus("room_closed")
+      setRoomError(
+        msg.reason === "removed"
+          ? "You were removed from this document."
+          : "Your access to this document was revoked."
+      )
+      setPeers([])
+      try {
+        wsRef.current?.close()
+      } catch {
+        // ignore
+      }
+      return
+    }
+
+    if (msg.type === "role.updated") {
+      setRole(msg.role)
+      setSelf((prev) => (prev ? { ...prev, role: msg.role } : prev))
       return
     }
 
@@ -251,6 +315,17 @@ export function useCollabRoom({
         setRoomError(msg.message)
         return
       }
+      if (msg.code === "room_closed" || msg.code === "owner_left") {
+        roomClosedRef.current = true
+        setStatus("room_closed")
+        setRoomError(msg.message)
+        try {
+          wsRef.current?.close()
+        } catch {
+          // ignore
+        }
+        return
+      }
       setStatus("error")
       setRoomError(msg.message)
     }
@@ -263,9 +338,10 @@ export function useCollabRoom({
     let heartbeat: number | undefined
     let reconnectTimer: number | undefined
     let socket: WebSocket | null = null
+    roomClosedRef.current = false
 
     const connect = async () => {
-      if (closed) return
+      if (closed || roomClosedRef.current) return
       setStatus("connecting")
       setDocSaveStatus("saved")
       pendingOpsRef.current = 0
@@ -275,7 +351,7 @@ export function useCollabRoom({
           documentId,
           shareToken: shareToken || undefined,
         })
-        if (closed) return
+        if (closed || roomClosedRef.current) return
 
         const url = new URL(ticket.wsUrl)
         url.searchParams.set("ticket", ticket.ticket)
@@ -283,7 +359,7 @@ export function useCollabRoom({
         wsRef.current = socket
 
         socket.onopen = () => {
-          if (closed) return
+          if (closed || roomClosedRef.current) return
           setRole(ticket.role)
           heartbeat = window.setInterval(() => {
             if (socket?.readyState === WebSocket.OPEN) {
@@ -297,7 +373,7 @@ export function useCollabRoom({
         socket.onclose = () => {
           wsRef.current = null
           if (heartbeat) window.clearInterval(heartbeat)
-          if (closed) return
+          if (closed || roomClosedRef.current) return
           setStatus("connecting")
           reconnectTimer = window.setTimeout(() => {
             void connect()
@@ -305,9 +381,11 @@ export function useCollabRoom({
         }
 
         socket.onerror = () => {
+          if (roomClosedRef.current) return
           setStatus("error")
         }
       } catch (err) {
+        if (closed || roomClosedRef.current) return
         const message =
           err instanceof Error ? err.message : "Failed to connect to collaboration"
         if (message.toLowerCase().includes("3 people") || message.includes("room")) {
@@ -316,7 +394,7 @@ export function useCollabRoom({
           setStatus("error")
         }
         setRoomError(message)
-        if (!closed) {
+        if (!closed && !roomClosedRef.current) {
           reconnectTimer = window.setTimeout(() => {
             void connect()
           }, RECONNECT_MS * 2)
@@ -333,6 +411,10 @@ export function useCollabRoom({
       if (docSavedTimerRef.current) {
         window.clearTimeout(docSavedTimerRef.current)
         docSavedTimerRef.current = undefined
+      }
+      if (yjsFallbackTimerRef.current) {
+        window.clearTimeout(yjsFallbackTimerRef.current)
+        yjsFallbackTimerRef.current = undefined
       }
       if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({ type: "leave" }))

@@ -20,8 +20,12 @@ type UseCollabYDocArgs = {
 }
 
 /**
- * Owns a Y.Doc for collab: seeds from JSON snapshot, applies remote updates,
- * emits local updates. Host keeps optimistic React state on local edits.
+ * Owns a Y.Doc for collab: applies server yjs.sync / peer updates, emits local
+ * updates. Host keeps optimistic React state on local edits.
+ *
+ * Do **not** seed the client Y.Doc from JSON when a server `yjs.sync` is coming —
+ * that creates a second CRDT identity and peer updates never land on the same
+ * shared types. Prefer empty doc → applyRemoteUpdate(full state).
  */
 export function useCollabYDoc({
   enabled,
@@ -40,11 +44,14 @@ export function useCollabYDoc({
   onRemoteMaterializeRef.current = onRemoteMaterialize
   const enabledRef = useRef(enabled)
   enabledRef.current = enabled
+  /** After first successful remote apply (yjs.sync or peer update). */
+  const hasRemoteStateRef = useRef(false)
 
   useEffect(() => {
     let raf = 0
     const onUpdate = (update: Uint8Array, origin: unknown) => {
       if (origin === Y_ORIGIN_REMOTE) {
+        hasRemoteStateRef.current = true
         if (raf) cancelAnimationFrame(raf)
         raf = requestAnimationFrame(() => {
           raf = 0
@@ -52,7 +59,9 @@ export function useCollabYDoc({
         })
         return
       }
-      if (!enabledRef.current) return
+      // Drop local broadcasts until server CRDT state is applied — otherwise we
+      // mint orphan Y types that peers (on the server tree) never share.
+      if (!enabledRef.current || !hasRemoteStateRef.current) return
       sendUpdateRef.current(encodeYUpdate(update))
     }
     ydoc.on("update", onUpdate)
@@ -64,12 +73,18 @@ export function useCollabYDoc({
 
   return {
     ydoc,
+    /**
+     * Emergency-only: seed when yjs.sync will not arrive. Prefer applyRemoteUpdate.
+     * Still marks remote-ready so later local edits can broadcast.
+     */
     seedFromSnapshot: (snap: CollabYSnapshot) => {
       seedCollabYDoc(ydoc, snap, Y_ORIGIN_REMOTE)
+      hasRemoteStateRef.current = true
     },
     applyRemoteUpdate: (updateB64: string) => {
       try {
         applyRemoteYUpdate(ydoc, decodeB64(updateB64))
+        hasRemoteStateRef.current = true
       } catch {
         // ignore corrupt updates
       }

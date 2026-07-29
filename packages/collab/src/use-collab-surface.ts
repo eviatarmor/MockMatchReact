@@ -41,62 +41,83 @@ export function useCollabSurface(
   const [surfaceSize, setSurfaceSize] = useState({ w: 1, h: 1 })
   const sizeRef = useRef(surfaceSize)
   sizeRef.current = surfaceSize
+  const clampRef = useRef(clamp)
+  clampRef.current = clamp
+  const sendCursorRef = useRef(sendCursor)
+  sendCursorRef.current = sendCursor
 
   useEffect(() => {
     const el = surfaceRef.current
     if (!el) return
-    const ro = new ResizeObserver((entries) => {
-      const entry = entries[0]
-      if (!entry) return
-      const { width, height } = entry.contentRect
-      if (width > 0 && height > 0) {
-        setSurfaceSize({ w: width, h: height })
-      }
-    })
+    // Always use offsetWidth/Height (layout border-box). contentRect can differ
+    // slightly and desync paper Y from clientToPaper (which uses border-box).
+    const measure = () => {
+      const w = el.offsetWidth
+      const h = el.offsetHeight
+      if (w > 0 && h > 0) setSurfaceSize({ w, h })
+    }
+    const ro = new ResizeObserver(measure)
     ro.observe(el)
-    const rect = el.getBoundingClientRect()
-    setSurfaceSize({
-      w: el.offsetWidth || rect.width,
-      h: el.offsetHeight || rect.height,
-    })
+    measure()
     return () => ro.disconnect()
   }, [])
 
-  const clientToPaper = useCallback(
-    (clientX: number, clientY: number) => {
-      const el = surfaceRef.current
-      if (!el) return null
-      const rect = el.getBoundingClientRect()
-      if (rect.width <= 0 || rect.height <= 0) return null
-      let x = (clientX - rect.left) / rect.width
-      let y = (clientY - rect.top) / rect.height
-      if (clamp) {
-        x = Math.min(1, Math.max(0, x))
-        y = Math.min(1, Math.max(0, y))
-      }
-      return { x, y }
-    },
-    [clamp]
-  )
+  const clientToPaper = useCallback((clientX: number, clientY: number) => {
+    const el = surfaceRef.current
+    if (!el) return null
+    const rect = el.getBoundingClientRect()
+    if (rect.width <= 0 || rect.height <= 0) return null
+    let x = (clientX - rect.left) / rect.width
+    let y = (clientY - rect.top) / rect.height
+    if (clampRef.current) {
+      x = Math.min(1, Math.max(0, x))
+      y = Math.min(1, Math.max(0, y))
+    }
+    return { x, y }
+  }, [])
 
+  /** Client DOMRect → normalized paper rect (x/y/w/h fractions of paper). */
   const clientRectToNorm = useCallback((r: DOMRect): CollabNormRect | null => {
     const el = surfaceRef.current
     if (!el) return null
     const srect = el.getBoundingClientRect()
     if (srect.width <= 0 || srect.height <= 0) return null
-    const scaleX = srect.width / (el.offsetWidth || srect.width)
-    const scaleY = srect.height / (el.offsetHeight || srect.height)
+    const layoutW = el.offsetWidth || 1
+    const layoutH = el.offsetHeight || 1
+    // Convert client → layout via the same scale clientToPaper uses
+    const scaleX = srect.width / layoutW
+    const scaleY = srect.height / layoutH
     if (scaleX <= 0 || scaleY <= 0) return null
-    const x = (r.left - srect.left) / srect.width
-    const y = (r.top - srect.top) / srect.height
-    const w = r.width / scaleX / (el.offsetWidth || 1)
-    const h = r.height / scaleY / (el.offsetHeight || 1)
     return {
-      x,
-      y,
-      w: Math.max(0, w),
-      h: Math.max(0, h),
+      x: (r.left - srect.left) / srect.width,
+      y: (r.top - srect.top) / srect.height,
+      w: Math.max(0, r.width / srect.width),
+      h: Math.max(0, r.height / srect.height),
     }
+  }, [])
+
+  /**
+   * Client caret rect → paper x/y (0–1) + height in **layout** px
+   * (RemoteCursors sits under the same CSS transform as the paper).
+   *
+   * Identity: layoutY = (clientY - srect.top) * (offsetHeight / srect.height)
+   *         = yNorm * offsetHeight  when surfaceSize.h === offsetHeight.
+   */
+  const clientCaretToPaper = useCallback((r: DOMRect) => {
+    const el = surfaceRef.current
+    if (!el) return null
+    const srect = el.getBoundingClientRect()
+    if (srect.width <= 0 || srect.height <= 0) return null
+    const layoutH = el.offsetHeight || 1
+    let x = (r.left - srect.left) / srect.width
+    let y = (r.top - srect.top) / srect.height
+    if (clampRef.current) {
+      x = Math.min(1, Math.max(0, x))
+      y = Math.min(1, Math.max(0, y))
+    }
+    // height: client → layout
+    const h = r.height * (layoutH / srect.height)
+    return { x, y, h }
   }, [])
 
   const onPointerMove = useCallback(
@@ -116,22 +137,18 @@ export function useCollabSurface(
       }
       const n = clientToPaper(e.clientX, e.clientY)
       if (!n) return
-      sendCursor(n.x, n.y, "pointer")
+      sendCursorRef.current(n.x, n.y, "pointer")
     },
-    [clientToPaper, sendCursor]
+    [clientToPaper]
   )
 
   const onPointerLeave = useCallback(() => {
     clearCursor?.()
   }, [clearCursor])
 
-  /**
-   * Attach pointer listeners to a viewport element (full grid / transform wrapper).
-   * Call with the wrapper DOM node when available.
-   */
   const bindViewport = useCallback(
     (viewportEl: HTMLElement | null) => {
-      if (!viewportEl || !sendCursor) return () => {}
+      if (!viewportEl) return () => {}
       const move = (e: PointerEvent) => onPointerMove(e)
       const leave = () => onPointerLeave()
       viewportEl.addEventListener("pointermove", move)
@@ -141,11 +158,13 @@ export function useCollabSurface(
         viewportEl.removeEventListener("pointerleave", leave)
       }
     },
-    [onPointerMove, onPointerLeave, sendCursor]
+    [onPointerMove, onPointerLeave]
   )
 
   // Text caret + selection while focused inside the document surface
   useEffect(() => {
+    let raf = 0
+
     const reportCaret = () => {
       const surface = surfaceRef.current
       if (!surface) return
@@ -155,18 +174,23 @@ export function useCollabSurface(
       let caretRect: DOMRect | null = null
       let selRects: DOMRect[] = []
 
-      if (
-        active instanceof HTMLInputElement ||
-        active instanceof HTMLTextAreaElement
-      ) {
-        selRects = getTextFieldSelectionClientRects(active)
-        caretRect = getTextFieldCaretClientRect(active)
-      } else if (
-        active.isContentEditable ||
-        active.closest("[contenteditable=true]")
-      ) {
-        selRects = getDomSelectionClientRects()
-        caretRect = getDomSelectionCaretClientRect()
+      try {
+        if (
+          active instanceof HTMLInputElement ||
+          active instanceof HTMLTextAreaElement
+        ) {
+          selRects = getTextFieldSelectionClientRects(active)
+          caretRect = getTextFieldCaretClientRect(active)
+        } else if (
+          active.isContentEditable ||
+          active.closest("[contenteditable=true]")
+        ) {
+          selRects = getDomSelectionClientRects()
+          caretRect = getDomSelectionCaretClientRect()
+        }
+      } catch {
+        // Measurement must never break editing
+        return
       }
 
       if (selRects.length > 0) {
@@ -174,45 +198,49 @@ export function useCollabSurface(
           .map(clientRectToNorm)
           .filter((r): r is CollabNormRect => r != null)
         if (norms.length === 0) return
-        const anchor = caretRect
-          ? clientToPaper(caretRect.left, caretRect.top)
-          : { x: norms[0]!.x, y: norms[0]!.y }
-        if (!anchor) return
-        const el = surface
-        const srect = el.getBoundingClientRect()
-        const scaleY = srect.height / (el.offsetHeight || srect.height)
-        const h =
-          caretRect && scaleY > 0
-            ? caretRect.height / scaleY
-            : norms[0]!.h * el.offsetHeight
-        sendCursor(anchor.x, anchor.y, "selection", h, norms)
+        const anchorRect = caretRect ?? selRects[selRects.length - 1]!
+        const paper = clientCaretToPaper(anchorRect)
+        if (!paper) return
+        sendCursorRef.current(
+          paper.x,
+          paper.y,
+          "selection",
+          paper.h,
+          norms
+        )
         return
       }
 
       if (!caretRect) return
-
-      const n = clientToPaper(caretRect.left, caretRect.top)
-      if (!n) return
-      const el = surface
-      const srect = el.getBoundingClientRect()
-      const scaleY = srect.height / (el.offsetHeight || srect.height)
-      const h = scaleY > 0 ? caretRect.height / scaleY : caretRect.height
-      sendCursor(n.x, n.y, "caret", h)
+      const paper = clientCaretToPaper(caretRect)
+      if (!paper) return
+      sendCursorRef.current(paper.x, paper.y, "caret", paper.h)
     }
 
-    const onSel = () => {
-      requestAnimationFrame(reportCaret)
+    const schedule = () => {
+      if (raf) return
+      raf = requestAnimationFrame(() => {
+        raf = 0
+        reportCaret()
+      })
     }
 
-    document.addEventListener("selectionchange", onSel)
-    document.addEventListener("keyup", onSel, true)
-    document.addEventListener("pointerup", onSel, true)
+    // Do **not** listen on keydown — measuring mid-key can race Lexical.
+    // selectionchange + input cover caret moves while typing.
+    document.addEventListener("selectionchange", schedule)
+    document.addEventListener("keyup", schedule, true)
+    document.addEventListener("pointerup", schedule, true)
+    document.addEventListener("input", schedule, true)
+    document.addEventListener("select", schedule, true)
     return () => {
-      document.removeEventListener("selectionchange", onSel)
-      document.removeEventListener("keyup", onSel, true)
-      document.removeEventListener("pointerup", onSel, true)
+      if (raf) cancelAnimationFrame(raf)
+      document.removeEventListener("selectionchange", schedule)
+      document.removeEventListener("keyup", schedule, true)
+      document.removeEventListener("pointerup", schedule, true)
+      document.removeEventListener("input", schedule, true)
+      document.removeEventListener("select", schedule, true)
     }
-  }, [clientToPaper, clientRectToNorm, sendCursor])
+  }, [clientRectToNorm, clientCaretToPaper])
 
   return {
     surfaceRef,

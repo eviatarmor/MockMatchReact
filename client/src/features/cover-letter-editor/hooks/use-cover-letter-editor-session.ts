@@ -90,6 +90,8 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
     onRemoteMaterialize,
   })
 
+  const lastSnapRef = useRef<CollabYSnapshot | null>(null)
+
   const onSnapshot = useCallback(
     (snap: {
       rev: number
@@ -98,15 +100,16 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
       style: Record<string, unknown>
       document: unknown
     }) => {
-      applyExternalSnapshot(snap)
-      yjs.seedFromSnapshot({
+      // React only — Y.Doc from server yjs.sync (shared CRDT identity).
+      lastSnapRef.current = {
         title: snap.title,
         templateId: snap.templateId,
         style: snap.style,
         document: snap.document,
-      })
+      }
+      applyExternalSnapshot(snap)
     },
-    [applyExternalSnapshot, yjs]
+    [applyExternalSnapshot]
   )
 
   const onYjsSync = useCallback(
@@ -136,6 +139,17 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
 
   const permissions: CollabPermissions = collab.permissions
   const ydoc = yjs.ydoc
+
+  const seedFromSnapshotRef = useRef(yjs.seedFromSnapshot)
+  seedFromSnapshotRef.current = yjs.seedFromSnapshot
+
+  // Safety: if server never sent yjs.sync but room is live, seed once from last snapshot.
+  useEffect(() => {
+    if (!collab.live || !lastSnapRef.current) return
+    const root = ydoc.getMap("root")
+    if (root.size > 0) return
+    seedFromSnapshotRef.current(lastSnapRef.current)
+  }, [collab.live, ydoc])
 
   useEffect(() => {
     history.commit({
@@ -326,6 +340,8 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
     history: historyControls,
     applyRestoredVersion,
     replaceDocument: replaceDocumentFromAi,
+    /** Shared room Y.Doc for Lexical↔Yjs field bindings. */
+    ydoc,
     documentViewKey: collab.remoteEpoch,
   }
 }

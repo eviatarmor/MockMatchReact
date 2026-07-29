@@ -17,12 +17,26 @@ import { resumes } from "../../db/schema/resumes.js"
 import { users } from "../../db/schema/users.js"
 import { hashToken } from "../../lib/crypto.js"
 import { signCollabTicket } from "../../lib/jwt.js"
+import { publishRoom } from "../../lib/collab-store.js"
 import { grantCredits, isPaidUser } from "../billing/credits.js"
 import {
   requireDocumentOwner,
   resolveDocumentAccess,
 } from "./access.js"
 import { permissionsForRole } from "./permissions.js"
+
+/** Redis control plane for live collab WS (api → ws pods). */
+async function publishRoomControl(
+  kind: DocumentKind,
+  documentId: string,
+  message: Record<string, unknown>
+): Promise<void> {
+  await publishRoom(kind, documentId, {
+    ...message,
+    // Not a WS pod id — every ws instance must handle this (kick / role).
+    _origin: "api",
+  })
+}
 
 /**
  * Share links are session-bound to the owner being in the collab room:
@@ -283,6 +297,13 @@ export async function updateCollaboratorRole(
     })
   }
 
+  // Live WS still holds ticket role until we push an update.
+  await publishRoomControl(kind, documentId, {
+    type: "peer.role",
+    userId: targetUserId,
+    role: row.role,
+  })
+
   return {
     userId: row.userId,
     role: row.role,
@@ -322,6 +343,13 @@ export async function removeCollaborator(
       message: "Collaborator not found.",
     })
   }
+
+  // Drop their live socket — DB delete alone leaves an open edit session.
+  await publishRoomControl(kind, documentId, {
+    type: "peer.kick",
+    userId: targetUserId,
+    reason: "removed",
+  })
 
   return { ok: true as const, kickedUserId: targetUserId }
 }

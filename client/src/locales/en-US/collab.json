@@ -36,6 +36,12 @@
     "description": "This document already has 3 people editing. Try again when someone leaves.",
     "back": "Go back"
   },
+  "roomClosed": {
+    "title": "Session ended",
+    "description": "The owner left this document. Collaboration has ended — ask them to open it again and share a new link.",
+    "removedDescription": "You were removed from this document. Ask the owner if you need access again.",
+    "back": "Go back"
+  },
   "status": {
     "connecting": "Connecting…",
     "synced": "Live",

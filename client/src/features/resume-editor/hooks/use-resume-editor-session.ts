@@ -91,6 +91,8 @@ export function useResumeEditorSession(seed: SessionSeed) {
     onRemoteMaterialize,
   })
 
+  const lastSnapRef = useRef<CollabYSnapshot | null>(null)
+
   const onSnapshot = useCallback(
     (snap: {
       rev: number
@@ -99,16 +101,17 @@ export function useResumeEditorSession(seed: SessionSeed) {
       style: Record<string, unknown>
       document: unknown
     }) => {
-      applyExternalSnapshot(snap)
-      // Seed Y.Doc from JSON so local merges have structure before/without yjs.sync
-      yjs.seedFromSnapshot({
+      // React only — Y.Doc must come from server yjs.sync (shared CRDT identity).
+      // JSON-seeding the client Y.Doc forks types; peer updates then miss.
+      lastSnapRef.current = {
         title: snap.title,
         templateId: snap.templateId,
         style: snap.style,
         document: snap.document,
-      })
+      }
+      applyExternalSnapshot(snap)
     },
-    [applyExternalSnapshot, yjs]
+    [applyExternalSnapshot]
   )
 
   const onYjsSync = useCallback(
@@ -138,6 +141,17 @@ export function useResumeEditorSession(seed: SessionSeed) {
 
   const permissions: CollabPermissions = collab.permissions
   const ydoc = yjs.ydoc
+
+  const seedFromSnapshotRef = useRef(yjs.seedFromSnapshot)
+  seedFromSnapshotRef.current = yjs.seedFromSnapshot
+
+  // Safety: if server never sent yjs.sync but room is live, seed once from last snapshot.
+  useEffect(() => {
+    if (!collab.live || !lastSnapRef.current) return
+    const root = ydoc.getMap("root")
+    if (root.size > 0) return
+    seedFromSnapshotRef.current(lastSnapRef.current)
+  }, [collab.live, ydoc])
 
   useEffect(() => {
     history.commit({
@@ -330,6 +344,8 @@ export function useResumeEditorSession(seed: SessionSeed) {
     history: historyControls,
     applyRestoredVersion,
     replaceDocument: replaceDocumentFromAi,
+    /** Shared room Y.Doc for Lexical↔Yjs field bindings. */
+    ydoc,
     /** Kept for API compat — Yjs materialize drives remote updates in place. */
     documentViewKey: collab.remoteEpoch,
   }

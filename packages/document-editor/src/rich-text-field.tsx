@@ -24,12 +24,14 @@ import { FloatingTextToolbar, type RichTextToolbarLabels } from "./rich-text-too
 import { useDocumentAiAssist } from "./ai-assist-context"
 import { LexicalGrammarPlugin } from "./grammar/lexical-grammar-plugin"
 import type { GrammarPopoverLabels } from "./grammar/grammar-popover"
+import { useDocumentYjs } from "./document-yjs-context"
+import { LexicalYjsPlugin } from "./lexical-yjs-plugin"
 
 /** Tag so OnChange ignores programmatic collab/external applies (no rebroadcast loops). */
 const COLLAB_REMOTE_TAG = "collab-remote"
 
 interface RichTextFieldProps {
-  /** Controlled HTML. Collab peers update this → editor re-syncs in place. */
+  /** Controlled HTML. Collab peers update this → editor re-syncs in place (non-Yjs path). */
   readonly value: string
   readonly onChange?: (html: string) => void
   readonly readOnly?: boolean
@@ -40,6 +42,11 @@ interface RichTextFieldProps {
   readonly grammar?: boolean
   readonly grammarLabels?: GrammarPopoverLabels
   readonly analysisTarget?: string
+  /**
+   * Stable id for Lexical↔Yjs binding. Defaults to `analysisTarget`.
+   * Required for multi-field collab (unique per field on the shared Y.Doc).
+   */
+  readonly collabFieldId?: string
   /** Selection → AI assistant (attachment). */
   readonly onAiAssist?: (selectedText: string) => void
 }
@@ -97,14 +104,21 @@ function applyHtmlToEditor(editor: LexicalEditor, html: string) {
 }
 
 /**
- * Keep Lexical in sync with the controlled `value` prop (collab peer edits).
- * Tags updates as collab-remote so OnChange does not re-emit / rebroadcast.
+ * Keep Lexical in sync with the controlled `value` prop (non-Yjs collab / external).
+ * Disabled when LexicalYjsPlugin owns the editor state.
  */
-function ExternalHtmlSyncPlugin({ html }: { readonly html: string }) {
+function ExternalHtmlSyncPlugin({
+  html,
+  disabled,
+}: {
+  readonly html: string
+  readonly disabled?: boolean
+}) {
   const [editor] = useLexicalComposerContext()
   const lastSynced = useRef<string | null>(null)
 
   useEffect(() => {
+    if (disabled) return
     const next = html ?? ""
     if (lastSynced.current === next) return
 
@@ -119,14 +133,14 @@ function ExternalHtmlSyncPlugin({ html }: { readonly html: string }) {
 
     lastSynced.current = next
     applyHtmlToEditor(editor, next)
-  }, [html, editor])
+  }, [html, editor, disabled])
 
   return null
 }
 
 /**
- * Rich-text field: transparent Lexical editor. Controlled `value` so collab
- * peers can push HTML and it appears live.
+ * Rich-text field: transparent Lexical editor.
+ * With {@link DocumentYjsProvider} + field id → @lexical/yjs Binding V2 on the shared room doc.
  */
 export function RichTextField({
   value: valueProp,
@@ -139,16 +153,23 @@ export function RichTextField({
   grammar,
   grammarLabels,
   analysisTarget,
+  collabFieldId,
   onAiAssist,
 }: RichTextFieldProps) {
   const contextAiAssist = useDocumentAiAssist()
   const resolvedAiAssist = onAiAssist ?? contextAiAssist ?? undefined
   const value = valueProp ?? ""
   const reactId = useId()
+  const fieldId = collabFieldId ?? analysisTarget
+  const yjsCtx = useDocumentYjs()
+  const yjsEnabled = Boolean(yjsCtx.enabled && yjsCtx.ydoc && fieldId)
+
   // Unique namespace per instance — shared namespace broke multi-field + collab state
-  const namespace = analysisTarget
-    ? `rtf:${analysisTarget}`
-    : `rtf:${reactId}`
+  const namespace = fieldId
+    ? `rtf:${fieldId}`
+    : analysisTarget
+      ? `rtf:${analysisTarget}`
+      : `rtf:${reactId}`
 
   const initialConfig = useMemo(
     () => ({
@@ -160,7 +181,11 @@ export function RichTextField({
         throw error
       },
       editorState: (editor: LexicalEditor) => {
-        // Always write seed — do not bail if Lexical already created an empty paragraph
+        // Yjs path bootstraps via LexicalYjsPlugin — start empty
+        if (yjsEnabled) {
+          $getRoot().clear()
+          return
+        }
         const root = $getRoot()
         root.clear()
         const source = value
@@ -174,9 +199,9 @@ export function RichTextField({
         $setSelection(null)
       },
     }),
-    // value intentionally omitted — ExternalHtmlSyncPlugin owns live updates
+    // value intentionally omitted — ExternalHtmlSyncPlugin / Yjs own live updates
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [namespace]
+    [namespace, yjsEnabled]
   )
 
   if (readOnly || !onChange) {
@@ -195,6 +220,9 @@ export function RichTextField({
     tags?: Set<string>
   ) => {
     if (tags?.has(COLLAB_REMOTE_TAG)) return
+    if (tags?.has("collaboration")) return
+    // Yjs plugin also emits HTML via onHtmlChange; skip duplicate here when bound
+    if (yjsEnabled) return
     editor.read(() => onChange($generateHtmlFromNodes(editor, null)))
   }
 
@@ -226,11 +254,22 @@ export function RichTextField({
           }
           ErrorBoundary={LexicalErrorBoundary}
         />
-        <HistoryPlugin />
+        {/* Local undo only when not CRDT-bound (Yjs has its own history model). */}
+        {!yjsEnabled && <HistoryPlugin />}
         <ListPlugin />
         <LinkPlugin />
         <OnChangePlugin ignoreSelectionChange onChange={handleChange} />
-        <ExternalHtmlSyncPlugin html={value} />
+        <ExternalHtmlSyncPlugin html={value} disabled={yjsEnabled} />
+        {yjsEnabled && yjsCtx.ydoc && fieldId && (
+          <LexicalYjsPlugin
+            ydoc={yjsCtx.ydoc}
+            fieldId={fieldId}
+            bootstrapHtml={value}
+            userName={yjsCtx.userName}
+            userColor={yjsCtx.userColor}
+            onHtmlChange={onChange}
+          />
+        )}
         <FloatingTextToolbar
           labels={labels}
           onAiAssist={resolvedAiAssist}

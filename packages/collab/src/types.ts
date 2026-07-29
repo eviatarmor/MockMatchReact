@@ -32,7 +32,14 @@ export type CollabPeer = {
   cursor?: CollabCursor
 }
 
-export type CollabSaveStatus = "idle" | "connecting" | "synced" | "error" | "room_full"
+export type CollabSaveStatus =
+  | "idle"
+  | "connecting"
+  | "synced"
+  | "error"
+  | "room_full"
+  /** Owner left — share session ended; peers should exit the editor. */
+  | "room_closed"
 
 export type CollabSnapshotMessage = {
   type: "snapshot"
@@ -62,6 +69,12 @@ export type CollabServerMessage =
   | { type: "yjs.update"; update: string; rev: number; userId: string }
   | { type: "peer.joined"; peer: CollabPeer }
   | { type: "peer.left"; userId: string }
+  /** Owner left the room — share session is over for everyone. */
+  | { type: "room.closed"; reason: "owner_left" }
+  /** Owner removed this collaborator from the share dialog. */
+  | { type: "access.revoked"; reason: "removed" | string }
+  /** Live role changed (e.g. edit → view) while still in the room. */
+  | { type: "role.updated"; role: CollabEffectiveRole }
   | {
       type: "presence.cursor"
       userId: string

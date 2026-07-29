@@ -95,7 +95,7 @@ application tracking, practice, and readiness insights.
 3. Client must be reachable at APP_URL while exporting.
 
 ### Collaboration
-- Resume/cover letter editors support **share links** that stay active only while the owner is in the document; the link expires when the owner leaves (reopen does not revive it).
+- Resume/cover letter editors support **share links** that stay active only while the owner is in the document; when the owner leaves, the link expires and collaborators are dropped from the session (reopen does not revive the old link — owner must create a new one). Removing someone from the share dialog kicks them out of the live session immediately.
 - Roles: view | edit (owner full access).
 - May require credits depending on plan/grant.
 

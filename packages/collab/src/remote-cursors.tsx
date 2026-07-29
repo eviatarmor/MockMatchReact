@@ -47,10 +47,17 @@ export function RemoteCursors({
                   }}
                 />
               ))}
+              {/* Bar at insertion Y; name floats above so it does not shift the bar */}
               <div
                 className="absolute"
                 style={{ left, top, transform: "translate(-1px, 0)" }}
               >
+                <div
+                  className="absolute bottom-full mb-0.5 max-w-[8rem] truncate rounded px-1 py-px text-[9px] font-medium leading-tight text-white shadow-sm"
+                  style={{ backgroundColor: p.color }}
+                >
+                  {p.name}
+                </div>
                 <div
                   className="w-0.5 rounded-full"
                   style={{
@@ -58,12 +65,6 @@ export function RemoteCursors({
                     backgroundColor: p.color,
                   }}
                 />
-                <div
-                  className="mt-0.5 max-w-[8rem] truncate rounded px-1 py-px text-[9px] font-medium leading-tight text-white shadow-sm"
-                  style={{ backgroundColor: p.color }}
-                >
-                  {p.name}
-                </div>
               </div>
             </div>
           )
@@ -77,6 +78,12 @@ export function RemoteCursors({
               style={{ left, top, transform: "translate(-1px, 0)" }}
             >
               <div
+                className="absolute bottom-full mb-0.5 max-w-[8rem] truncate rounded px-1 py-px text-[9px] font-medium leading-tight text-white shadow-sm"
+                style={{ backgroundColor: p.color }}
+              >
+                {p.name}
+              </div>
+              <div
                 className="w-0.5 animate-pulse rounded-full"
                 style={{
                   height: p.cursor.h ?? 16,
@@ -84,12 +91,6 @@ export function RemoteCursors({
                   boxShadow: `0 0 0 1px ${p.color}33`,
                 }}
               />
-              <div
-                className="mt-0.5 max-w-[8rem] truncate rounded px-1 py-px text-[9px] font-medium leading-tight text-white shadow-sm"
-                style={{ backgroundColor: p.color }}
-              >
-                {p.name}
-              </div>
             </div>
           )
         }

@@ -6,6 +6,12 @@ export {
 export { DiffHtmlProvider, useDiffHtml } from "./diff-html-context"
 export { EditableText } from "./editable-text"
 export { RichTextField } from "./rich-text-field"
+export {
+  DocumentYjsProvider,
+  useDocumentYjs,
+  type DocumentYjsContextValue,
+} from "./document-yjs-context"
+export { LexicalYjsPlugin } from "./lexical-yjs-plugin"
 export { type RichTextToolbarLabels } from "./rich-text-toolbar"
 export {
   DocumentAiAssistProvider,

@@ -42,6 +42,8 @@ type ClientState = {
   ownerUserId: string
   color: string
   roomKey: string
+  /** Prevent double handleLeave (leave msg + socket close). */
+  left?: boolean
 }
 
 const clients = new Set<ClientState>()
@@ -254,6 +256,9 @@ async function handleJoin(state: ClientState): Promise<void> {
 }
 
 async function handleLeave(state: ClientState): Promise<void> {
+  if (state.left) return
+  state.left = true
+
   const { kind, documentId, userId, role } = state
   const remaining = await releaseSeat(kind, documentId, userId)
   await fanout(
@@ -263,9 +268,24 @@ async function handleLeave(state: ClientState): Promise<void> {
     userId
   )
 
-  // Owner left → expire all share links for this document (session-bound links).
-  // Reopening later does not revive them; owner must create a new link.
+  // Owner left → end session for everyone, revoke share links, drop peer sockets.
+  // Reopening later does not revive links; owner must create a new share.
   if (role === "owner") {
+    const closedMsg = { type: "room.closed" as const, reason: "owner_left" as const }
+    await fanout(kind, documentId, closedMsg, userId)
+
+    const key = roomKey(kind, documentId)
+    for (const c of [...clients]) {
+      if (c.roomKey !== key || c.userId === userId) continue
+      try {
+        send(c.ws, closedMsg)
+        c.ws.close()
+      } catch {
+        // ignore
+      }
+      // releaseSeat runs again in peer's own handleLeave on close
+    }
+
     try {
       const { revokeAllShareLinksForDocument } = await import(
         "./modules/collab/service.js"
@@ -280,6 +300,10 @@ async function handleLeave(state: ClientState): Promise<void> {
     } catch (err) {
       logger.error({ err, kind, documentId }, "failed to revoke share links on owner leave")
     }
+
+    // Owner gone → flush whatever is left
+    await scheduleCollabFlush(kind, documentId, { immediate: true })
+    return
   }
 
   // Last peer → immediate Postgres flush
@@ -485,6 +509,46 @@ async function handleMessage(state: ClientState, raw: string): Promise<void> {
   }
 }
 
+/**
+ * Force-disconnect a user from a live room (share dialog remove).
+ * Sends access.revoked so the client does not auto-reconnect as editor.
+ */
+function kickLocalUser(
+  kind: DocumentKind,
+  documentId: string,
+  targetUserId: string,
+  reason: string
+): void {
+  const key = roomKey(kind, documentId)
+  for (const c of [...clients]) {
+    if (c.roomKey !== key || c.userId !== targetUserId) continue
+    try {
+      send(c.ws, {
+        type: "access.revoked",
+        reason,
+      })
+      c.ws.close()
+    } catch {
+      // ignore
+    }
+  }
+}
+
+/** Update live ticket role (edit → view) so further yjs updates are rejected. */
+function applyLocalRole(
+  kind: DocumentKind,
+  documentId: string,
+  targetUserId: string,
+  role: CollabEffectiveRole
+): void {
+  const key = roomKey(kind, documentId)
+  for (const c of clients) {
+    if (c.roomKey !== key || c.userId !== targetUserId) continue
+    c.role = role
+    send(c.ws, { type: "role.updated", role })
+  }
+}
+
 function startPubSubBridge(): void {
   const sub = getRedis().duplicate()
   sub.subscribe("__keyspace@0__dummy").catch(() => {})
@@ -504,6 +568,32 @@ function startPubSubBridge(): void {
       const kind = parts[2] as DocumentKind
       const documentId = parts[3]
       if (!kind || !documentId) return
+
+      // API control plane (kick / live role) — handle on this pod, do not
+      // re-broadcast raw control frames to every client.
+      if (msg.type === "peer.kick") {
+        const target = typeof msg.userId === "string" ? msg.userId : ""
+        if (target) {
+          kickLocalUser(
+            kind,
+            documentId,
+            target,
+            typeof msg.reason === "string" ? msg.reason : "removed"
+          )
+        }
+        return
+      }
+      if (msg.type === "peer.role") {
+        const target = typeof msg.userId === "string" ? msg.userId : ""
+        const role = msg.role
+        if (
+          target &&
+          (role === "view" || role === "edit" || role === "owner")
+        ) {
+          applyLocalRole(kind, documentId, target, role)
+        }
+        return
+      }
 
       const exceptUserId =
         typeof msg._exceptUserId === "string" ? msg._exceptUserId : undefined
