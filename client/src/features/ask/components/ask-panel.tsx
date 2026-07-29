@@ -4,11 +4,7 @@ import { cn } from "@/lib/utils"
 import { SidePanelResizeHandle } from "@mockmatch/ui/side-panel-resize-handle"
 import { useSidePanelWidth } from "@/hooks/use-side-panel-width"
 import { useAskPanel } from "../ask-context"
-import { useAskChat } from "../hooks/use-ask-chat"
-import { AskHeader } from "./ask-header"
-import { AskInput } from "./ask-input"
-import { AskMessages } from "./ask-messages"
-import { AskSuggestions } from "./ask-suggestions"
+import { AskChatSurface } from "./ask-chat-surface"
 
 const ASK_DEFAULT_PX = 384
 const ASK_MIN_PX = 320
@@ -22,27 +18,13 @@ const PANEL_SPRING = { type: "spring" as const, stiffness: 320, damping: 34 }
  */
 export function AskPanel() {
   const { t } = useTranslation("ask")
-  const { open, chatResetKey } = useAskPanel()
-  const {
-    messages,
-    status,
-    error,
-    input,
-    setInput,
-    isBusy,
-    sendText,
-    handleSubmit,
-    showSuggestions,
-    stop,
-  } = useAskChat()
+  const { open, closePanel } = useAskPanel()
 
   const { width, startResize, isDragging } = useSidePanelWidth({
     defaultWidth: ASK_DEFAULT_PX,
     min: ASK_MIN_PX,
     max: ASK_MAX_PX,
   })
-
-  const inputResetKey = `${chatResetKey}:${messages.length}`
 
   return (
     <AnimatePresence initial={false}>
@@ -67,19 +49,7 @@ export function AskPanel() {
               onPointerDown={startResize}
               label={t("resize")}
             />
-            <AskHeader />
-            <AskMessages messages={messages} status={status} error={error} />
-            {showSuggestions && (
-              <AskSuggestions onSelect={sendText} disabled={isBusy} />
-            )}
-            <AskInput
-              value={input}
-              onChange={setInput}
-              onSubmit={() => void handleSubmit()}
-              onStop={() => void stop()}
-              isBusy={isBusy}
-              resetKey={inputResetKey}
-            />
+            <AskChatSurface onClose={closePanel} />
           </div>
         </motion.aside>
       )}

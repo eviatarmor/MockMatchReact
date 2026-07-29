@@ -26,6 +26,8 @@
     "bracketColors": "Bracket pair colorization",
     "fullscreen": "Full Screen",
     "exitFullscreen": "Exit Full Screen",
+    "toggleAi": "AI Assistant",
+    "resizeAi": "Resize AI panel",
     "newFile": "New File",
     "newFolder": "New Folder",
     "delete": "Delete",

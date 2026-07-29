@@ -5,6 +5,7 @@ import {
   Minimize2,
   Pin,
   Rows2,
+  Sparkles,
   SquareSplitHorizontal,
   TerminalSquare,
   X,
@@ -52,6 +53,8 @@ export type IdeTabsProps = {
   isSplit?: boolean
   showTerminal?: boolean
   onToggleTerminal?: () => void
+  showAi?: boolean
+  onToggleAi?: () => void
   fullscreen?: boolean
   onToggleFullscreen?: () => void
   labels?: IdeLabels
@@ -73,6 +76,8 @@ export function IdeTabs({
   isSplit,
   showTerminal,
   onToggleTerminal,
+  showAi,
+  onToggleAi,
   fullscreen,
   onToggleFullscreen,
   labels,
@@ -372,6 +377,28 @@ export function IdeTabs({
             </TooltipTrigger>
             <TooltipContent side="bottom">
               {labels?.toggleTerminal ?? "Terminal"}
+            </TooltipContent>
+          </Tooltip>
+        ) : null}
+        {onToggleAi ? (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  type="button"
+                  variant={showAi ? "secondary" : "ghost"}
+                  size="icon-xs"
+                  aria-label={labels?.toggleAi ?? "Toggle AI assistant"}
+                  aria-pressed={showAi}
+                  onClick={onToggleAi}
+                />
+              }
+            >
+              <Sparkles className="size-3.5" />
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {labels?.toggleAi ?? "AI Assistant"}
+              <span className="ml-1.5 opacity-70">Ctrl+L</span>
             </TooltipContent>
           </Tooltip>
         ) : null}

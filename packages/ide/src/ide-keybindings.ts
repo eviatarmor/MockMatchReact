@@ -7,6 +7,7 @@ export type IdeKeyAction =
   | "closeTab"
   | "toggleTerminal"
   | "toggleTree"
+  | "toggleAi"
   | "toggleFullscreen"
   | "newFile"
   | "newFolder"
@@ -39,6 +40,12 @@ export function isIdeTerminalTarget(target: EventTarget | null): boolean {
       target.closest('[data-slot="ide-terminal-panel"]') ||
       target.closest(".xterm")
   )
+}
+
+/** AI assistant panel inputs — don't steal chat shortcuts (e.g. Ctrl+W). */
+export function isIdeAiPanelTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false
+  return Boolean(target.closest('[data-slot="ide-ai-panel"]'))
 }
 
 export function isMonacoTarget(target: EventTarget | null): boolean {
@@ -80,11 +87,19 @@ export function matchIdeKeybinding(
     return { action: "toggleTree", preventDefault: true }
   }
 
-  // Ctrl+W — close editor tab (not when typing in terminal)
+  // Ctrl+L — toggle AI assistant panel
+  if (!shift && key === "l") {
+    return { action: "toggleAi", preventDefault: true }
+  }
+
+  // Ctrl+W — close editor tab (not when typing in terminal / AI panel)
   if (!shift && key === "w") {
     if (isIdeTerminalTarget(e.target)) {
       // Still block browser close; xterm eats the key for delete-word
       return { action: "blockBrowser", preventDefault: true }
+    }
+    if (isIdeAiPanelTarget(e.target) && isEditableField(e.target)) {
+      return null
     }
     return { action: "closeTab", preventDefault: true }
   }

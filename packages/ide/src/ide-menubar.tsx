@@ -30,6 +30,8 @@ export type IdeMenubarProps = {
   treeToggleable?: boolean
   showTerminal?: boolean
   onToggleTerminal?: () => void
+  showAi?: boolean
+  onToggleAi?: () => void
   fullscreen?: boolean
   onToggleFullscreen?: () => void
   onCreateFile?: () => void
@@ -64,6 +66,8 @@ export function IdeMenubar({
   treeToggleable = false,
   showTerminal,
   onToggleTerminal,
+  showAi,
+  onToggleAi,
   fullscreen = false,
   onToggleFullscreen,
   onCreateFile,
@@ -141,7 +145,22 @@ export function IdeMenubar({
             </MenubarCheckboxItem>
           ) : null}
 
-          {(treeToggleable || onToggleTerminal) && <MenubarSeparator />}
+          {onToggleAi ? (
+            <MenubarCheckboxItem
+              checked={Boolean(showAi)}
+              onCheckedChange={() => onToggleAi()}
+            >
+              {labels.toggleAi ?? "AI Assistant"}
+              <KbdGroup className="ml-auto">
+                <Kbd>Ctrl</Kbd>
+                <Kbd>L</Kbd>
+              </KbdGroup>
+            </MenubarCheckboxItem>
+          ) : null}
+
+          {(treeToggleable || onToggleTerminal || onToggleAi) && (
+            <MenubarSeparator />
+          )}
 
           {onSplit ? (
             <>

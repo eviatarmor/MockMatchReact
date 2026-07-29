@@ -18,6 +18,8 @@ export {
   IdeTerminalPanel,
   type IdeTerminalPanelProps,
 } from "./ide-terminal-panel"
+export { IdeAiPanel, type IdeAiPanelProps } from "./ide-ai-panel"
+export { useRightPanelWidth } from "./use-right-panel-width"
 export {
   IdeEditorArea,
   type IdeEditorAreaProps,
@@ -50,6 +52,7 @@ export {
   type IdeColorScheme,
   type IdeLabels,
   type IdeShellProps,
+  type IdeAiPanelContent,
   type MonacoEditorOptions,
   type FileTreeCreateKind,
   type FileTreeCreateRequest,
@@ -59,6 +62,7 @@ export {
 export {
   matchIdeKeybinding,
   isIdeTerminalTarget,
+  isIdeAiPanelTarget,
   isMonacoTarget,
   type IdeKeyAction,
   type IdeKeyMatch,

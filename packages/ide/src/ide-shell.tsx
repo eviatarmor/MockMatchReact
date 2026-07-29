@@ -9,6 +9,7 @@ import {
 import { AnimatePresence, motion } from "motion/react"
 import { cn } from "@mockmatch/ui/utils"
 
+import { IdeAiPanel } from "./ide-ai-panel"
 import { IdeEditorArea } from "./ide-editor-area"
 import {
   anyOtherGroupHasTab,
@@ -104,6 +105,14 @@ export function IdeShell({
   terminalWelcome,
   terminalCwd,
   onTerminalCommand,
+  aiPanel,
+  showAi: showAiControlled,
+  defaultShowAi = false,
+  onShowAiChange,
+  aiDefaultWidth = 360,
+  aiMinWidth = 280,
+  aiMaxWidth = 560,
+  aiWidthStorageKey = "mockmatch.ide.ai-width",
 }: IdeShellProps) {
   const rootRef = useRef<HTMLDivElement>(null)
   const hasTree = Boolean(tree && tree.length > 0)
@@ -200,6 +209,33 @@ export function IdeShell({
     },
     [fullscreenControlled, onFullscreenChange]
   )
+
+  const hasAiPanel = aiPanel != null
+  const [showAiInternal, setShowAiInternal] = useState(defaultShowAi)
+  const showAi =
+    hasAiPanel &&
+    (showAiControlled !== undefined ? showAiControlled : showAiInternal)
+
+  const setShowAi = useCallback(
+    (next: boolean) => {
+      if (!hasAiPanel) return
+      if (showAiControlled === undefined) {
+        setShowAiInternal(next)
+      }
+      onShowAiChange?.(next)
+    },
+    [hasAiPanel, showAiControlled, onShowAiChange]
+  )
+
+  const closeAi = useCallback(() => setShowAi(false), [setShowAi])
+
+  const aiPanelNode = useMemo(() => {
+    if (!aiPanel) return null
+    if (typeof aiPanel === "function") {
+      return aiPanel({ close: closeAi })
+    }
+    return aiPanel
+  }, [aiPanel, closeAi])
 
   const { settings, patchSettings } = useIdeSettings({
     settings: settingsPartial,
@@ -488,6 +524,7 @@ export function IdeShell({
     closeTab: () => {},
     toggleTerminal: () => {},
     toggleTree: () => {},
+    toggleAi: () => {},
     toggleFullscreen: () => {},
     newFile: () => {},
     newFolder: () => {},
@@ -511,6 +548,10 @@ export function IdeShell({
     toggleTree: () => {
       if (!canToggleTree) return
       setShowTree(!showTree)
+    },
+    toggleAi: () => {
+      if (!hasAiPanel) return
+      setShowAi(!showAi)
     },
     toggleFullscreen: () => {
       void toggleFullscreen()
@@ -580,6 +621,9 @@ export function IdeShell({
         case "toggleTree":
           actions.toggleTree()
           break
+        case "toggleAi":
+          actions.toggleAi()
+          break
         case "toggleFullscreen":
           actions.toggleFullscreen()
           break
@@ -627,6 +671,10 @@ export function IdeShell({
         }
         showTerminal={showTerminal}
         onToggleTerminal={() => setShowTerminal(!showTerminal)}
+        showAi={showAi}
+        onToggleAi={
+          hasAiPanel ? () => setShowAi(!showAi) : undefined
+        }
         fullscreen={fullscreen}
         onToggleFullscreen={() => void toggleFullscreen()}
         onCreateFile={
@@ -758,6 +806,10 @@ export function IdeShell({
             onUnsplit={isMultiPane ? handleUnsplit : undefined}
             showTerminal={showTerminal}
             onToggleTerminal={() => setShowTerminal(!showTerminal)}
+            showAi={showAi}
+            onToggleAi={
+              hasAiPanel ? () => setShowAi(!showAi) : undefined
+            }
             fullscreen={fullscreen}
             onToggleFullscreen={() => void toggleFullscreen()}
             theme={monacoTheme}
@@ -782,6 +834,19 @@ export function IdeShell({
             onFocusCwdConsumed={() => setTerminalFocusCwd(null)}
           />
         </div>
+
+        {hasAiPanel ? (
+          <IdeAiPanel
+            open={showAi}
+            defaultWidth={aiDefaultWidth}
+            minWidth={aiMinWidth}
+            maxWidth={aiMaxWidth}
+            widthStorageKey={aiWidthStorageKey}
+            resizeLabel={labels?.resizeAi ?? "Resize AI panel"}
+          >
+            {aiPanelNode}
+          </IdeAiPanel>
+        ) : null}
       </div>
     </div>
   )

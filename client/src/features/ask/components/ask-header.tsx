@@ -8,9 +8,19 @@ import {
 } from "@mockmatch/ui/tooltip"
 import { useAskPanel } from "../ask-context"
 
-export function AskHeader() {
+type AskHeaderProps = {
+  /** Override panel close (e.g. IDE AI slot). Defaults to AskProvider.closePanel. */
+  readonly onClose?: () => void
+  /** Override new-chat. Defaults to AskProvider.newChat. */
+  readonly onNewChat?: () => void
+}
+
+export function AskHeader({ onClose, onNewChat }: AskHeaderProps = {}) {
   const { t } = useTranslation("ask")
   const { closePanel, newChat } = useAskPanel()
+
+  const handleClose = onClose ?? closePanel
+  const handleNewChat = onNewChat ?? newChat
 
   return (
     <div className="flex h-14 shrink-0 items-center gap-1 border-b border-sidebar-border px-3">
@@ -19,7 +29,7 @@ export function AskHeader() {
         variant="ghost"
         size="sm"
         className="cursor-pointer gap-1.5 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
-        onClick={newChat}
+        onClick={handleNewChat}
       >
         <SquarePen className="size-3.5" />
         <span className="text-sm font-medium">{t("newChat")}</span>
@@ -36,7 +46,7 @@ export function AskHeader() {
               size="icon-sm"
               className="cursor-pointer text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
               aria-label={t("close")}
-              onClick={closePanel}
+              onClick={handleClose}
             />
           }
         >

@@ -8,6 +8,7 @@ import {
 } from "@mockmatch/ide"
 import { Badge } from "@mockmatch/ui/badge"
 import { useTheme } from "@/components/theme-provider"
+import { AskChatSurface } from "@/features/ask/components/ask-chat-surface"
 import { useSimulationIdeSession } from "./hooks/use-simulation-ide-session"
 import { isIdeFormatSlug } from "./types"
 
@@ -42,6 +43,7 @@ function SimulationIdeSession({
   const pageRef = useRef<HTMLDivElement>(null)
   const [fullscreen, setFullscreen] = useState(false)
   const [showTerminal, setShowTerminal] = useState(format === "workspace")
+  const [showAi, setShowAi] = useState(false)
 
   const toggleFullscreen = useCallback(async () => {
     const el = pageRef.current
@@ -81,6 +83,8 @@ function SimulationIdeSession({
     emptyEditor: t("emptyEditor"),
     fullscreen: t("actions.fullscreen"),
     exitFullscreen: t("actions.exitFullscreen"),
+    toggleAi: t("actions.toggleAi"),
+    resizeAi: t("actions.resizeAi"),
     newFile: t("actions.newFile"),
     newFolder: t("actions.newFolder"),
     delete: t("actions.delete"),
@@ -138,6 +142,8 @@ function SimulationIdeSession({
           onToggleTree={() => session.setShowTree(!session.showTree)}
           showTerminal={showTerminal}
           onToggleTerminal={() => setShowTerminal((v) => !v)}
+          showAi={showAi}
+          onToggleAi={() => setShowAi((v) => !v)}
           fullscreen={fullscreen}
           onToggleFullscreen={() => void toggleFullscreen()}
           onCreateFile={() => session.requestCreate("file")}
@@ -183,6 +189,11 @@ function SimulationIdeSession({
           onSettingsChange={setSettings}
           showTerminal={showTerminal}
           onShowTerminalChange={setShowTerminal}
+          showAi={showAi}
+          onShowAiChange={setShowAi}
+          aiPanel={({ close }) => (
+            <AskChatSurface onClose={close} showSuggestions={false} />
+          )}
           labels={labels}
         />
       </div>

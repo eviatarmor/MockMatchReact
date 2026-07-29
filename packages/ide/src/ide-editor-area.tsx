@@ -61,6 +61,8 @@ export type IdeEditorAreaProps = {
   onUnsplit?: (groupId?: EditorGroupId) => void
   showTerminal?: boolean
   onToggleTerminal?: () => void
+  showAi?: boolean
+  onToggleAi?: () => void
   fullscreen?: boolean
   onToggleFullscreen?: () => void
   theme: string
@@ -101,6 +103,8 @@ function EditorGroupPane({
   showChrome,
   showTerminal,
   onToggleTerminal,
+  showAi,
+  onToggleAi,
   fullscreen,
   onToggleFullscreen,
   theme,
@@ -132,6 +136,8 @@ function EditorGroupPane({
   showChrome?: boolean
   showTerminal?: boolean
   onToggleTerminal?: () => void
+  showAi?: boolean
+  onToggleAi?: () => void
   fullscreen?: boolean
   onToggleFullscreen?: () => void
   theme: string
@@ -173,6 +179,8 @@ function EditorGroupPane({
         isSplit={isSplit}
         showTerminal={showChrome ? showTerminal : undefined}
         onToggleTerminal={showChrome ? onToggleTerminal : undefined}
+        showAi={showChrome ? showAi : undefined}
+        onToggleAi={showChrome ? onToggleAi : undefined}
         fullscreen={showChrome ? fullscreen : undefined}
         onToggleFullscreen={showChrome ? onToggleFullscreen : undefined}
         labels={labels}
@@ -221,6 +229,8 @@ function LayoutNodeView({
   onUnsplit,
   showTerminal,
   onToggleTerminal,
+  showAi,
+  onToggleAi,
   fullscreen,
   onToggleFullscreen,
   theme,
@@ -252,6 +262,8 @@ function LayoutNodeView({
   onUnsplit?: (groupId?: EditorGroupId) => void
   showTerminal?: boolean
   onToggleTerminal?: () => void
+  showAi?: boolean
+  onToggleAi?: () => void
   fullscreen?: boolean
   onToggleFullscreen?: () => void
   theme: string
@@ -286,6 +298,8 @@ function LayoutNodeView({
         showChrome={node.groupId === chromeGroupId}
         showTerminal={showTerminal}
         onToggleTerminal={onToggleTerminal}
+        showAi={showAi}
+        onToggleAi={onToggleAi}
         fullscreen={fullscreen}
         onToggleFullscreen={onToggleFullscreen}
         theme={theme}
@@ -338,6 +352,8 @@ function LayoutNodeView({
                 onUnsplit={onUnsplit}
                 showTerminal={showTerminal}
                 onToggleTerminal={onToggleTerminal}
+                showAi={showAi}
+                onToggleAi={onToggleAi}
                 fullscreen={fullscreen}
                 onToggleFullscreen={onToggleFullscreen}
                 theme={theme}
@@ -372,6 +388,8 @@ export function IdeEditorArea({
   onUnsplit,
   showTerminal,
   onToggleTerminal,
+  showAi,
+  onToggleAi,
   fullscreen,
   onToggleFullscreen,
   theme,
@@ -406,6 +424,8 @@ export function IdeEditorArea({
         onUnsplit={onUnsplit}
         showTerminal={showTerminal}
         onToggleTerminal={onToggleTerminal}
+        showAi={showAi}
+        onToggleAi={onToggleAi}
         fullscreen={fullscreen}
         onToggleFullscreen={onToggleFullscreen}
         theme={theme}

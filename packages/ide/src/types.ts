@@ -75,6 +75,8 @@ export type IdeLabels = {
   emptyEditor?: string
   fullscreen?: string
   exitFullscreen?: string
+  toggleAi?: string
+  resizeAi?: string
   newFile?: string
   newFolder?: string
   delete?: string
@@ -112,6 +114,11 @@ export type IdeLabels = {
   splitMenu?: string
   copied?: string
 }
+
+/** Host chat content for the IDE AI panel (product-agnostic slot). */
+export type IdeAiPanelContent =
+  | ReactNode
+  | ((api: { close: () => void }) => ReactNode)
 
 export const DEFAULT_IDE_SETTINGS: IdeSettings = {
   editorTheme: "auto",
@@ -200,4 +207,18 @@ export type IdeShellProps = {
     command: string,
     sessionId: string
   ) => string | string[] | void | Promise<string | string[] | void>
+
+  /**
+   * Right AI assistant panel content. When provided, a toggle appears
+   * next to full screen on the tab bar (and in View menu).
+   * Host owns transport / i18n / product chat (e.g. `@mockmatch/ai-chat`).
+   */
+  aiPanel?: IdeAiPanelContent
+  showAi?: boolean
+  defaultShowAi?: boolean
+  onShowAiChange?: (show: boolean) => void
+  aiDefaultWidth?: number
+  aiMinWidth?: number
+  aiMaxWidth?: number
+  aiWidthStorageKey?: string
 }

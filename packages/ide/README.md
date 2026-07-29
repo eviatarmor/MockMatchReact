@@ -5,10 +5,11 @@ Product-agnostic IDE shell for web apps and extensions:
 - **Optional file tree** — Kibo UI tree; spring open/close (resume-editor style); drag resize
 - **Monaco** — `monaco-editor@0.55.1` flush to the split edge
 - **Tabs** — `@mockmatch/ui/tabs` (file-tab chrome)
-- **Menubar** — File / View (theme, editor, split, fullscreen, …)
+- **Menubar** — File / View (theme, editor, split, AI, fullscreen, …)
+- **Optional AI panel** — right-side slot next to full screen; host injects chat UI
 - **Theme-aware** — Monaco `vs` / `vs-dark` from app light/dark
 
-> **Status:** private monorepo package. Editor chrome only — host owns run/judge/terminal/session logic.
+> **Status:** private monorepo package. Editor chrome only — host owns run/judge/terminal/session/AI transport.
 
 ## Install (monorepo)
 
@@ -83,6 +84,29 @@ Place the menubar next to a page title with `hideMenubar` + exported `IdeMenubar
 | `defaultShowTree` | Uncontrolled initial |
 | `showTree` + `onShowTreeChange` | Controlled |
 | View → File tree / `treeToggleable` | User toggle |
+
+### AI assistant panel
+
+Pass `aiPanel` to enable the sparkles toggle (tab bar, next to full screen) and View → AI Assistant (`Ctrl+L`):
+
+```tsx
+<IdeShell
+  tabs={tabs}
+  aiPanel={({ close }) => (
+    <YourChatSurface onClose={close} />
+  )}
+  defaultShowAi={false}
+/>
+```
+
+| Prop | Meaning |
+|------|---------|
+| `aiPanel` | `ReactNode` or `({ close }) => ReactNode` |
+| `showAi` + `onShowAiChange` | Controlled open state |
+| `defaultShowAi` | Uncontrolled initial |
+| `aiDefaultWidth` / `aiMinWidth` / `aiMaxWidth` | Resize bounds |
+
+Host owns transport, system prompt, and i18n (e.g. wire `@mockmatch/ai-chat`).
 
 ### Monaco workers
 
