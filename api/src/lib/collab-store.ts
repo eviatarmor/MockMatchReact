@@ -1,4 +1,5 @@
 import type { CollabEffectiveRole, DocumentKind } from "@mockmatch/schemas"
+import * as Y from "yjs"
 import { env } from "../config/env.js"
 import { getRedis } from "./redis.js"
 import { setByPath } from "./path-op.js"
@@ -57,8 +58,202 @@ function dirtyKey(kind: DocumentKind, id: string): string {
   return `${roomPrefix(kind, id)}:dirty`
 }
 
+function yjsKey(kind: DocumentKind, id: string): string {
+  return `${roomPrefix(kind, id)}:yjs`
+}
+
 export function channelName(kind: DocumentKind, id: string): string {
   return `collab:room:${kind}:${id}`
+}
+
+const COLLAB_Y_ROOT = "root"
+
+function yToJson(value: unknown): unknown {
+  if (value instanceof Y.Text) return value.toString()
+  if (value instanceof Y.Array) return value.toArray().map((item) => yToJson(item))
+  if (value instanceof Y.Map) {
+    const out: Record<string, unknown> = {}
+    value.forEach((v, k) => {
+      out[k] = yToJson(v)
+    })
+    return out
+  }
+  return value
+}
+
+function jsonToY(value: unknown): unknown {
+  if (value === null || value === undefined) return value ?? null
+  if (typeof value === "boolean" || typeof value === "number") return value
+  if (typeof value === "string") {
+    const t = new Y.Text()
+    if (value.length > 0) t.insert(0, value)
+    return t
+  }
+  if (Array.isArray(value)) {
+    const arr = new Y.Array()
+    if (value.length > 0) {
+      arr.insert(
+        0,
+        value.map((item) => jsonToY(item))
+      )
+    }
+    return arr
+  }
+  if (typeof value === "object") {
+    const map = new Y.Map()
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      map.set(k, jsonToY(v))
+    }
+    return map
+  }
+  return String(value)
+}
+
+function materializeYDoc(ydoc: Y.Doc): {
+  title: string
+  templateId: string
+  style: Record<string, unknown>
+  document: unknown
+} {
+  const root = ydoc.getMap(COLLAB_Y_ROOT)
+  const styleRaw = yToJson(root.get("style"))
+  return {
+    title: String(root.get("title") ?? ""),
+    templateId: String(root.get("templateId") ?? "modern"),
+    style:
+      styleRaw && typeof styleRaw === "object" && !Array.isArray(styleRaw)
+        ? (styleRaw as Record<string, unknown>)
+        : {},
+    document: yToJson(root.get("document")) ?? {},
+  }
+}
+
+async function loadYDoc(
+  kind: DocumentKind,
+  id: string
+): Promise<Y.Doc> {
+  const ydoc = new Y.Doc()
+  const redis = getRedis()
+  const buf = await redis.getBuffer(yjsKey(kind, id))
+  if (buf && buf.length > 0) {
+    Y.applyUpdate(ydoc, new Uint8Array(buf))
+  }
+  return ydoc
+}
+
+async function persistYDoc(
+  kind: DocumentKind,
+  id: string,
+  ydoc: Y.Doc
+): Promise<void> {
+  const state = Y.encodeStateAsUpdate(ydoc)
+  await getRedis().set(
+    yjsKey(kind, id),
+    Buffer.from(state),
+    "EX",
+    ROOM_TTL_SECONDS
+  )
+}
+
+/** Ensure Yjs room state exists; seed from JSON snapshot when empty. */
+export async function ensureYjsState(
+  kind: DocumentKind,
+  id: string,
+  seed: {
+    title: string
+    templateId: string
+    style: Record<string, unknown>
+    document: unknown
+  }
+): Promise<Uint8Array> {
+  const redis = getRedis()
+  const existing = await redis.getBuffer(yjsKey(kind, id))
+  if (existing && existing.length > 0) {
+    return new Uint8Array(existing)
+  }
+
+  const ydoc = new Y.Doc()
+  ydoc.transact(() => {
+    const root = ydoc.getMap(COLLAB_Y_ROOT)
+    root.set("title", seed.title)
+    root.set("templateId", seed.templateId)
+    root.set("style", jsonToY(seed.style ?? {}))
+    root.set("document", jsonToY(seed.document ?? {}))
+  })
+  const state = Y.encodeStateAsUpdate(ydoc)
+  await redis.set(yjsKey(kind, id), Buffer.from(state), "EX", ROOM_TTL_SECONDS)
+  return state
+}
+
+/**
+ * Apply a client Yjs update, persist binary + JSON snapshot for Postgres flush.
+ * Returns updated rev + full state encoding for late joiners (not sent every time).
+ */
+export async function applyYjsUpdate(
+  kind: DocumentKind,
+  id: string,
+  update: Uint8Array,
+  actorUserId?: string,
+  /** When true (edit role), keep prior templateId/style — content only. */
+  lockDesign = false
+): Promise<CollabDocSnapshot | null> {
+  const current = await getSnapshot(kind, id)
+  if (!current) return null
+
+  const ydoc = await loadYDoc(kind, id)
+  // Empty ydoc (no prior binary) — seed from JSON first
+  if (ydoc.getMap(COLLAB_Y_ROOT).size === 0) {
+    ydoc.transact(() => {
+      const root = ydoc.getMap(COLLAB_Y_ROOT)
+      root.set("title", current.title)
+      root.set("templateId", current.templateId)
+      root.set("style", jsonToY(current.style ?? {}))
+      root.set("document", jsonToY(current.document ?? {}))
+    })
+  }
+
+  Y.applyUpdate(ydoc, update)
+
+  if (lockDesign) {
+    ydoc.transact(() => {
+      const root = ydoc.getMap(COLLAB_Y_ROOT)
+      root.set("templateId", current.templateId)
+      root.set("style", jsonToY(current.style ?? {}))
+    })
+  }
+
+  await persistYDoc(kind, id, ydoc)
+
+  const mat = materializeYDoc(ydoc)
+  const snapshot: CollabDocSnapshot = {
+    ...current,
+    rev: current.rev + 1,
+    title: mat.title || current.title,
+    templateId: lockDesign
+      ? current.templateId
+      : mat.templateId || current.templateId,
+    style: lockDesign ? current.style : (mat.style ?? current.style),
+    document: mat.document ?? current.document,
+    updatedAt: new Date().toISOString(),
+    lastEditorUserId: actorUserId ?? current.lastEditorUserId,
+  }
+
+  const redis = getRedis()
+  await redis
+    .pipeline()
+    .set(docKey(kind, id), JSON.stringify(snapshot), "EX", ROOM_TTL_SECONDS)
+    .set(dirtyKey(kind, id), "1", "EX", ROOM_TTL_SECONDS)
+    .exec()
+
+  return snapshot
+}
+
+export function encodeYUpdateBase64(update: Uint8Array): string {
+  return Buffer.from(update).toString("base64")
+}
+
+export function decodeYUpdateBase64(b64: string): Uint8Array {
+  return new Uint8Array(Buffer.from(b64, "base64"))
 }
 
 const CLAIM_SEAT_LUA = `

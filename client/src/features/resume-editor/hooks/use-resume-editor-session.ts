@@ -6,7 +6,15 @@ import {
   type DocumentHistoryControls,
 } from "@/hooks/use-document-history"
 import { useCollabRoom } from "@/features/collab/hooks/use-collab-room"
-import { setByPath } from "@/features/collab/lib/apply-path-op"
+import {
+  applyCollabYSnapshot,
+  setCollabDocument,
+  setCollabStyle,
+  setCollabTemplateId,
+  setCollabTitle,
+  useCollabYDoc,
+  type CollabYSnapshot,
+} from "@mockmatch/collab"
 import type { CollabPermissions } from "@/features/collab/types"
 import { EDITOR_TEMPLATES } from "../constants"
 import { parseResumeDocument } from "../lib/parse-resume-document"
@@ -41,7 +49,6 @@ export function useResumeEditorSession(seed: SessionSeed) {
   const skipBroadcast = useRef(false)
   const documentRef = useRef(document)
   documentRef.current = document
-  const sendRaf = useRef(0)
 
   const history = useDocumentHistory<HistorySnapshot>()
   const skipNextRef = useRef(history.skipNext)
@@ -49,49 +56,8 @@ export function useResumeEditorSession(seed: SessionSeed) {
   const markDiscreteRef = useRef(history.markDiscrete)
   markDiscreteRef.current = history.markDiscrete
 
-  const template = EDITOR_TEMPLATES.find((item) => item.id === templateId) ?? EDITOR_TEMPLATES[0]
-
-  const applyRemoteDocument = useCallback(
-    (path: string, value: unknown) => {
-      skipNextRef.current()
-      skipBroadcast.current = true
-      if (path === "document") {
-        replaceDocument(parseResumeDocument(value))
-        return
-      }
-      if (path.startsWith("document.")) {
-        const root = setByPath(
-          { document: documentRef.current } as Record<string, unknown>,
-          path,
-          value
-        )
-        replaceDocument(parseResumeDocument(root.document))
-      }
-    },
-    [replaceDocument]
-  )
-
-  const onRemoteOp = useCallback(
-    (path: string, value: unknown) => {
-      if (path === "title") {
-        skipNextRef.current()
-        setResumeName(String(value ?? ""))
-        return
-      }
-      if (path === "templateId") {
-        skipNextRef.current()
-        setTemplateId(parseEditorTemplateId(String(value ?? "modern")))
-        return
-      }
-      if (path === "style") {
-        skipNextRef.current()
-        setStyle(parseDocumentStyle(value))
-        return
-      }
-      applyRemoteDocument(path, value)
-    },
-    [applyRemoteDocument]
-  )
+  const template =
+    EDITOR_TEMPLATES.find((item) => item.id === templateId) ?? EDITOR_TEMPLATES[0]
 
   const applyExternalSnapshot = useCallback(
     (snap: {
@@ -110,27 +76,68 @@ export function useResumeEditorSession(seed: SessionSeed) {
     [replaceDocument]
   )
 
+  const onRemoteMaterialize = useCallback(
+    (snap: CollabYSnapshot) => {
+      applyExternalSnapshot(snap)
+    },
+    [applyExternalSnapshot]
+  )
+
+  const sendYUpdateRef = useRef<(u: string) => void>(() => {})
+
+  const yjs = useCollabYDoc({
+    enabled: true,
+    sendUpdate: (u) => sendYUpdateRef.current(u),
+    onRemoteMaterialize,
+  })
+
   const onSnapshot = useCallback(
     (snap: {
+      rev: number
       title: string
       templateId: string
       style: Record<string, unknown>
       document: unknown
     }) => {
       applyExternalSnapshot(snap)
+      // Seed Y.Doc from JSON so local merges have structure before/without yjs.sync
+      yjs.seedFromSnapshot({
+        title: snap.title,
+        templateId: snap.templateId,
+        style: snap.style,
+        document: snap.document,
+      })
     },
-    [applyExternalSnapshot]
+    [applyExternalSnapshot, yjs]
+  )
+
+  const onYjsSync = useCallback(
+    (updateB64: string) => {
+      yjs.applyRemoteUpdate(updateB64)
+    },
+    [yjs]
+  )
+
+  const onYjsUpdate = useCallback(
+    (updateB64: string) => {
+      yjs.applyRemoteUpdate(updateB64)
+    },
+    [yjs]
   )
 
   const collab = useCollabRoom({
     kind: "resume",
     documentId: seed.id,
     shareToken: seed.shareToken,
-    onRemoteOp,
     onSnapshot,
+    onYjsSync,
+    onYjsUpdate,
   })
 
+  sendYUpdateRef.current = collab.sendYUpdate
+
   const permissions: CollabPermissions = collab.permissions
+  const ydoc = yjs.ydoc
 
   useEffect(() => {
     history.commit({
@@ -141,7 +148,7 @@ export function useResumeEditorSession(seed: SessionSeed) {
     })
   }, [document, style, templateId, resumeName, history.commit])
 
-  // Safety-net broadcast if a mutation path forgets sendDoc (structural ops)
+  // Structural ops (add/remove/reorder) that only touch React → merge into Y.Doc
   useEffect(() => {
     if (skipBroadcast.current) {
       skipBroadcast.current = false
@@ -149,24 +156,26 @@ export function useResumeEditorSession(seed: SessionSeed) {
     }
     if (!permissions.canEditContent || !collab.live) return
     const timer = window.setTimeout(() => {
-      collab.sendOp("document", documentRef.current)
+      setCollabDocument(ydoc, documentRef.current)
     }, 48)
     return () => window.clearTimeout(timer)
-  }, [document, permissions.canEditContent, collab.live, collab.sendOp])
+  }, [document, permissions.canEditContent, collab.live, ydoc])
 
   const applyHistorySnapshot = useCallback(
     (snap: HistorySnapshot) => {
-      // document broadcast via existing document effect (skipBroadcast stays false)
       replaceDocument(snap.document)
       setStyle(snap.style)
       setTemplateId(snap.templateId)
       setResumeName(snap.title)
       if (!collab.live) return
-      collab.sendOp("style", snap.style)
-      collab.sendOp("templateId", snap.templateId)
-      collab.sendOp("title", snap.title)
+      applyCollabYSnapshot(ydoc, {
+        title: snap.title,
+        templateId: snap.templateId,
+        style: snap.style as unknown as Record<string, unknown>,
+        document: snap.document,
+      })
     },
-    [replaceDocument, collab.live, collab.sendOp]
+    [replaceDocument, collab.live, ydoc]
   )
 
   const historyControls = useMemo<DocumentHistoryControls>(
@@ -185,8 +194,11 @@ export function useResumeEditorSession(seed: SessionSeed) {
     setTemplateId(id)
     const next = EDITOR_TEMPLATES.find((item) => item.id === id)
     if (next) setStyle(next.defaultStyle)
-    collab.sendOp("templateId", id)
-    if (next) collab.sendOp("style", next.defaultStyle)
+    if (!collab.live) return
+    setCollabTemplateId(ydoc, id)
+    if (next) {
+      setCollabStyle(ydoc, next.defaultStyle as unknown as Record<string, unknown>)
+    }
   }
 
   const updateStyle = (patch: Partial<DocumentStyle>) => {
@@ -194,7 +206,9 @@ export function useResumeEditorSession(seed: SessionSeed) {
     markDiscreteRef.current()
     setStyle((prev) => {
       const merged = { ...prev, ...patch }
-      collab.sendOp("style", merged)
+      if (collab.live) {
+        setCollabStyle(ydoc, merged as unknown as Record<string, unknown>)
+      }
       return merged
     })
   }
@@ -202,7 +216,7 @@ export function useResumeEditorSession(seed: SessionSeed) {
   const setResumeNameSafe = (name: string) => {
     if (!permissions.canEditContent) return
     setResumeName(name)
-    collab.sendOp("title", name)
+    if (collab.live) setCollabTitle(ydoc, name)
   }
 
   const liveHandlers = useMemo(() => {
@@ -217,53 +231,9 @@ export function useResumeEditorSession(seed: SessionSeed) {
       })
     }
 
-    // rAF-batch: multiple keystrokes in one frame → one WS message (snappier, less lag)
-    const sendDoc = (next: ResumeDocument) => {
-      if (!collab.live) return
-      documentRef.current = next
-      if (sendRaf.current) return
-      sendRaf.current = requestAnimationFrame(() => {
-        sendRaf.current = 0
-        collab.sendOp("document", documentRef.current)
-      })
-    }
-
+    // Document → Y.Doc is handled by the effect below (single write path).
     return {
       ...handlers,
-      setHeaderField: (field: "name" | "headline", value: string) => {
-        handlers.setHeaderField(field, value)
-        const cur = documentRef.current
-        sendDoc({
-          ...cur,
-          header: { ...cur.header, [field]: value },
-        })
-      },
-      setContact: (id: string, value: string) => {
-        handlers.setContact(id, value)
-        const cur = documentRef.current
-        sendDoc({
-          ...cur,
-          header: {
-            ...cur.header,
-            contacts: (cur.header.contacts ?? []).map((c) =>
-              c.id === id ? { ...c, value } : c
-            ),
-          },
-        })
-      },
-      updateBlock: (
-        id: string,
-        patch: Partial<(typeof document.sections)[number]>
-      ) => {
-        handlers.updateBlock(id, patch)
-        const cur = documentRef.current
-        sendDoc({
-          ...cur,
-          sections: cur.sections.map((s) =>
-            s.id === id ? ({ ...s, ...patch } as (typeof cur.sections)[number]) : s
-          ),
-        })
-      },
       addBlock: (
         blockType: (typeof document.sections)[number]["type"],
         afterId?: string
@@ -288,7 +258,7 @@ export function useResumeEditorSession(seed: SessionSeed) {
         handlers.reorderBlocks(activeId, overId)
       },
     }
-  }, [handlers, permissions.canEditContent, collab.live, collab.sendOp, document.sections])
+  }, [handlers, permissions.canEditContent, document.sections])
 
   const { status: trpcSaveStatus } = useResumeAutosave({
     resumeId: seed.id,
@@ -299,11 +269,8 @@ export function useResumeEditorSession(seed: SessionSeed) {
     enabled: !collab.live && collab.status !== "connecting",
   })
 
-  // Persist the exact general analysis score shown in the editor (structure + grammar).
   useSyncGeneralScore(seed.id, document, permissions.canEditContent)
 
-  // Collab: connection vs document persist are separate — badge follows docSaveStatus
-  // while live so typing actually flips Saving → Saved (not stuck on Saved).
   const saveStatus: SaveStatus =
     collab.status === "connecting"
       ? "saving"
@@ -313,7 +280,6 @@ export function useResumeEditorSession(seed: SessionSeed) {
           ? collab.docSaveStatus
           : trpcSaveStatus
 
-  /** Apply a restored server snapshot into the live editor (+ collab peers). */
   const applyRestoredVersion = useCallback(
     (snap: {
       title: string
@@ -323,25 +289,29 @@ export function useResumeEditorSession(seed: SessionSeed) {
     }) => {
       markDiscreteRef.current()
       applyExternalSnapshot(snap)
-      // Broadcast so collab peers pick up the restore
       if (collab.live) {
-        collab.sendOp("document", parseResumeDocument(snap.document))
-        collab.sendOp("style", parseDocumentStyle(snap.style))
-        collab.sendOp("templateId", snap.templateId)
-        collab.sendOp("title", snap.title)
+        applyCollabYSnapshot(ydoc, {
+          title: snap.title,
+          templateId: snap.templateId,
+          style: parseDocumentStyle(snap.style) as unknown as Record<
+            string,
+            unknown
+          >,
+          document: parseResumeDocument(snap.document),
+        })
       }
     },
-    [applyExternalSnapshot, collab.live, collab.sendOp]
+    [applyExternalSnapshot, collab.live, ydoc]
   )
 
-  /** AI assistant (and similar) full-document replacements — undoable + collab. */
   const replaceDocumentFromAi = useCallback(
     (next: ResumeDocument) => {
       if (!permissions.canEditContent) return
       markDiscreteRef.current()
       replaceDocument(next)
+      if (collab.live) setCollabDocument(ydoc, next)
     },
-    [permissions.canEditContent, replaceDocument]
+    [permissions.canEditContent, replaceDocument, collab.live, ydoc]
   )
 
   return {
@@ -360,7 +330,7 @@ export function useResumeEditorSession(seed: SessionSeed) {
     history: historyControls,
     applyRestoredVersion,
     replaceDocument: replaceDocumentFromAi,
-    /** Kept for API compat — in-place Lexical/input sync; no full remount. */
+    /** Kept for API compat — Yjs materialize drives remote updates in place. */
     documentViewKey: collab.remoteEpoch,
   }
 }

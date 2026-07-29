@@ -47,6 +47,10 @@ interface UseCollabRoomArgs {
   readonly shareToken?: string | null
   readonly onRemoteOp?: (path: string, value: unknown, userId: string) => void
   readonly onSnapshot?: (snap: SnapshotPayload, role: CollabEffectiveRole) => void
+  /** Yjs full-state sync on join (preferred over path ops for live editing). */
+  readonly onYjsSync?: (updateB64: string, rev: number) => void
+  /** Incremental remote Yjs update (skip own echo via userId). */
+  readonly onYjsUpdate?: (updateB64: string, userId: string, rev: number) => void
 }
 
 export function useCollabRoom({
@@ -57,6 +61,8 @@ export function useCollabRoom({
   shareToken,
   onRemoteOp,
   onSnapshot,
+  onYjsSync,
+  onYjsUpdate,
 }: UseCollabRoomArgs) {
   const [status, setStatus] = useState<CollabSaveStatus>("idle")
   /** Document persist indicator — independent of room connection status. */
@@ -73,9 +79,13 @@ export function useCollabRoom({
   const selfIdRef = useRef<string | null>(null)
   const onRemoteOpRef = useRef(onRemoteOp)
   const onSnapshotRef = useRef(onSnapshot)
+  const onYjsSyncRef = useRef(onYjsSync)
+  const onYjsUpdateRef = useRef(onYjsUpdate)
   const fetchTicketRef = useRef(fetchTicket)
   onRemoteOpRef.current = onRemoteOp
   onSnapshotRef.current = onSnapshot
+  onYjsSyncRef.current = onYjsSync
+  onYjsUpdateRef.current = onYjsUpdate
   fetchTicketRef.current = fetchTicket
 
   const lastCursorSent = useRef(0)
@@ -83,6 +93,35 @@ export function useCollabRoom({
   const pendingOpsRef = useRef(0)
 
   const permissions: CollabPermissions = permissionsForRole(role)
+
+  const markDocSaving = useCallback(() => {
+    setStatus("synced")
+    setDocSaveStatus("saving")
+    pendingOpsRef.current += 1
+    if (docSavedTimerRef.current) {
+      window.clearTimeout(docSavedTimerRef.current)
+      docSavedTimerRef.current = undefined
+    }
+    docSavedTimerRef.current = window.setTimeout(() => {
+      if (pendingOpsRef.current > 0) {
+        pendingOpsRef.current = 0
+        setDocSaveStatus("saved")
+      }
+    }, 5_000)
+  }, [])
+
+  const settleOwnAck = useCallback(() => {
+    pendingOpsRef.current = Math.max(0, pendingOpsRef.current - 1)
+    if (pendingOpsRef.current === 0) {
+      if (docSavedTimerRef.current) {
+        window.clearTimeout(docSavedTimerRef.current)
+      }
+      docSavedTimerRef.current = window.setTimeout(() => {
+        setDocSaveStatus("saved")
+        docSavedTimerRef.current = undefined
+      }, DOC_SAVED_SETTLE_MS)
+    }
+  }, [])
 
   const handleMessage = useCallback((raw: string) => {
     let msg: CollabServerMessage
@@ -116,6 +155,25 @@ export function useCollabRoom({
         },
         msg.role
       )
+      return
+    }
+
+    if (msg.type === "yjs.sync") {
+      setRev(msg.rev)
+      setStatus("synced")
+      onYjsSyncRef.current?.(msg.update, msg.rev)
+      return
+    }
+
+    if (msg.type === "yjs.update") {
+      setRev(msg.rev)
+      setStatus("synced")
+      if (msg.userId === selfIdRef.current) {
+        settleOwnAck()
+        return
+      }
+      onYjsUpdateRef.current?.(msg.update, msg.userId, msg.rev)
+      setRemoteEpoch((e) => e + 1)
       return
     }
 
@@ -177,16 +235,7 @@ export function useCollabRoom({
       setStatus("synced")
       // Own op echo → count down pending; settle badge after a short quiet window.
       if (msg.userId === selfIdRef.current) {
-        pendingOpsRef.current = Math.max(0, pendingOpsRef.current - 1)
-        if (pendingOpsRef.current === 0) {
-          if (docSavedTimerRef.current) {
-            window.clearTimeout(docSavedTimerRef.current)
-          }
-          docSavedTimerRef.current = window.setTimeout(() => {
-            setDocSaveStatus("saved")
-            docSavedTimerRef.current = undefined
-          }, DOC_SAVED_SETTLE_MS)
-        }
+        settleOwnAck()
       }
       // Apply peer ops only (skip own echo). Bump remoteEpoch so UI remounts fields.
       if (msg.userId !== selfIdRef.current) {
@@ -205,7 +254,7 @@ export function useCollabRoom({
       setStatus("error")
       setRoomError(msg.message)
     }
-  }, [])
+  }, [settleOwnAck])
 
   useEffect(() => {
     if (!enabled || !documentId) return
@@ -293,26 +342,26 @@ export function useCollabRoom({
     }
   }, [enabled, documentId, kind, shareToken, handleMessage])
 
-  const sendOp = useCallback((path: string, value: unknown) => {
-    const ws = wsRef.current
-    if (!ws || ws.readyState !== WebSocket.OPEN) return
-    // Keep room "synced" (live) — only flip the document badge.
-    setStatus("synced")
-    setDocSaveStatus("saving")
-    pendingOpsRef.current += 1
-    if (docSavedTimerRef.current) {
-      window.clearTimeout(docSavedTimerRef.current)
-      docSavedTimerRef.current = undefined
-    }
-    ws.send(JSON.stringify({ type: "doc.op", path, value }))
-    // Safety: if ack never arrives, don't leave the badge stuck on Saving.
-    docSavedTimerRef.current = window.setTimeout(() => {
-      if (pendingOpsRef.current > 0) {
-        pendingOpsRef.current = 0
-        setDocSaveStatus("saved")
-      }
-    }, 5_000)
-  }, [])
+  const sendOp = useCallback(
+    (path: string, value: unknown) => {
+      const ws = wsRef.current
+      if (!ws || ws.readyState !== WebSocket.OPEN) return
+      markDocSaving()
+      ws.send(JSON.stringify({ type: "doc.op", path, value }))
+    },
+    [markDocSaving]
+  )
+
+  /** Broadcast a Yjs update (base64). Prefer this over sendOp for live docs. */
+  const sendYUpdate = useCallback(
+    (updateB64: string) => {
+      const ws = wsRef.current
+      if (!ws || ws.readyState !== WebSocket.OPEN) return
+      markDocSaving()
+      ws.send(JSON.stringify({ type: "yjs.update", update: updateB64 }))
+    },
+    [markDocSaving]
+  )
 
   const sendCursor = useCallback(
     (
@@ -344,7 +393,7 @@ export function useCollabRoom({
     []
   )
 
-  /** Hide remote pointer when mouse leaves the paper. */
+  /** Hide remote pointer when mouse leaves the collab surface (paper + grid). */
   const clearCursor = useCallback(() => {
     const ws = wsRef.current
     if (!ws || ws.readyState !== WebSocket.OPEN) return
@@ -364,6 +413,7 @@ export function useCollabRoom({
     rev,
     remoteEpoch,
     sendOp,
+    sendYUpdate,
     sendCursor,
     clearCursor,
     /** True once room snapshot received (safe to broadcast edits). */

@@ -15,14 +15,28 @@ export type SendCursor = (
   rects?: CollabNormRect[]
 ) => void
 
+export type UseCollabSurfaceOptions = {
+  /**
+   * When false (default), paper-relative coords are **not** clamped to 0–1 so
+   * peers can see the pointer on the background grid outside the page.
+   */
+  readonly clamp?: boolean
+}
+
 /**
- * Track document-surface size + pointer/caret/selection coords in normalized
- * 0–1 document space (not viewport). Pass sendCursor / clearCursor from useCollabRoom.
+ * Track paper size + pointer/caret/selection in **paper-relative** space
+ * (origin = paper top-left; 1 = paper width/height). Values may be outside
+ * [0,1] when the pointer is on the surrounding canvas grid.
+ *
+ * - `surfaceRef` → paper (size + caret space)
+ * - `bindViewport` → full canvas/grid layer that receives pointer moves
  */
 export function useCollabSurface(
   sendCursor: SendCursor,
-  clearCursor?: () => void
+  clearCursor?: () => void,
+  options?: UseCollabSurfaceOptions
 ) {
+  const clamp = options?.clamp ?? false
   const surfaceRef = useRef<HTMLDivElement>(null)
   const [surfaceSize, setSurfaceSize] = useState({ w: 1, h: 1 })
   const sizeRef = useRef(surfaceSize)
@@ -41,7 +55,6 @@ export function useCollabSurface(
     })
     ro.observe(el)
     const rect = el.getBoundingClientRect()
-    // offsetWidth/Height = unscaled layout size (correct under CSS transform)
     setSurfaceSize({
       w: el.offsetWidth || rect.width,
       h: el.offsetHeight || rect.height,
@@ -49,21 +62,23 @@ export function useCollabSurface(
     return () => ro.disconnect()
   }, [])
 
-  const clientToNorm = useCallback((clientX: number, clientY: number) => {
-    const el = surfaceRef.current
-    if (!el) return null
-    const rect = el.getBoundingClientRect()
-    if (rect.width <= 0 || rect.height <= 0) return null
-    // getBoundingClientRect is scaled; normalize by scaled size → 0–1 of paper
-    const x = (clientX - rect.left) / rect.width
-    const y = (clientY - rect.top) / rect.height
-    return {
-      x: Math.min(1, Math.max(0, x)),
-      y: Math.min(1, Math.max(0, y)),
-    }
-  }, [])
+  const clientToPaper = useCallback(
+    (clientX: number, clientY: number) => {
+      const el = surfaceRef.current
+      if (!el) return null
+      const rect = el.getBoundingClientRect()
+      if (rect.width <= 0 || rect.height <= 0) return null
+      let x = (clientX - rect.left) / rect.width
+      let y = (clientY - rect.top) / rect.height
+      if (clamp) {
+        x = Math.min(1, Math.max(0, x))
+        y = Math.min(1, Math.max(0, y))
+      }
+      return { x, y }
+    },
+    [clamp]
+  )
 
-  /** Client DOMRect → normalized surface rect (accounts for CSS scale). */
   const clientRectToNorm = useCallback((r: DOMRect): CollabNormRect | null => {
     const el = surfaceRef.current
     if (!el) return null
@@ -77,16 +92,15 @@ export function useCollabSurface(
     const w = r.width / scaleX / (el.offsetWidth || 1)
     const h = r.height / scaleY / (el.offsetHeight || 1)
     return {
-      x: Math.min(1, Math.max(0, x)),
-      y: Math.min(1, Math.max(0, y)),
-      w: Math.min(1, Math.max(0, w)),
-      h: Math.min(1, Math.max(0, h)),
+      x,
+      y,
+      w: Math.max(0, w),
+      h: Math.max(0, h),
     }
   }, [])
 
   const onPointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      // While editing text, selectionchange owns presence (avoid clobbering highlight)
+    (e: React.PointerEvent | PointerEvent) => {
       const surface = surfaceRef.current
       const active = document.activeElement
       if (
@@ -100,16 +114,35 @@ export function useCollabSurface(
       ) {
         return
       }
-      const n = clientToNorm(e.clientX, e.clientY)
+      const n = clientToPaper(e.clientX, e.clientY)
       if (!n) return
       sendCursor(n.x, n.y, "pointer")
     },
-    [clientToNorm, sendCursor]
+    [clientToPaper, sendCursor]
   )
 
   const onPointerLeave = useCallback(() => {
     clearCursor?.()
   }, [clearCursor])
+
+  /**
+   * Attach pointer listeners to a viewport element (full grid / transform wrapper).
+   * Call with the wrapper DOM node when available.
+   */
+  const bindViewport = useCallback(
+    (viewportEl: HTMLElement | null) => {
+      if (!viewportEl || !sendCursor) return () => {}
+      const move = (e: PointerEvent) => onPointerMove(e)
+      const leave = () => onPointerLeave()
+      viewportEl.addEventListener("pointermove", move)
+      viewportEl.addEventListener("pointerleave", leave)
+      return () => {
+        viewportEl.removeEventListener("pointermove", move)
+        viewportEl.removeEventListener("pointerleave", leave)
+      }
+    },
+    [onPointerMove, onPointerLeave, sendCursor]
+  )
 
   // Text caret + selection while focused inside the document surface
   useEffect(() => {
@@ -141,24 +174,24 @@ export function useCollabSurface(
           .map(clientRectToNorm)
           .filter((r): r is CollabNormRect => r != null)
         if (norms.length === 0) return
-        // Label/anchor at selection end (caret side)
         const anchor = caretRect
-          ? clientToNorm(caretRect.left, caretRect.top)
+          ? clientToPaper(caretRect.left, caretRect.top)
           : { x: norms[0]!.x, y: norms[0]!.y }
         if (!anchor) return
         const el = surface
         const srect = el.getBoundingClientRect()
         const scaleY = srect.height / (el.offsetHeight || srect.height)
         const h =
-          caretRect && scaleY > 0 ? caretRect.height / scaleY : norms[0]!.h * el.offsetHeight
+          caretRect && scaleY > 0
+            ? caretRect.height / scaleY
+            : norms[0]!.h * el.offsetHeight
         sendCursor(anchor.x, anchor.y, "selection", h, norms)
         return
       }
 
       if (!caretRect) return
 
-      // Caret top-left in document space
-      const n = clientToNorm(caretRect.left, caretRect.top)
+      const n = clientToPaper(caretRect.left, caretRect.top)
       if (!n) return
       const el = surface
       const srect = el.getBoundingClientRect()
@@ -168,7 +201,6 @@ export function useCollabSurface(
     }
 
     const onSel = () => {
-      // rAF so DOM selection has settled after keypress
       requestAnimationFrame(reportCaret)
     }
 
@@ -180,7 +212,13 @@ export function useCollabSurface(
       document.removeEventListener("keyup", onSel, true)
       document.removeEventListener("pointerup", onSel, true)
     }
-  }, [clientToNorm, clientRectToNorm, sendCursor])
+  }, [clientToPaper, clientRectToNorm, sendCursor])
 
-  return { surfaceRef, surfaceSize, onPointerMove, onPointerLeave }
+  return {
+    surfaceRef,
+    surfaceSize,
+    onPointerMove,
+    onPointerLeave,
+    bindViewport,
+  }
 }

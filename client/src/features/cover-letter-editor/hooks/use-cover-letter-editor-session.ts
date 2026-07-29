@@ -6,7 +6,15 @@ import {
   type DocumentHistoryControls,
 } from "@/hooks/use-document-history"
 import { useCollabRoom } from "@/features/collab/hooks/use-collab-room"
-import { setByPath } from "@/features/collab/lib/apply-path-op"
+import {
+  applyCollabYSnapshot,
+  setCollabDocument,
+  setCollabStyle,
+  setCollabTemplateId,
+  setCollabTitle,
+  useCollabYDoc,
+  type CollabYSnapshot,
+} from "@mockmatch/collab"
 import type { CollabPermissions } from "@/features/collab/types"
 import { EDITOR_TEMPLATES } from "../constants"
 import type { CoverLetterDocument, EditorTemplateId } from "../types"
@@ -31,14 +39,15 @@ type HistorySnapshot = {
 }
 
 export function useCoverLetterEditorSession(seed: SessionSeed) {
-  const { document, handlers, replaceDocument } = useCoverLetterDocument(seed.document)
+  const { document, handlers, replaceDocument } = useCoverLetterDocument(
+    seed.document
+  )
   const [templateId, setTemplateId] = useState<EditorTemplateId>(seed.templateId)
   const [letterName, setLetterName] = useState(seed.title)
   const [style, setStyle] = useState<DocumentStyle>(seed.style)
   const skipBroadcast = useRef(false)
   const documentRef = useRef(document)
   documentRef.current = document
-  const sendRaf = useRef(0)
 
   const history = useDocumentHistory<HistorySnapshot>()
   const skipNextRef = useRef(history.skipNext)
@@ -46,49 +55,8 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
   const markDiscreteRef = useRef(history.markDiscrete)
   markDiscreteRef.current = history.markDiscrete
 
-  const template = EDITOR_TEMPLATES.find((item) => item.id === templateId) ?? EDITOR_TEMPLATES[0]
-
-  const applyRemoteDocument = useCallback(
-    (path: string, value: unknown) => {
-      skipNextRef.current()
-      skipBroadcast.current = true
-      if (path === "document") {
-        replaceDocument(parseCoverLetterDocument(value))
-        return
-      }
-      if (path.startsWith("document.")) {
-        const root = setByPath(
-          { document: documentRef.current } as Record<string, unknown>,
-          path,
-          value
-        )
-        replaceDocument(parseCoverLetterDocument(root.document))
-      }
-    },
-    [replaceDocument]
-  )
-
-  const onRemoteOp = useCallback(
-    (path: string, value: unknown) => {
-      if (path === "title") {
-        skipNextRef.current()
-        setLetterName(String(value ?? ""))
-        return
-      }
-      if (path === "templateId") {
-        skipNextRef.current()
-        setTemplateId(parseEditorTemplateId(String(value ?? "modern")))
-        return
-      }
-      if (path === "style") {
-        skipNextRef.current()
-        setStyle(parseDocumentStyle(value))
-        return
-      }
-      applyRemoteDocument(path, value)
-    },
-    [applyRemoteDocument]
-  )
+  const template =
+    EDITOR_TEMPLATES.find((item) => item.id === templateId) ?? EDITOR_TEMPLATES[0]
 
   const applyExternalSnapshot = useCallback(
     (snap: {
@@ -107,27 +75,67 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
     [replaceDocument]
   )
 
+  const onRemoteMaterialize = useCallback(
+    (snap: CollabYSnapshot) => {
+      applyExternalSnapshot(snap)
+    },
+    [applyExternalSnapshot]
+  )
+
+  const sendYUpdateRef = useRef<(u: string) => void>(() => {})
+
+  const yjs = useCollabYDoc({
+    enabled: true,
+    sendUpdate: (u) => sendYUpdateRef.current(u),
+    onRemoteMaterialize,
+  })
+
   const onSnapshot = useCallback(
     (snap: {
+      rev: number
       title: string
       templateId: string
       style: Record<string, unknown>
       document: unknown
     }) => {
       applyExternalSnapshot(snap)
+      yjs.seedFromSnapshot({
+        title: snap.title,
+        templateId: snap.templateId,
+        style: snap.style,
+        document: snap.document,
+      })
     },
-    [applyExternalSnapshot]
+    [applyExternalSnapshot, yjs]
+  )
+
+  const onYjsSync = useCallback(
+    (updateB64: string) => {
+      yjs.applyRemoteUpdate(updateB64)
+    },
+    [yjs]
+  )
+
+  const onYjsUpdate = useCallback(
+    (updateB64: string) => {
+      yjs.applyRemoteUpdate(updateB64)
+    },
+    [yjs]
   )
 
   const collab = useCollabRoom({
     kind: "cover_letter",
     documentId: seed.id,
     shareToken: seed.shareToken,
-    onRemoteOp,
     onSnapshot,
+    onYjsSync,
+    onYjsUpdate,
   })
 
+  sendYUpdateRef.current = collab.sendYUpdate
+
   const permissions: CollabPermissions = collab.permissions
+  const ydoc = yjs.ydoc
 
   useEffect(() => {
     history.commit({
@@ -145,24 +153,26 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
     }
     if (!permissions.canEditContent || !collab.live) return
     const timer = window.setTimeout(() => {
-      collab.sendOp("document", documentRef.current)
+      setCollabDocument(ydoc, documentRef.current)
     }, 48)
     return () => window.clearTimeout(timer)
-  }, [document, permissions.canEditContent, collab.live, collab.sendOp])
+  }, [document, permissions.canEditContent, collab.live, ydoc])
 
   const applyHistorySnapshot = useCallback(
     (snap: HistorySnapshot) => {
-      // document broadcast via existing document effect (skipBroadcast stays false)
       replaceDocument(snap.document)
       setStyle(snap.style)
       setTemplateId(snap.templateId)
       setLetterName(snap.title)
       if (!collab.live) return
-      collab.sendOp("style", snap.style)
-      collab.sendOp("templateId", snap.templateId)
-      collab.sendOp("title", snap.title)
+      applyCollabYSnapshot(ydoc, {
+        title: snap.title,
+        templateId: snap.templateId,
+        style: snap.style as unknown as Record<string, unknown>,
+        document: snap.document,
+      })
     },
-    [replaceDocument, collab.live, collab.sendOp]
+    [replaceDocument, collab.live, ydoc]
   )
 
   const historyControls = useMemo<DocumentHistoryControls>(
@@ -181,8 +191,11 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
     setTemplateId(id)
     const next = EDITOR_TEMPLATES.find((item) => item.id === id)
     if (next) setStyle(next.defaultStyle)
-    collab.sendOp("templateId", id)
-    if (next) collab.sendOp("style", next.defaultStyle)
+    if (!collab.live) return
+    setCollabTemplateId(ydoc, id)
+    if (next) {
+      setCollabStyle(ydoc, next.defaultStyle as unknown as Record<string, unknown>)
+    }
   }
 
   const updateStyle = (patch: Partial<DocumentStyle>) => {
@@ -190,7 +203,9 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
     markDiscreteRef.current()
     setStyle((prev) => {
       const merged = { ...prev, ...patch }
-      collab.sendOp("style", merged)
+      if (collab.live) {
+        setCollabStyle(ydoc, merged as unknown as Record<string, unknown>)
+      }
       return merged
     })
   }
@@ -198,7 +213,7 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
   const setLetterNameSafe = (name: string) => {
     if (!permissions.canEditContent) return
     setLetterName(name)
-    collab.sendOp("title", name)
+    if (collab.live) setCollabTitle(ydoc, name)
   }
 
   const liveHandlers = useMemo(() => {
@@ -213,63 +228,12 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
       })
     }
 
-    const sendDoc = (next: CoverLetterDocument) => {
-      if (!collab.live) return
-      documentRef.current = next
-      if (sendRaf.current) return
-      sendRaf.current = requestAnimationFrame(() => {
-        sendRaf.current = 0
-        collab.sendOp("document", documentRef.current)
-      })
-    }
-
     return {
       ...handlers,
-      setSenderField: (field: "name" | "title", value: string) => {
-        handlers.setSenderField(field, value)
-        const cur = documentRef.current
-        sendDoc({
-          ...cur,
-          sender: { ...cur.sender, [field]: value },
-        })
-      },
-      setContact: (id: string, value: string) => {
-        handlers.setContact(id, value)
-        const cur = documentRef.current
-        sendDoc({
-          ...cur,
-          sender: {
-            ...cur.sender,
-            contacts: cur.sender.contacts.map((c) =>
-              c.id === id ? { ...c, value } : c
-            ),
-          },
-        })
-      },
-      setDate: (value: string) => {
-        handlers.setDate(value)
-        const cur = documentRef.current
-        sendDoc({ ...cur, date: value })
-      },
-      setRecipientField: (field: "name" | "title" | "company", value: string) => {
-        handlers.setRecipientField(field, value)
-        const cur = documentRef.current
-        sendDoc({
-          ...cur,
-          recipient: { ...cur.recipient, [field]: value },
-        })
-      },
-      updateBlock: (id: string, patch: Partial<(typeof document.blocks)[number]>) => {
-        handlers.updateBlock(id, patch)
-        const cur = documentRef.current
-        sendDoc({
-          ...cur,
-          blocks: cur.blocks.map((b) =>
-            b.id === id ? ({ ...b, ...patch } as (typeof cur.blocks)[number]) : b
-          ),
-        })
-      },
-      addBlock: (blockType: (typeof document.blocks)[number]["type"], afterId?: string) => {
+      addBlock: (
+        blockType: (typeof document.blocks)[number]["type"],
+        afterId?: string
+      ) => {
         markDiscreteRef.current()
         handlers.addBlock(blockType, afterId)
       },
@@ -290,7 +254,7 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
         handlers.reorderBlocks(activeId, overId)
       },
     }
-  }, [handlers, permissions.canEditContent, collab.live, collab.sendOp, document.blocks])
+  }, [handlers, permissions.canEditContent, document.blocks])
 
   const { status: trpcSaveStatus } = useCoverLetterAutosave({
     letterId: seed.id,
@@ -301,11 +265,8 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
     enabled: !collab.live && collab.status !== "connecting",
   })
 
-  // Persist the exact general analysis score shown in the editor (structure + grammar).
   useSyncGeneralScore(seed.id, document, permissions.canEditContent)
 
-  // Collab: connection vs document persist are separate — badge follows docSaveStatus
-  // while live so typing actually flips Saving → Saved (not stuck on Saved).
   const saveStatus: SaveStatus =
     collab.status === "connecting"
       ? "saving"
@@ -325,23 +286,28 @@ export function useCoverLetterEditorSession(seed: SessionSeed) {
       markDiscreteRef.current()
       applyExternalSnapshot(snap)
       if (collab.live) {
-        collab.sendOp("document", parseCoverLetterDocument(snap.document))
-        collab.sendOp("style", parseDocumentStyle(snap.style))
-        collab.sendOp("templateId", snap.templateId)
-        collab.sendOp("title", snap.title)
+        applyCollabYSnapshot(ydoc, {
+          title: snap.title,
+          templateId: snap.templateId,
+          style: parseDocumentStyle(snap.style) as unknown as Record<
+            string,
+            unknown
+          >,
+          document: parseCoverLetterDocument(snap.document),
+        })
       }
     },
-    [applyExternalSnapshot, collab.live, collab.sendOp]
+    [applyExternalSnapshot, collab.live, ydoc]
   )
 
-  /** AI assistant (and similar) full-document replacements — undoable + collab. */
   const replaceDocumentFromAi = useCallback(
     (next: CoverLetterDocument) => {
       if (!permissions.canEditContent) return
       markDiscreteRef.current()
       replaceDocument(next)
+      if (collab.live) setCollabDocument(ydoc, next)
     },
-    [permissions.canEditContent, replaceDocument]
+    [permissions.canEditContent, replaceDocument, collab.live, ydoc]
   )
 
   return {

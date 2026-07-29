@@ -56,6 +56,10 @@ export type CollabServerMessage =
       rev: number
       userId: string
     }
+  /** Full Yjs state on join (base64 of encodeStateAsUpdate). */
+  | { type: "yjs.sync"; update: string; rev: number }
+  /** Incremental Yjs update from a peer (or echo). */
+  | { type: "yjs.update"; update: string; rev: number; userId: string }
   | { type: "peer.joined"; peer: CollabPeer }
   | { type: "peer.left"; userId: string }
   | {

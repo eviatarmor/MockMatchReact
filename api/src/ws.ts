@@ -10,8 +10,12 @@ import { db } from "./db/client.js"
 import { scheduleCollabFlush } from "./jobs/collab-flush.js"
 import {
   applyPathOp,
+  applyYjsUpdate,
   assignColor,
   claimSeat,
+  decodeYUpdateBase64,
+  encodeYUpdateBase64,
+  ensureYjsState,
   getAllPresence,
   memberCount,
   publishRoom,
@@ -224,6 +228,23 @@ async function handleJoin(state: ClientState): Promise<void> {
     peers,
   })
 
+  // Yjs full state for CRDT sync (seeded from JSON snapshot when empty)
+  try {
+    const yState = await ensureYjsState(kind, documentId, {
+      title: snapshot.title,
+      templateId: snapshot.templateId,
+      style: snapshot.style,
+      document: snapshot.document,
+    })
+    send(state.ws, {
+      type: "yjs.sync",
+      update: encodeYUpdateBase64(yState),
+      rev: snapshot.rev,
+    })
+  } catch (err) {
+    logger.error({ err, kind, documentId }, "yjs.sync seed failed")
+  }
+
   await fanout(
     kind,
     documentId,
@@ -316,8 +337,9 @@ async function handleMessage(state: ClientState, raw: string): Promise<void> {
     const x = Number(msg.x)
     const y = Number(msg.y)
     if (!Number.isFinite(x) || !Number.isFinite(y)) return
-    const nx = Math.min(1, Math.max(0, x))
-    const ny = Math.min(1, Math.max(0, y))
+    // Paper-relative coords — allow outside [0,1] so peers see cursors on the grid
+    const nx = Math.min(4, Math.max(-4, x))
+    const ny = Math.min(4, Math.max(-4, y))
     const kindCursor =
       msg.kind === "caret"
         ? "caret"
@@ -353,6 +375,64 @@ async function handleMessage(state: ClientState, raw: string): Promise<void> {
       },
       userId
     )
+    return
+  }
+
+  if (type === "yjs.update") {
+    if (role === "view") {
+      send(state.ws, {
+        type: "error",
+        code: "forbidden_role",
+        message: "Your role cannot edit this document.",
+      })
+      return
+    }
+    const raw = typeof msg.update === "string" ? msg.update : ""
+    if (!raw || raw.length > 2_000_000) {
+      send(state.ws, {
+        type: "error",
+        code: "bad_op",
+        message: "Invalid yjs update",
+      })
+      return
+    }
+    let update: Uint8Array
+    try {
+      update = decodeYUpdateBase64(raw)
+    } catch {
+      send(state.ws, {
+        type: "error",
+        code: "bad_op",
+        message: "Invalid yjs update encoding",
+      })
+      return
+    }
+
+    // edit role: content only — strip design axes after merge
+    const lockDesign = role === "edit"
+    const snapshot = await applyYjsUpdate(
+      kind,
+      documentId,
+      update,
+      userId,
+      lockDesign
+    )
+    if (!snapshot) {
+      send(state.ws, {
+        type: "error",
+        code: "no_snapshot",
+        message: "Room not ready",
+      })
+      return
+    }
+
+    await fanout(kind, documentId, {
+      type: "yjs.update",
+      update: raw,
+      rev: snapshot.rev,
+      userId,
+    })
+    void scheduleCollabFlush(kind, documentId)
     return
   }
 

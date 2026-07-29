@@ -9,9 +9,10 @@ interface RemoteCursorsProps {
 }
 
 /**
- * Renders remote pointers + text carets + selection highlights in **document
- * surface space**. Must sit inside the same transform layer as the paper so
- * pan/zoom/scroll move them.
+ * Renders remote pointers + text carets + selection highlights in **paper-
+ * relative space** (origin = paper top-left). Coords may fall outside [0,1]
+ * when peers move over the background grid — overflow is visible.
+ * Must sit in the same transform layer as the paper.
  */
 export function RemoteCursors({
   peers,
@@ -24,6 +25,7 @@ export function RemoteCursors({
     <div className="pointer-events-none absolute inset-0 z-40 overflow-visible">
       {peers.map((p) => {
         if (!p.cursor) return null
+        // Unclamped: negative / >1 place the cursor on the surrounding grid
         const left = p.cursor.x * surfaceWidth
         const top = p.cursor.y * surfaceHeight
         const kind = p.cursor.kind ?? "pointer"

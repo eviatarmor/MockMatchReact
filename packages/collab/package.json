@@ -19,5 +19,8 @@
     "react-dom": "^19.0.0",
     "react-i18next": "*",
     "react-router-dom": "*"
+  },
+  "dependencies": {
+    "yjs": "^13.6.31"
   }
 }

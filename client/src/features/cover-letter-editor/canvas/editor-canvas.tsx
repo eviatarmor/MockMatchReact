@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 import { LetterDocument } from "./letter-document"
 import { ZOOM, useCanvasViewport } from "@/hooks/use-canvas-viewport"
@@ -36,8 +37,27 @@ export function EditorCanvas({
 }: EditorCanvasProps) {
   const { ref, scale, offset, onTransform } = viewport
   const noop = () => {}
-  const { surfaceRef, surfaceSize, onPointerMove, onPointerLeave } =
-    useCollabSurface(sendCursor ?? noop, clearCursor)
+  const { surfaceRef, surfaceSize, bindViewport } = useCollabSurface(
+    sendCursor ?? noop,
+    clearCursor
+  )
+  const wrapperProbeRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!sendCursor) return
+    const api = ref.current
+    const wrapper = api?.instance?.wrapperComponent ?? null
+    return bindViewport(wrapper)
+  }, [sendCursor, bindViewport, ref, scale, offset.x, offset.y])
+
+  useEffect(() => {
+    if (!sendCursor || !wrapperProbeRef.current) return
+    const wrapper = wrapperProbeRef.current.closest(
+      ".react-transform-wrapper"
+    ) as HTMLElement | null
+    if (!wrapper) return
+    return bindViewport(wrapper)
+  }, [sendCursor, bindViewport])
 
   const clearEditing = () => {
     const active = window.document.activeElement
@@ -74,18 +94,14 @@ export function EditorCanvas({
       <TransformComponent
         wrapperClass="!absolute !inset-0 !z-0 !h-full !w-full cursor-grab bg-neutral-100 active:cursor-grabbing dark:bg-neutral-950 [--dot:var(--color-neutral-300)] dark:[--dot:var(--color-neutral-600)]"
         wrapperStyle={{
-          backgroundImage: "radial-gradient(circle, var(--dot) 1px, transparent 1px)",
+          backgroundImage:
+            "radial-gradient(circle, var(--dot) 1px, transparent 1px)",
           backgroundSize: `${24 * scale}px ${24 * scale}px`,
           backgroundPosition: `${offset.x}px ${offset.y}px`,
         }}
       >
-        <div className="pt-12">
-          <div
-            ref={surfaceRef}
-            className="relative inline-block"
-            onPointerMove={sendCursor ? onPointerMove : undefined}
-            onPointerLeave={clearCursor ? onPointerLeave : undefined}
-          >
+        <div ref={wrapperProbeRef} className="relative pt-12">
+          <div ref={surfaceRef} className="relative inline-block">
             <LetterDocument
               document={document}
               template={template}

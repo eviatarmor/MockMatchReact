@@ -25,6 +25,12 @@ interface UseCollabRoomArgs {
     snap: SnapshotPayload,
     role: CollabEffectiveRole
   ) => void
+  readonly onYjsSync?: (updateB64: string, rev: number) => void
+  readonly onYjsUpdate?: (
+    updateB64: string,
+    userId: string,
+    rev: number
+  ) => void
 }
 
 /**
@@ -37,6 +43,8 @@ export function useCollabRoom({
   shareToken,
   onRemoteOp,
   onSnapshot,
+  onYjsSync,
+  onYjsUpdate,
 }: UseCollabRoomArgs) {
   const ticketMut = trpc.collab.wsTicket.useMutation()
   const ticketMutRef = useRef(ticketMut)
@@ -66,5 +74,7 @@ export function useCollabRoom({
     shareToken,
     onRemoteOp,
     onSnapshot,
+    onYjsSync,
+    onYjsUpdate,
   })
 }
