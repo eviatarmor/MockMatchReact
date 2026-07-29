@@ -91,11 +91,20 @@ export function IdeMenubar({
             {onCreateFile ? (
               <MenubarItem onClick={onCreateFile}>
                 {labels.newFile ?? "New File"}
+                <KbdGroup className="ml-auto">
+                  <Kbd>Ctrl</Kbd>
+                  <Kbd>N</Kbd>
+                </KbdGroup>
               </MenubarItem>
             ) : null}
             {onCreateFolder ? (
               <MenubarItem onClick={onCreateFolder}>
                 {labels.newFolder ?? "New Folder"}
+                <KbdGroup className="ml-auto">
+                  <Kbd>Ctrl</Kbd>
+                  <Kbd>Shift</Kbd>
+                  <Kbd>N</Kbd>
+                </KbdGroup>
               </MenubarItem>
             ) : null}
           </MenubarContent>
@@ -113,6 +122,10 @@ export function IdeMenubar({
               onCheckedChange={() => onToggleTree()}
             >
               {labels.toggleTree ?? "File tree"}
+              <KbdGroup className="ml-auto">
+                <Kbd>Ctrl</Kbd>
+                <Kbd>B</Kbd>
+              </KbdGroup>
             </MenubarCheckboxItem>
           ) : null}
 
@@ -140,12 +153,21 @@ export function IdeMenubar({
                 <MenubarSubContent>
                   <MenubarItem onClick={() => onSplit("right")}>
                     {labels.splitRight ?? "Right"}
+                    <KbdGroup className="ml-auto">
+                      <Kbd>Ctrl</Kbd>
+                      <Kbd>\</Kbd>
+                    </KbdGroup>
                   </MenubarItem>
                   <MenubarItem onClick={() => onSplit("left")}>
                     {labels.splitLeft ?? "Left"}
                   </MenubarItem>
                   <MenubarItem onClick={() => onSplit("down")}>
                     {labels.splitDown ?? "Down"}
+                    <KbdGroup className="ml-auto">
+                      <Kbd>Ctrl</Kbd>
+                      <Kbd>Shift</Kbd>
+                      <Kbd>\</Kbd>
+                    </KbdGroup>
                   </MenubarItem>
                   <MenubarItem onClick={() => onSplit("up")}>
                     {labels.splitUp ?? "Up"}

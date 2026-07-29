@@ -6,6 +6,7 @@ import {
 import { cn } from "@mockmatch/ui/utils"
 
 import { IdeTabs } from "./ide-tabs"
+import { resolveTabLanguage } from "./language-from-filename"
 import { MonacoEditor } from "./monaco-editor"
 import type {
   IdeLabels,
@@ -129,7 +130,8 @@ function EditorGroupPane({
     <div
       className={cn(
         "flex h-full min-h-0 min-w-0 flex-col",
-        focused && "ring-1 ring-inset ring-primary/40"
+        // Focus ring only when split — single pane / empty editor stays clean
+        focused && isSplit && "ring-1 ring-inset ring-primary/40"
       )}
       onMouseDown={onFocus}
       data-slot="ide-editor-group"
@@ -158,8 +160,9 @@ function EditorGroupPane({
         {active ? (
           <MonacoEditor
             key={`${groupId}-${active.id}`}
+            modelId={active.id}
             value={active.value}
-            language={active.language ?? "plaintext"}
+            language={resolveTabLanguage(active)}
             theme={theme}
             settings={settings}
             options={editorOptions}

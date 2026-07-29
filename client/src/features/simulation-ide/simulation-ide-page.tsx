@@ -66,20 +66,7 @@ function SimulationIdeSession({
     return () => document.removeEventListener("fullscreenchange", onFs)
   }, [])
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "F11") {
-        e.preventDefault()
-        void toggleFullscreen()
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === "`") {
-        e.preventDefault()
-        setShowTerminal((v) => !v)
-      }
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [toggleFullscreen])
+  // Workbench shortcuts (Ctrl+`, F11, Ctrl+W, …) live in IdeShell — do not double-bind here.
 
   const labels = {
     toggleTree: t("actions.toggleTree"),

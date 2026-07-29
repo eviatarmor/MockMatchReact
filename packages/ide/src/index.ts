@@ -6,6 +6,11 @@
 export { IdeShell } from "./ide-shell"
 export { FileTree, type FileTreeProps } from "./file-tree"
 export { MonacoEditor, type MonacoEditorProps } from "./monaco-editor"
+export {
+  acquireMonacoModel,
+  releaseMonacoModel,
+  disposeMonacoModel,
+} from "./monaco-models"
 export { IdeMenubar, type IdeMenubarProps } from "./ide-menubar"
 export { IdeTabs, type IdeTabsProps } from "./ide-tabs"
 export { IdeTerminal, type IdeTerminalProps } from "./ide-terminal"
@@ -49,3 +54,14 @@ export {
   type IdeTerminalSession,
   type IdeSplitDirection,
 } from "./types"
+export {
+  matchIdeKeybinding,
+  isIdeTerminalTarget,
+  isMonacoTarget,
+  type IdeKeyAction,
+  type IdeKeyMatch,
+} from "./ide-keybindings"
+export {
+  languageFromFileName,
+  resolveTabLanguage,
+} from "./language-from-filename"

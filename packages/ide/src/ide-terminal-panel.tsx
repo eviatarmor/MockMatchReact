@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { AnimatePresence, motion } from "motion/react"
+import { motion } from "motion/react"
 import { Pin, Plus, TerminalSquare, X } from "lucide-react"
 import { Button } from "@mockmatch/ui/button"
 import {
@@ -9,6 +9,12 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@mockmatch/ui/context-menu"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@mockmatch/ui/tooltip"
 import { cn } from "@mockmatch/ui/utils"
 
 import { IdeTerminal } from "./ide-terminal"
@@ -47,7 +53,8 @@ function newSession(cwd?: string): IdeTerminalSession {
   }
 }
 
-const TERM_SPRING = { type: "spring" as const, stiffness: 380, damping: 36 }
+/** Height ease — spring + xterm mount on open was nuking INP / expand frames. */
+const TERM_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
 
 export function IdeTerminalPanel({
   open,
@@ -68,12 +75,33 @@ export function IdeTerminalPanel({
   ])
   const [activeId, setActiveId] = useState(() => sessions[0]!.id)
 
+  /** Stay mounted after first open so collapse/expand don't recreate xterm. */
+  const [everOpened, setEverOpened] = useState(open)
+  /** Defer xterm body one frame so height animation can paint first. */
+  const [bodyReady, setBodyReady] = useState(false)
+
   const { height, startResize, isDragging } = useBottomPanelHeight({
     defaultHeight,
     min: minHeight,
     max: maxHeight,
     storageKey: "mockmatch.ide.terminal-height",
   })
+
+  useEffect(() => {
+    if (open) setEverOpened(true)
+  }, [open])
+
+  useEffect(() => {
+    if (!open || bodyReady) return
+    let raf2 = 0
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => setBodyReady(true))
+    })
+    return () => {
+      cancelAnimationFrame(raf1)
+      cancelAnimationFrame(raf2)
+    }
+  }, [open, bodyReady])
 
   useEffect(() => {
     if (!focusCwd) return
@@ -129,121 +157,164 @@ export function IdeTerminalPanel({
     ...sessions.filter((s) => !s.pinned),
   ]
 
-  return (
-    <AnimatePresence initial={false}>
-      {open ? (
-        <motion.div
-          key="ide-terminal-panel"
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height, opacity: 1 }}
-          exit={{ height: 0, opacity: 0 }}
-          transition={isDragging ? { duration: 0 } : TERM_SPRING}
-          className="relative shrink-0 overflow-hidden border-t border-border bg-background"
-          data-slot="ide-terminal-panel"
-        >
-          <div
-            className="relative flex h-full min-h-0 flex-col"
-            style={{ height }}
-          >
-            <TerminalResizeHandle
-              onPointerDown={startResize}
-              label={labels?.resizeTerminal ?? "Resize terminal"}
-            />
+  if (!everOpened) return null
 
-            <div className="flex h-8 shrink-0 items-center gap-0.5 border-b border-border/60 px-1">
-              <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto">
-                {ordered.map((s) => {
-                  const active = s.id === activeId
-                  return (
-                    <ContextMenu key={s.id}>
-                      <ContextMenuTrigger
-                        className={cn(
-                          "group/ttab flex h-7 max-w-[10rem] shrink-0 items-center gap-1 rounded-md px-2 text-xs",
-                          active
-                            ? "bg-muted text-foreground"
-                            : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-                        )}
-                        onAuxClick={(e) => {
-                          if (e.button === 1 && !s.pinned) {
-                            e.preventDefault()
-                            closeSession(s.id)
-                          }
-                        }}
+  return (
+    <motion.div
+      initial={false}
+      animate={{
+        height: open ? height : 0,
+        opacity: open ? 1 : 0,
+      }}
+      transition={
+        isDragging
+          ? { duration: 0 }
+          : {
+              height: { duration: 0.22, ease: TERM_EASE },
+              opacity: { duration: 0.16, ease: "easeOut" },
+            }
+      }
+      className={cn(
+        "relative shrink-0 overflow-hidden border-t border-border bg-background",
+        !open && "pointer-events-none border-t-transparent"
+      )}
+      data-slot="ide-terminal-panel"
+      aria-hidden={!open}
+    >
+      {/* Fixed inner height so open animation clips content; xterm not recreated */}
+      <div
+        className="relative flex min-h-0 flex-col"
+        style={{ height }}
+      >
+        <TerminalResizeHandle
+          onPointerDown={startResize}
+          label={labels?.resizeTerminal ?? "Resize terminal"}
+        />
+
+        <TooltipProvider delay={300}>
+          <div className="flex h-8 shrink-0 items-center gap-0.5 border-b border-border/60 px-1">
+            <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto">
+              {ordered.map((s) => {
+                const active = s.id === activeId
+                return (
+                  <ContextMenu key={s.id}>
+                    <ContextMenuTrigger
+                      className={cn(
+                        "group/ttab flex h-7 max-w-[10rem] shrink-0 items-center gap-1 rounded-md px-2 text-xs",
+                        active
+                          ? "bg-muted text-foreground"
+                          : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                      )}
+                      onAuxClick={(e) => {
+                        if (e.button === 1 && !s.pinned) {
+                          e.preventDefault()
+                          closeSession(s.id)
+                        }
+                      }}
+                    >
+                      <button
+                        type="button"
+                        className="flex min-w-0 items-center gap-1.5 outline-none"
+                        onClick={() => setActiveId(s.id)}
                       >
-                        <button
-                          type="button"
-                          className="flex min-w-0 items-center gap-1.5 outline-none"
-                          onClick={() => setActiveId(s.id)}
-                        >
-                          {s.pinned ? (
-                            <Pin className="size-3 shrink-0 opacity-70" />
-                          ) : (
-                            <TerminalSquare className="size-3 shrink-0 opacity-70" />
-                          )}
-                          <span className="truncate">{s.title}</span>
-                        </button>
-                        {!s.pinned ? (
-                          <button
-                            type="button"
-                            className={cn(
-                              "flex size-4 shrink-0 items-center justify-center rounded-sm opacity-0",
-                              "group-hover/ttab:opacity-100 hover:bg-background",
-                              active && "opacity-60"
-                            )}
-                            aria-label={
-                              labels?.closeTerminal ?? "Close terminal"
+                        {s.pinned ? (
+                          <Pin className="size-3 shrink-0 opacity-70" />
+                        ) : (
+                          <TerminalSquare className="size-3 shrink-0 opacity-70" />
+                        )}
+                        <span className="truncate">{s.title}</span>
+                      </button>
+                      {!s.pinned ? (
+                        <Tooltip>
+                          <TooltipTrigger
+                            render={
+                              <button
+                                type="button"
+                                className={cn(
+                                  "flex size-4 shrink-0 items-center justify-center rounded-sm opacity-0",
+                                  "group-hover/ttab:opacity-100 hover:bg-background",
+                                  active && "opacity-60"
+                                )}
+                                aria-label={
+                                  labels?.closeTerminal ?? "Close terminal"
+                                }
+                                onClick={() => closeSession(s.id)}
+                              />
                             }
-                            onClick={() => closeSession(s.id)}
                           >
                             <X className="size-3" />
-                          </button>
-                        ) : null}
-                      </ContextMenuTrigger>
-                      <ContextMenuContent className="min-w-40">
-                        {!s.pinned ? (
-                          <ContextMenuItem onClick={() => closeSession(s.id)}>
-                            {labels?.close ?? "Close"}
-                          </ContextMenuItem>
-                        ) : null}
-                        <ContextMenuItem onClick={() => closeOthers(s.id)}>
-                          {labels?.closeOthers ?? "Close Others"}
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            {labels?.closeTerminal ?? "Close terminal"}
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : null}
+                    </ContextMenuTrigger>
+                    <ContextMenuContent className="min-w-40">
+                      {!s.pinned ? (
+                        <ContextMenuItem onClick={() => closeSession(s.id)}>
+                          {labels?.close ?? "Close"}
                         </ContextMenuItem>
-                        <ContextMenuSeparator />
-                        <ContextMenuItem onClick={() => togglePin(s.id)}>
-                          {s.pinned
-                            ? (labels?.unpinTab ?? "Unpin")
-                            : (labels?.pinTab ?? "Pin")}
-                        </ContextMenuItem>
-                      </ContextMenuContent>
-                    </ContextMenu>
-                  )
-                })}
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                aria-label={labels?.newTerminal ?? "New terminal"}
-                onClick={addSession}
+                      ) : null}
+                      <ContextMenuItem onClick={() => closeOthers(s.id)}>
+                        {labels?.closeOthers ?? "Close Others"}
+                      </ContextMenuItem>
+                      <ContextMenuSeparator />
+                      <ContextMenuItem onClick={() => togglePin(s.id)}>
+                        {s.pinned
+                          ? (labels?.unpinTab ?? "Unpin")
+                          : (labels?.pinTab ?? "Pin")}
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
+                )
+              })}
+            </div>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    aria-label={labels?.newTerminal ?? "New terminal"}
+                    onClick={addSession}
+                  />
+                }
               >
                 <Plus className="size-3.5" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                aria-label="Hide terminal"
-                onClick={() => onOpenChange(false)}
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {labels?.newTerminal ?? "New terminal"}
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    aria-label={labels?.toggleTerminal ?? "Hide terminal"}
+                    onClick={() => onOpenChange(false)}
+                  />
+                }
               >
                 <X className="size-3.5" />
-              </Button>
-            </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {labels?.toggleTerminal ?? "Hide terminal"}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
 
-            <div
-              className="relative min-h-0 flex-1"
-              style={{ height: Math.max(0, height - 32) }}
-            >
-              {sessions.map((s) => (
+        <div
+          className="relative min-h-0 flex-1"
+          style={{ height: Math.max(0, height - 32) }}
+        >
+          {bodyReady
+            ? sessions.map((s) => (
                 <div
                   key={s.id}
                   className={cn(
@@ -261,11 +332,10 @@ export function IdeTerminalPanel({
                     }
                   />
                 </div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
-      ) : null}
-    </AnimatePresence>
+              ))
+            : null}
+        </div>
+      </div>
+    </motion.div>
   )
 }

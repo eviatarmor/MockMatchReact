@@ -1,19 +1,10 @@
-import type { IdeTab, IdeTreeNode } from "@mockmatch/ide"
+import {
+  languageFromFileName,
+  type IdeTab,
+  type IdeTreeNode,
+} from "@mockmatch/ide"
 
-export function languageFromFileName(name: string): string {
-  const lower = name.toLowerCase()
-  if (lower.endsWith(".ts") || lower.endsWith(".tsx")) return "typescript"
-  if (lower.endsWith(".js") || lower.endsWith(".jsx") || lower.endsWith(".mjs"))
-    return "javascript"
-  if (lower.endsWith(".json")) return "json"
-  if (lower.endsWith(".css")) return "css"
-  if (lower.endsWith(".html")) return "html"
-  if (lower.endsWith(".md")) return "markdown"
-  if (lower.endsWith(".py")) return "python"
-  if (lower.endsWith(".rs")) return "rust"
-  if (lower.endsWith(".go")) return "go"
-  return "plaintext"
-}
+export { languageFromFileName }
 
 function sanitizeName(raw: string): string | null {
   const name = raw.trim().replace(/[\\/]/g, "")

@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react"
 import * as monaco from "monaco-editor"
 import { cn } from "@mockmatch/ui/utils"
 
+import { acquireMonacoModel, releaseMonacoModel } from "./monaco-models"
 import type { IdeSettings } from "./types"
 import {
   DEFAULT_FONT_FAMILY,
@@ -11,6 +12,13 @@ import {
 import "monaco-editor/min/vs/editor/editor.main.css"
 
 export type MonacoEditorProps = {
+  /**
+   * Stable document id (usually the tab/file path). Editors with the same id
+   * share one Monaco model — required for split panes and to avoid controlled
+   * `value` races that yank the caret.
+   */
+  modelId: string
+  /** Initial text only when the model is first created. Later host updates are ignored. */
   value?: string
   language?: string
   theme?: string
@@ -46,6 +54,7 @@ function buildEditorOptions(
     },
     scrollBeyondLastLine: false,
     padding: { top: 8, bottom: 8 },
+    contextmenu: true,
     ...extra,
   }
 }
@@ -63,6 +72,7 @@ async function attachVim(
 }
 
 export function MonacoEditor({
+  modelId,
   value = "",
   language = "plaintext",
   theme = "vs-dark",
@@ -76,63 +86,50 @@ export function MonacoEditor({
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
   const vimRef = useRef<VimController | null>(null)
   const onChangeRef = useRef(onChange)
-  const suppressChangeRef = useRef(false)
+  const modelIdRef = useRef(modelId)
 
   useEffect(() => {
     onChangeRef.current = onChange
   }, [onChange])
 
+  // Create editor + attach shared model once per mount.
   useEffect(() => {
     const el = containerRef.current
-    if (!el) {
-      return
-    }
+    if (!el) return
+
+    const model = acquireMonacoModel(modelId, value, language)
+    modelIdRef.current = modelId
 
     const editor = monaco.editor.create(el, {
-      value,
-      language,
+      model,
       theme,
       ...buildEditorOptions(settings, options),
     })
     editorRef.current = editor
 
-    const sub = editor.onDidChangeModelContent(() => {
-      if (suppressChangeRef.current) {
-        return
-      }
-      onChangeRef.current?.(editor.getValue())
+    const sub = model.onDidChangeContent(() => {
+      onChangeRef.current?.(model.getValue())
     })
 
     return () => {
       vimRef.current?.dispose()
       vimRef.current = null
       sub.dispose()
+      editor.setModel(null)
       editor.dispose()
       editorRef.current = null
+      releaseMonacoModel(modelId)
     }
-    // Mount once; value/language/theme/settings synced below.
+    // Mount once; modelId changes remount via React key from parent.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  useEffect(() => {
-    const editor = editorRef.current
-    if (!editor) {
-      return
-    }
-    const current = editor.getValue()
-    if (value !== current) {
-      suppressChangeRef.current = true
-      editor.setValue(value)
-      suppressChangeRef.current = false
-    }
-  }, [value])
-
+  // Language only — never rewrite buffer text from React props.
   useEffect(() => {
     const editor = editorRef.current
     const model = editor?.getModel()
-    if (!model) {
-      return
-    }
+    if (!model) return
+    if (model.getLanguageId() === language) return
     monaco.editor.setModelLanguage(model, language)
   }, [language])
 
@@ -142,18 +139,14 @@ export function MonacoEditor({
 
   useEffect(() => {
     const editor = editorRef.current
-    if (!editor) {
-      return
-    }
+    if (!editor) return
     editor.updateOptions(buildEditorOptions(settings, options))
   }, [settings, options])
 
   useEffect(() => {
     const editor = editorRef.current
     const statusEl = statusRef.current
-    if (!editor || !statusEl) {
-      return
-    }
+    if (!editor || !statusEl) return
 
     let cancelled = false
     const editorInstance = editor
@@ -164,9 +157,7 @@ export function MonacoEditor({
       vimRef.current = null
       statusNode.textContent = ""
 
-      if (settings.keybindings !== "vim") {
-        return
-      }
+      if (settings.keybindings !== "vim") return
 
       try {
         const controller = await attachVim(editorInstance, statusNode)
@@ -176,7 +167,7 @@ export function MonacoEditor({
         }
         vimRef.current = controller
       } catch {
-        // Vim optional — leave VS Code bindings if package fails.
+        // Vim optional
       }
     }
 

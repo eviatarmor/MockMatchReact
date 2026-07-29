@@ -86,6 +86,7 @@ export function IdeTabs({
   ]
 
   return (
+    <TooltipProvider delay={300}>
     <div
       className={cn(
         "flex h-9 shrink-0 items-stretch border-b border-border",
@@ -157,23 +158,33 @@ export function IdeTabs({
                   </span>
                 </button>
                 {onTabClose && !tab.pinned ? (
-                  <button
-                    type="button"
-                    className={cn(
-                      "mr-1 flex size-5 shrink-0 items-center justify-center rounded-sm",
-                      "opacity-0 transition-opacity group-hover/tab:opacity-100",
-                      "focus-visible:opacity-100",
-                      active && "opacity-60 hover:opacity-100",
-                      "hover:bg-muted text-muted-foreground hover:text-foreground"
-                    )}
-                    aria-label={`Close ${tab.title}`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onTabClose(tab.id)
-                    }}
-                  >
-                    <X className="size-3" />
-                  </button>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <button
+                          type="button"
+                          className={cn(
+                            "mr-1 flex size-5 shrink-0 items-center justify-center rounded-sm",
+                            "opacity-0 transition-opacity group-hover/tab:opacity-100",
+                            "focus-visible:opacity-100",
+                            active && "opacity-60 hover:opacity-100",
+                            "hover:bg-muted text-muted-foreground hover:text-foreground"
+                          )}
+                          aria-label={labels?.close ?? `Close ${tab.title}`}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onTabClose(tab.id)
+                          }}
+                        />
+                      }
+                    >
+                      <X className="size-3" />
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">
+                      {labels?.close ?? "Close"}
+                      <span className="ml-1.5 opacity-70">Ctrl+W</span>
+                    </TooltipContent>
+                  </Tooltip>
                 ) : null}
                 {active ? (
                   <span
@@ -270,126 +281,133 @@ export function IdeTabs({
         })}
       </div>
 
-      <TooltipProvider delay={300}>
-        <div className="flex shrink-0 items-center gap-0.5 border-l border-border/70 px-1">
-          {onSplit ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger
+      <div className="flex shrink-0 items-center gap-0.5 border-l border-border/70 px-1">
+        {onSplit ? (
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger
                 render={
-                  <Button
-                    type="button"
-                    variant={isSplit ? "secondary" : "ghost"}
-                    size="icon-xs"
-                    aria-label={labels?.splitMenu ?? "Split editor"}
-                    aria-pressed={isSplit}
-                    title={labels?.splitMenu ?? "Split editor"}
+                  <DropdownMenuTrigger
+                    render={
+                      <Button
+                        type="button"
+                        variant={isSplit ? "secondary" : "ghost"}
+                        size="icon-xs"
+                        aria-label={labels?.splitMenu ?? "Split editor"}
+                        aria-pressed={isSplit}
+                      />
+                    }
                   />
                 }
               >
                 <SquareSplitHorizontal className="size-3.5" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-36">
-                <DropdownMenuItem
-                  onClick={() => {
-                    const id = value
-                    if (id) onSplit("right", id)
-                  }}
-                >
-                  <Columns2 className="size-4" />
-                  {labels?.splitRight ?? "Right"}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {
-                    const id = value
-                    if (id) onSplit("left", id)
-                  }}
-                >
-                  <Columns2 className="size-4 rotate-180" />
-                  {labels?.splitLeft ?? "Left"}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {
-                    const id = value
-                    if (id) onSplit("down", id)
-                  }}
-                >
-                  <Rows2 className="size-4" />
-                  {labels?.splitDown ?? "Down"}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => {
-                    const id = value
-                    if (id) onSplit("up", id)
-                  }}
-                >
-                  <Rows2 className="size-4 rotate-180" />
-                  {labels?.splitUp ?? "Up"}
-                </DropdownMenuItem>
-                {isSplit && onUnsplit ? (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={onUnsplit}>
-                      {labels?.unsplit ?? "Close split"}
-                    </DropdownMenuItem>
-                  </>
-                ) : null}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : null}
-          {onToggleTerminal ? (
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button
-                    type="button"
-                    variant={showTerminal ? "secondary" : "ghost"}
-                    size="icon-xs"
-                    aria-label={labels?.toggleTerminal ?? "Toggle terminal"}
-                    aria-pressed={showTerminal}
-                    onClick={onToggleTerminal}
-                  />
-                }
-              >
-                <TerminalSquare className="size-3.5" />
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                {labels?.toggleTerminal ?? "Terminal"}
+                {labels?.splitMenu ?? "Split editor"}
               </TooltipContent>
             </Tooltip>
-          ) : null}
-          {onToggleFullscreen ? (
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button
-                    type="button"
-                    variant={fullscreen ? "secondary" : "ghost"}
-                    size="icon-xs"
-                    aria-label={
-                      fullscreen
-                        ? (labels?.exitFullscreen ?? "Exit full screen")
-                        : (labels?.fullscreen ?? "Full screen")
-                    }
-                    aria-pressed={fullscreen}
-                    onClick={onToggleFullscreen}
-                  />
-                }
+            <DropdownMenuContent align="end" className="min-w-36">
+              <DropdownMenuItem
+                onClick={() => {
+                  const id = value
+                  if (id) onSplit("right", id)
+                }}
               >
-                {fullscreen ? (
-                  <Minimize2 className="size-3.5" />
-                ) : (
-                  <Maximize2 className="size-3.5" />
-                )}
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                {fullscreen
-                  ? (labels?.exitFullscreen ?? "Exit Full Screen")
-                  : (labels?.fullscreen ?? "Full Screen")}
-              </TooltipContent>
-            </Tooltip>
-          ) : null}
-        </div>
-      </TooltipProvider>
+                <Columns2 className="size-4" />
+                {labels?.splitRight ?? "Right"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  const id = value
+                  if (id) onSplit("left", id)
+                }}
+              >
+                <Columns2 className="size-4 rotate-180" />
+                {labels?.splitLeft ?? "Left"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  const id = value
+                  if (id) onSplit("down", id)
+                }}
+              >
+                <Rows2 className="size-4" />
+                {labels?.splitDown ?? "Down"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  const id = value
+                  if (id) onSplit("up", id)
+                }}
+              >
+                <Rows2 className="size-4 rotate-180" />
+                {labels?.splitUp ?? "Up"}
+              </DropdownMenuItem>
+              {isSplit && onUnsplit ? (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={onUnsplit}>
+                    {labels?.unsplit ?? "Close split"}
+                  </DropdownMenuItem>
+                </>
+              ) : null}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
+        {onToggleTerminal ? (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  type="button"
+                  variant={showTerminal ? "secondary" : "ghost"}
+                  size="icon-xs"
+                  aria-label={labels?.toggleTerminal ?? "Toggle terminal"}
+                  aria-pressed={showTerminal}
+                  onClick={onToggleTerminal}
+                />
+              }
+            >
+              <TerminalSquare className="size-3.5" />
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {labels?.toggleTerminal ?? "Terminal"}
+            </TooltipContent>
+          </Tooltip>
+        ) : null}
+        {onToggleFullscreen ? (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  type="button"
+                  variant={fullscreen ? "secondary" : "ghost"}
+                  size="icon-xs"
+                  aria-label={
+                    fullscreen
+                      ? (labels?.exitFullscreen ?? "Exit full screen")
+                      : (labels?.fullscreen ?? "Full screen")
+                  }
+                  aria-pressed={fullscreen}
+                  onClick={onToggleFullscreen}
+                />
+              }
+            >
+              {fullscreen ? (
+                <Minimize2 className="size-3.5" />
+              ) : (
+                <Maximize2 className="size-3.5" />
+              )}
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {fullscreen
+                ? (labels?.exitFullscreen ?? "Exit Full Screen")
+                : (labels?.fullscreen ?? "Full Screen")}
+            </TooltipContent>
+          </Tooltip>
+        ) : null}
+      </div>
     </div>
+    </TooltipProvider>
   )
 }

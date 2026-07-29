@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+} from "react"
 import { AnimatePresence, motion } from "motion/react"
 import { cn } from "@mockmatch/ui/utils"
 
@@ -9,6 +16,10 @@ import {
   type EditorSplitState,
 } from "./ide-editor-area"
 import { FileTree } from "./file-tree"
+import {
+  isMonacoTarget,
+  matchIdeKeybinding,
+} from "./ide-keybindings"
 import { IdeMenubar } from "./ide-menubar"
 import { IdeTerminalPanel } from "./ide-terminal-panel"
 import { TreeResizeHandle } from "./tree-resize-handle"
@@ -22,8 +33,6 @@ import { useIdeSettings } from "./use-ide-settings"
 import { useLeftPanelWidth } from "./use-left-panel-width"
 
 const TREE_SPRING = { type: "spring" as const, stiffness: 320, damping: 34 }
-
-const BLOCKED_MOD_KEYS = new Set(["p", "s", "o", "u"])
 
 function emptyGroup(): EditorGroupState {
   return { openTabIds: [], activeTabId: undefined }
@@ -393,42 +402,162 @@ export function IdeShell({
     return () => document.removeEventListener("fullscreenchange", onFsChange)
   }, [setFullscreen])
 
-  useEffect(() => {
-    const el = rootRef.current
-    if (!el) return
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (!(e.ctrlKey || e.metaKey) || e.altKey) return
-      const key = e.key.toLowerCase()
-      if (BLOCKED_MOD_KEYS.has(key)) {
-        e.preventDefault()
-        e.stopPropagation()
-      }
-    }
-    el.addEventListener("keydown", onKeyDown, true)
-    return () => el.removeEventListener("keydown", onKeyDown, true)
-  }, [])
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "F11") {
-        e.preventDefault()
-        void toggleFullscreen()
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === "`") {
-        e.preventDefault()
-        setShowTerminal(!showTerminal)
-      }
-    }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [toggleFullscreen, setShowTerminal, showTerminal])
-
   const focusedActiveId = useMemo(() => {
     if (focusedPane === "secondary" && secondary) {
       return secondary.activeTabId
     }
     return primary.activeTabId
   }, [focusedPane, primary.activeTabId, secondary])
+
+  const cycleTab = useCallback(
+    (direction: 1 | -1) => {
+      const pane = focusedRef.current
+      const group =
+        pane === "secondary" && secondary ? secondary : primary
+      const ids = group.openTabIds
+      if (ids.length < 2) return
+      const current = group.activeTabId ?? ids[0]
+      const idx = Math.max(0, ids.indexOf(current ?? ""))
+      const next = ids[(idx + direction + ids.length) % ids.length]
+      if (!next) return
+      handleGroupActiveChange(pane === "secondary" && secondary ? "secondary" : "primary", next)
+    },
+    [primary, secondary, handleGroupActiveChange]
+  )
+
+  // Keep latest action deps without re-binding the window listener every render
+  const keyActionsRef = useRef({
+    closeTab: () => {},
+    toggleTerminal: () => {},
+    toggleTree: () => {},
+    toggleFullscreen: () => {},
+    newFile: () => {},
+    newFolder: () => {},
+    splitRight: () => {},
+    splitDown: () => {},
+    nextTab: () => {},
+    prevTab: () => {},
+  })
+
+  keyActionsRef.current = {
+    closeTab: () => {
+      const pane =
+        focusedRef.current === "secondary" && secondary
+          ? "secondary"
+          : "primary"
+      const group = pane === "secondary" && secondary ? secondary : primary
+      const id = group.activeTabId
+      if (!id) return
+      const tab = tabs.find((t) => t.id === id)
+      if (tab?.pinned) return
+      handleGroupClose(pane, id)
+    },
+    toggleTerminal: () => setShowTerminal(!showTerminal),
+    toggleTree: () => {
+      if (!canToggleTree) return
+      setShowTree(!showTree)
+    },
+    toggleFullscreen: () => {
+      void toggleFullscreen()
+    },
+    newFile: () => {
+      if (!onCreateFile) return
+      requestCreate("file")
+    },
+    newFolder: () => {
+      if (!onCreateFolder) return
+      requestCreate("folder")
+    },
+    splitRight: () => {
+      const id = focusedActiveId
+      if (id) handleSplit("right", id)
+    },
+    splitDown: () => {
+      const id = focusedActiveId
+      if (id) handleSplit("down", id)
+    },
+    nextTab: () => cycleTab(1),
+    prevTab: () => cycleTab(-1),
+  }
+
+  useEffect(() => {
+    const el = rootRef.current
+    if (!el) return
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      const ae = document.activeElement
+      const focusInShell = ae instanceof Node && el.contains(ae)
+      const targetInShell = e.target instanceof Node && el.contains(e.target)
+
+      // Shell mounted → handle workbench keys even from host menubar.
+      // Skip when typing in an external field outside the IDE.
+      if (!focusInShell && !targetInShell && ae instanceof HTMLElement) {
+        const tag = ae.tagName
+        if (
+          tag === "INPUT" ||
+          tag === "TEXTAREA" ||
+          tag === "SELECT" ||
+          ae.isContentEditable
+        ) {
+          return
+        }
+      }
+
+      const match = matchIdeKeybinding(e)
+      if (!match) return
+
+      if (match.preventDefault) {
+        e.preventDefault()
+      }
+      // Don't stopPropagation for browser-block / save — let xterm keep Ctrl+W word-delete
+      if (match.action !== "blockBrowser" && match.action !== "save") {
+        e.stopPropagation()
+      }
+
+      const actions = keyActionsRef.current
+      switch (match.action) {
+        case "closeTab":
+          actions.closeTab()
+          break
+        case "toggleTerminal":
+          actions.toggleTerminal()
+          break
+        case "toggleTree":
+          actions.toggleTree()
+          break
+        case "toggleFullscreen":
+          actions.toggleFullscreen()
+          break
+        case "newFile":
+          actions.newFile()
+          break
+        case "newFolder":
+          actions.newFolder()
+          break
+        case "splitRight":
+          actions.splitRight()
+          break
+        case "splitDown":
+          actions.splitDown()
+          break
+        case "nextTab":
+          actions.nextTab()
+          break
+        case "prevTab":
+          actions.prevTab()
+          break
+        case "save":
+        case "blockBrowser":
+          break
+        default:
+          break
+      }
+    }
+
+    // Single window capture listener (avoids double-toggle with shell + window)
+    window.addEventListener("keydown", onKeyDown, true)
+    return () => window.removeEventListener("keydown", onKeyDown, true)
+  }, [])
 
   const menubarNode =
     menubar ??
@@ -466,6 +595,27 @@ export function IdeShell({
       ? editorEmpty
       : labels?.emptyEditor
 
+  /**
+   * Browser menus off. Allow:
+   * - Radix `ContextMenuTrigger` (tree / tabs / terminal tabs)
+   * - Monaco editor (built-in editor menu)
+   */
+  const onContextMenuCapture = useCallback(
+    (e: ReactMouseEvent<HTMLDivElement>) => {
+      const target = e.target
+      if (
+        target instanceof Element &&
+        (target.closest('[data-slot="context-menu-trigger"]') ||
+          isMonacoTarget(target))
+      ) {
+        return
+      }
+      e.preventDefault()
+      e.stopPropagation()
+    },
+    []
+  )
+
   return (
     <div
       ref={rootRef}
@@ -476,6 +626,7 @@ export function IdeShell({
       data-slot="ide-shell"
       data-fullscreen={fullscreen || undefined}
       tabIndex={-1}
+      onContextMenuCapture={onContextMenuCapture}
     >
       {menubarNode ? (
         <div
@@ -495,7 +646,7 @@ export function IdeShell({
               animate={{ width: treeWidth, opacity: 1 }}
               exit={{ width: 0, opacity: 0 }}
               transition={isDragging ? { duration: 0 } : TREE_SPRING}
-              className="relative h-full shrink-0 overflow-hidden bg-muted/20"
+              className="relative h-full shrink-0 overflow-hidden border-r border-border bg-muted/20"
             >
               <div
                 className="relative flex h-full min-h-0 flex-col"
