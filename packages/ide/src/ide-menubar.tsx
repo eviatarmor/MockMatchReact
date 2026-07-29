@@ -17,7 +17,6 @@ import { cn } from "@mockmatch/ui/utils"
 
 import type {
   IdeEditorTheme,
-  IdeKeybindings,
   IdeLabels,
   IdeSettings,
   IdeSplitDirection,
@@ -288,94 +287,73 @@ export function IdeMenubar({
               </MenubarRadioGroup>
             </MenubarSubContent>
           </MenubarSub>
-        </MenubarContent>
-      </MenubarMenu>
 
-      <MenubarMenu>
-        <MenubarTrigger className="h-7 px-2 text-xs font-medium">
-          {labels.themeMenu ?? "Theme"}
-        </MenubarTrigger>
-        <MenubarContent>
-          <MenubarRadioGroup
-            value={settings.editorTheme}
-            onValueChange={(v) => {
-              if (
-                v === "auto" ||
-                v === "vs" ||
-                v === "vs-dark" ||
-                v === "hc-black"
-              ) {
-                onPatchSettings({ editorTheme: v })
-              }
-            }}
-          >
-            {THEMES.map((theme) => (
-              <MenubarRadioItem key={theme.value} value={theme.value}>
-                {(labels[theme.labelKey] as string | undefined) ??
-                  theme.fallback}
-              </MenubarRadioItem>
-            ))}
-          </MenubarRadioGroup>
-        </MenubarContent>
-      </MenubarMenu>
+          <MenubarSeparator />
 
-      <MenubarMenu>
-        <MenubarTrigger className="h-7 px-2 text-xs font-medium">
-          {labels.editorMenu ?? "Editor"}
-        </MenubarTrigger>
-        <MenubarContent>
           <MenubarSub>
             <MenubarSubTrigger>
-              {labels.keybindings ?? "Keybindings"}
+              {labels.themeMenu ?? "Theme"}
             </MenubarSubTrigger>
             <MenubarSubContent>
               <MenubarRadioGroup
-                value={settings.keybindings}
+                value={settings.editorTheme}
                 onValueChange={(v) => {
-                  if (v === "vscode" || v === "vim") {
-                    onPatchSettings({ keybindings: v as IdeKeybindings })
+                  if (
+                    v === "auto" ||
+                    v === "vs" ||
+                    v === "vs-dark" ||
+                    v === "hc-black"
+                  ) {
+                    onPatchSettings({ editorTheme: v })
                   }
                 }}
               >
-                <MenubarRadioItem value="vscode">
-                  {labels.vscodeKeys ?? "VS Code"}
-                </MenubarRadioItem>
-                <MenubarRadioItem value="vim">
-                  {labels.vimKeys ?? "Vim"}
-                </MenubarRadioItem>
+                {THEMES.map((theme) => (
+                  <MenubarRadioItem key={theme.value} value={theme.value}>
+                    {(labels[theme.labelKey] as string | undefined) ??
+                      theme.fallback}
+                  </MenubarRadioItem>
+                ))}
               </MenubarRadioGroup>
             </MenubarSubContent>
           </MenubarSub>
 
-          <MenubarCheckboxItem
-            checked={settings.ligatures}
-            onCheckedChange={(checked) =>
-              onPatchSettings({ ligatures: Boolean(checked) })
-            }
-          >
-            {labels.ligatures ?? "Font ligatures"}
-          </MenubarCheckboxItem>
-
           <MenubarSub>
             <MenubarSubTrigger>
-              {labels.tabSize ?? "Tab size"}
+              {labels.editorMenu ?? "Editor"}
             </MenubarSubTrigger>
             <MenubarSubContent>
-              <MenubarRadioGroup
-                value={String(settings.tabSize)}
-                onValueChange={(v) => {
-                  const n = Number(v)
-                  if (TAB_SIZES.includes(n as (typeof TAB_SIZES)[number])) {
-                    onPatchSettings({ tabSize: n })
-                  }
-                }}
+              <MenubarCheckboxItem
+                checked={settings.ligatures}
+                onCheckedChange={(checked) =>
+                  onPatchSettings({ ligatures: Boolean(checked) })
+                }
               >
-                {TAB_SIZES.map((size) => (
-                  <MenubarRadioItem key={size} value={String(size)}>
-                    {size}
-                  </MenubarRadioItem>
-                ))}
-              </MenubarRadioGroup>
+                {labels.ligatures ?? "Font ligatures"}
+              </MenubarCheckboxItem>
+
+              <MenubarSub>
+                <MenubarSubTrigger>
+                  {labels.tabSize ?? "Tab size"}
+                </MenubarSubTrigger>
+                <MenubarSubContent>
+                  <MenubarRadioGroup
+                    value={String(settings.tabSize)}
+                    onValueChange={(v) => {
+                      const n = Number(v)
+                      if (TAB_SIZES.includes(n as (typeof TAB_SIZES)[number])) {
+                        onPatchSettings({ tabSize: n })
+                      }
+                    }}
+                  >
+                    {TAB_SIZES.map((size) => (
+                      <MenubarRadioItem key={size} value={String(size)}>
+                        {size}
+                      </MenubarRadioItem>
+                    ))}
+                  </MenubarRadioGroup>
+                </MenubarSubContent>
+              </MenubarSub>
             </MenubarSubContent>
           </MenubarSub>
         </MenubarContent>

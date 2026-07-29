@@ -5,8 +5,7 @@ Product-agnostic IDE shell for web apps and extensions:
 - **Optional file tree** — Kibo UI tree; spring open/close (resume-editor style); drag resize
 - **Monaco** — `monaco-editor@0.55.1` flush to the split edge
 - **Tabs** — `@mockmatch/ui/tabs` (file-tab chrome)
-- **Menubar** — File / View / Editor (keybindings, ligatures, fullscreen, …)
-- **Keybindings** — VS Code (default) or Vim (`monaco-vim`)
+- **Menubar** — File / View (theme, editor, split, fullscreen, …)
 - **Theme-aware** — Monaco `vs` / `vs-dark` from app light/dark
 
 > **Status:** private monorepo package. Editor chrome only — host owns run/judge/terminal/session logic.

@@ -9,12 +9,23 @@ import {
 import { AnimatePresence, motion } from "motion/react"
 import { cn } from "@mockmatch/ui/utils"
 
+import { IdeEditorArea } from "./ide-editor-area"
 import {
-  IdeEditorArea,
+  anyOtherGroupHasTab,
+  collectGroupIds,
+  countLeaves,
+  createRootLayout,
+  emptyGroup,
+  ensureOpen,
+  firstLeafId,
+  pickNeighborGroupId,
+  removeFromGroup,
+  removeGroupFromLayout,
+  splitLayout,
   type EditorGroupId,
   type EditorGroupState,
-  type EditorSplitState,
-} from "./ide-editor-area"
+  type EditorLayoutNode,
+} from "./editor-layout"
 import { FileTree } from "./file-tree"
 import {
   isMonacoTarget,
@@ -33,32 +44,7 @@ import { useIdeSettings } from "./use-ide-settings"
 import { useLeftPanelWidth } from "./use-left-panel-width"
 
 const TREE_SPRING = { type: "spring" as const, stiffness: 320, damping: 34 }
-
-function emptyGroup(): EditorGroupState {
-  return { openTabIds: [], activeTabId: undefined }
-}
-
-function ensureOpen(
-  group: EditorGroupState,
-  tabId: string
-): EditorGroupState {
-  const openTabIds = group.openTabIds.includes(tabId)
-    ? group.openTabIds
-    : [...group.openTabIds, tabId]
-  return { openTabIds, activeTabId: tabId }
-}
-
-function removeFromGroup(
-  group: EditorGroupState,
-  tabId: string
-): EditorGroupState {
-  const openTabIds = group.openTabIds.filter((id) => id !== tabId)
-  let activeTabId = group.activeTabId
-  if (activeTabId === tabId) {
-    activeTabId = openTabIds[openTabIds.length - 1]
-  }
-  return { openTabIds, activeTabId }
-}
+const ROOT_GROUP_ID: EditorGroupId = "g0"
 
 export function IdeShell({
   tree,
@@ -126,13 +112,31 @@ export function IdeShell({
     useState<FileTreeCreateRequest | null>(null)
   const [terminalFocusCwd, setTerminalFocusCwd] = useState<string | null>(null)
 
-  const [primary, setPrimary] = useState<EditorGroupState>(emptyGroup)
-  const [secondary, setSecondary] = useState<EditorGroupState | null>(null)
-  const [split, setSplit] = useState<EditorSplitState>(null)
-  const [focusedPane, setFocusedPane] = useState<EditorGroupId>("primary")
+  const idSeq = useRef(1)
+  const mintGroupId = useCallback((): EditorGroupId => {
+    return `g${idSeq.current++}`
+  }, [])
+  const mintBranchId = useCallback((): string => {
+    return `b${idSeq.current++}`
+  }, [])
+
+  const [layout, setLayout] = useState<EditorLayoutNode>(() =>
+    createRootLayout(ROOT_GROUP_ID)
+  )
+  const [groups, setGroups] = useState<Record<EditorGroupId, EditorGroupState>>(
+    () => ({ [ROOT_GROUP_ID]: emptyGroup() })
+  )
+  const [focusedPane, setFocusedPane] =
+    useState<EditorGroupId>(ROOT_GROUP_ID)
 
   const focusedRef = useRef(focusedPane)
   focusedRef.current = focusedPane
+  const layoutRef = useRef(layout)
+  layoutRef.current = layout
+  const groupsRef = useRef(groups)
+  groupsRef.current = groups
+
+  const isMultiPane = countLeaves(layout) > 1
 
   const requestCreate = useCallback(
     (kind: "file" | "folder", parentId: string | null = null) => {
@@ -221,60 +225,106 @@ export function IdeShell({
         ? "dark"
         : resolvedScheme
 
-  // Host opened/activated a document → ensure focused group has it.
+  // Host opened/activated a document → open only in the focused group.
   useEffect(() => {
     if (!activeTabId) return
     const pane = focusedRef.current
-    if (pane === "secondary" && secondary) {
-      setSecondary((g) => (g ? ensureOpen(g, activeTabId) : g))
-    } else {
-      setPrimary((g) => ensureOpen(g, activeTabId))
-    }
-  }, [activeTabId, secondary])
+    setGroups((prev) => {
+      const g = prev[pane] ?? emptyGroup()
+      const next = ensureOpen(g, activeTabId)
+      if (
+        next.openTabIds === g.openTabIds &&
+        next.activeTabId === g.activeTabId
+      ) {
+        return prev
+      }
+      return { ...prev, [pane]: next }
+    })
+  }, [activeTabId])
 
   // Prune group tabs when host removes documents.
   useEffect(() => {
     const ids = new Set(tabs.map((t) => t.id))
-    setPrimary((g) => {
-      const openTabIds = g.openTabIds.filter((id) => ids.has(id))
-      if (openTabIds.length === g.openTabIds.length) return g
-      let activeTabId = g.activeTabId
-      if (activeTabId && !ids.has(activeTabId)) {
-        activeTabId = openTabIds[openTabIds.length - 1]
+    setGroups((prev) => {
+      let changed = false
+      const next: Record<EditorGroupId, EditorGroupState> = {}
+      for (const [gid, g] of Object.entries(prev)) {
+        const openTabIds = g.openTabIds.filter((id) => ids.has(id))
+        if (openTabIds.length !== g.openTabIds.length) {
+          changed = true
+          let active = g.activeTabId
+          if (active && !ids.has(active)) {
+            active = openTabIds[openTabIds.length - 1]
+          }
+          next[gid] = { openTabIds, activeTabId: active }
+        } else {
+          next[gid] = g
+        }
       }
-      return { openTabIds, activeTabId }
-    })
-    setSecondary((g) => {
-      if (!g) return g
-      const openTabIds = g.openTabIds.filter((id) => ids.has(id))
-      if (openTabIds.length === g.openTabIds.length) return g
-      let activeTabId = g.activeTabId
-      if (activeTabId && !ids.has(activeTabId)) {
-        activeTabId = openTabIds[openTabIds.length - 1]
-      }
-      return { openTabIds, activeTabId }
+      return changed ? next : prev
     })
   }, [tabs])
 
-  // Seed primary from host tabs on first documents.
+  // Seed root group from host tabs on first documents.
   useEffect(() => {
-    if (primary.openTabIds.length > 0) return
-    if (tabs.length === 0) return
-    setPrimary({
-      openTabIds: tabs.map((t) => t.id),
-      activeTabId: activeTabId ?? tabs[0]?.id,
+    setGroups((prev) => {
+      const root = prev[ROOT_GROUP_ID]
+      if (!root || root.openTabIds.length > 0) return prev
+      if (tabs.length === 0) return prev
+      return {
+        ...prev,
+        [ROOT_GROUP_ID]: {
+          openTabIds: tabs.map((t) => t.id),
+          activeTabId: activeTabId ?? tabs[0]?.id,
+        },
+      }
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tabs.length])
 
+  const closePane = useCallback(
+    (pane: EditorGroupId, absorbTabs: boolean) => {
+      const currentLayout = layoutRef.current
+      if (countLeaves(currentLayout) <= 1) return
+
+      const neighbor =
+        pickNeighborGroupId(currentLayout, pane) ??
+        collectGroupIds(currentLayout).find((id) => id !== pane)
+
+      setGroups((prev) => {
+        const dying = prev[pane]
+        const next = { ...prev }
+        delete next[pane]
+        if (absorbTabs && dying && neighbor && next[neighbor]) {
+          const openTabIds = [...next[neighbor].openTabIds]
+          for (const id of dying.openTabIds) {
+            if (!openTabIds.includes(id)) openTabIds.push(id)
+          }
+          next[neighbor] = {
+            ...next[neighbor],
+            openTabIds,
+          }
+        }
+        return next
+      })
+
+      setLayout((prev) => removeGroupFromLayout(prev, pane) ?? prev)
+      setFocusedPane((cur) => {
+        if (cur !== pane) return cur
+        return neighbor ?? firstLeafId(layoutRef.current)
+      })
+    },
+    []
+  )
+
   const handleGroupActiveChange = useCallback(
     (pane: EditorGroupId, tabId: string) => {
       setFocusedPane(pane)
-      if (pane === "primary") {
-        setPrimary((g) => ({ ...g, activeTabId: tabId }))
-      } else {
-        setSecondary((g) => (g ? { ...g, activeTabId: tabId } : g))
-      }
+      setGroups((prev) => {
+        const g = prev[pane]
+        if (!g) return prev
+        return { ...prev, [pane]: { ...g, activeTabId: tabId } }
+      })
       onActiveTabChange?.(tabId)
     },
     [onActiveTabChange]
@@ -282,93 +332,104 @@ export function IdeShell({
 
   const handleGroupClose = useCallback(
     (pane: EditorGroupId, tabId: string) => {
-      const otherStillHas =
-        pane === "primary"
-          ? Boolean(secondary?.openTabIds.includes(tabId))
-          : primary.openTabIds.includes(tabId)
+      const snapshot = groupsRef.current
+      const otherStillHas = anyOtherGroupHasTab(snapshot, tabId, pane)
 
-      if (pane === "primary") {
-        setPrimary((g) => removeFromGroup(g, tabId))
-      } else {
-        setSecondary((g) => (g ? removeFromGroup(g, tabId) : g))
+      setGroups((prev) => {
+        const g = prev[pane]
+        if (!g) return prev
+        const nextG = removeFromGroup(g, tabId)
+        return { ...prev, [pane]: nextG }
+      })
+
+      // Empty multi-pane group → drop the pane.
+      const gAfter = removeFromGroup(snapshot[pane] ?? emptyGroup(), tabId)
+      if (
+        gAfter.openTabIds.length === 0 &&
+        countLeaves(layoutRef.current) > 1
+      ) {
+        closePane(pane, false)
       }
-      // Drop document only if the other group is not still showing it.
+
       if (!otherStillHas) {
         onTabClose?.(tabId)
       }
     },
-    [onTabClose, primary.openTabIds, secondary]
+    [onTabClose, closePane]
   )
 
   const handleGroupCloseOthers = useCallback(
     (pane: EditorGroupId, tabId: string) => {
       const pinned = new Set(tabs.filter((t) => t.pinned).map((t) => t.id))
-      const keepIds = (ids: string[]) =>
-        ids.filter((id) => id === tabId || pinned.has(id))
-
-      const group = pane === "primary" ? primary : secondary
+      const group = groupsRef.current[pane]
       if (!group) return
 
       const removed = group.openTabIds.filter(
         (id) => id !== tabId && !pinned.has(id)
       )
 
-      if (pane === "primary") {
-        setPrimary({
-          openTabIds: keepIds(group.openTabIds),
-          activeTabId: tabId,
-        })
-      } else {
-        setSecondary({
-          openTabIds: keepIds(group.openTabIds),
-          activeTabId: tabId,
-        })
-      }
+      setGroups((prev) => {
+        const g = prev[pane]
+        if (!g) return prev
+        return {
+          ...prev,
+          [pane]: {
+            openTabIds: g.openTabIds.filter(
+              (id) => id === tabId || pinned.has(id)
+            ),
+            activeTabId: tabId,
+          },
+        }
+      })
 
-      // Drop host documents only if the other group is not still using them.
       for (const id of removed) {
-        const otherHas =
-          pane === "primary"
-            ? Boolean(secondary?.openTabIds.includes(id))
-            : primary.openTabIds.includes(id)
-        if (!otherHas) onTabClose?.(id)
+        if (!anyOtherGroupHasTab(groupsRef.current, id, pane)) {
+          onTabClose?.(id)
+        }
       }
     },
-    [tabs, primary, secondary, onTabClose]
+    [tabs, onTabClose]
   )
 
   const handleSplit = useCallback(
-    (direction: IdeSplitDirection, tabId: string) => {
-      setSplit({ direction })
-      setSecondary({ openTabIds: [tabId], activeTabId: tabId })
-      setFocusedPane("secondary")
-      // Ensure primary also has the tab if empty
-      setPrimary((g) =>
-        g.openTabIds.length === 0 ? ensureOpen(g, tabId) : g
+    (
+      direction: IdeSplitDirection,
+      tabId: string,
+      sourceGroupId?: EditorGroupId
+    ) => {
+      const sourceId = sourceGroupId ?? focusedRef.current
+      const newId = mintGroupId()
+      const branchId = mintBranchId()
+
+      setGroups((prev) => {
+        const source = prev[sourceId] ?? emptyGroup()
+        return {
+          ...prev,
+          [sourceId]:
+            source.openTabIds.length === 0
+              ? ensureOpen(source, tabId)
+              : source,
+          [newId]: { openTabIds: [tabId], activeTabId: tabId },
+        }
+      })
+      setLayout((prev) =>
+        splitLayout(prev, sourceId, direction, newId, branchId)
       )
+      focusedRef.current = newId
+      setFocusedPane(newId)
     },
-    []
+    [mintGroupId, mintBranchId]
   )
 
-  const handleUnsplit = useCallback(() => {
-    setSecondary((sec) => {
-      if (sec) {
-        setPrimary((pri) => {
-          const merged = [...pri.openTabIds]
-          for (const id of sec.openTabIds) {
-            if (!merged.includes(id)) merged.push(id)
-          }
-          return {
-            openTabIds: merged,
-            activeTabId: pri.activeTabId ?? sec.activeTabId,
-          }
-        })
-      }
-      return null
-    })
-    setSplit(null)
-    setFocusedPane("primary")
-  }, [])
+  /** Close an editor group (defaults to focused). Tabs merge into a neighbor. */
+  const handleUnsplit = useCallback(
+    (groupId?: EditorGroupId) => {
+      const pane = groupId ?? focusedRef.current
+      if (countLeaves(layoutRef.current) <= 1) return
+      closePane(pane, true)
+    },
+    [closePane]
+  )
 
   const openFolderInTerminal = useCallback(
     (nodeId: string) => {
@@ -403,26 +464,23 @@ export function IdeShell({
   }, [setFullscreen])
 
   const focusedActiveId = useMemo(() => {
-    if (focusedPane === "secondary" && secondary) {
-      return secondary.activeTabId
-    }
-    return primary.activeTabId
-  }, [focusedPane, primary.activeTabId, secondary])
+    return groups[focusedPane]?.activeTabId
+  }, [focusedPane, groups])
 
   const cycleTab = useCallback(
     (direction: 1 | -1) => {
       const pane = focusedRef.current
-      const group =
-        pane === "secondary" && secondary ? secondary : primary
+      const group = groupsRef.current[pane]
+      if (!group) return
       const ids = group.openTabIds
       if (ids.length < 2) return
       const current = group.activeTabId ?? ids[0]
       const idx = Math.max(0, ids.indexOf(current ?? ""))
       const next = ids[(idx + direction + ids.length) % ids.length]
       if (!next) return
-      handleGroupActiveChange(pane === "secondary" && secondary ? "secondary" : "primary", next)
+      handleGroupActiveChange(pane, next)
     },
-    [primary, secondary, handleGroupActiveChange]
+    [handleGroupActiveChange]
   )
 
   // Keep latest action deps without re-binding the window listener every render
@@ -441,12 +499,9 @@ export function IdeShell({
 
   keyActionsRef.current = {
     closeTab: () => {
-      const pane =
-        focusedRef.current === "secondary" && secondary
-          ? "secondary"
-          : "primary"
-      const group = pane === "secondary" && secondary ? secondary : primary
-      const id = group.activeTabId
+      const pane = focusedRef.current
+      const group = groupsRef.current[pane]
+      const id = group?.activeTabId
       if (!id) return
       const tab = tabs.find((t) => t.id === id)
       if (tab?.pinned) return
@@ -584,8 +639,8 @@ export function IdeShell({
           const id = focusedActiveId
           if (id) handleSplit(dir, id)
         }}
-        onUnsplit={split ? handleUnsplit : undefined}
-        isSplit={Boolean(split)}
+        onUnsplit={isMultiPane ? handleUnsplit : undefined}
+        isSplit={isMultiPane}
         labels={labels}
       />
     ) : null)
@@ -687,9 +742,8 @@ export function IdeShell({
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <IdeEditorArea
             documents={tabs}
-            primary={primary}
-            secondary={secondary}
-            split={split}
+            layout={layout}
+            groups={groups}
             focusedPane={focusedPane}
             onFocusPane={setFocusedPane}
             onGroupActiveChange={handleGroupActiveChange}
@@ -701,7 +755,7 @@ export function IdeShell({
             onTabCopyRelativePath={onTabCopyRelativePath}
             onTabReveal={onTabReveal}
             onSplit={handleSplit}
-            onUnsplit={split ? handleUnsplit : undefined}
+            onUnsplit={isMultiPane ? handleUnsplit : undefined}
             showTerminal={showTerminal}
             onToggleTerminal={() => setShowTerminal(!showTerminal)}
             fullscreen={fullscreen}

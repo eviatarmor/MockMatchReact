@@ -28,10 +28,6 @@ export type MonacoEditorProps = {
   className?: string
 }
 
-type VimController = {
-  dispose: () => void
-}
-
 function buildEditorOptions(
   settings: IdeSettings,
   extra?: monaco.editor.IStandaloneEditorConstructionOptions
@@ -59,18 +55,6 @@ function buildEditorOptions(
   }
 }
 
-async function attachVim(
-  editor: monaco.editor.IStandaloneCodeEditor,
-  statusEl: HTMLElement
-): Promise<VimController> {
-  const mod = await import("monaco-vim")
-  const initVimMode = mod.initVimMode
-  if (typeof initVimMode !== "function") {
-    throw new Error("monaco-vim initVimMode not found")
-  }
-  return initVimMode(editor, statusEl) as VimController
-}
-
 export function MonacoEditor({
   modelId,
   value = "",
@@ -82,9 +66,7 @@ export function MonacoEditor({
   className,
 }: MonacoEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const statusRef = useRef<HTMLDivElement>(null)
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
-  const vimRef = useRef<VimController | null>(null)
   const onChangeRef = useRef(onChange)
   const modelIdRef = useRef(modelId)
 
@@ -112,8 +94,6 @@ export function MonacoEditor({
     })
 
     return () => {
-      vimRef.current?.dispose()
-      vimRef.current = null
       sub.dispose()
       editor.setModel(null)
       editor.dispose()
@@ -143,58 +123,12 @@ export function MonacoEditor({
     editor.updateOptions(buildEditorOptions(settings, options))
   }, [settings, options])
 
-  useEffect(() => {
-    const editor = editorRef.current
-    const statusEl = statusRef.current
-    if (!editor || !statusEl) return
-
-    let cancelled = false
-    const editorInstance = editor
-    const statusNode = statusEl
-
-    async function syncVim() {
-      vimRef.current?.dispose()
-      vimRef.current = null
-      statusNode.textContent = ""
-
-      if (settings.keybindings !== "vim") return
-
-      try {
-        const controller = await attachVim(editorInstance, statusNode)
-        if (cancelled) {
-          controller.dispose()
-          return
-        }
-        vimRef.current = controller
-      } catch {
-        // Vim optional
-      }
-    }
-
-    void syncVim()
-
-    return () => {
-      cancelled = true
-      vimRef.current?.dispose()
-      vimRef.current = null
-    }
-  }, [settings.keybindings])
-
   return (
     <div
       className={cn("flex h-full min-h-0 w-full flex-col", className)}
       data-slot="monaco-editor"
     >
       <div ref={containerRef} className="min-h-0 flex-1 overflow-hidden" />
-      {settings.keybindings === "vim" ? (
-        <div
-          ref={statusRef}
-          className="shrink-0 border-t border-border bg-muted/40 px-2 py-0.5 font-mono text-[11px] text-muted-foreground"
-          data-slot="monaco-vim-status"
-        />
-      ) : (
-        <div ref={statusRef} className="hidden" aria-hidden />
-      )}
     </div>
   )
 }

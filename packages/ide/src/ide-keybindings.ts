@@ -1,6 +1,6 @@
 /**
  * VS Code-ish workbench shortcuts for the IDE shell.
- * Editor text editing stays with Monaco / monaco-vim.
+ * Editor text editing stays with Monaco.
  */
 
 export type IdeKeyAction =

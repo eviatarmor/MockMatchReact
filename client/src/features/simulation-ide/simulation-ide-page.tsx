@@ -7,7 +7,6 @@ import {
   useIdeSettings,
 } from "@mockmatch/ide"
 import { Badge } from "@mockmatch/ui/badge"
-import { Separator } from "@mockmatch/ui/separator"
 import { useTheme } from "@/components/theme-provider"
 import { useSimulationIdeSession } from "./hooks/use-simulation-ide-session"
 import { isIdeFormatSlug } from "./types"
@@ -71,7 +70,6 @@ function SimulationIdeSession({
   const labels = {
     toggleTree: t("actions.toggleTree"),
     toggleTerminal: t("actions.toggleTerminal"),
-    keybindings: t("actions.keybindings"),
     ligatures: t("actions.ligatures"),
     wordWrap: t("actions.wordWrap"),
     minimap: t("actions.minimap"),
@@ -113,8 +111,6 @@ function SimulationIdeSession({
     themeLight: t("actions.themeLight"),
     themeDark: t("actions.themeDark"),
     themeHighContrast: t("actions.themeHighContrast"),
-    vscodeKeys: t("actions.vscodeKeys"),
-    vimKeys: t("actions.vimKeys"),
     resizeTree: t("actions.resizeTree"),
     resizeTerminal: t("actions.resizeTerminal"),
     terminalTitle: t("actions.terminalTitle"),
@@ -133,7 +129,6 @@ function SimulationIdeSession({
             `formats.${session.preset.trackFormat === "codeRun" ? "codeRun" : "workspace"}.badge`
           )}
         </Badge>
-        <Separator orientation="vertical" className="mx-0.5 h-5" />
         <IdeMenubar
           className="min-w-0"
           settings={settings}
@@ -149,9 +144,6 @@ function SimulationIdeSession({
           onCreateFolder={() => session.requestCreate("folder")}
           labels={labels}
         />
-        <p className="ml-auto hidden max-w-md truncate text-xs text-muted-foreground lg:block">
-          {t(session.preset.descriptionKey)}
-        </p>
       </div>
       <div className="min-h-0 flex-1">
         <IdeShell

@@ -24,6 +24,9 @@ export {
   type EditorSplitState,
   type EditorGroupState,
   type EditorGroupId,
+  type EditorLayoutNode,
+  type EditorLayoutLeaf,
+  type EditorLayoutBranch,
 } from "./ide-editor-area"
 export {
   useIdeSettings,
@@ -43,7 +46,6 @@ export {
   type IdeTreeNode,
   type IdeTab,
   type IdeSettings,
-  type IdeKeybindings,
   type IdeEditorTheme,
   type IdeColorScheme,
   type IdeLabels,

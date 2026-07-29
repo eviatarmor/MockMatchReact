@@ -1,3 +1,4 @@
+import { Fragment, type ReactNode } from "react"
 import {
   ResizableHandle,
   ResizablePanel,
@@ -5,6 +6,13 @@ import {
 } from "@mockmatch/ui/resizable"
 import { cn } from "@mockmatch/ui/utils"
 
+import {
+  countLeaves,
+  firstLeafId,
+  type EditorGroupId,
+  type EditorGroupState,
+  type EditorLayoutNode,
+} from "./editor-layout"
 import { IdeTabs } from "./ide-tabs"
 import { resolveTabLanguage } from "./language-from-filename"
 import { MonacoEditor } from "./monaco-editor"
@@ -16,13 +24,15 @@ import type {
   MonacoEditorOptions,
 } from "./types"
 
-export type EditorGroupId = "primary" | "secondary"
+export type {
+  EditorGroupId,
+  EditorGroupState,
+  EditorLayoutBranch,
+  EditorLayoutLeaf,
+  EditorLayoutNode,
+} from "./editor-layout"
 
-export type EditorGroupState = {
-  openTabIds: string[]
-  activeTabId?: string
-}
-
+/** @deprecated Two-pane split only — multi-pane uses EditorLayoutNode. */
 export type EditorSplitState = {
   direction: IdeSplitDirection
 } | null
@@ -30,9 +40,8 @@ export type EditorSplitState = {
 export type IdeEditorAreaProps = {
   /** Document store (shared content across groups). */
   documents: IdeTab[]
-  primary: EditorGroupState
-  secondary: EditorGroupState | null
-  split: EditorSplitState
+  layout: EditorLayoutNode
+  groups: Record<EditorGroupId, EditorGroupState>
   focusedPane: EditorGroupId
   onFocusPane: (pane: EditorGroupId) => void
   onGroupActiveChange: (pane: EditorGroupId, tabId: string) => void
@@ -43,8 +52,13 @@ export type IdeEditorAreaProps = {
   onTabCopyPath?: (tabId: string) => void
   onTabCopyRelativePath?: (tabId: string) => void
   onTabReveal?: (tabId: string) => void
-  onSplit?: (direction: IdeSplitDirection, tabId: string) => void
-  onUnsplit?: () => void
+  onSplit?: (
+    direction: IdeSplitDirection,
+    tabId: string,
+    sourceGroupId: EditorGroupId
+  ) => void
+  /** Close a specific editor group (defaults to focused if omitted). */
+  onUnsplit?: (groupId?: EditorGroupId) => void
   showTerminal?: boolean
   onToggleTerminal?: () => void
   fullscreen?: boolean
@@ -108,8 +122,12 @@ function EditorGroupPane({
   onTabCopyPath?: (tabId: string) => void
   onTabCopyRelativePath?: (tabId: string) => void
   onTabReveal?: (tabId: string) => void
-  onSplit?: (direction: IdeSplitDirection, tabId: string) => void
-  onUnsplit?: () => void
+  onSplit?: (
+    direction: IdeSplitDirection,
+    tabId: string,
+    sourceGroupId: EditorGroupId
+  ) => void
+  onUnsplit?: (groupId?: EditorGroupId) => void
   isSplit?: boolean
   showChrome?: boolean
   showTerminal?: boolean
@@ -130,7 +148,6 @@ function EditorGroupPane({
     <div
       className={cn(
         "flex h-full min-h-0 min-w-0 flex-col",
-        // Focus ring only when split — single pane / empty editor stays clean
         focused && isSplit && "ring-1 ring-inset ring-primary/40"
       )}
       onMouseDown={onFocus}
@@ -147,8 +164,12 @@ function EditorGroupPane({
         onTabCopyPath={onTabCopyPath}
         onTabCopyRelativePath={onTabCopyRelativePath}
         onTabReveal={onTabReveal}
-        onSplit={onSplit}
-        onUnsplit={onUnsplit}
+        onSplit={
+          onSplit
+            ? (dir, tabId) => onSplit(dir, tabId, groupId)
+            : undefined
+        }
+        onUnsplit={onUnsplit ? () => onUnsplit(groupId) : undefined}
         isSplit={isSplit}
         showTerminal={showChrome ? showTerminal : undefined}
         onToggleTerminal={showChrome ? onToggleTerminal : undefined}
@@ -180,11 +201,163 @@ function EditorGroupPane({
   )
 }
 
+function LayoutNodeView({
+  node,
+  documents,
+  groups,
+  focusedPane,
+  isMulti,
+  chromeGroupId,
+  onFocusPane,
+  onGroupActiveChange,
+  onGroupClose,
+  onGroupCloseOthers,
+  onGroupPin,
+  onTabChange,
+  onTabCopyPath,
+  onTabCopyRelativePath,
+  onTabReveal,
+  onSplit,
+  onUnsplit,
+  showTerminal,
+  onToggleTerminal,
+  fullscreen,
+  onToggleFullscreen,
+  theme,
+  settings,
+  editorOptions,
+  emptyMessage,
+  labels,
+}: {
+  node: EditorLayoutNode
+  documents: IdeTab[]
+  groups: Record<EditorGroupId, EditorGroupState>
+  focusedPane: EditorGroupId
+  isMulti: boolean
+  chromeGroupId: EditorGroupId
+  onFocusPane: (pane: EditorGroupId) => void
+  onGroupActiveChange: (pane: EditorGroupId, tabId: string) => void
+  onGroupClose: (pane: EditorGroupId, tabId: string) => void
+  onGroupCloseOthers: (pane: EditorGroupId, tabId: string) => void
+  onGroupPin?: (tabId: string) => void
+  onTabChange?: (tabId: string, value: string) => void
+  onTabCopyPath?: (tabId: string) => void
+  onTabCopyRelativePath?: (tabId: string) => void
+  onTabReveal?: (tabId: string) => void
+  onSplit?: (
+    direction: IdeSplitDirection,
+    tabId: string,
+    sourceGroupId: EditorGroupId
+  ) => void
+  onUnsplit?: (groupId?: EditorGroupId) => void
+  showTerminal?: boolean
+  onToggleTerminal?: () => void
+  fullscreen?: boolean
+  onToggleFullscreen?: () => void
+  theme: string
+  settings: IdeSettings
+  editorOptions?: MonacoEditorOptions
+  emptyMessage?: string
+  labels?: IdeLabels
+}): ReactNode {
+  if (node.type === "leaf") {
+    const group = groups[node.groupId] ?? {
+      openTabIds: [],
+      activeTabId: undefined,
+    }
+    return (
+      <EditorGroupPane
+        groupId={node.groupId}
+        group={group}
+        documents={documents}
+        focused={focusedPane === node.groupId}
+        onFocus={() => onFocusPane(node.groupId)}
+        onActiveChange={(id) => onGroupActiveChange(node.groupId, id)}
+        onClose={(id) => onGroupClose(node.groupId, id)}
+        onCloseOthers={(id) => onGroupCloseOthers(node.groupId, id)}
+        onPin={onGroupPin}
+        onTabChange={onTabChange}
+        onTabCopyPath={onTabCopyPath}
+        onTabCopyRelativePath={onTabCopyRelativePath}
+        onTabReveal={onTabReveal}
+        onSplit={onSplit}
+        onUnsplit={onUnsplit}
+        isSplit={isMulti}
+        showChrome={node.groupId === chromeGroupId}
+        showTerminal={showTerminal}
+        onToggleTerminal={onToggleTerminal}
+        fullscreen={fullscreen}
+        onToggleFullscreen={onToggleFullscreen}
+        theme={theme}
+        settings={settings}
+        editorOptions={editorOptions}
+        emptyMessage={emptyMessage}
+        labels={labels}
+      />
+    )
+  }
+
+  const n = node.children.length
+  const defaultSize = Math.floor(100 / n)
+
+  return (
+    <ResizablePanelGroup
+      orientation={node.orientation}
+      className="h-full min-h-0 min-w-0"
+    >
+      {node.children.map((child, i) => {
+        const key =
+          child.type === "leaf" ? child.groupId : child.id
+        return (
+          <Fragment key={key}>
+            {i > 0 ? <ResizableHandle withHandle /> : null}
+            <ResizablePanel
+              defaultSize={
+                i === n - 1 ? 100 - defaultSize * (n - 1) : defaultSize
+              }
+              minSize={12}
+              className="min-h-0 min-w-0"
+            >
+              <LayoutNodeView
+                node={child}
+                documents={documents}
+                groups={groups}
+                focusedPane={focusedPane}
+                isMulti={isMulti}
+                chromeGroupId={chromeGroupId}
+                onFocusPane={onFocusPane}
+                onGroupActiveChange={onGroupActiveChange}
+                onGroupClose={onGroupClose}
+                onGroupCloseOthers={onGroupCloseOthers}
+                onGroupPin={onGroupPin}
+                onTabChange={onTabChange}
+                onTabCopyPath={onTabCopyPath}
+                onTabCopyRelativePath={onTabCopyRelativePath}
+                onTabReveal={onTabReveal}
+                onSplit={onSplit}
+                onUnsplit={onUnsplit}
+                showTerminal={showTerminal}
+                onToggleTerminal={onToggleTerminal}
+                fullscreen={fullscreen}
+                onToggleFullscreen={onToggleFullscreen}
+                theme={theme}
+                settings={settings}
+                editorOptions={editorOptions}
+                emptyMessage={emptyMessage}
+                labels={labels}
+              />
+            </ResizablePanel>
+          </Fragment>
+        )
+      })}
+    </ResizablePanelGroup>
+  )
+}
+
 export function IdeEditorArea({
   documents,
-  primary,
-  secondary,
-  split,
+  layout,
+  groups,
   focusedPane,
   onFocusPane,
   onGroupActiveChange,
@@ -208,98 +381,39 @@ export function IdeEditorArea({
   labels,
   className,
 }: IdeEditorAreaProps) {
-  const primaryPane = (
-    <EditorGroupPane
-      groupId="primary"
-      group={primary}
-      documents={documents}
-      focused={focusedPane === "primary"}
-      onFocus={() => onFocusPane("primary")}
-      onActiveChange={(id) => onGroupActiveChange("primary", id)}
-      onClose={(id) => onGroupClose("primary", id)}
-      onCloseOthers={(id) => onGroupCloseOthers("primary", id)}
-      onPin={onGroupPin}
-      onTabChange={onTabChange}
-      onTabCopyPath={onTabCopyPath}
-      onTabCopyRelativePath={onTabCopyRelativePath}
-      onTabReveal={onTabReveal}
-      onSplit={onSplit}
-      onUnsplit={onUnsplit}
-      isSplit={Boolean(split)}
-      showChrome
-      showTerminal={showTerminal}
-      onToggleTerminal={onToggleTerminal}
-      fullscreen={fullscreen}
-      onToggleFullscreen={onToggleFullscreen}
-      theme={theme}
-      settings={settings}
-      editorOptions={editorOptions}
-      emptyMessage={emptyMessage}
-      labels={labels}
-    />
-  )
-
-  if (!split || !secondary) {
-    return (
-      <div className={cn("flex min-h-0 flex-1 flex-col", className)}>
-        {primaryPane}
-      </div>
-    )
-  }
-
-  const horizontal =
-    split.direction === "left" || split.direction === "right"
-  const primaryFirst =
-    split.direction === "right" || split.direction === "down"
-
-  const secondaryPane = (
-    <EditorGroupPane
-      groupId="secondary"
-      group={secondary}
-      documents={documents}
-      focused={focusedPane === "secondary"}
-      onFocus={() => onFocusPane("secondary")}
-      onActiveChange={(id) => onGroupActiveChange("secondary", id)}
-      onClose={(id) => onGroupClose("secondary", id)}
-      onCloseOthers={(id) => onGroupCloseOthers("secondary", id)}
-      onPin={onGroupPin}
-      onTabChange={onTabChange}
-      onTabCopyPath={onTabCopyPath}
-      onTabCopyRelativePath={onTabCopyRelativePath}
-      onTabReveal={onTabReveal}
-      onSplit={onSplit}
-      onUnsplit={onUnsplit}
-      isSplit
-      showChrome={false}
-      theme={theme}
-      settings={settings}
-      editorOptions={editorOptions}
-      emptyMessage={emptyMessage}
-      labels={labels}
-    />
-  )
-
-  const a = (
-    <ResizablePanel defaultSize={50} minSize={20} className="min-h-0 min-w-0">
-      {primaryFirst ? primaryPane : secondaryPane}
-    </ResizablePanel>
-  )
-  const b = (
-    <ResizablePanel defaultSize={50} minSize={20} className="min-h-0 min-w-0">
-      {primaryFirst ? secondaryPane : primaryPane}
-    </ResizablePanel>
-  )
+  const isMulti = countLeaves(layout) > 1
+  const chromeGroupId = firstLeafId(layout)
 
   return (
-    <div className={cn("min-h-0 flex-1", className)}>
-      <ResizablePanelGroup
-        orientation={horizontal ? "horizontal" : "vertical"}
-        className="h-full"
-      >
-        {a}
-        <ResizableHandle withHandle />
-        {b}
-      </ResizablePanelGroup>
+    <div className={cn("flex min-h-0 flex-1 flex-col", className)}>
+      <LayoutNodeView
+        node={layout}
+        documents={documents}
+        groups={groups}
+        focusedPane={focusedPane}
+        isMulti={isMulti}
+        chromeGroupId={chromeGroupId}
+        onFocusPane={onFocusPane}
+        onGroupActiveChange={onGroupActiveChange}
+        onGroupClose={onGroupClose}
+        onGroupCloseOthers={onGroupCloseOthers}
+        onGroupPin={onGroupPin}
+        onTabChange={onTabChange}
+        onTabCopyPath={onTabCopyPath}
+        onTabCopyRelativePath={onTabCopyRelativePath}
+        onTabReveal={onTabReveal}
+        onSplit={onSplit}
+        onUnsplit={onUnsplit}
+        showTerminal={showTerminal}
+        onToggleTerminal={onToggleTerminal}
+        fullscreen={fullscreen}
+        onToggleFullscreen={onToggleFullscreen}
+        theme={theme}
+        settings={settings}
+        editorOptions={editorOptions}
+        emptyMessage={emptyMessage}
+        labels={labels}
+      />
     </div>
   )
 }

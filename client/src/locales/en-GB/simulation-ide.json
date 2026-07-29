@@ -16,7 +16,6 @@
   "actions": {
     "toggleTree": "File tree",
     "toggleTerminal": "Terminal",
-    "keybindings": "Keybindings",
     "ligatures": "Font ligatures",
     "wordWrap": "Word wrap",
     "minimap": "Minimap",
@@ -51,8 +50,6 @@
     "themeLight": "Light",
     "themeDark": "Dark",
     "themeHighContrast": "High Contrast",
-    "vscodeKeys": "VS Code",
-    "vimKeys": "Vim",
     "resizeTree": "Resize file tree",
     "resizeTerminal": "Resize terminal",
     "terminalTitle": "Terminal",

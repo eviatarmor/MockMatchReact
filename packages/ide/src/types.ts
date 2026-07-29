@@ -39,17 +39,13 @@ export type IdeTerminalSession = {
   pinned?: boolean
 }
 
-/** Editor split direction relative to the primary pane. */
+/** Editor split direction relative to the focused group. */
 export type IdeSplitDirection = "left" | "right" | "up" | "down"
-
-/** VS Code-style defaults, or Vim via monaco-vim. */
-export type IdeKeybindings = "vscode" | "vim"
 
 /** Monaco theme pick. `auto` follows app light/dark. */
 export type IdeEditorTheme = "auto" | "vs" | "vs-dark" | "hc-black"
 
 export type IdeSettings = {
-  keybindings: IdeKeybindings
   editorTheme: IdeEditorTheme
   ligatures: boolean
   wordWrap: "off" | "on" | "wordWrapColumn" | "bounded"
@@ -68,7 +64,6 @@ export type IdeColorScheme = "light" | "dark" | "auto"
 export type IdeLabels = {
   toggleTree?: string
   toggleTerminal?: string
-  keybindings?: string
   ligatures?: string
   wordWrap?: string
   minimap?: string
@@ -104,8 +99,6 @@ export type IdeLabels = {
   themeLight?: string
   themeDark?: string
   themeHighContrast?: string
-  vscodeKeys?: string
-  vimKeys?: string
   resizeTree?: string
   resizeTerminal?: string
   terminalTitle?: string
@@ -121,7 +114,6 @@ export type IdeLabels = {
 }
 
 export const DEFAULT_IDE_SETTINGS: IdeSettings = {
-  keybindings: "vscode",
   editorTheme: "auto",
   ligatures: true,
   wordWrap: "on",

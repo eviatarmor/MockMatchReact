@@ -54,7 +54,7 @@ export function EditorBottomBar({ viewport, history }: EditorBottomBarProps) {
         <Redo2 className="size-4" />
       </Button>
 
-      <Separator orientation="vertical" className="mx-1 h-5" />
+      <Separator orientation="vertical" className="mx-1 h-5 w-px self-center" />
 
       <div className="flex items-center gap-0.5">
         <Button
