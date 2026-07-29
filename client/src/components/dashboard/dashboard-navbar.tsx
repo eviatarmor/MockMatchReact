@@ -33,7 +33,6 @@ function resolveNavItem(pathname: string): NavItem | undefined {
   ) {
     return NAV_DATA.find((item) => item.href === "/cover-letters")
   }
-
   const withHref = NAV_DATA.filter(
     (item): item is NavItem & { href: string } => Boolean(item.href)
   ).sort((a, b) => b.href.length - a.href.length)

@@ -15,6 +15,7 @@ import {
 } from "./editor-layout"
 import { IdeTabs } from "./ide-tabs"
 import { resolveTabLanguage } from "./language-from-filename"
+import type { IdeCollabProps } from "./collab/types"
 import { MonacoEditor } from "./monaco-editor"
 import type {
   IdeLabels,
@@ -71,6 +72,8 @@ export type IdeEditorAreaProps = {
   emptyMessage?: string
   labels?: IdeLabels
   className?: string
+  /** Optional multiplayer presence + Y bind (host owns room). */
+  collab?: IdeCollabProps | null
 }
 
 function groupTabs(
@@ -112,6 +115,7 @@ function EditorGroupPane({
   editorOptions,
   emptyMessage,
   labels,
+  collab,
 }: {
   groupId: EditorGroupId
   group: EditorGroupState
@@ -145,6 +149,7 @@ function EditorGroupPane({
   editorOptions?: MonacoEditorOptions
   emptyMessage?: string
   labels?: IdeLabels
+  collab?: IdeCollabProps | null
 }) {
   const tabs = groupTabs(documents, group.openTabIds)
   const active =
@@ -198,6 +203,20 @@ function EditorGroupPane({
             onChange={(value) => {
               if (value !== undefined) onTabChange?.(active.id, value)
             }}
+            collab={
+              collab
+                ? {
+                    peers: collab.peers,
+                    sendCursor: collab.sendCursor,
+                    clearCursor: collab.clearCursor,
+                    selfUserId: collab.selfUserId,
+                    enabled: collab.enabled,
+                    readOnly: collab.readOnly,
+                    path: active.id,
+                    yText: collab.getYText?.(active.id) ?? null,
+                  }
+                : null
+            }
           />
         ) : (
           <div className="flex h-full items-center justify-center p-6 text-sm text-muted-foreground">
@@ -238,6 +257,7 @@ function LayoutNodeView({
   editorOptions,
   emptyMessage,
   labels,
+  collab,
 }: {
   node: EditorLayoutNode
   documents: IdeTab[]
@@ -271,6 +291,7 @@ function LayoutNodeView({
   editorOptions?: MonacoEditorOptions
   emptyMessage?: string
   labels?: IdeLabels
+  collab?: IdeCollabProps | null
 }): ReactNode {
   if (node.type === "leaf") {
     const group = groups[node.groupId] ?? {
@@ -307,6 +328,7 @@ function LayoutNodeView({
         editorOptions={editorOptions}
         emptyMessage={emptyMessage}
         labels={labels}
+        collab={collab}
       />
     )
   }
@@ -361,6 +383,7 @@ function LayoutNodeView({
                 editorOptions={editorOptions}
                 emptyMessage={emptyMessage}
                 labels={labels}
+                collab={collab}
               />
             </ResizablePanel>
           </Fragment>
@@ -398,6 +421,7 @@ export function IdeEditorArea({
   emptyMessage,
   labels,
   className,
+  collab,
 }: IdeEditorAreaProps) {
   const isMulti = countLeaves(layout) > 1
   const chromeGroupId = firstLeafId(layout)
@@ -433,6 +457,7 @@ export function IdeEditorArea({
         editorOptions={editorOptions}
         emptyMessage={emptyMessage}
         labels={labels}
+        collab={collab}
       />
     </div>
   )

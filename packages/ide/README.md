@@ -112,6 +112,41 @@ Host owns transport, system prompt, and i18n (e.g. wire `@mockmatch/ai-chat`).
 
 Basic editing works without workers. For richer language features in Vite, configure `MonacoEnvironment.getWorker` or a Monaco Vite plugin in the host app.
 
+### Collaboration (optional)
+
+Multiplayer is package-level only — **host owns** `@mockmatch/collab` room + Y.Doc + share UI.
+
+```tsx
+import {
+  IdeShell,
+  materializeIdeWorkspace,
+  ensureIdeFileYText,
+} from "@mockmatch/ide"
+import { useCollabRoom, useCollabYDoc } from "@mockmatch/collab"
+
+// After useCollabRoom({ kind: "workspace", documentId, ... }) + useCollabYDoc:
+<IdeShell
+  tabs={tabs}
+  collab={{
+    peers: collab.peers,
+    sendCursor: collab.sendCursor,
+    clearCursor: collab.clearCursor,
+    selfUserId: collab.self?.userId,
+    enabled: collab.live,
+    readOnly: !collab.permissions.canEditContent,
+    getYText: (path) => ensureIdeFileYText(ydoc, path),
+  }}
+/>
+```
+
+| Piece | Role |
+|-------|------|
+| Monaco `createDecorationsCollection` | Remote carets / selections |
+| kibo `Cursor` overlay | Mouse pointer (resume-editor style) |
+| `presence.cursor` `path` + `sel` | Which file + Monaco 1-based range |
+| Y.Text bind | Char-level multi-file buffers under `document.files` |
+| Backend | `DocumentKind` `"workspace"` + `ideWorkspaces` tRPC |
+
 ## MockMatch host
 
 Practice formats use this package at:

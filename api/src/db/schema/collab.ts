@@ -15,6 +15,7 @@ export const collabRoleEnum = pgEnum("collab_role", ["view", "edit"])
 export const documentKindEnum = pgEnum("document_kind", [
   "resume",
   "cover_letter",
+  "workspace",
 ])
 
 /**

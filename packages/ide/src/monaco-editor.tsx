@@ -1,7 +1,10 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import * as monaco from "monaco-editor"
 import { cn } from "@mockmatch/ui/utils"
 
+import { MonacoRemotePointers } from "./collab/monaco-remote-pointers"
+import type { MonacoEditorCollabProps } from "./collab/types"
+import { useMonacoCollab } from "./collab/use-monaco-collab"
 import { acquireMonacoModel, releaseMonacoModel } from "./monaco-models"
 import type { IdeSettings } from "./types"
 import {
@@ -26,6 +29,11 @@ export type MonacoEditorProps = {
   onChange?: (value: string | undefined) => void
   options?: monaco.editor.IStandaloneEditorConstructionOptions
   className?: string
+  /**
+   * Optional multiplayer: presence (decorations + pointer) + Y.Text bind.
+   * Host owns room/Y.Doc; pass peers + sendCursor from useCollabRoom.
+   */
+  collab?: MonacoEditorCollabProps | null
 }
 
 function buildEditorOptions(
@@ -64,11 +72,18 @@ export function MonacoEditor({
   onChange,
   options,
   className,
+  collab,
 }: MonacoEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
+  const [editorInstance, setEditorInstance] =
+    useState<monaco.editor.IStandaloneCodeEditor | null>(null)
   const onChangeRef = useRef(onChange)
   const modelIdRef = useRef(modelId)
+  const collabPath = collab?.path ?? modelId
+  const collabForHooks: MonacoEditorCollabProps | null = collab
+    ? { ...collab, path: collabPath }
+    : null
 
   useEffect(() => {
     onChangeRef.current = onChange
@@ -85,11 +100,16 @@ export function MonacoEditor({
     const editor = monaco.editor.create(el, {
       model,
       theme,
-      ...buildEditorOptions(settings, options),
+      ...buildEditorOptions(settings, {
+        ...options,
+        readOnly: collab?.readOnly ?? options?.readOnly,
+      }),
     })
     editorRef.current = editor
+    setEditorInstance(editor)
 
     const sub = model.onDidChangeContent(() => {
+      // When Y-bound, host may still want change notifications
       onChangeRef.current?.(model.getValue())
     })
 
@@ -98,6 +118,7 @@ export function MonacoEditor({
       editor.setModel(null)
       editor.dispose()
       editorRef.current = null
+      setEditorInstance(null)
       releaseMonacoModel(modelId)
     }
     // Mount once; modelId changes remount via React key from parent.
@@ -120,15 +141,37 @@ export function MonacoEditor({
   useEffect(() => {
     const editor = editorRef.current
     if (!editor) return
-    editor.updateOptions(buildEditorOptions(settings, options))
-  }, [settings, options])
+    editor.updateOptions(
+      buildEditorOptions(settings, {
+        ...options,
+        readOnly: collab?.readOnly ?? options?.readOnly,
+      })
+    )
+  }, [settings, options, collab?.readOnly])
+
+  const { surfaceSize, enabled: collabEnabled } = useMonacoCollab(
+    editorInstance,
+    collabForHooks
+  )
 
   return (
     <div
-      className={cn("flex h-full min-h-0 w-full flex-col", className)}
+      className={cn(
+        "relative flex h-full min-h-0 w-full flex-col",
+        className
+      )}
       data-slot="monaco-editor"
     >
       <div ref={containerRef} className="min-h-0 flex-1 overflow-hidden" />
+      {collabEnabled && collabForHooks && (
+        <MonacoRemotePointers
+          peers={collabForHooks.peers}
+          path={collabPath}
+          selfUserId={collabForHooks.selfUserId}
+          surfaceWidth={surfaceSize.w}
+          surfaceHeight={surfaceSize.h}
+        />
+      )}
     </div>
   )
 }

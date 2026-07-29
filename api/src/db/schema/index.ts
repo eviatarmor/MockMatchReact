@@ -7,4 +7,6 @@ export * from "./billing.js"
 export * from "./collab.js"
 export * from "./candidate-profile.js"
 export * from "./document-versions.js"
+export * from "./ide-workspaces.js"
+
 

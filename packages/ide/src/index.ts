@@ -71,3 +71,26 @@ export {
   languageFromFileName,
   resolveTabLanguage,
 } from "./language-from-filename"
+
+// Collaboration (host owns useCollabRoom + Y.Doc)
+export type {
+  IdeCollabProps,
+  MonacoEditorCollabProps,
+  IdeWorkspaceDocument,
+  IdeWorkspaceFileEntry,
+} from "./collab/types"
+export { MonacoRemotePointers } from "./collab/monaco-remote-pointers"
+export { useMonacoCollab } from "./collab/use-monaco-collab"
+export { useMonacoCollabPresence } from "./collab/use-monaco-collab-presence"
+export { useMonacoRemoteDecorations } from "./collab/use-monaco-remote-decorations"
+export { useMonacoYBinding } from "./collab/use-monaco-y-binding"
+export { bindMonacoYText, MONACO_Y_ORIGIN, MONACO_Y_REMOTE } from "./collab/bind-monaco-y-text"
+export {
+  materializeIdeWorkspace,
+  getIdeFileYText,
+  ensureIdeFileYText,
+  setIdeWorkspaceTree,
+  setIdeWorkspaceDocument,
+  setIdeWorkspaceTitle,
+  type IdeCollabYSnapshot,
+} from "./collab/ide-collab-ydoc"

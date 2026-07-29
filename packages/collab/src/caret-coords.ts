@@ -127,7 +127,6 @@ function measureTextareaCaret(
 ): DOMRect {
   const mirror = document.createElement("div")
   mirror.setAttribute("aria-hidden", "true")
-  const isPre = true
   mirror.style.cssText = [
     "position:absolute",
     "visibility:hidden",

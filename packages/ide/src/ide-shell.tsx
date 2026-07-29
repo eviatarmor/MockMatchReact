@@ -113,6 +113,7 @@ export function IdeShell({
   aiMinWidth = 280,
   aiMaxWidth = 560,
   aiWidthStorageKey = "mockmatch.ide.ai-width",
+  collab,
 }: IdeShellProps) {
   const rootRef = useRef<HTMLDivElement>(null)
   const hasTree = Boolean(tree && tree.length > 0)
@@ -817,6 +818,7 @@ export function IdeShell({
             editorOptions={editorOptions}
             emptyMessage={emptyMsg}
             labels={labels}
+            collab={collab}
           />
 
           <IdeTerminalPanel

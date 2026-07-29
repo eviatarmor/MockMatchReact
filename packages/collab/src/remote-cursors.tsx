@@ -1,4 +1,9 @@
 import { Cursor } from "@mockmatch/ui/kibo-ui/cursor"
+import {
+  COLLAB_SELECTION_OPACITY,
+  collabCaretBoxShadow,
+  collabSolidColor,
+} from "./presence-colors"
 import type { CollabPeer } from "./types"
 
 interface RemoteCursorsProps {
@@ -42,8 +47,8 @@ export function RemoteCursors({
                     top: r.y * surfaceHeight,
                     width: Math.max(2, r.w * surfaceWidth),
                     height: Math.max(2, r.h * surfaceHeight),
-                    backgroundColor: p.color,
-                    opacity: 0.28,
+                    backgroundColor: collabSolidColor(p.color),
+                    opacity: COLLAB_SELECTION_OPACITY,
                   }}
                 />
               ))}
@@ -54,7 +59,7 @@ export function RemoteCursors({
               >
                 <div
                   className="absolute bottom-full mb-0.5 max-w-[8rem] truncate rounded px-1 py-px text-[9px] font-medium leading-tight text-white shadow-sm"
-                  style={{ backgroundColor: p.color }}
+                  style={{ backgroundColor: collabSolidColor(p.color) }}
                 >
                   {p.name}
                 </div>
@@ -62,7 +67,7 @@ export function RemoteCursors({
                   className="w-0.5 rounded-full"
                   style={{
                     height: p.cursor.h ?? 16,
-                    backgroundColor: p.color,
+                    backgroundColor: collabSolidColor(p.color),
                   }}
                 />
               </div>
@@ -79,7 +84,7 @@ export function RemoteCursors({
             >
               <div
                 className="absolute bottom-full mb-0.5 max-w-[8rem] truncate rounded px-1 py-px text-[9px] font-medium leading-tight text-white shadow-sm"
-                style={{ backgroundColor: p.color }}
+                style={{ backgroundColor: collabSolidColor(p.color) }}
               >
                 {p.name}
               </div>
@@ -87,8 +92,8 @@ export function RemoteCursors({
                 className="w-0.5 animate-pulse rounded-full"
                 style={{
                   height: p.cursor.h ?? 16,
-                  backgroundColor: p.color,
-                  boxShadow: `0 0 0 1px ${p.color}33`,
+                  backgroundColor: collabSolidColor(p.color),
+                  boxShadow: collabCaretBoxShadow(p.color),
                 }}
               />
             </div>
@@ -98,7 +103,7 @@ export function RemoteCursors({
         return (
           <Cursor
             key={p.userId}
-            color={p.color}
+            color={collabSolidColor(p.color)}
             name={p.name}
             style={{ left, top }}
           />

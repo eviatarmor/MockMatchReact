@@ -13,6 +13,7 @@ import {
   documentShares,
 } from "../../db/schema/collab.js"
 import { coverLetters } from "../../db/schema/cover-letters.js"
+import { ideWorkspaces } from "../../db/schema/ide-workspaces.js"
 import { resumes } from "../../db/schema/resumes.js"
 import { users } from "../../db/schema/users.js"
 import { hashToken } from "../../lib/crypto.js"
@@ -47,6 +48,12 @@ async function publishRoomControl(
 const SHARE_SENTINEL_EXPIRES = new Date("9999-12-31T23:59:59.000Z")
 
 function shareUrl(kind: DocumentKind, documentId: string, rawToken: string): string {
+  if (kind === "workspace") {
+    const url = new URL("/simulations/ide/workspace", env.APP_URL)
+    url.searchParams.set("id", documentId)
+    url.searchParams.set("share", rawToken)
+    return url.toString()
+  }
   const path =
     kind === "resume" ? `/resumes/${documentId}` : `/cover-letters/${documentId}`
   const url = new URL(path, env.APP_URL)
@@ -446,15 +453,29 @@ export async function loadDocumentSnapshot(
       updatedAt: row.updatedAt.toISOString(),
     }
   }
-  const row = await db.query.coverLetters.findFirst({
-    where: eq(coverLetters.id, documentId),
+  if (kind === "cover_letter") {
+    const row = await db.query.coverLetters.findFirst({
+      where: eq(coverLetters.id, documentId),
+    })
+    if (!row) return null
+    return {
+      ownerUserId: row.userId,
+      title: row.title,
+      templateId: row.templateId,
+      style: row.style as Record<string, unknown>,
+      document: row.document as unknown,
+      updatedAt: row.updatedAt.toISOString(),
+    }
+  }
+  const row = await db.query.ideWorkspaces.findFirst({
+    where: eq(ideWorkspaces.id, documentId),
   })
   if (!row) return null
   return {
     ownerUserId: row.userId,
     title: row.title,
     templateId: row.templateId,
-    style: row.style as Record<string, unknown>,
+    style: (row.style ?? {}) as Record<string, unknown>,
     document: row.document as unknown,
     updatedAt: row.updatedAt.toISOString(),
   }
@@ -503,22 +524,52 @@ export async function persistDocumentSnapshot(
     })
     return
   }
+  if (kind === "cover_letter") {
+    await db
+      .update(coverLetters)
+      .set({
+        title: snapshot.title,
+        templateId: snapshot.templateId,
+        style: snapshot.style as typeof coverLetters.$inferInsert.style,
+        document: snapshot.document as typeof coverLetters.$inferInsert.document,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(coverLetters.id, documentId),
+          eq(coverLetters.userId, ownerUserId)
+        )
+      )
+    await syncCandidateProfile(db, ownerUserId)
+    await maybeRecordDocumentVersion(db, {
+      kind,
+      documentId,
+      actorUserId: snapshot.lastEditorUserId ?? ownerUserId,
+      title: snapshot.title,
+      templateId: snapshot.templateId,
+      style: snapshot.style,
+      document: snapshot.document,
+      source: "collab_flush",
+    })
+    return
+  }
+
   await db
-    .update(coverLetters)
+    .update(ideWorkspaces)
     .set({
       title: snapshot.title,
       templateId: snapshot.templateId,
-      style: snapshot.style as typeof coverLetters.$inferInsert.style,
-      document: snapshot.document as typeof coverLetters.$inferInsert.document,
+      style: (snapshot.style ?? {}) as typeof ideWorkspaces.$inferInsert.style,
+      document:
+        snapshot.document as typeof ideWorkspaces.$inferInsert.document,
       updatedAt: new Date(),
     })
     .where(
       and(
-        eq(coverLetters.id, documentId),
-        eq(coverLetters.userId, ownerUserId)
+        eq(ideWorkspaces.id, documentId),
+        eq(ideWorkspaces.userId, ownerUserId)
       )
     )
-  await syncCandidateProfile(db, ownerUserId)
   await maybeRecordDocumentVersion(db, {
     kind,
     documentId,

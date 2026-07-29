@@ -53,6 +53,7 @@ function roomKey(kind: DocumentKind, id: string): string {
 }
 
 const MAX_SELECTION_RECTS = 32
+const MAX_CURSOR_PATH_LEN = 512
 
 /** Clamp peer selection highlight boxes (normalized 0–1). */
 function sanitizeSelectionRects(
@@ -85,6 +86,51 @@ function sanitizeSelectionRects(
     })
   }
   return out
+}
+
+function sanitizeCursorPath(raw: unknown): string | undefined {
+  if (typeof raw !== "string") return undefined
+  const path = raw.trim()
+  if (!path || path.length > MAX_CURSOR_PATH_LEN) return undefined
+  return path
+}
+
+function sanitizeMonacoSel(raw: unknown):
+  | {
+      startLineNumber: number
+      startColumn: number
+      endLineNumber: number
+      endColumn: number
+    }
+  | undefined {
+  if (!raw || typeof raw !== "object") return undefined
+  const s = raw as Record<string, unknown>
+  const startLineNumber = Math.floor(Number(s.startLineNumber))
+  const startColumn = Math.floor(Number(s.startColumn))
+  const endLineNumber = Math.floor(Number(s.endLineNumber))
+  const endColumn = Math.floor(Number(s.endColumn))
+  if (
+    !Number.isFinite(startLineNumber) ||
+    !Number.isFinite(startColumn) ||
+    !Number.isFinite(endLineNumber) ||
+    !Number.isFinite(endColumn)
+  ) {
+    return undefined
+  }
+  if (
+    startLineNumber < 1 ||
+    startColumn < 1 ||
+    endLineNumber < 1 ||
+    endColumn < 1
+  ) {
+    return undefined
+  }
+  return {
+    startLineNumber: Math.min(startLineNumber, 1_000_000),
+    startColumn: Math.min(startColumn, 100_000),
+    endLineNumber: Math.min(endLineNumber, 1_000_000),
+    endColumn: Math.min(endColumn, 100_000),
+  }
 }
 
 function send(ws: WebSocket, msg: unknown): void {
@@ -372,12 +418,16 @@ async function handleMessage(state: ClientState, raw: string): Promise<void> {
           : "pointer"
     const h = Number(msg.h)
     const rects = sanitizeSelectionRects(msg.rects)
+    const path = sanitizeCursorPath(msg.path)
+    const sel = sanitizeMonacoSel(msg.sel)
     const cursorPayload = {
       x: nx,
       y: ny,
       kind: kindCursor as "pointer" | "caret" | "selection",
       ...(Number.isFinite(h) && h > 0 ? { h } : {}),
       ...(rects.length > 0 ? { rects } : {}),
+      ...(path ? { path } : {}),
+      ...(sel ? { sel } : {}),
     }
     await setPresence(kind, documentId, {
       userId,

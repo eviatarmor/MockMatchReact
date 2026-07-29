@@ -1,6 +1,10 @@
 import { z } from "zod"
 
-export const documentKindSchema = z.enum(["resume", "cover_letter"])
+export const documentKindSchema = z.enum([
+  "resume",
+  "cover_letter",
+  "workspace",
+])
 export const collabRoleSchema = z.enum(["view", "edit"])
 /** Effective room role including owner (never stored on collaborator rows). */
 export const collabEffectiveRoleSchema = z.enum(["view", "edit", "owner"])

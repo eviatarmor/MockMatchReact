@@ -35,6 +35,13 @@ export type PresenceRecord = {
     kind?: "pointer" | "caret" | "selection"
     h?: number
     rects?: Array<{ x: number; y: number; w: number; h: number }>
+    path?: string
+    sel?: {
+      startLineNumber: number
+      startColumn: number
+      endLineNumber: number
+      endColumn: number
+    }
   }
 }
 

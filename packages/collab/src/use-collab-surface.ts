@@ -5,14 +5,24 @@ import {
   getTextFieldCaretClientRect,
   getTextFieldSelectionClientRects,
 } from "./caret-coords"
-import type { CollabCursorKind, CollabNormRect } from "./types"
+import type {
+  CollabCursorKind,
+  CollabMonacoSel,
+  CollabNormRect,
+} from "./types"
+
+export type SendCursorMeta = {
+  path?: string
+  sel?: CollabMonacoSel
+}
 
 export type SendCursor = (
   x: number,
   y: number,
   kind?: CollabCursorKind,
   h?: number,
-  rects?: CollabNormRect[]
+  rects?: CollabNormRect[],
+  meta?: SendCursorMeta
 ) => void
 
 export type UseCollabSurfaceOptions = {

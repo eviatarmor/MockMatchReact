@@ -11,6 +11,7 @@ import {
   documentVersions,
   type DocumentVersionSource as SchemaSource,
 } from "../../db/schema/document-versions.js"
+import { ideWorkspaces } from "../../db/schema/ide-workspaces.js"
 import { resumes } from "../../db/schema/resumes.js"
 import { users } from "../../db/schema/users.js"
 import { resolveDocumentAccess } from "../collab/access.js"
@@ -416,42 +417,109 @@ export async function restoreDocumentVersion(
     }
   }
 
+  if (kind === "cover_letter") {
+    const current = await db
+      .select()
+      .from(coverLetters)
+      .where(eq(coverLetters.id, documentId))
+      .limit(1)
+    const cur = current[0]
+    if (!cur) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Cover letter not found.",
+      })
+    }
+
+    const patch: Partial<typeof coverLetters.$inferInsert> = {
+      updatedAt: new Date(),
+    }
+    if (canTitle) patch.title = version.title
+    if (canDocument) {
+      patch.document =
+        version.document as typeof coverLetters.$inferInsert.document
+    }
+    if (canDesign) {
+      patch.templateId = version.templateId
+      patch.style = version.style as typeof coverLetters.$inferInsert.style
+    }
+
+    const [row] = await db
+      .update(coverLetters)
+      .set(patch)
+      .where(eq(coverLetters.id, documentId))
+      .returning()
+
+    if (!row) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Cover letter not found.",
+      })
+    }
+
+    await maybeRecordDocumentVersion(db, {
+      kind,
+      documentId,
+      actorUserId: userId,
+      title: row.title,
+      templateId: row.templateId,
+      style: row.style,
+      document: row.document,
+      source: "restore",
+      force: true,
+    })
+
+    if (canDocument || canDesign) {
+      await syncCandidateProfile(db, row.userId)
+    }
+
+    return {
+      id: row.id,
+      title: row.title,
+      templateId: row.templateId,
+      style: row.style,
+      document: row.document,
+      updatedAt: row.updatedAt.toISOString(),
+    }
+  }
+
   const current = await db
     .select()
-    .from(coverLetters)
-    .where(eq(coverLetters.id, documentId))
+    .from(ideWorkspaces)
+    .where(eq(ideWorkspaces.id, documentId))
     .limit(1)
   const cur = current[0]
   if (!cur) {
     throw new TRPCError({
       code: "NOT_FOUND",
-      message: "Cover letter not found.",
+      message: "Workspace not found.",
     })
   }
 
-  const patch: Partial<typeof coverLetters.$inferInsert> = {
+  const patch: Partial<typeof ideWorkspaces.$inferInsert> = {
     updatedAt: new Date(),
   }
   if (canTitle) patch.title = version.title
   if (canDocument) {
     patch.document =
-      version.document as typeof coverLetters.$inferInsert.document
+      version.document as typeof ideWorkspaces.$inferInsert.document
   }
   if (canDesign) {
     patch.templateId = version.templateId
-    patch.style = version.style as typeof coverLetters.$inferInsert.style
+    patch.style = (version.style ??
+      {}) as typeof ideWorkspaces.$inferInsert.style
   }
 
   const [row] = await db
-    .update(coverLetters)
+    .update(ideWorkspaces)
     .set(patch)
-    .where(eq(coverLetters.id, documentId))
+    .where(eq(ideWorkspaces.id, documentId))
     .returning()
 
   if (!row) {
     throw new TRPCError({
       code: "NOT_FOUND",
-      message: "Cover letter not found.",
+      message: "Workspace not found.",
     })
   }
 
@@ -466,10 +534,6 @@ export async function restoreDocumentVersion(
     source: "restore",
     force: true,
   })
-
-  if (canDocument || canDesign) {
-    await syncCandidateProfile(db, row.userId)
-  }
 
   return {
     id: row.id,

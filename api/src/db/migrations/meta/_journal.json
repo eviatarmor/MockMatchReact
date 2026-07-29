@@ -71,6 +71,20 @@
       "when": 1784690000000,
       "tag": "0009_document_versions",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1784700000000,
+      "tag": "0010_ide_workspaces",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1784800000000,
+      "tag": "0011_ide_workspaces_drop_format",
+      "breakpoints": true
     }
   ]
 }

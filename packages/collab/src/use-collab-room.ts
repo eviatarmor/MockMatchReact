@@ -10,6 +10,7 @@ import type {
   CollabEffectiveRole,
   CollabPermissions,
 } from "./types"
+import type { SendCursorMeta } from "./use-collab-surface"
 
 const HEARTBEAT_MS = 15_000
 const CURSOR_THROTTLE_MS = 40
@@ -270,6 +271,8 @@ export function useCollabRoom({
           kind: msg.kind ?? ("pointer" as const),
           h: msg.h,
           ...(msg.rects && msg.rects.length > 0 ? { rects: msg.rects } : {}),
+          ...(msg.path ? { path: msg.path } : {}),
+          ...(msg.sel ? { sel: msg.sel } : {}),
         }
         const existing = prev.find((p) => p.userId === msg.userId)
         if (existing) {
@@ -451,7 +454,8 @@ export function useCollabRoom({
       y: number,
       kind: CollabCursorKind = "pointer",
       h?: number,
-      rects?: CollabNormRect[]
+      rects?: CollabNormRect[],
+      meta?: SendCursorMeta
     ) => {
       const now = Date.now()
       // Carets/selections: slightly higher rate so typing + drag-select feel live
@@ -469,6 +473,8 @@ export function useCollabRoom({
           kind,
           ...(h != null && h > 0 ? { h } : {}),
           ...(rects && rects.length > 0 ? { rects } : {}),
+          ...(meta?.path ? { path: meta.path } : {}),
+          ...(meta?.sel ? { sel: meta.sel } : {}),
         })
       )
     },

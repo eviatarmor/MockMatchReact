@@ -1151,5 +1151,22 @@
         "description": "Clarity, executive presence, and persuasion under pressure."
       }
     }
+  },
+  "workspaces": {
+    "documentTitle": "Workspaces · MockMatch",
+    "title": "Workspaces",
+    "description": "Collaborative IDE workspaces for multi-file code practice.",
+    "new": "New workspace",
+    "loading": "Loading workspaces…",
+    "emptyTitle": "No workspaces yet",
+    "emptyDescription": "Create a workspace to code with live multiplayer carets and share links.",
+    "delete": "Delete workspace",
+    "prev": "Previous",
+    "next": "Next",
+    "toast": {
+      "createFailed": "Could not create workspace",
+      "deleted": "Workspace deleted",
+      "deleteFailed": "Could not delete workspace"
+    }
   }
 }

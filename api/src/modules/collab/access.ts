@@ -7,6 +7,7 @@ import {
   documentShares,
 } from "../../db/schema/collab.js"
 import { coverLetters } from "../../db/schema/cover-letters.js"
+import { ideWorkspaces } from "../../db/schema/ide-workspaces.js"
 import { resumes } from "../../db/schema/resumes.js"
 import { isMember } from "../../lib/collab-store.js"
 import { hashToken } from "../../lib/crypto.js"
@@ -30,11 +31,24 @@ async function loadOwnerUserId(
     })
     return row?.userId ?? null
   }
-  const row = await db.query.coverLetters.findFirst({
-    where: eq(coverLetters.id, documentId),
+  if (kind === "cover_letter") {
+    const row = await db.query.coverLetters.findFirst({
+      where: eq(coverLetters.id, documentId),
+      columns: { userId: true },
+    })
+    return row?.userId ?? null
+  }
+  const row = await db.query.ideWorkspaces.findFirst({
+    where: eq(ideWorkspaces.id, documentId),
     columns: { userId: true },
   })
   return row?.userId ?? null
+}
+
+function notFoundMessage(kind: DocumentKind): string {
+  if (kind === "resume") return "Resume not found."
+  if (kind === "cover_letter") return "Cover letter not found."
+  return "Workspace not found."
 }
 
 /**
@@ -52,8 +66,7 @@ export async function resolveDocumentAccess(
   if (!ownerUserId) {
     throw new TRPCError({
       code: "NOT_FOUND",
-      message:
-        kind === "resume" ? "Resume not found." : "Cover letter not found.",
+      message: notFoundMessage(kind),
     })
   }
 
@@ -142,8 +155,7 @@ export async function resolveDocumentAccess(
 
   throw new TRPCError({
     code: "NOT_FOUND",
-    message:
-      kind === "resume" ? "Resume not found." : "Cover letter not found.",
+    message: notFoundMessage(kind),
   })
 }
 

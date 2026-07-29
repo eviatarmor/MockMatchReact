@@ -9,9 +9,21 @@
     },
     "workspace": {
       "title": "Dev workspace",
-      "badge": "Preview",
-      "description": "Editor + file tree for live workspace sessions. Terminal preview uses xterm.js."
+      "badge": "Collab",
+      "description": "Multi-file IDE with live multiplayer carets, shared buffers, and share links."
     }
+  },
+  "collab": {
+    "share": "Share",
+    "saved": "Saved",
+    "saving": "Saving…",
+    "saveError": "Save failed",
+    "preparing": "Preparing workspace…",
+    "loading": "Loading workspace…",
+    "loadError": "Could not load this workspace.",
+    "createError": "Could not create workspace.",
+    "badShareLink": "This share link is missing a workspace id.",
+    "backToSimulations": "Back to simulations"
   },
   "actions": {
     "toggleTree": "File tree",

@@ -119,6 +119,7 @@ export function EditorToolbarActions({
 
   const canShare = permissions?.canShare ?? access.data?.canShare ?? false
   const canExport = permissions?.canExport ?? true
+  /** Share UI is owner-only (collaborators join via link — no share button). */
   const isOwner = access.data?.role === "owner"
   const isPaidOwner = access.data?.isPaidOwner ?? access.data?.isOwnerPaid ?? false
 
@@ -154,15 +155,17 @@ export function EditorToolbarActions({
           <span className="hidden sm:inline">{t("toolbar.preview")}</span>
         </Button>
       )}
-      <Button
-        variant="secondary"
-        size="sm"
-        className="h-8 cursor-pointer gap-1.5"
-        onClick={() => setShareOpen(true)}
-      >
-        <Share2 className="size-3.5" />
-        {t("toolbar.share")}
-      </Button>
+      {isOwner && (
+        <Button
+          variant="secondary"
+          size="sm"
+          className="h-8 cursor-pointer gap-1.5"
+          onClick={() => setShareOpen(true)}
+        >
+          <Share2 className="size-3.5" />
+          {t("toolbar.share")}
+        </Button>
+      )}
       {canExport && (
         <Button
           size="sm"
@@ -179,16 +182,18 @@ export function EditorToolbarActions({
           <span className="hidden sm:inline">{t("toolbar.exportPdf")}</span>
         </Button>
       )}
-      <ShareDialog
-        open={shareOpen}
-        onOpenChange={setShareOpen}
-        kind="cover_letter"
-        documentId={letterId}
-        documentTitle={title}
-        canShare={canShare}
-        isOwner={isOwner}
-        isPaidOwner={isPaidOwner}
-      />
+      {isOwner && (
+        <ShareDialog
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+          kind="cover_letter"
+          documentId={letterId}
+          documentTitle={title}
+          canShare={canShare}
+          isOwner={isOwner}
+          isPaidOwner={isPaidOwner}
+        />
+      )}
       {preview != null && (
         <DocumentPreviewDialog
           open={previewOpen}

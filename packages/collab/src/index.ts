@@ -1,6 +1,7 @@
 export type {
   CollabCursorKind,
   CollabNormRect,
+  CollabMonacoSel,
   CollabCursor,
   CollabPeer,
   CollabSaveStatus,
@@ -28,11 +29,20 @@ export {
 export {
   useCollabSurface,
   type SendCursor,
+  type SendCursorMeta,
 } from "./use-collab-surface"
 
 export { PresenceAvatarStack } from "./presence-avatar-stack"
 export { RemoteCursors } from "./remote-cursors"
 export { RoomFullGate } from "./room-full-gate"
+export {
+  COLLAB_SELECTION_OPACITY,
+  COLLAB_CARET_GLOW_ALPHA,
+  parseHexColor,
+  collabSelectionBackground,
+  collabSolidColor,
+  collabCaretBoxShadow,
+} from "./presence-colors"
 
 export {
   createCollabYDoc,

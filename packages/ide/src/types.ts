@@ -1,6 +1,8 @@
 import type { editor } from "monaco-editor"
 import type { ReactNode } from "react"
 
+import type { IdeCollabProps } from "./collab/types"
+
 /** File-tree node. Folders have `children`; files are leaves. */
 export type IdeTreeNode = {
   id: string
@@ -221,4 +223,10 @@ export type IdeShellProps = {
   aiMinWidth?: number
   aiMaxWidth?: number
   aiWidthStorageKey?: string
+
+  /**
+   * Optional multiplayer collaboration.
+   * Host owns useCollabRoom + Y.Doc; package wires Monaco presence + Y.Text.
+   */
+  collab?: IdeCollabProps | null
 }

@@ -12,8 +12,16 @@ export type CollabNormRect = {
   h: number
 }
 
+/** Monaco 1-based selection (IDE collab). */
+export type CollabMonacoSel = {
+  startLineNumber: number
+  startColumn: number
+  endLineNumber: number
+  endColumn: number
+}
+
 export type CollabCursor = {
-  /** Anchor / caret / pointer position (0–1 of paper). */
+  /** Anchor / caret / pointer position (0–1 of paper / editor surface). */
   x: number
   y: number
   kind?: CollabCursorKind
@@ -21,6 +29,10 @@ export type CollabCursor = {
   h?: number
   /** Highlight boxes for non-collapsed text selection (kind selection). */
   rects?: CollabNormRect[]
+  /** IDE: active file path / Monaco model id. */
+  path?: string
+  /** IDE: Monaco selection for decorations. */
+  sel?: CollabMonacoSel
 }
 
 export type CollabPeer = {
@@ -87,5 +99,7 @@ export type CollabServerMessage =
       kind?: CollabCursorKind
       h?: number
       rects?: CollabNormRect[]
+      path?: string
+      sel?: CollabMonacoSel
     }
   | { type: "error"; code: string; message: string }
