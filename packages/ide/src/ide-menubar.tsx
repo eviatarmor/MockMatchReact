@@ -254,6 +254,38 @@ export function IdeMenubar({
 
           <MenubarSub>
             <MenubarSubTrigger>
+              {labels.tabSize ?? "Tab size"}
+            </MenubarSubTrigger>
+            <MenubarSubContent>
+              <MenubarRadioGroup
+                value={String(settings.tabSize)}
+                onValueChange={(v) => {
+                  const n = Number(v)
+                  if (TAB_SIZES.includes(n as (typeof TAB_SIZES)[number])) {
+                    onPatchSettings({ tabSize: n })
+                  }
+                }}
+              >
+                {TAB_SIZES.map((size) => (
+                  <MenubarRadioItem key={size} value={String(size)}>
+                    {size}
+                  </MenubarRadioItem>
+                ))}
+              </MenubarRadioGroup>
+            </MenubarSubContent>
+          </MenubarSub>
+
+          <MenubarCheckboxItem
+            checked={settings.ligatures}
+            onCheckedChange={(checked) =>
+              onPatchSettings({ ligatures: Boolean(checked) })
+            }
+          >
+            {labels.ligatures ?? "Font ligatures"}
+          </MenubarCheckboxItem>
+
+          <MenubarSub>
+            <MenubarSubTrigger>
               {labels.whitespace ?? "Whitespace"}
             </MenubarSubTrigger>
             <MenubarSubContent>
@@ -281,7 +313,7 @@ export function IdeMenubar({
                   ] as const
                 ).map((mode) => (
                   <MenubarRadioItem key={mode} value={mode}>
-                    {mode}
+                    {mode.charAt(0).toUpperCase() + mode.slice(1)}
                   </MenubarRadioItem>
                 ))}
               </MenubarRadioGroup>
@@ -315,45 +347,6 @@ export function IdeMenubar({
                   </MenubarRadioItem>
                 ))}
               </MenubarRadioGroup>
-            </MenubarSubContent>
-          </MenubarSub>
-
-          <MenubarSub>
-            <MenubarSubTrigger>
-              {labels.editorMenu ?? "Editor"}
-            </MenubarSubTrigger>
-            <MenubarSubContent>
-              <MenubarCheckboxItem
-                checked={settings.ligatures}
-                onCheckedChange={(checked) =>
-                  onPatchSettings({ ligatures: Boolean(checked) })
-                }
-              >
-                {labels.ligatures ?? "Font ligatures"}
-              </MenubarCheckboxItem>
-
-              <MenubarSub>
-                <MenubarSubTrigger>
-                  {labels.tabSize ?? "Tab size"}
-                </MenubarSubTrigger>
-                <MenubarSubContent>
-                  <MenubarRadioGroup
-                    value={String(settings.tabSize)}
-                    onValueChange={(v) => {
-                      const n = Number(v)
-                      if (TAB_SIZES.includes(n as (typeof TAB_SIZES)[number])) {
-                        onPatchSettings({ tabSize: n })
-                      }
-                    }}
-                  >
-                    {TAB_SIZES.map((size) => (
-                      <MenubarRadioItem key={size} value={String(size)}>
-                        {size}
-                      </MenubarRadioItem>
-                    ))}
-                  </MenubarRadioGroup>
-                </MenubarSubContent>
-              </MenubarSub>
             </MenubarSubContent>
           </MenubarSub>
         </MenubarContent>
