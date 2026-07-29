@@ -7,7 +7,8 @@
 npm run infra:up                    # Postgres + Redis
 cp api/.env.example api/.env        # if needed
 cd api && npm run db:migrate        # through 0005 document collab shares
-npm run dev                         # client + api + ws + worker + studio
+npm run sandbox:install-gvisor      # once — gVisor runsc (IDE sandbox)
+npm run dev                         # sandbox + client + api + ws + worker + studio
 # or split:
 npm run dev:api
 npm run dev:ws                      # collab WebSocket :3001
@@ -34,6 +35,19 @@ npm run db:schema:mermaid
 # → api/docs/schema.md + api/docs/schema.mmd
 # Re-run after schema changes / db:generate
 ```
+
+## IDE sandbox (gVisor) — optional, for `@mockmatch/ide` realtime
+
+```bash
+npm run sandbox:install-gvisor   # once — hardened runsc (network=none)
+npm run sandbox:up               # no NIC / no ports / ro rootfs / drop ALL caps
+npm run sandbox:smoke
+npm run sandbox:shell            # docker exec only
+npm run sandbox:down
+```
+
+Docs: `infra/sandbox/README.md`. Fallback: `$env:SANDBOX_RUNTIME="runc"; npm run sandbox:up`.
+
 
 ## Production
 

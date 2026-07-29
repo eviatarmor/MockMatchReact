@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -n client,api,ws,worker,studio -c cyan,magenta,green,blue,yellow \"npm:dev --workspace=client\" \"npm:dev --workspace=@mockmatch/api\" \"npm:dev:ws --workspace=@mockmatch/api\" \"npm:dev:worker --workspace=@mockmatch/api\" \"npm:db:studio --workspace=@mockmatch/api\"",
+    "dev": "npm run sandbox:up && concurrently -n client,api,ws,worker,studio -c cyan,magenta,green,blue,yellow \"npm:dev --workspace=client\" \"npm:dev --workspace=@mockmatch/api\" \"npm:dev:ws --workspace=@mockmatch/api\" \"npm:dev:worker --workspace=@mockmatch/api\" \"npm:db:studio --workspace=@mockmatch/api\"",
     "dev:client": "npm run dev --workspace=client",
     "dev:api": "npm run dev --workspace=@mockmatch/api",
     "dev:ws": "npm run dev:ws --workspace=@mockmatch/api",
@@ -15,6 +15,13 @@
     "dev:studio": "npm run db:studio --workspace=@mockmatch/api",
     "infra:up": "docker compose -f infra/docker-compose.yml up -d",
     "infra:down": "docker compose -f infra/docker-compose.yml down",
+    "sandbox:install-gvisor": "docker compose -f infra/sandbox/docker-compose.gvisor.yml run --rm runsc-installer && docker info",
+    "sandbox:up": "docker compose -f infra/sandbox/docker-compose.yml up -d",
+    "sandbox:build": "docker compose -f infra/sandbox/docker-compose.yml build",
+    "sandbox:down": "docker compose -f infra/sandbox/docker-compose.yml down",
+    "sandbox:shell": "docker exec -it -u coder -w /workspace mockmatch-sandbox bash",
+    "sandbox:smoke": "docker inspect -f \"status={{.State.Status}} runtime={{.HostConfig.Runtime}} network={{.HostConfig.NetworkMode}} readonly={{.HostConfig.ReadonlyRootfs}}\" mockmatch-sandbox && docker exec mockmatch-sandbox uname -a && docker exec mockmatch-sandbox node -v && docker exec mockmatch-sandbox python3 --version && docker exec -u coder mockmatch-sandbox python3 -c \"import socket; s=socket.socket(); s.settimeout(2); s.connect(('1.1.1.1',80))\" 2>nul || echo OK: no-network && docker exec mockmatch-sandbox sh -c \"echo x>/etc/pwned\" 2>nul || echo OK: ro-rootfs",
+
     "db:schema:mermaid": "npm run db:schema:mermaid --workspace=@mockmatch/api",
     "typecheck": "npm run typecheck --workspace=@mockmatch/api && npm run typecheck --workspace=client",
     "lint": "npm run lint --workspace=client",

@@ -1,0 +1,96 @@
+# One-shot gVisor (runsc) install for Docker Desktop / Linux Docker.
+# Usage: docker compose -f infra/sandbox/docker-compose.gvisor.yml run --rm runsc-installer
+# Prefer: npm run sandbox:install-gvisor  (also SIGHUP dockerd)
+
+name: mockmatch-gvisor
+
+services:
+  runsc-installer:
+    image: alpine:3.20
+    # Host PID ns so we can signal dockerd after rewriting daemon.json (Docker Desktop).
+    pid: host
+    privileged: true
+    volumes:
+      # Persistent binaries (survives Desktop restarts better than /tmp).
+      - type: volume
+        source: runsc_bin
+        target: /var/lib/docker/volumes/mockmatch-runsc-bin/_data
+      # Docker Desktop internal daemon config (Linux VM path, works from Windows host).
+      - type: bind
+        source: /run/config/docker
+        target: /run/config/docker
+    working_dir: /tmp
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+        ARCH=$$(uname -m)
+        URL=https://storage.googleapis.com/gvisor/releases/release/latest/$${ARCH}
+        echo "Downloading runsc for $${ARCH}..."
+        wget -q $${URL}/runsc $${URL}/runsc.sha512 \
+          $${URL}/containerd-shim-runsc-v1 $${URL}/containerd-shim-runsc-v1.sha512
+        sha512sum -c runsc.sha512 -c containerd-shim-runsc-v1.sha512
+        rm -f *.sha512
+        chmod a+rx runsc containerd-shim-runsc-v1
+
+        DEST=/var/lib/docker/volumes/mockmatch-runsc-bin/_data
+        mv -f runsc containerd-shim-runsc-v1 "$$DEST/"
+
+        # Merge runsc into the live daemon.json (keep nvidia + any other runtimes).
+        CFG=/run/config/docker/daemon.json
+        if [ ! -f "$$CFG" ]; then
+          echo "No $$CFG — falling back to runsc install into /etc/docker"
+          mkdir -p /etc/docker
+          "$$DEST/runsc" install --runtime runsc -- \
+            --network=none \
+            --net-raw=false \
+            --host-uds=none
+          cat /etc/docker/daemon.json
+          exit 0
+        fi
+
+        cp "$$CFG" "$${CFG}.bak.mockmatch"
+        # Alpine: use wget + busybox; jq may be missing — install jq.
+        apk add --no-cache jq >/dev/null
+        # Hardened defaults for untrusted-code sandboxes only (not Docker default).
+        jq --arg path "$$DEST/runsc" '
+          .runtimes = (.runtimes // {}) + {
+            "runsc": {
+              "path": $$path,
+              "runtimeArgs": [
+                "--network=none",
+                "--net-raw=false",
+                "--host-uds=none"
+              ]
+            },
+            "runsc-debug": {
+              "path": $$path,
+              "runtimeArgs": [
+                "--network=none",
+                "--net-raw=false",
+                "--host-uds=none",
+                "--debug",
+                "--debug-log=/tmp/runsc-debug.log"
+              ]
+            }
+          }
+        ' "$$CFG" > /tmp/daemon.json
+        mv /tmp/daemon.json "$$CFG"
+        echo "Updated $$CFG:"
+        cat "$$CFG"
+
+        # Reload live dockerd without full Docker Desktop restart (pid host).
+        pid=$$(ps | awk '/\/dockerd/ && !/awk/ {print $$1; exit}')
+        if [ -n "$$pid" ]; then
+          echo "Sending HUP to dockerd pid=$$pid"
+          kill -HUP "$$pid" || true
+        else
+          echo "WARN: dockerd pid not found — Quit + Start Docker Desktop, then re-run install"
+        fi
+        echo "Done."
+
+
+volumes:
+  runsc_bin:
+    name: mockmatch-runsc-bin

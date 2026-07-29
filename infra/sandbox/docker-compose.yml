@@ -1,0 +1,78 @@
+# Untrusted-code sandbox for @mockmatch/ide (gVisor when available).
+#
+# Isolation model:
+#   - no network (network_mode: none) — no internet, no Docker bridge, no host services
+#   - gVisor runsc userspace kernel
+#   - drop ALL capabilities, no-new-privileges
+#   - read-only rootfs; only /workspace (bind) + /tmp (tmpfs) writable
+#   - non-root user, pids/mem/cpu/ulimit caps
+#   - host control plane only via `docker exec` (no published ports)
+#
+#   npm run sandbox:install-gvisor   # once
+#   npm run sandbox:up
+#   npm run sandbox:shell
+#   npm run sandbox:smoke
+#   npm run sandbox:down
+
+name: mockmatch-sandbox
+
+services:
+  sandbox:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mockmatch-sandbox:local
+    container_name: mockmatch-sandbox
+    # runsc = gVisor; set SANDBOX_RUNTIME=runc only if gVisor unavailable
+    runtime: ${SANDBOX_RUNTIME:-runsc}
+    restart: unless-stopped
+    user: "1000:1000"
+    working_dir: /workspace
+    environment:
+      HOME: /home/coder
+      TERM: xterm-256color
+      # Hint for guest code / future runners — do not rely on this for security
+      MOCKMATCH_SANDBOX: "1"
+
+    # No NIC at all. Host reaches the box only with `docker exec`.
+    network_mode: "none"
+
+    # No published ports (nothing to publish without a network).
+    # No docker.sock, no host devices, no privileged.
+    privileged: false
+    read_only: true
+    volumes:
+      # Only place guest code may write files (host-synced workspace)
+      - type: bind
+        source: ./workspace
+        target: /workspace
+        # Do not set read_only — runners need to write artifacts under /workspace
+    tmpfs:
+      - /tmp:size=64m,mode=1777,noexec,nosuid,nodev
+      - /home/coder:size=16m,mode=755,uid=1000,gid=1000,nosuid,nodev
+
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # Explicitly empty — never add CHOWN/SETUID/NET_*/SYS_*
+    cap_add: []
+
+    # Resource ceilings for runaway / fork-bomb guest code
+    mem_limit: ${SANDBOX_MEM_LIMIT:-512m}
+    memswap_limit: ${SANDBOX_MEM_LIMIT:-512m}
+    cpus: ${SANDBOX_CPUS:-1.0}
+    pids_limit: ${SANDBOX_PIDS_LIMIT:-256}
+    ulimits:
+      nproc: 256
+      nofile:
+        soft: 1024
+        hard: 1024
+      core: 0
+
+    healthcheck:
+      test: ["CMD-SHELL", "test -w /workspace && test -w /tmp"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
