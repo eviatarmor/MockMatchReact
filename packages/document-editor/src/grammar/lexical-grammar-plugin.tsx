@@ -4,7 +4,7 @@ import { $getRoot, $isTextNode, $createRangeSelection, $setSelection, type Lexic
 import { useGrammar } from "./use-grammar"
 import { GrammarPopover, type GrammarPopoverLabels } from "./grammar-popover"
 import { grammarSquiggleForKind, GRAMMAR_SQUIGGLE_SIZE } from "./squiggle"
-import type { GrammarIssue } from "@/lib/grammar/harper"
+import type { GrammarIssue } from "../lib/grammar/harper"
 
 interface DomTextMap {
   readonly text: string

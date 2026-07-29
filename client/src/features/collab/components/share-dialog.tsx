@@ -22,8 +22,6 @@ import {
 } from "@mockmatch/ui/select"
 import { CreditsGate } from "@/features/billing/components/credits-gate"
 import { trpc } from "@/lib/trpc"
-import { formatDateTime } from "@/lib/format-datetime"
-import { useRegionPreferences } from "@/hooks/use-region-preferences"
 
 interface ShareDialogProps {
   readonly open: boolean
@@ -64,7 +62,6 @@ export function ShareDialog({
 }: ShareDialogProps) {
   const { t } = useTranslation("collab")
   const roleItems = useCollabRoleItems()
-  const { dateFormat, timeFormat } = useRegionPreferences()
   const utils = trpc.useUtils()
   const [role, setRole] = useState<CollabRole>("edit")
   const [copiedText, copyToClipboard] = useCopyToClipboard()
@@ -75,17 +72,9 @@ export function ShareDialog({
   const create = trpc.collab.createShareLink.useMutation({
     onSuccess: (data) => {
       setLastUrl(data.url)
-      utils.collab.listShareLinks.invalidate({ kind, id: documentId }).catch(() => {})
     },
     onError: (err) => {
       toast.error(err.message || t("share.createError"))
-    },
-  })
-
-  const revoke = trpc.collab.revokeShareLink.useMutation({
-    onSuccess: () => {
-      utils.collab.listShareLinks.invalidate({ kind, id: documentId }).catch(() => {})
-      toast.success(t("share.revoked"))
     },
   })
 
@@ -102,10 +91,6 @@ export function ShareDialog({
     },
   })
 
-  const links = trpc.collab.listShareLinks.useQuery(
-    { kind, id: documentId },
-    { enabled: open && canShare }
-  )
   const collabs = trpc.collab.listCollaborators.useQuery(
     { kind, id: documentId },
     { enabled: open && canShare }
@@ -274,43 +259,6 @@ export function ShareDialog({
                     {copied ? t("share.copied") : t("share.copyLink")}
                   </Button>
                 </section>
-
-                {links.data && links.data.items.length > 0 && (
-                  <section className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">
-                      {t("share.activeLinks")}
-                    </p>
-                    <ul className="space-y-1">
-                      {links.data.items.map((link) => (
-                        <li
-                          key={link.id}
-                          className="flex min-w-0 items-center justify-between gap-2 rounded-lg px-1 py-1 text-xs"
-                        >
-                          <span className="min-w-0 flex-1 truncate text-muted-foreground">
-                            {t(`roles.${link.role}`)} ·{" "}
-                            {t("share.expires", {
-                              time: formatDateTime(
-                                link.expiresAt,
-                                dateFormat,
-                                timeFormat
-                              ),
-                            })}
-                          </span>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="size-7 shrink-0 cursor-pointer"
-                            disabled={revoke.isPending}
-                            onClick={() => revoke.mutate({ shareId: link.id })}
-                            aria-label={t("share.revoke")}
-                          >
-                            <Trash2 className="size-3.5" />
-                          </Button>
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                )}
               </>
             )}
           </div>

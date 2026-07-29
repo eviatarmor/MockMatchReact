@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, type RefObject } from "react"
-import { cn } from "@/lib/utils"
+import { cn } from "@mockmatch/ui/utils"
 import { useDiffHtml } from "./diff-html-context"
 import { useGrammar } from "./grammar/use-grammar"
 import { TextGrammarOverlay } from "./grammar/text-grammar-overlay"

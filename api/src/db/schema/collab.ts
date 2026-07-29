@@ -18,7 +18,9 @@ export const documentKindEnum = pgEnum("document_kind", [
 ])
 
 /**
- * Temporary share links (default TTL 4h). Raw token never stored — only SHA-256 hash.
+ * Session-bound share links. Raw token never stored — only SHA-256 hash.
+ * Active while owner is in the collab room; revoked when owner leaves.
+ * `expires_at` is a DB sentinel (no clock expiry) — validity = `revoked_at IS NULL`.
  * Role on the link is copied to document_collaborators on first join.
  */
 export const documentShares = pgTable(

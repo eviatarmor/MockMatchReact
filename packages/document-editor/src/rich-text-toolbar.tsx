@@ -13,7 +13,7 @@ import { INSERT_UNORDERED_LIST_COMMAND } from "@lexical/list"
 import { TOGGLE_LINK_COMMAND } from "@lexical/link"
 import { mergeRegister } from "@lexical/utils"
 import { Bold, Italic, Underline, List, Link, RemoveFormatting, Sparkles } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn } from "@mockmatch/ui/utils"
 
 export interface RichTextToolbarLabels {
   readonly bold: string

@@ -21,7 +21,7 @@ Env notes:
 - `DATABASE_URL`, `REDIS_URL`, JWT secrets required
 - `WS_URL=ws://localhost:3001`, `WS_PORT=3001`, `COLLAB_FLUSH_DELAY_MS=8000`
 - Local collab testing: `FREE_CREDIT_GRANT=100` (or call `collab.grantDevCredits` in dev) so share links unlock
-- Share links expire after **4 hours**; roles: `view` | `edit` (owner full)
+- Share links stay active **while the owner is in the document**; expire when owner leaves (reopen does not revive). Roles: `view` | `edit` (owner full)
 - Stripe optional locally: leave `STRIPE_*` empty → Free plan + credits UI still works; top-up disabled
 - Local Stripe webhooks (when keys set): `stripe listen --forward-to localhost:3000/billing/webhook`
 - PDF export (resume/cover letter): install Chromium once — `cd api && npx playwright install chromium`

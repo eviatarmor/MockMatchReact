@@ -8,8 +8,10 @@ import { useCanvasViewport } from "@/hooks/use-canvas-viewport"
 import {
   DocumentAiAssistProvider,
   EditorSecondaryBar,
+  GrammarDialectProvider,
   resolveStyleClasses,
 } from "@/components/document-editor"
+import { useRegionPreferences } from "@/hooks/use-region-preferences"
 import {
   DocumentAssistantProvider,
   useDocumentAssistant,
@@ -51,6 +53,7 @@ function ResumeEditorLoaded({
   }
 }) {
   const { t } = useTranslation("resume-editor")
+  const { dialect } = useRegionPreferences()
   const isMobile = useIsMobile()
   const viewport = useCanvasViewport()
   const session = useResumeEditorSession(seed)
@@ -68,6 +71,7 @@ function ResumeEditorLoaded({
   )
 
   return (
+    <GrammarDialectProvider dialect={dialect}>
     <DocumentAssistantProvider
       kind="resume"
       document={session.document}
@@ -83,6 +87,7 @@ function ResumeEditorLoaded({
         t={t}
       />
     </DocumentAssistantProvider>
+    </GrammarDialectProvider>
   )
 }
 

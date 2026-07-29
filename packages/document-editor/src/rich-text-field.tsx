@@ -18,8 +18,8 @@ import {
   type EditorState,
   type LexicalEditor,
 } from "lexical"
-import { isBlankHtml } from "@/lib/blank-html"
-import { cn } from "@/lib/utils"
+import { isBlankHtml } from "./lib/blank-html"
+import { cn } from "@mockmatch/ui/utils"
 import { FloatingTextToolbar, type RichTextToolbarLabels } from "./rich-text-toolbar"
 import { useDocumentAiAssist } from "./ai-assist-context"
 import { LexicalGrammarPlugin } from "./grammar/lexical-grammar-plugin"

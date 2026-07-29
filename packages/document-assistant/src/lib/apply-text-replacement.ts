@@ -1,6 +1,12 @@
-import type { CoverLetterDocument } from "@/features/cover-letter-editor/types"
-import type { ResumeDocument, ResumeSection } from "@/features/resume-editor/types"
+import type {
+  CoverLetterDocumentDto,
+  ResumeDocumentDto,
+} from "@mockmatch/schemas"
 import type { DocumentAiKind } from "../types"
+
+type ResumeDocument = ResumeDocumentDto
+type ResumeSection = ResumeDocumentDto["sections"][number]
+type CoverLetterDocument = CoverLetterDocumentDto
 
 export type TextReplacementInput = {
   readonly find: string

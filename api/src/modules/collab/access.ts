@@ -1,4 +1,4 @@
-import { and, eq, isNull, gt } from "drizzle-orm"
+import { and, eq, isNull } from "drizzle-orm"
 import { TRPCError } from "@trpc/server"
 import type { CollabEffectiveRole, DocumentKind } from "@mockmatch/schemas"
 import type { Database } from "../../db/client.js"
@@ -8,6 +8,7 @@ import {
 } from "../../db/schema/collab.js"
 import { coverLetters } from "../../db/schema/cover-letters.js"
 import { resumes } from "../../db/schema/resumes.js"
+import { isMember } from "../../lib/collab-store.js"
 import { hashToken } from "../../lib/crypto.js"
 
 export type DocumentAccess = {
@@ -78,18 +79,26 @@ export async function resolveDocumentAccess(
 
   if (shareToken) {
     const tokenHash = hashToken(shareToken)
-    const now = new Date()
     const share = await db.query.documentShares.findFirst({
       where: and(
         eq(documentShares.tokenHash, tokenHash),
         eq(documentShares.documentKind, kind),
         eq(documentShares.documentId, documentId),
-        isNull(documentShares.revokedAt),
-        gt(documentShares.expiresAt, now)
+        isNull(documentShares.revokedAt)
       ),
     })
 
     if (share) {
+      // Link only works while the owner is in the live collab room.
+      const ownerOnline = await isMember(kind, documentId, ownerUserId)
+      if (!ownerOnline) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            "This share link is only active while the owner is in the document.",
+        })
+      }
+
       // Race-safe: insert, on unique violation re-select
       try {
         const [row] = await db

@@ -10,7 +10,10 @@ import { useDocumentAssistant } from "../document-assistant-context"
 import type { TextAttachment } from "../types"
 
 function getApiBaseUrl(): string {
-  return import.meta.env.VITE_API_URL ?? "http://localhost:3000"
+  // Vite host injects VITE_API_URL; non-Vite hosts can set via globalThis.
+  const env = (import.meta as ImportMeta & { env?: { VITE_API_URL?: string } })
+    .env
+  return env?.VITE_API_URL ?? "http://localhost:3000"
 }
 
 function attachmentsForApi(attachments: readonly TextAttachment[]) {

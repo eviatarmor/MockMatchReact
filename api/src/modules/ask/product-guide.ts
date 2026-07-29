@@ -95,7 +95,7 @@ application tracking, practice, and readiness insights.
 3. Client must be reachable at APP_URL while exporting.
 
 ### Collaboration
-- Resume/cover letter editors support short-lived **share links** (about 4 hours).
+- Resume/cover letter editors support **share links** that stay active only while the owner is in the document; the link expires when the owner leaves (reopen does not revive it).
 - Roles: view | edit (owner full access).
 - May require credits depending on plan/grant.
 

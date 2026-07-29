@@ -2,7 +2,7 @@ import {
   GRAMMAR_SEVERITY_HEX,
   severityForGrammarKind,
   type GrammarSeverity,
-} from "@/lib/grammar/severity"
+} from "../lib/grammar/severity"
 
 /**
  * Wavy squiggle under Harper issues — same mark for Lexical rich-text fields

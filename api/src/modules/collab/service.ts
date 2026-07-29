@@ -24,7 +24,13 @@ import {
 } from "./access.js"
 import { permissionsForRole } from "./permissions.js"
 
-const SHARE_TTL_MS = 4 * 60 * 60 * 1000 // 4 hours
+/**
+ * Share links are session-bound to the owner being in the collab room:
+ * - No fixed clock TTL
+ * - Valid while owner holds a seat
+ * - Revoked when the owner leaves (reopen does not revive the link)
+ */
+const SHARE_SENTINEL_EXPIRES = new Date("9999-12-31T23:59:59.000Z")
 
 function shareUrl(kind: DocumentKind, documentId: string, rawToken: string): string {
   const path =
@@ -83,7 +89,6 @@ export async function createShareLink(
 
   const rawToken = randomBytes(32).toString("base64url")
   const tokenHash = hashToken(rawToken)
-  const expiresAt = new Date(Date.now() + SHARE_TTL_MS)
 
   const [row] = await db
     .insert(documentShares)
@@ -93,7 +98,8 @@ export async function createShareLink(
       ownerUserId: userId,
       tokenHash,
       role,
-      expiresAt,
+      // DB column still NOT NULL — sentinel means "no clock expiry"
+      expiresAt: SHARE_SENTINEL_EXPIRES,
     })
     .returning()
 
@@ -108,7 +114,8 @@ export async function createShareLink(
     shareId: row.id,
     url: shareUrl(kind, documentId, rawToken),
     role: row.role,
-    expiresAt: row.expiresAt.toISOString(),
+    /** Null — links expire when the owner leaves the room, not by clock. */
+    expiresAt: null as string | null,
     /** Raw token shown once — never stored server-side in cleartext. */
     token: rawToken,
   }
@@ -134,6 +141,30 @@ export async function revokeShareLink(
   return { ok: true as const }
 }
 
+/**
+ * Expire every unrevoked share link for a document.
+ * Called when the owner leaves the collab room so reopen cannot reuse links.
+ */
+export async function revokeAllShareLinksForDocument(
+  db: Database,
+  kind: DocumentKind,
+  documentId: string
+): Promise<number> {
+  const now = new Date()
+  const rows = await db
+    .update(documentShares)
+    .set({ revokedAt: now })
+    .where(
+      and(
+        eq(documentShares.documentKind, kind),
+        eq(documentShares.documentId, documentId),
+        isNull(documentShares.revokedAt)
+      )
+    )
+    .returning({ id: documentShares.id })
+  return rows.length
+}
+
 export async function listActiveShareLinks(
   db: Database,
   userId: string,
@@ -141,13 +172,11 @@ export async function listActiveShareLinks(
   documentId: string
 ) {
   await requireDocumentOwner(db, userId, kind, documentId)
-  const now = new Date()
   const rows = await db
     .select({
       id: documentShares.id,
       role: documentShares.role,
       createdAt: documentShares.createdAt,
-      expiresAt: documentShares.expiresAt,
       revokedAt: documentShares.revokedAt,
     })
     .from(documentShares)
@@ -162,14 +191,13 @@ export async function listActiveShareLinks(
     .orderBy(desc(documentShares.createdAt))
 
   return {
-    items: rows
-      .filter((r) => r.expiresAt > now)
-      .map((r) => ({
-        id: r.id,
-        role: r.role,
-        createdAt: r.createdAt.toISOString(),
-        expiresAt: r.expiresAt.toISOString(),
-      })),
+    items: rows.map((r) => ({
+      id: r.id,
+      role: r.role,
+      createdAt: r.createdAt.toISOString(),
+      /** Always null — session-bound, not clock-bound. */
+      expiresAt: null as string | null,
+    })),
   }
 }
 

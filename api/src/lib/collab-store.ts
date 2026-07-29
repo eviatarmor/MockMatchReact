@@ -111,6 +111,16 @@ export async function memberCount(
   return getRedis().scard(membersKey(kind, id))
 }
 
+/** True when user currently holds a seat in the live room. */
+export async function isMember(
+  kind: DocumentKind,
+  id: string,
+  userId: string
+): Promise<boolean> {
+  const n = await getRedis().sismember(membersKey(kind, id), userId)
+  return n === 1
+}
+
 export async function getSnapshot(
   kind: DocumentKind,
   id: string

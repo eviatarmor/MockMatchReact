@@ -233,7 +233,7 @@ async function handleJoin(state: ClientState): Promise<void> {
 }
 
 async function handleLeave(state: ClientState): Promise<void> {
-  const { kind, documentId, userId } = state
+  const { kind, documentId, userId, role } = state
   const remaining = await releaseSeat(kind, documentId, userId)
   await fanout(
     kind,
@@ -241,6 +241,26 @@ async function handleLeave(state: ClientState): Promise<void> {
     { type: "peer.left", userId },
     userId
   )
+
+  // Owner left → expire all share links for this document (session-bound links).
+  // Reopening later does not revive them; owner must create a new link.
+  if (role === "owner") {
+    try {
+      const { revokeAllShareLinksForDocument } = await import(
+        "./modules/collab/service.js"
+      )
+      const n = await revokeAllShareLinksForDocument(db, kind, documentId)
+      if (n > 0) {
+        logger.info(
+          { kind, documentId, revoked: n },
+          "collab share links revoked — owner left room"
+        )
+      }
+    } catch (err) {
+      logger.error({ err, kind, documentId }, "failed to revoke share links on owner leave")
+    }
+  }
+
   // Last peer → immediate Postgres flush
   if (remaining === 0) {
     await scheduleCollabFlush(kind, documentId, { immediate: true })

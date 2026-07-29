@@ -1,0 +1,38 @@
+{
+  "name": "@mockmatch/document-editor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./grammar": {
+      "types": "./src/lib/grammar/harper.ts",
+      "default": "./src/lib/grammar/harper.ts"
+    },
+    "./grammar/*": "./src/lib/grammar/*"
+  },
+  "peerDependencies": {
+    "@mockmatch/schemas": "*",
+    "@mockmatch/ui": "*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@lexical/html": "^0.45.0",
+    "@lexical/link": "^0.45.0",
+    "@lexical/list": "^0.45.0",
+    "@lexical/react": "^0.45.0",
+    "@lexical/utils": "^0.45.0",
+    "harper.js": "^2.4.0",
+    "lexical": "^0.45.0",
+    "lucide-react": "^1.18.0"
+  }
+}

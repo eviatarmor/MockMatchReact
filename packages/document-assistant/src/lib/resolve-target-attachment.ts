@@ -1,25 +1,23 @@
 import type { LucideIcon } from "lucide-react"
 import { Contact } from "lucide-react"
-import { LETTER_BLOCK_TYPES } from "@/features/cover-letter-editor/constants"
 import type {
-  CoverLetterDocument,
-  LetterBlock,
-} from "@/features/cover-letter-editor/types"
-import { RESUME_SECTION_TYPES } from "@/features/resume-editor/constants"
-import type {
-  ResumeDocument,
-  ResumeSection,
-  SectionEntry,
-} from "@/features/resume-editor/types"
+  CoverLetterDocumentDto,
+  ResumeDocumentDto,
+} from "@mockmatch/schemas"
 import type { DocumentAiKind } from "../types"
 import { stripHtml } from "./strip-html"
 
-const SECTION_ICON = new Map(
-  RESUME_SECTION_TYPES.map((m) => [m.type, m.icon as LucideIcon])
-)
-const BLOCK_ICON = new Map(
-  LETTER_BLOCK_TYPES.map((m) => [m.type, m.icon as LucideIcon])
-)
+type ResumeDocument = ResumeDocumentDto
+type ResumeSection = ResumeDocumentDto["sections"][number]
+type SectionEntry = Extract<
+  ResumeSection,
+  { entries: unknown }
+>["entries"][number]
+type CoverLetterDocument = CoverLetterDocumentDto
+type LetterBlock = CoverLetterDocumentDto["blocks"][number]
+
+/** Generic icon for all targets — host can restyle via CSS; keeps package free of feature constants. */
+const DEFAULT_ICON = Contact as LucideIcon
 
 export type ResolvedTargetAttachment = {
   readonly title: string
@@ -171,14 +169,13 @@ export function resolveTargetAttachment(
       const primary = entryPrimaryLabel(entry, typeLabel)
       const text = entryContext(entry).trim()
       if (!text) return null
-      const icon = SECTION_ICON.get(section.type) ?? Contact
       return {
         title: `${typeLabel} / ${primary}`,
         text,
         targetId: id,
         primaryLabel: primary,
         groupLabel: typeLabel,
-        icon,
+        icon: DEFAULT_ICON,
       }
     }
 
@@ -186,13 +183,12 @@ export function resolveTargetAttachment(
     if (!section) return null
     const text = sectionContext(section).trim()
     if (!text) return null
-    const icon = SECTION_ICON.get(section.type) ?? Contact
     return {
       title: section.type,
       text,
       targetId: id,
       primaryLabel: section.type,
-      icon,
+      icon: DEFAULT_ICON,
     }
   }
 
@@ -235,12 +231,11 @@ export function resolveTargetAttachment(
   if (!block) return null
   const text = blockContext(block).trim()
   if (!text) return null
-  const icon = BLOCK_ICON.get(block.type) ?? Contact
   return {
     title: block.type,
     text,
     targetId: id,
     primaryLabel: block.type,
-    icon,
+    icon: DEFAULT_ICON,
   }
 }

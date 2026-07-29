@@ -1,15 +1,20 @@
 import { useEffect, useRef, useState } from "react"
-import { lintText, type GrammarIssue } from "@/lib/grammar/harper"
-import { useRegionPreferences } from "@/hooks/use-region-preferences"
+import { lintText, type GrammarIssue } from "../lib/grammar/harper"
+import { useGrammarDialect } from "./grammar-dialect-context"
 
 /**
  * Debounced grammar check for a plain-text string. Returns the current issues
  * (empty until the first check resolves). Stale results are dropped when `text`
  * changes mid-flight, so the issues always match the latest input.
- * Dialect follows account language (en-US/en-GB/en-AU → Harper American/British/Australian).
+ *
+ * Dialect comes from {@link GrammarDialectProvider} (host account language).
  */
-export function useGrammar(text: string, enabled = true, delay = 600): GrammarIssue[] {
-  const { dialect } = useRegionPreferences()
+export function useGrammar(
+  text: string,
+  enabled = true,
+  delay = 600
+): GrammarIssue[] {
+  const dialect = useGrammarDialect()
   const [issues, setIssues] = useState<GrammarIssue[]>([])
   // Track the latest request so an earlier, slower lint can't overwrite it.
   const latest = useRef(0)

@@ -28,6 +28,9 @@
     "@mockmatch/ui": "*",
     "@mockmatch/ai-chat": "*",
     "@mockmatch/ide": "*",
+    "@mockmatch/document-editor": "*",
+    "@mockmatch/collab": "*",
+    "@mockmatch/document-assistant": "*",
 
     "@radix-ui/react-use-controllable-state": "^1.2.3",
     "@streamdown/cjk": "^1.0.3",

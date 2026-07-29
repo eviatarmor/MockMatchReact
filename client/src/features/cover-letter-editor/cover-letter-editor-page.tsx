@@ -8,8 +8,10 @@ import { useCanvasViewport } from "@/hooks/use-canvas-viewport"
 import {
   DocumentAiAssistProvider,
   EditorSecondaryBar,
+  GrammarDialectProvider,
   resolveStyleClasses,
 } from "@/components/document-editor"
+import { useRegionPreferences } from "@/hooks/use-region-preferences"
 import {
   DocumentAssistantProvider,
   useDocumentAssistant,
@@ -50,6 +52,7 @@ function CoverLetterEditorLoaded({
   }
 }) {
   const { t } = useTranslation("cover-letter-editor")
+  const { dialect } = useRegionPreferences()
   const isMobile = useIsMobile()
   const viewport = useCanvasViewport()
   const session = useCoverLetterEditorSession(seed)
@@ -67,6 +70,7 @@ function CoverLetterEditorLoaded({
   )
 
   return (
+    <GrammarDialectProvider dialect={dialect}>
     <DocumentAssistantProvider
       kind="cover_letter"
       document={session.document}
@@ -82,6 +86,7 @@ function CoverLetterEditorLoaded({
         t={t}
       />
     </DocumentAssistantProvider>
+    </GrammarDialectProvider>
   )
 }
 

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { Sparkles, ArrowUp, ArrowDown, Copy, Trash2 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn } from "@mockmatch/ui/utils"
 
 export interface BlockToolbarLabels {
   readonly ai: string

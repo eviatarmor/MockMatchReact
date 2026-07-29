@@ -1,6 +1,6 @@
 import { Fragment, useState } from "react"
-import { cn } from "@/lib/utils"
-import type { GrammarIssue } from "@/lib/grammar/harper"
+import { cn } from "@mockmatch/ui/utils"
+import type { GrammarIssue } from "../lib/grammar/harper"
 import { GrammarPopover, type GrammarPopoverLabels } from "./grammar-popover"
 import { grammarSquiggleForKind, GRAMMAR_SQUIGGLE_SIZE } from "./squiggle"
 

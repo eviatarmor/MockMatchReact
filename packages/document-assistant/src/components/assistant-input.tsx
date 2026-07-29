@@ -15,7 +15,7 @@ import {
 } from "@mockmatch/ai-chat/ai-elements/attachments"
 import { Button } from "@mockmatch/ui/button"
 import { Textarea } from "@mockmatch/ui/textarea"
-import { cn } from "@/lib/utils"
+import { cn } from "@mockmatch/ui/utils"
 import { useDocumentAssistant } from "../document-assistant-context"
 
 type AssistantInputProps = {

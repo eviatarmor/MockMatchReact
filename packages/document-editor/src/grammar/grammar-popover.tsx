@@ -1,11 +1,11 @@
 import { useEffect } from "react"
 import { createPortal } from "react-dom"
-import type { GrammarIssue } from "@/lib/grammar/harper"
+import type { GrammarIssue } from "../lib/grammar/harper"
 import {
   GRAMMAR_SEVERITY_LABEL_CLASS,
   severityForGrammarKind,
-} from "@/lib/grammar/severity"
-import { cn } from "@/lib/utils"
+} from "../lib/grammar/severity"
+import { cn } from "@mockmatch/ui/utils"
 
 export interface GrammarPopoverLabels {
   readonly apply: string
