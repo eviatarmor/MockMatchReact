@@ -31,6 +31,7 @@ import { isPaidUser } from "./modules/billing/credits.js"
 import { loadDocumentSnapshot } from "./modules/collab/service.js"
 import { canApplyPath } from "./modules/collab/permissions.js"
 import {
+  abortSandboxRun,
   executeSandboxRun,
   isSandboxRunActive,
   sanitizeSandboxFiles,
@@ -43,6 +44,8 @@ import {
   resizePtySession,
   writePtySession,
 } from "./lib/sandbox-pty.js"
+import { stopSessionSandbox } from "./lib/sandbox-session.js"
+import { assertAppTierSandboxConfig } from "./modules/sandbox/client.js"
 
 type ClientState = {
   ws: WebSocket
@@ -333,6 +336,8 @@ async function handleLeave(state: ClientState): Promise<void> {
   // Reopening later does not revive links; owner must create a new share.
   if (role === "owner") {
     closeAllPtyForDocument(documentId)
+    abortSandboxRun(documentId)
+    void stopSessionSandbox(documentId)
     const closedMsg = { type: "room.closed" as const, reason: "owner_left" as const }
     await fanout(kind, documentId, closedMsg, userId)
 
@@ -368,8 +373,11 @@ async function handleLeave(state: ClientState): Promise<void> {
     return
   }
 
-  // Last peer → immediate Postgres flush
+  // Last peer → tear down session sandbox + immediate Postgres flush
   if (remaining === 0) {
+    closeAllPtyForDocument(documentId)
+    abortSandboxRun(documentId)
+    void stopSessionSandbox(documentId)
     await scheduleCollabFlush(kind, documentId, { immediate: true })
   }
 }
@@ -630,6 +638,8 @@ async function handleMessage(state: ClientState, raw: string): Promise<void> {
     const result = await executeSandboxRun(
       {
         sessionId: documentId,
+        userId,
+        role,
         mode,
         entryPath,
         files,
@@ -727,6 +737,7 @@ async function handleMessage(state: ClientState, raw: string): Promise<void> {
     const result = await openPtySession({
       documentId,
       userId,
+      role,
       files,
       cols: Number.isFinite(cols) ? cols : 80,
       rows: Number.isFinite(rows) ? rows : 24,
@@ -898,6 +909,13 @@ function parseTicketFromUrl(url: string | undefined): string | null {
 }
 
 export function startCollabWsServer(): void {
+  try {
+    assertAppTierSandboxConfig()
+  } catch (err) {
+    logger.error({ err }, "sandbox production config invalid")
+    throw err
+  }
+
   const server = createServer((_req, res) => {
     res.writeHead(200, { "Content-Type": "text/plain" })
     res.end("mockmatch collab ws\n")

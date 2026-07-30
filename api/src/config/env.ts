@@ -57,13 +57,116 @@ const envSchema = z
       .positive()
       .default(8_000),
     /**
-     * Local IDE sandbox (gVisor). WS process `docker exec`s into this container.
-     * Empty name disables run (messages return a clear error).
+     * Per-session sandbox name prefix (`{prefix}-{sessionId}`).
+     * Empty → sandbox run/PTY disabled.
      */
-    SANDBOX_CONTAINER: z.string().default("mockmatch-sandbox"),
+    SANDBOX_CONTAINER_PREFIX: z.string().default("mm-sbx"),
     /**
-     * Host path bind-mounted at /workspace in the sandbox.
-     * Default: monorepo infra/sandbox/workspace (resolved in sandbox-runner).
+     * Isolation backend (pick one boundary — do not stack gVisor under Firecracker):
+     * - docker: container + optional gVisor runsc (local / agent without KVM)
+     * - firecracker: microVM guest kernel (prod); no gVisor
+     * - mock: tests
+     */
+    SANDBOX_BACKEND: z
+      .enum(["docker", "firecracker", "mock"])
+      .default("docker"),
+    /**
+     * When set, api/ws call this orchestrator HTTP base (no local Docker).
+     * Required in production when sandbox is enabled.
+     */
+    SANDBOX_ORCHESTRATOR_URL: z.string().optional().default(""),
+    SANDBOX_ORCHESTRATOR_PORT: z.coerce.number().int().positive().default(3010),
+    SANDBOX_AGENT_PORT: z.coerce.number().int().positive().default(3011),
+    SANDBOX_NODE_ID: z.string().optional().default(""),
+    /** Short-lived sandbox tickets (defaults to JWT_ACCESS_SECRET). */
+    SANDBOX_TICKET_SECRET: z.string().optional().default(""),
+    SANDBOX_TICKET_TTL_SECONDS: z.coerce.number().int().positive().default(300),
+    /**
+     * Require sandbox JWT tickets. Default false in dev; production forces true
+     * via superRefine when sandbox enabled.
+     */
+    SANDBOX_REQUIRE_TICKETS: z
+      .enum(["true", "false", ""])
+      .default("false")
+      .transform((v) => v === "true"),
+    SANDBOX_MAX_CONCURRENT_PER_USER: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(3),
+    SANDBOX_MAX_CREATES_PER_USER_HOUR: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(30),
+    SANDBOX_MAX_EXECS_PER_USER_HOUR: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(200),
+    SANDBOX_MAX_SESSION_TTL_SECONDS: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(14_400),
+    SANDBOX_REAP_INTERVAL_SECONDS: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(60),
+    SANDBOX_WIPE_HOST_DIR_ON_DESTROY: z
+      .enum(["true", "false", ""])
+      .default("false")
+      .transform((v) => v === "true"),
+    /** Absolute path to seccomp JSON (optional). */
+    SANDBOX_SECCOMP_PROFILE: z.string().optional().default(""),
+    /**
+     * Path to firecracker binary. Empty / "firecracker" →
+     * infra/sandbox/agent/bin/firecracker (auto-updated).
+     */
+    SANDBOX_FIRECRACKER_BIN: z.string().optional().default(""),
+    SANDBOX_FIRECRACKER_HELPER: z.string().optional().default(""),
+    /**
+     * On agent/orchestrator start (and install script): always fetch GitHub
+     * **latest** Firecracker if newer than installed. Default true.
+     */
+    SANDBOX_FIRECRACKER_AUTO_UPDATE: z
+      .enum(["true", "false", ""])
+      .default("true")
+      .transform((v) => v !== "false"),
+    /**
+     * Dev-only escape hatch: if firecracker binary/helper missing, use Docker
+     * backend instead. Default false.
+     */
+    SANDBOX_FIRECRACKER_FALLBACK_DOCKER: z
+      .enum(["true", "false", ""])
+      .default("false")
+      .transform((v) => v === "true"),
+    SANDBOX_REMOTE_PTY: z
+      .enum(["true", "false", ""])
+      .default("false")
+      .transform((v) => v === "true"),
+    /** Dangerous: allow Docker on api/ws in production. */
+    SANDBOX_ALLOW_INPROCESS_DOCKER_IN_PROD: z
+      .enum(["true", "false", ""])
+      .default("false")
+      .transform((v) => v === "true"),
+    /**
+     * Image built by `npm run sandbox:up` (compose build).
+     */
+    SANDBOX_IMAGE: z.string().default("mockmatch-sandbox:local"),
+    /**
+     * Docker **only** (`SANDBOX_BACKEND=docker`): container runtime.
+     * Default gVisor `runsc`. Use `runc` if gVisor unavailable.
+     * Empty omits `--runtime`. **Ignored for Firecracker** (microVM has its own kernel).
+     */
+    SANDBOX_RUNTIME: z.string().default("runsc"),
+    SANDBOX_MEM_LIMIT: z.string().default("512m"),
+    SANDBOX_CPUS: z.string().default("1.0"),
+    SANDBOX_PIDS_LIMIT: z.coerce.number().int().positive().default(256),
+    /**
+     * Host root for session dirs (`{dir}/sessions/{id}` → guest `/workspace`).
+     * Default: monorepo infra/sandbox/workspace.
      */
     SANDBOX_WORKSPACE_DIR: z.string().optional().default(""),
     /** LinkedIn OAuth (optional until portal + redirect wired). */
@@ -154,6 +257,30 @@ const envSchema = z
       })
     }
     if (data.NODE_ENV === "production") {
+      const sandboxOn = Boolean(data.SANDBOX_CONTAINER_PREFIX?.trim())
+      if (
+        sandboxOn &&
+        !data.SANDBOX_ORCHESTRATOR_URL.trim() &&
+        !data.SANDBOX_ALLOW_INPROCESS_DOCKER_IN_PROD
+      ) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["SANDBOX_ORCHESTRATOR_URL"],
+          message:
+            "Production multi-tenant isolation requires SANDBOX_ORCHESTRATOR_URL (or set SANDBOX_ALLOW_INPROCESS_DOCKER_IN_PROD=true to override — not recommended)",
+        })
+      }
+      if (sandboxOn && data.SANDBOX_BACKEND === "docker" && !data.SANDBOX_ALLOW_INPROCESS_DOCKER_IN_PROD) {
+        // docker backend is OK on the orchestrator/agent node; api/ws must use remote URL
+        if (!data.SANDBOX_ORCHESTRATOR_URL.trim()) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["SANDBOX_BACKEND"],
+            message:
+              "Production api/ws must not run Docker backend in-process; use orchestrator + firecracker/docker on agent nodes",
+          })
+        }
+      }
       if (data.JWT_ACCESS_SECRET.length < 32) {
         ctx.addIssue({
           code: "custom",

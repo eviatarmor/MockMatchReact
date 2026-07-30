@@ -1,17 +1,20 @@
-# Untrusted-code sandbox for @mockmatch/ide (gVisor when available).
+# Untrusted-code sandbox **image** for @mockmatch/ide (gVisor when available).
 #
-# Isolation model:
-#   - no network (network_mode: none) — no internet, no Docker bridge, no host services
+# App model: **one Docker container per collab session** (created by the WS process).
+# Guest runs in a chroot jail via `jail-run` — only /workspace + RO toolchain.
+#
+# Isolation profile (mirrored in api/src/lib/sandbox-session.ts):
+#   - no network (network_mode: none)
 #   - gVisor runsc userspace kernel
-#   - drop ALL capabilities, no-new-privileges
-#   - read-only rootfs; only /workspace (bind) + /tmp (tmpfs) writable
-#   - non-root user, pids/mem/cpu/ulimit caps
-#   - host control plane only via `docker exec` (no published ports)
+#   - drop ALL caps; add only SYS_ADMIN/SYS_CHROOT/SETUID/SETGID/MKNOD for jail setup
+#   - read-only rootfs; session dir → /opt/jail/workspace
+#   - non-root guest inside chroot (coder uid 1000)
+#   - host control plane only via `docker exec` → jail-run
 #
 #   npm run sandbox:install-gvisor   # once
-#   npm run sandbox:up
-#   npm run sandbox:shell
+#   npm run sandbox:up               # build image
 #   npm run sandbox:smoke
+#   npm run sandbox:shell
 #   npm run sandbox:down
 
 name: mockmatch-sandbox
@@ -22,43 +25,34 @@ services:
       context: .
       dockerfile: Dockerfile
     image: mockmatch-sandbox:local
-    container_name: mockmatch-sandbox
-    # runsc = gVisor; set SANDBOX_RUNTIME=runc only if gVisor unavailable
+    profiles: ["manual"]
     runtime: ${SANDBOX_RUNTIME:-runsc}
-    restart: unless-stopped
-    user: "1000:1000"
-    working_dir: /workspace
+    user: "0:0"
+    working_dir: /opt/jail/workspace
     environment:
-      HOME: /home/coder
+      HOME: /workspace
       TERM: xterm-256color
-      # Hint for guest code / future runners — do not rely on this for security
       MOCKMATCH_SANDBOX: "1"
-
-    # No NIC at all. Host reaches the box only with `docker exec`.
     network_mode: "none"
-
-    # No published ports (nothing to publish without a network).
-    # No docker.sock, no host devices, no privileged.
     privileged: false
     read_only: true
     volumes:
-      # Only place guest code may write files (host-synced workspace)
       - type: bind
         source: ./workspace
-        target: /workspace
-        # Do not set read_only — runners need to write artifacts under /workspace
+        target: /opt/jail/workspace
     tmpfs:
       - /tmp:size=64m,mode=1777,noexec,nosuid,nodev
-      - /home/coder:size=16m,mode=755,uid=1000,gid=1000,nosuid,nodev
-
+      - /run:size=8m,mode=755,nosuid,nodev
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
-    # Explicitly empty — never add CHOWN/SETUID/NET_*/SYS_*
-    cap_add: []
-
-    # Resource ceilings for runaway / fork-bomb guest code
+    cap_add:
+      - SYS_ADMIN
+      - SYS_CHROOT
+      - SETUID
+      - SETGID
+      - MKNOD
     mem_limit: ${SANDBOX_MEM_LIMIT:-512m}
     memswap_limit: ${SANDBOX_MEM_LIMIT:-512m}
     cpus: ${SANDBOX_CPUS:-1.0}
@@ -69,10 +63,3 @@ services:
         soft: 1024
         hard: 1024
       core: 0
-
-    healthcheck:
-      test: ["CMD-SHELL", "test -w /workspace && test -w /tmp"]
-      interval: 15s
-      timeout: 3s
-      retries: 3
-      start_period: 5s

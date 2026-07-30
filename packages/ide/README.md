@@ -35,7 +35,7 @@ Host wires sandbox execution (MockMatch: collab WS → `docker exec` sandbox). P
 
 Shortcuts: **F5** / **Ctrl+Enter** → Run; **Ctrl+Shift+Enter** → Run tests.
 
-Local isolation: `infra/sandbox` (gVisor). WS protocol: `sandbox.run` / `sandbox.started` / `sandbox.output` / `sandbox.finished`.
+Local isolation: `infra/sandbox` (gVisor) — **one container per session**, guest `/workspace`. WS protocol: `sandbox.run` / `sandbox.started` / `sandbox.output` / `sandbox.finished`.
 
 ## Install (monorepo)
 

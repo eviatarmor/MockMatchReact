@@ -40,13 +40,17 @@ npm run db:schema:mermaid
 
 ```bash
 npm run sandbox:install-gvisor   # once — hardened runsc (network=none)
-npm run sandbox:up               # no NIC / no ports / ro rootfs / drop ALL caps
-npm run sandbox:smoke
-npm run sandbox:shell            # docker exec only
-npm run sandbox:down
+npm run sandbox:up               # build image (session containers created on demand)
+npm run sandbox:smoke            # ephemeral isolation check
+npm run sandbox:shell            # interactive bash (sample mount)
+npm run sandbox:down             # remove all mm-sbx-* session containers
 ```
 
-Docs: `infra/sandbox/README.md`. Fallback: `$env:SANDBOX_RUNTIME="runc"; npm run sandbox:up`.
+Docs: `infra/sandbox/README.md`, `docs/sandbox-isolation.md`, `docs/sandbox-runbooks.md`.  
+One isolation unit per collab session; guest root `/workspace`.  
+Local: Docker+gVisor backend (optional orchestrator on :3010). Prod: `SANDBOX_ORCHESTRATOR_URL` on api/ws.  
+Fallback: `$env:SANDBOX_RUNTIME="runc"` in `api/.env`, then `npm run sandbox:up`.  
+Isolation suite: `npm run sandbox:isolation`.
 
 
 ## Production
