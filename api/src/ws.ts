@@ -40,12 +40,20 @@ import {
 import {
   closeAllPtyForDocument,
   closePtySession,
+  hasPtySession,
   openPtySession,
   resizePtySession,
   writePtySession,
 } from "./lib/sandbox-pty.js"
 import { stopSessionSandbox } from "./lib/sandbox-session.js"
 import { assertAppTierSandboxConfig } from "./modules/sandbox/client.js"
+import { syncFilesToHost } from "./modules/sandbox/files.js"
+import {
+  pullSessionFsIfChanged,
+  releaseSessionFsWatch,
+  retainSessionFsWatch,
+  type SessionFsSnapshot,
+} from "./modules/sandbox/fs-sync.js"
 
 type ClientState = {
   ws: WebSocket
@@ -322,8 +330,10 @@ async function handleLeave(state: ClientState): Promise<void> {
   state.left = true
 
   const { kind, documentId, userId, role } = state
-  // Drop this peer's interactive sandbox shell
+  // Drop this peer's interactive sandbox shell (+ fs watch ref if they had PTY)
+  const hadPty = hasPtySession(documentId, userId)
   closePtySession(documentId, userId)
+  if (hadPty) releaseSessionFsWatch(documentId)
   const remaining = await releaseSeat(kind, documentId, userId)
   await fanout(
     kind,
@@ -701,6 +711,14 @@ async function handleMessage(state: ClientState, raw: string): Promise<void> {
       command: result.command,
       mode,
     })
+    // Run may have written files under /workspace — pull into IDE
+    void pullSessionFsIfChanged(documentId, (snap) => {
+      void fanout(kind, documentId, {
+        type: "sandbox.fs",
+        files: snap.files,
+        hash: snap.hash,
+      })
+    })
     return
   }
 
@@ -769,6 +787,30 @@ async function handleMessage(state: ClientState, raw: string): Promise<void> {
     }
 
     send(state.ws, { type: "sandbox.pty.ready" })
+
+    // Mirror host /workspace (terminal touch/echo/mkdir) → all peers' IDE tree/Monaco
+    const publishFs = (snap: SessionFsSnapshot) => {
+      void fanout(kind, documentId, {
+        type: "sandbox.fs",
+        files: snap.files,
+        hash: snap.hash,
+      })
+    }
+    retainSessionFsWatch(documentId, publishFs)
+    return
+  }
+
+  if (type === "sandbox.fs.push") {
+    // IDE → host dir (keep terminal FS aligned with Monaco)
+    if (kind !== "workspace") return
+    if (role === "view") return
+    const cleaned = sanitizeSandboxFiles(msg.files)
+    if (cleaned.error || Object.keys(cleaned.files).length === 0) return
+    try {
+      await syncFilesToHost(documentId, cleaned.files)
+    } catch (err) {
+      logger.warn({ err, documentId }, "sandbox.fs.push failed")
+    }
     return
   }
 
@@ -795,6 +837,7 @@ async function handleMessage(state: ClientState, raw: string): Promise<void> {
 
   if (type === "sandbox.pty.close") {
     closePtySession(documentId, userId)
+    releaseSessionFsWatch(documentId)
     return
   }
 

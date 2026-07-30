@@ -108,11 +108,13 @@ export function getIdeFileYText(
 
 /**
  * Ensure file entry exists (for new files). Creates Y.Map + Y.Text under files.
+ * @param origin - transaction origin (default local → may broadcast via collab)
  */
 export function ensureIdeFileYText(
   ydoc: Y.Doc,
   path: string,
-  initial?: { language?: string; content?: string }
+  initial?: { language?: string; content?: string },
+  origin: unknown = Y_ORIGIN_LOCAL
 ): Y.Text {
   const root = ydoc.getMap(COLLAB_Y_ROOT)
   ydoc.transact(() => {
@@ -145,7 +147,7 @@ export function ensureIdeFileYText(
       else if (initial?.content) t.insert(0, initial.content)
       rawEntry.set("content", t)
     }
-  }, Y_ORIGIN_LOCAL)
+  }, origin)
 
   const text = getIdeFileYText(ydoc, path)
   if (!text) {

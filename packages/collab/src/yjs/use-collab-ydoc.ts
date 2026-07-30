@@ -50,7 +50,8 @@ export function useCollabYDoc({
   useEffect(() => {
     let raf = 0
     const onUpdate = (update: Uint8Array, origin: unknown) => {
-      if (origin === Y_ORIGIN_REMOTE) {
+      // Remote CRDT merge or sandbox host FS apply — materialize UI, do not echo.
+      if (origin === Y_ORIGIN_REMOTE || origin === "sandbox-fs") {
         hasRemoteStateRef.current = true
         if (raf) cancelAnimationFrame(raf)
         raf = requestAnimationFrame(() => {

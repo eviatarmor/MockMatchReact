@@ -16,15 +16,26 @@ export type SandboxPtyHandlers = {
   onError: (message: string) => void
 }
 
+/** Process-local set of open PTYs (for fs-watch refcount). */
+const openKeys = new Set<string>()
+
 export function ptySessionKey(documentId: string, userId: string): string {
   return `${documentId}:${userId}`
 }
 
+export function hasPtySession(documentId: string, userId: string): boolean {
+  return openKeys.has(ptySessionKey(documentId, userId))
+}
+
 export function closePtySession(documentId: string, userId: string): void {
+  openKeys.delete(ptySessionKey(documentId, userId))
   sandboxClosePty(documentId, userId)
 }
 
 export function closeAllPtyForDocument(documentId: string): void {
+  for (const key of [...openKeys]) {
+    if (key.startsWith(`${documentId}:`)) openKeys.delete(key)
+  }
   sandboxCloseAllPty(documentId)
 }
 
@@ -37,15 +48,26 @@ export async function openPtySession(opts: {
   rows?: number
   handlers: SandboxPtyHandlers
 }): Promise<{ ok: true } | { ok: false; error: string }> {
-  return sandboxOpenPty({
+  const key = ptySessionKey(opts.documentId, opts.userId)
+  const result = await sandboxOpenPty({
     sessionId: opts.documentId,
     userId: opts.userId,
     role: opts.role ?? "owner",
     files: opts.files,
     cols: opts.cols,
     rows: opts.rows,
-    handlers: opts.handlers,
+    handlers: {
+      onData: opts.handlers.onData,
+      onError: opts.handlers.onError,
+      onExit: (code) => {
+        openKeys.delete(key)
+        opts.handlers.onExit(code)
+      },
+    },
   })
+  if (result.ok) openKeys.add(key)
+  else openKeys.delete(key)
+  return result
 }
 
 export function writePtySession(
@@ -71,9 +93,4 @@ export async function syncPtyWorkspace(
 ): Promise<void> {
   if (Object.keys(files).length === 0) return
   await syncFilesToHost(documentId, files)
-}
-
-export function hasPtySession(_documentId: string, _userId: string): boolean {
-  // Process-local only; remote orchestrator does not expose this cheaply.
-  return false
 }

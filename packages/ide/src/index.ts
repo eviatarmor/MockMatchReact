@@ -86,6 +86,10 @@ export { useMonacoRemoteDecorations } from "./collab/use-monaco-remote-decoratio
 export { useMonacoYBinding } from "./collab/use-monaco-y-binding"
 export { bindMonacoYText, MONACO_Y_ORIGIN, MONACO_Y_REMOTE } from "./collab/bind-monaco-y-text"
 export {
+  applySandboxFsToYDoc,
+  SANDBOX_FS_ORIGIN,
+} from "./collab/apply-sandbox-fs"
+export {
   materializeIdeWorkspace,
   getIdeFileYText,
   ensureIdeFileYText,

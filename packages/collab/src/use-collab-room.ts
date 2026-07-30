@@ -54,6 +54,8 @@ interface UseCollabRoomArgs {
   readonly onYjsSync?: (updateB64: string, rev: number) => void
   /** Incremental remote Yjs update (skip own echo via userId). */
   readonly onYjsUpdate?: (updateB64: string, userId: string, rev: number) => void
+  /** Sandbox host FS snapshot (touch/echo/mkdir from terminal). */
+  readonly onSandboxFs?: (files: Record<string, string>, hash: string) => void
 }
 
 export function useCollabRoom({
@@ -66,6 +68,7 @@ export function useCollabRoom({
   onSnapshot,
   onYjsSync,
   onYjsUpdate,
+  onSandboxFs,
 }: UseCollabRoomArgs) {
   const [status, setStatus] = useState<CollabSaveStatus>("idle")
   /** Document persist indicator — independent of room connection status. */
@@ -112,11 +115,13 @@ export function useCollabRoom({
   const onSnapshotRef = useRef(onSnapshot)
   const onYjsSyncRef = useRef(onYjsSync)
   const onYjsUpdateRef = useRef(onYjsUpdate)
+  const onSandboxFsRef = useRef(onSandboxFs)
   const fetchTicketRef = useRef(fetchTicket)
   onRemoteOpRef.current = onRemoteOp
   onSnapshotRef.current = onSnapshot
   onYjsSyncRef.current = onYjsSync
   onYjsUpdateRef.current = onYjsUpdate
+  onSandboxFsRef.current = onSandboxFs
   fetchTicketRef.current = fetchTicket
 
   const lastCursorSent = useRef(0)
@@ -417,6 +422,13 @@ export function useCollabRoom({
       return
     }
 
+    if (msg.type === "sandbox.fs") {
+      if (msg.files && typeof msg.files === "object") {
+        onSandboxFsRef.current?.(msg.files, msg.hash ?? "")
+      }
+      return
+    }
+
     if (msg.type === "error") {
       if (msg.code === "room_full") {
         setStatus("room_full")
@@ -677,6 +689,14 @@ export function useCollabRoom({
     setPtyStatus("closed")
   }, [])
 
+  /** Push IDE buffers → sandbox host dir (keep terminal FS in sync). */
+  const pushSandboxFs = useCallback((files: Record<string, string>) => {
+    const ws = wsRef.current
+    if (!ws || ws.readyState !== WebSocket.OPEN) return
+    if (!files || Object.keys(files).length === 0) return
+    ws.send(JSON.stringify({ type: "sandbox.fs.push", files }))
+  }, [])
+
   return {
     status,
     /** "saving" while local ops in flight; "saved" after server echo settles. */
@@ -697,6 +717,7 @@ export function useCollabRoom({
     sendSandboxPtyInput,
     sendSandboxPtyResize,
     closeSandboxPty,
+    pushSandboxFs,
     sandboxStatus,
     sandboxMode,
     sandboxFeed,

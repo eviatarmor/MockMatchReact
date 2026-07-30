@@ -131,6 +131,15 @@ export type CollabServerMessage =
   | { type: "sandbox.pty.output"; data: string }
   | { type: "sandbox.pty.exit"; code: number | null }
   | { type: "sandbox.pty.error"; message: string }
+  /**
+   * Host sandbox workspace snapshot (terminal create/edit).
+   * Clients merge into Y.Doc + file tree / Monaco.
+   */
+  | {
+      type: "sandbox.fs"
+      files: Record<string, string>
+      hash: string
+    }
 
 /** Client → server sandbox request (workspace rooms). */
 export type CollabSandboxRunMessage = {
