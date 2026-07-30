@@ -11,6 +11,32 @@ Product-agnostic IDE shell for web apps and extensions:
 
 > **Status:** private monorepo package. Editor chrome only — host owns run/judge/terminal/session/AI transport.
 
+### Run / Run tests
+
+Host wires sandbox execution (MockMatch: collab WS → `docker exec` sandbox). Package renders chrome when callbacks are set:
+
+```tsx
+<IdeShell
+  tabs={tabs}
+  onRun={() => collab.sendSandboxRun({ mode: "run", files })}
+  onRunTests={() => collab.sendSandboxRun({ mode: "tests", files })}
+  runBusy={sandboxStatus === "running"}
+  runActionsPlacement="none" // host centers buttons in page header
+  terminalFeed={sandboxFeed} // stream sandbox.output into xterm
+/>
+```
+
+| Prop | Meaning |
+|------|---------|
+| `onRun` / `onRunTests` | Handlers (+ shortcuts); optional tab-bar buttons |
+| `runActionsPlacement` | `"tabs"` (default) or `"none"` when host owns chrome |
+| `runBusy` / `runTestsBusy` | Spinner + disable while job in flight |
+| `terminalFeed` | `{ seq, chunk }` push into active terminal |
+
+Shortcuts: **F5** / **Ctrl+Enter** → Run; **Ctrl+Shift+Enter** → Run tests.
+
+Local isolation: `infra/sandbox` (gVisor). WS protocol: `sandbox.run` / `sandbox.started` / `sandbox.output` / `sandbox.finished`.
+
 ## Install (monorepo)
 
 ```json
@@ -107,6 +133,8 @@ Pass `aiPanel` to enable the sparkles toggle (tab bar, next to full screen) and 
 | `aiDefaultWidth` / `aiMinWidth` / `aiMaxWidth` | Resize bounds |
 
 Host owns transport, system prompt, and i18n (e.g. wire `@mockmatch/ai-chat`).
+
+The panel scopes light/dark CSS variables from the same scheme as Monaco/terminal (`editorTheme` + `colorScheme`). Prefer **surface** chrome for injected chat (not always-dark dashboard sidebar tokens) so text + code fences match the IDE theme.
 
 ### Monaco workers
 

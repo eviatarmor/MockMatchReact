@@ -39,6 +39,13 @@ export type IdeMenubarProps = {
   onSplit?: (direction: IdeSplitDirection) => void
   onUnsplit?: () => void
   isSplit?: boolean
+  onRun?: () => void
+  onRunTests?: () => void
+  runBusy?: boolean
+  runTestsBusy?: boolean
+  runDisabled?: boolean
+  runTestsDisabled?: boolean
+  hideRunMenu?: boolean
   labels?: IdeLabels
   className?: string
 }
@@ -75,9 +82,19 @@ export function IdeMenubar({
   onSplit,
   onUnsplit,
   isSplit,
+  onRun,
+  onRunTests,
+  runBusy = false,
+  runTestsBusy = false,
+  runDisabled = false,
+  runTestsDisabled = false,
+  /** Hide Run menu when host centers buttons in the page chrome. */
+  hideRunMenu = false,
   labels = {},
   className,
 }: IdeMenubarProps) {
+  const hasRunMenu = !hideRunMenu && Boolean(onRun || onRunTests)
+
   return (
     <Menubar
       className={cn(
@@ -113,6 +130,38 @@ export function IdeMenubar({
           </MenubarContent>
         </MenubarMenu>
       )}
+
+      {hasRunMenu ? (
+        <MenubarMenu>
+          <MenubarTrigger className="h-7 px-2 text-xs font-medium">
+            {labels.runMenu ?? "Run"}
+          </MenubarTrigger>
+          <MenubarContent>
+            {onRun ? (
+              <MenubarItem
+                disabled={runDisabled || runBusy}
+                onClick={onRun}
+              >
+                {labels.run ?? "Run"}
+                <Kbd className="ml-auto">F5</Kbd>
+              </MenubarItem>
+            ) : null}
+            {onRunTests ? (
+              <MenubarItem
+                disabled={runTestsDisabled || runTestsBusy}
+                onClick={onRunTests}
+              >
+                {labels.runTests ?? "Run tests"}
+                <KbdGroup className="ml-auto">
+                  <Kbd>Ctrl</Kbd>
+                  <Kbd>Shift</Kbd>
+                  <Kbd>Enter</Kbd>
+                </KbdGroup>
+              </MenubarItem>
+            ) : null}
+          </MenubarContent>
+        </MenubarMenu>
+      ) : null}
 
       <MenubarMenu>
         <MenubarTrigger className="h-7 px-2 text-xs font-medium">

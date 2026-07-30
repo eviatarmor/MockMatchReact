@@ -71,13 +71,13 @@ docker exec mockmatch-sandbox python3 /workspace/hello.py
 docker exec mockmatch-sandbox node /workspace/hello.js
 ```
 
-## Wiring `@mockmatch/ide` later
+## Wiring `@mockmatch/ide` (MVP live)
 
-1. **MVP** — API `docker exec` line runner → `onCommand` prints stdout.
-2. **Realtime PTY** — host-side PTY (`docker exec -it` / Docker attach API), **not** a port inside the guest.
+1. **Run / Run tests** — collab WS `sandbox.run` → sync files under `workspace/sessions/<id>/` → one-shot `docker exec` → room-wide `sandbox.output` (does **not** busy the interactive shell).
+2. **Interactive shell (SSH-like)** — collab WS `sandbox.pty.*` → long-lived `docker exec -i` + in-guest `python3 pty.spawn(bash)`. Per-peer PTY; raw xterm keystrokes. Not a guest-published port.
 3. **Prod** — same isolation profile, one container (or VM) per session; never share a sandbox across users.
 
-Keep the API **process-stateless**: sandbox lifecycle lives in the orchestrator/Redis, not in one API pod’s memory.
+Keep the API **process-stateless**: in-flight AbortControllers are process-local; multi-replica still fans out output via Redis pub/sub.
 
 ## Env knobs
 

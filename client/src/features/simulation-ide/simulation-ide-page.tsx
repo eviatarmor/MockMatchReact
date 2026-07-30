@@ -5,7 +5,7 @@ import {
   useSearchParams,
 } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { Loader2, Share2 } from "lucide-react"
+import { FlaskConical, Loader2, Play, Share2 } from "lucide-react"
 import {
   IdeMenubar,
   IdeShell,
@@ -13,6 +13,12 @@ import {
 } from "@mockmatch/ide"
 import { Badge } from "@mockmatch/ui/badge"
 import { Button } from "@mockmatch/ui/button"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@mockmatch/ui/tooltip"
 import { SaveStatusBadge } from "@/components/data/save-status-badge"
 import { PresenceAvatarStack } from "@/features/collab/components/presence-avatar-stack"
 import { RoomFullGate } from "@/features/collab/components/room-full-gate"
@@ -241,6 +247,30 @@ function WorkspaceCollabSession({
   )
 
   const labels = useIdeLabels(t)
+  // Only Run / Run tests — never the interactive shell
+  const runBusy = session.sandboxStatus === "running"
+  const wsLive = session.collab.live
+  const ptyOpen =
+    session.ptyStatus === "open" || session.ptyStatus === "connecting"
+
+  const onRun = useCallback(() => {
+    setShowTerminal(true)
+    session.runSandbox("run")
+  }, [session])
+
+  const onRunTests = useCallback(() => {
+    setShowTerminal(true)
+    session.runSandbox("tests")
+  }, [session])
+
+  // Open interactive sandbox PTY when WS is live + terminal visible.
+  // Do not retry on error (avoids spin if sandbox is down). Re-open after clean exit.
+  useEffect(() => {
+    if (!wsLive || !showTerminal) return
+    const st = session.ptyStatus
+    if (st === "open" || st === "connecting" || st === "error") return
+    session.openSandboxPty(100, 30)
+  }, [wsLive, showTerminal, session.ptyStatus, session.openSandboxPty])
 
   if (session.collab.status === "room_full") {
     return (
@@ -271,7 +301,7 @@ function WorkspaceCollabSession({
           {t("formats.workspace.badge")}
         </Badge>
         <IdeMenubar
-          className="min-w-0 flex-1"
+          className="shrink-0"
           settings={settings}
           onPatchSettings={patchSettings}
           showTree={session.showTree}
@@ -285,8 +315,68 @@ function WorkspaceCollabSession({
           onToggleFullscreen={() => void toggleFullscreen()}
           onCreateFile={() => session.requestCreate("file")}
           onCreateFolder={() => session.requestCreate("folder")}
+          hideRunMenu
           labels={labels}
         />
+
+        {/* Center of gap: after View menubar → before Saved badge */}
+        <TooltipProvider delay={300}>
+          <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="default"
+                    className="h-8 cursor-pointer gap-1.5 px-3"
+                    disabled={!wsLive || runBusy}
+                    onClick={onRun}
+                    aria-label={t("actions.run")}
+                  />
+                }
+              >
+                {runBusy ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Play className="size-3.5 fill-current" />
+                )}
+                <span>{t("actions.run")}</span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {wsLive ? t("actions.run") : t("actions.runNeedsWs")}
+                <span className="ml-1.5 opacity-70">F5</span>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    className="h-8 cursor-pointer gap-1.5 px-3"
+                    disabled={!wsLive || runBusy}
+                    onClick={onRunTests}
+                    aria-label={t("actions.runTests")}
+                  />
+                }
+              >
+                {runBusy ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <FlaskConical className="size-3.5" />
+                )}
+                <span className="hidden sm:inline">{t("actions.runTests")}</span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                {wsLive ? t("actions.runTests") : t("actions.runNeedsWs")}
+                <span className="ml-1.5 opacity-70">Ctrl+Shift+Enter</span>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
+
         <div className="flex shrink-0 items-center gap-2">
           <SaveStatusBadge status={session.saveStatus} labels={saveLabels} />
           <PresenceAvatarStack
@@ -337,10 +427,31 @@ function WorkspaceCollabSession({
           showAi={showAi}
           onShowAiChange={setShowAi}
           aiPanel={({ close }) => (
-            <AskChatSurface onClose={close} showSuggestions={false} />
+            <AskChatSurface
+              chrome="surface"
+              onClose={close}
+              showSuggestions={false}
+            />
           )}
+          onRun={onRun}
+          onRunTests={onRunTests}
+          runBusy={runBusy}
+          runTestsBusy={runBusy}
+          runDisabled={!wsLive}
+          runTestsDisabled={!wsLive}
+          runActionsPlacement="none"
+          terminalFeed={session.sandboxFeed}
+          terminalWelcome="Connecting to sandbox shell…"
+          terminalCwd="/workspace"
+          terminalPty={{
+            // Raw mode as soon as we try to connect (no local fake prompt)
+            active: ptyOpen || session.ptyStatus === "error" || wsLive,
+            onData: (data) => session.sendSandboxPtyInput(data),
+            onResize: (cols, rows) => session.sendSandboxPtyResize(cols, rows),
+          }}
+          terminalPtyFeed={session.ptyFeed}
           labels={labels}
-          collab={session.collabBag}
+          collab={session.collabProps}
         />
       </div>
       {isOwner && (
@@ -397,6 +508,7 @@ function SimulationIdeSession({
   }, [])
 
   const labels = useIdeLabels(t)
+  const sandbox = useSandboxRunActions(setShowTerminal)
 
   return (
     <div ref={pageRef} className="flex h-full min-h-0 flex-col bg-background">
@@ -424,6 +536,10 @@ function SimulationIdeSession({
           onToggleFullscreen={() => void toggleFullscreen()}
           onCreateFile={() => session.requestCreate("file")}
           onCreateFolder={() => session.requestCreate("folder")}
+          onRun={sandbox.onRun}
+          onRunTests={sandbox.onRunTests}
+          runBusy={sandbox.runBusy}
+          runTestsBusy={sandbox.runTestsBusy}
           labels={labels}
         />
       </div>
@@ -468,13 +584,52 @@ function SimulationIdeSession({
           showAi={showAi}
           onShowAiChange={setShowAi}
           aiPanel={({ close }) => (
-            <AskChatSurface onClose={close} showSuggestions={false} />
+            <AskChatSurface
+              chrome="surface"
+              onClose={close}
+              showSuggestions={false}
+            />
           )}
+          onRun={sandbox.onRun}
+          onRunTests={sandbox.onRunTests}
+          runBusy={sandbox.runBusy}
+          runTestsBusy={sandbox.runTestsBusy}
           labels={labels}
         />
       </div>
     </div>
   )
+}
+
+/**
+ * Placeholder sandbox actions until API `docker exec` / judge lands.
+ * Opens terminal; busy flags exercise IDE button chrome.
+ */
+function useSandboxRunActions(
+  setShowTerminal: (open: boolean | ((v: boolean) => boolean)) => void
+) {
+  const { t } = useTranslation("simulation-ide")
+  const [runBusy, setRunBusy] = useState(false)
+  const [runTestsBusy, setRunTestsBusy] = useState(false)
+
+  const onRun = useCallback(() => {
+    if (runBusy || runTestsBusy) return
+    setShowTerminal(true)
+    setRunBusy(true)
+    // Host will POST files → sandbox runner here.
+    console.info(t("actions.runNotWired"))
+    window.setTimeout(() => setRunBusy(false), 500)
+  }, [runBusy, runTestsBusy, setShowTerminal, t])
+
+  const onRunTests = useCallback(() => {
+    if (runBusy || runTestsBusy) return
+    setShowTerminal(true)
+    setRunTestsBusy(true)
+    console.info(t("actions.runTestsNotWired"))
+    window.setTimeout(() => setRunTestsBusy(false), 500)
+  }, [runBusy, runTestsBusy, setShowTerminal, t])
+
+  return { onRun, onRunTests, runBusy, runTestsBusy }
 }
 
 function useIdeLabels(t: ReturnType<typeof useTranslation>["t"]) {
@@ -529,5 +684,8 @@ function useIdeLabels(t: ReturnType<typeof useTranslation>["t"]) {
     terminalTitle: t("actions.terminalTitle"),
     newTerminal: t("actions.newTerminal"),
     closeTerminal: t("actions.closeTerminal"),
+    run: t("actions.run"),
+    runTests: t("actions.runTests"),
+    runMenu: t("actions.runMenu"),
   }
 }

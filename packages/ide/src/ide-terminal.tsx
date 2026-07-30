@@ -7,15 +7,32 @@ import type { ResolvedColorScheme } from "./use-color-scheme"
 
 import "@xterm/xterm/css/xterm.css"
 
+export type IdeTerminalPtyApi = {
+  /** When true, raw keystrokes go to the host (SSH-like). */
+  active: boolean
+  onData: (data: string) => void
+  onResize?: (cols: number, rows: number) => void
+}
+
 export type IdeTerminalProps = {
   className?: string
   colorScheme?: ResolvedColorScheme
   welcome?: string
   cwd?: string
-  /** Host command runner; return text to print. */
+  /** Host command runner (line mode). Ignored when `pty.active`. */
   onCommand?: (
     command: string
   ) => string | string[] | void | Promise<string | string[] | void>
+  /**
+   * Host push feed (Run/Tests banners, etc.). Write raw chunk when `seq` changes.
+   */
+  feed?: { seq: number; chunk: string } | null
+  /**
+   * SSH-like PTY: disable local echo/prompt; stream keys to host;
+   * write `ptyFeed` / remote output into xterm.
+   */
+  pty?: IdeTerminalPtyApi | null
+  ptyFeed?: { seq: number; chunk: string } | null
 }
 
 function themeForScheme(scheme: ResolvedColorScheme) {
@@ -44,15 +61,19 @@ function writeLines(term: Terminal, lines: string | string[] | void) {
 }
 
 /**
- * Interactive xterm.js panel. Local echo shell by default;
- * host can supply `onCommand` for real runners later.
+ * Interactive xterm.js panel.
+ * - Default: local echo line shell
+ * - `pty.active`: raw passthrough (sandbox bash over WS)
  */
 export function IdeTerminal({
   className,
   colorScheme = "dark",
-  welcome = "MockMatch terminal preview — type help, then Enter.",
-  cwd = "~/workspace",
+  welcome = "MockMatch terminal — type help, then Enter.",
+  cwd = "/workspace",
   onCommand,
+  feed,
+  pty = null,
+  ptyFeed,
 }: IdeTerminalProps) {
   const hostRef = useRef<HTMLDivElement>(null)
   const termRef = useRef<Terminal | null>(null)
@@ -60,6 +81,10 @@ export function IdeTerminal({
   const lineRef = useRef("")
   const onCommandRef = useRef(onCommand)
   const cwdRef = useRef(cwd)
+  const ptyRef = useRef(pty)
+  const lastFeedSeq = useRef(0)
+  const lastPtyFeedSeq = useRef(0)
+  const welcomeShown = useRef(false)
 
   useEffect(() => {
     onCommandRef.current = onCommand
@@ -68,6 +93,31 @@ export function IdeTerminal({
   useEffect(() => {
     cwdRef.current = cwd
   }, [cwd])
+
+  useEffect(() => {
+    ptyRef.current = pty
+  }, [pty])
+
+  useEffect(() => {
+    if (!feed || feed.seq === lastFeedSeq.current) return
+    lastFeedSeq.current = feed.seq
+    const term = termRef.current
+    if (!term) return
+    // In local line mode, clear partial input so banners don't glue
+    if (!ptyRef.current?.active && lineRef.current.length > 0) {
+      term.write("\r\n")
+      lineRef.current = ""
+    }
+    term.write(feed.chunk)
+  }, [feed])
+
+  useEffect(() => {
+    if (!ptyFeed || ptyFeed.seq === lastPtyFeedSeq.current) return
+    lastPtyFeedSeq.current = ptyFeed.seq
+    const term = termRef.current
+    if (!term) return
+    term.write(ptyFeed.chunk)
+  }, [ptyFeed])
 
   useEffect(() => {
     const host = hostRef.current
@@ -80,7 +130,9 @@ export function IdeTerminal({
         "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
       theme: themeForScheme(colorScheme),
       convertEol: true,
-      scrollback: 2000,
+      scrollback: 5000,
+      // Remote shell echoes when PTY is active
+      disableStdin: false,
     })
     const fit = new FitAddon()
     term.loadAddon(fit)
@@ -91,12 +143,20 @@ export function IdeTerminal({
     fitRef.current = fit
     lineRef.current = ""
 
+    if (!welcomeShown.current && welcome) {
+      welcomeShown.current = true
+      // PTY: short banner then wait for remote prompt; local: show fake prompt
+      if (ptyRef.current?.active) {
+        term.writeln(welcome)
+      } else {
+        term.writeln(welcome)
+        term.write(`\x1b[32m${cwd}\x1b[0m $ `)
+      }
+    }
+
     const prompt = () => {
       term.write(`\r\n\x1b[32m${cwdRef.current}\x1b[0m $ `)
     }
-
-    term.writeln(welcome)
-    term.write(`\x1b[32m${cwd}\x1b[0m $ `)
 
     const runCommand = async (raw: string) => {
       const command = raw.trim()
@@ -111,9 +171,26 @@ export function IdeTerminal({
         return
       }
 
+      if (onCommandRef.current) {
+        if (command === "help") {
+          term.writeln("Host runner is active. Prefer the live sandbox PTY.")
+          prompt()
+          return
+        }
+        try {
+          const out = await onCommandRef.current(command)
+          writeLines(term, out)
+        } catch (err) {
+          term.writeln(
+            `\x1b[31m${err instanceof Error ? err.message : String(err)}\x1b[0m`
+          )
+        }
+        prompt()
+        return
+      }
+
       if (command === "help") {
         term.writeln("Built-in: help, clear, echo <text>, pwd")
-        term.writeln("Host can wire onTerminalCommand for real runners.")
         prompt()
         return
       }
@@ -130,19 +207,6 @@ export function IdeTerminal({
         return
       }
 
-      if (onCommandRef.current) {
-        try {
-          const out = await onCommandRef.current(command)
-          writeLines(term, out)
-        } catch (err) {
-          term.writeln(
-            `\x1b[31m${err instanceof Error ? err.message : String(err)}\x1b[0m`
-          )
-        }
-        prompt()
-        return
-      }
-
       term.writeln(
         `\x1b[33mcommand not found: ${command.split(/\s+/)[0]}\x1b[0m`
       )
@@ -150,9 +214,15 @@ export function IdeTerminal({
     }
 
     const disposable = term.onData((data) => {
+      const p = ptyRef.current
+      if (p?.active) {
+        // Raw passthrough — bash echoes, handles editing, Ctrl+C, …
+        p.onData(data)
+        return
+      }
+
       for (const ch of data) {
         const code = ch.charCodeAt(0)
-        // Enter
         if (ch === "\r" || ch === "\n") {
           const line = lineRef.current
           lineRef.current = ""
@@ -160,7 +230,6 @@ export function IdeTerminal({
           void runCommand(line)
           continue
         }
-        // Backspace
         if (ch === "\x7f" || ch === "\b") {
           if (lineRef.current.length > 0) {
             lineRef.current = lineRef.current.slice(0, -1)
@@ -168,22 +237,18 @@ export function IdeTerminal({
           }
           continue
         }
-        // Ctrl+C
         if (code === 3) {
           lineRef.current = ""
           term.write("^C")
           prompt()
           continue
         }
-        // Ctrl+L clear
         if (code === 12) {
           term.clear()
           term.write(`\x1b[32m${cwdRef.current}\x1b[0m $ ${lineRef.current}`)
           continue
         }
-        // Ignore other controls
         if (code < 32) continue
-
         lineRef.current += ch
         term.write(ch)
       }
@@ -192,6 +257,10 @@ export function IdeTerminal({
     const ro = new ResizeObserver(() => {
       try {
         fit.fit()
+        const p = ptyRef.current
+        if (p?.active && p.onResize) {
+          p.onResize(term.cols, term.rows)
+        }
       } catch {
         // ignore fit races while hidden
       }
@@ -214,6 +283,14 @@ export function IdeTerminal({
     if (!term) return
     term.options.theme = themeForScheme(colorScheme)
   }, [colorScheme])
+
+  // Notify host of size when PTY becomes active
+  useEffect(() => {
+    if (!pty?.active || !pty.onResize) return
+    const term = termRef.current
+    if (!term) return
+    pty.onResize(term.cols, term.rows)
+  }, [pty?.active, pty])
 
   return (
     <div

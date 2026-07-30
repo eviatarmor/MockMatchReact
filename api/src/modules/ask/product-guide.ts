@@ -52,7 +52,8 @@ application tracking, practice, and readiness insights.
 
 ### Practice area
 5. **Simulations** (\`/simulations\`) — recent practice **sessions** (searchable list) plus a featured **interview tracks** strip; **Browse all** opens \`/simulations/tracks\`. Sidebar filters: **format** (practice environment), role family, difficulty, duration. **Formats** (catalog; full runners not complete): **Code run** (submit/execute code on a server), **Dev workspace** (live multiplayer IDE + terminal), **Terminal lab** (shell-only ops/DevOps tasks), **Conversation** (AI interviewer dialogue). Tracks matching the user's resume role can sort first and show a "For you" badge (not a filter).
-   - **Code run** IDE: \`/simulations/ide/code-run\` — tabs + Monaco; file tree off by default. Judge runner not complete. AI Assistant panel available.
+   - **Code run** IDE: \`/simulations/ide/code-run\` — tabs + Monaco; file tree off by default. **Run** / **Run tests** on the tab bar (preview; judge not complete). AI Assistant panel available.
+   - **Dev workspace** IDE: \`/simulations/ide/workspace\` — multi-file collab IDE. **Run** / **Run tests** centered in the header (one-shot jobs). Interactive terminal is an SSH-like PTY over the collab WebSocket into the gVisor sandbox (\`npm run sandbox:up\`) — type \`ls\`, edit lines, Ctrl+C, etc. Shell does not put Run into a loading state. Live multiplayer + share links.
    - **Dev workspace** IDE: \`/simulations/ide/workspace\` — multi-file collab on \`@mockmatch/ide\`: auto-creates a durable workspace, live Yjs buffers, remote carets/selections/pointers, owner **Share** link (\`?id=\` + \`?share=\`). Same owner-must-be-in-room share rules as resume/cover letter. Terminal + AI panel available.
 6. **Question Bank** (\`/question-bank\`) — practice question library by domain/difficulty.
 

@@ -115,6 +115,11 @@ export type IdeLabels = {
   unsplit?: string
   splitMenu?: string
   copied?: string
+  /** Run active code in the host sandbox. */
+  run?: string
+  /** Run tests in the host sandbox. */
+  runTests?: string
+  runMenu?: string
 }
 
 /** Host chat content for the IDE AI panel (product-agnostic slot). */
@@ -209,6 +214,16 @@ export type IdeShellProps = {
     command: string,
     sessionId: string
   ) => string | string[] | void | Promise<string | string[] | void>
+  /**
+   * SSH-like PTY bridge. When `pty.active`, the terminal sends raw keystrokes
+   * and writes `terminalPtyFeed` (host owns collab WS `sandbox.pty.*`).
+   */
+  terminalPty?: {
+    active: boolean
+    onData: (data: string) => void
+    onResize?: (cols: number, rows: number) => void
+  } | null
+  terminalPtyFeed?: { seq: number; chunk: string } | null
 
   /**
    * Right AI assistant panel content. When provided, a toggle appears
@@ -229,4 +244,29 @@ export type IdeShellProps = {
    * Host owns useCollabRoom + Y.Doc; package wires Monaco presence + Y.Text.
    */
   collab?: IdeCollabProps | null
+
+  /**
+   * Host sandbox actions. When set, Run / Run tests appear on the tab bar
+   * (and Run menu) unless `runActionsPlacement` is `"none"`.
+   * Package owns chrome only — host owns docker/gVisor/judge (often via WS).
+   */
+  onRun?: () => void
+  onRunTests?: () => void
+  /** Disable Run while a sandbox job is in flight. */
+  runBusy?: boolean
+  /** Disable Run tests while a test job is in flight. */
+  runTestsBusy?: boolean
+  runDisabled?: boolean
+  runTestsDisabled?: boolean
+  /**
+   * Where to render Run chrome.
+   * - `"tabs"` (default) — tab bar + menubar
+   * - `"none"` — host renders its own buttons; shortcuts still work
+   */
+  runActionsPlacement?: "tabs" | "none"
+  /**
+   * Push text into the active terminal (e.g. sandbox.output from collab WS).
+   * Bump `seq` for each chunk so the same text can repeat.
+   */
+  terminalFeed?: { seq: number; chunk: string } | null
 }

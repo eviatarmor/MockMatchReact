@@ -4,6 +4,7 @@ import {
   ensureIdeFileYText,
   getIdeFileYText,
   languageFromFileName,
+  materializeIdeWorkspace,
   setIdeWorkspaceDocument,
   setIdeWorkspaceTitle,
   setIdeWorkspaceTree,
@@ -455,6 +456,54 @@ export function useCollabWorkspaceSession(seed: WorkspaceSessionSeed) {
     ]
   )
 
+  /**
+   * Flatten workspace files for sandbox WS.
+   * Prefer live Y.Text / materialize so peer edits are included.
+   */
+  const collectSandboxFiles = useCallback((): Record<string, string> => {
+    const out: Record<string, string> = {}
+    for (const [path, tab] of catalogRef.current.entries()) {
+      out[path] = tab.value
+    }
+    for (const tab of tabs) {
+      out[tab.id] = tab.value
+    }
+    if (collab.live) {
+      try {
+        const mat = materializeIdeWorkspace(ydoc)
+        for (const [path, file] of Object.entries(mat.document.files)) {
+          out[path] = file.content
+        }
+      } catch {
+        // fall back to catalog/tabs
+      }
+    }
+    return out
+  }, [tabs, collab.live, ydoc])
+
+  const runSandbox = useCallback(
+    (mode: "run" | "tests") => {
+      collab.sendSandboxRun({
+        mode,
+        entryPath: activeTabId,
+        files: collectSandboxFiles(),
+      })
+    },
+    [collab, activeTabId, collectSandboxFiles]
+  )
+
+  /** Open interactive SSH-like shell when terminal is shown / WS live. */
+  const openSandboxPty = useCallback(
+    (cols?: number, rows?: number) => {
+      collab.openSandboxPty({
+        files: collectSandboxFiles(),
+        cols,
+        rows,
+      })
+    },
+    [collab, collectSandboxFiles]
+  )
+
   const saveStatus =
     collab.status === "connecting"
       ? ("saving" as const)
@@ -500,6 +549,15 @@ export function useCollabWorkspaceSession(seed: WorkspaceSessionSeed) {
     permissions,
     saveStatus,
     ydoc,
+    runSandbox,
+    openSandboxPty,
+    sendSandboxPtyInput: collab.sendSandboxPtyInput,
+    sendSandboxPtyResize: collab.sendSandboxPtyResize,
+    closeSandboxPty: collab.closeSandboxPty,
+    sandboxStatus: collab.sandboxStatus,
+    sandboxFeed: collab.sandboxFeed,
+    ptyStatus: collab.ptyStatus,
+    ptyFeed: collab.ptyFeed,
   }
 }
 

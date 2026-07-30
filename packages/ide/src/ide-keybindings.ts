@@ -15,6 +15,8 @@ export type IdeKeyAction =
   | "splitDown"
   | "nextTab"
   | "prevTab"
+  | "run"
+  | "runTests"
   | "save"
   | "blockBrowser"
 
@@ -75,7 +77,25 @@ export function matchIdeKeybinding(
     return { action: "toggleFullscreen", preventDefault: true }
   }
 
+  // F5 — run (host sandbox)
+  if (!mod && !alt && !shift && e.key === "F5") {
+    return { action: "run", preventDefault: true }
+  }
+
   if (!mod || alt) return null
+
+  // Ctrl+Enter — run; Ctrl+Shift+Enter — run tests
+  // Don't steal from AI chat send or terminal line editing.
+  if (e.key === "Enter") {
+    if (isIdeTerminalTarget(e.target)) return null
+    if (isIdeAiPanelTarget(e.target) && isEditableField(e.target)) {
+      return null
+    }
+    return {
+      action: shift ? "runTests" : "run",
+      preventDefault: true,
+    }
+  }
 
   // Ctrl+` — terminal (Backquote)
   if (!shift && (key === "`" || e.code === "Backquote")) {

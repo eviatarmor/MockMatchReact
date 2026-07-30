@@ -1,34 +1,52 @@
 import { useTranslation } from "react-i18next"
 import { SquarePen, X } from "lucide-react"
+import type { AssistantChrome } from "@mockmatch/ai-chat"
 import { Button } from "@mockmatch/ui/button"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@mockmatch/ui/tooltip"
+import { cn } from "@/lib/utils"
 import { useAskPanel } from "../ask-context"
 
 type AskHeaderProps = {
+  readonly chrome?: AssistantChrome
   /** Override panel close (e.g. IDE AI slot). Defaults to AskProvider.closePanel. */
   readonly onClose?: () => void
   /** Override new-chat. Defaults to AskProvider.newChat. */
   readonly onNewChat?: () => void
 }
 
-export function AskHeader({ onClose, onNewChat }: AskHeaderProps = {}) {
+export function AskHeader({
+  chrome = "sidebar",
+  onClose,
+  onNewChat,
+}: AskHeaderProps = {}) {
   const { t } = useTranslation("ask")
   const { closePanel, newChat } = useAskPanel()
 
   const handleClose = onClose ?? closePanel
   const handleNewChat = onNewChat ?? newChat
+  const isSidebar = chrome === "sidebar"
 
   return (
-    <div className="flex h-14 shrink-0 items-center gap-1 border-b border-sidebar-border px-3">
+    <div
+      className={cn(
+        "flex h-14 shrink-0 items-center gap-1 border-b px-3",
+        isSidebar ? "border-sidebar-border" : "border-border"
+      )}
+    >
       <Button
         type="button"
         variant="ghost"
         size="sm"
-        className="cursor-pointer gap-1.5 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+        className={cn(
+          "cursor-pointer gap-1.5",
+          isSidebar
+            ? "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+            : "text-foreground hover:bg-muted hover:text-foreground"
+        )}
         onClick={handleNewChat}
       >
         <SquarePen className="size-3.5" />
@@ -44,7 +62,12 @@ export function AskHeader({ onClose, onNewChat }: AskHeaderProps = {}) {
               type="button"
               variant="ghost"
               size="icon-sm"
-              className="cursor-pointer text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+              className={cn(
+                "cursor-pointer",
+                isSidebar
+                  ? "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
               aria-label={t("close")}
               onClick={handleClose}
             />

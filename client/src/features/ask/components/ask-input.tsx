@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ArrowUp, Square } from "lucide-react"
-import { appendTranscript } from "@mockmatch/ai-chat"
+import { appendTranscript, type AssistantChrome } from "@mockmatch/ai-chat"
 import { SpeechInput } from "@mockmatch/ai-chat/ai-elements/speech-input"
 import { Button } from "@mockmatch/ui/button"
 import { Textarea } from "@mockmatch/ui/textarea"
@@ -15,6 +15,7 @@ type AskInputProps = {
   readonly isBusy: boolean
   /** Bumped on New chat / send so speech session state resets. */
   readonly resetKey?: string | number
+  readonly chrome?: AssistantChrome
   readonly className?: string
 }
 
@@ -25,11 +26,13 @@ export function AskInput({
   onStop,
   isBusy,
   resetKey = 0,
+  chrome = "sidebar",
   className,
 }: AskInputProps) {
   const { t, i18n } = useTranslation("ask")
   const [interim, setInterim] = useState("")
   const [isListening, setIsListening] = useState(false)
+  const isSidebar = chrome === "sidebar"
 
   const valueRef = useRef(value)
   valueRef.current = value
@@ -69,7 +72,14 @@ export function AskInput({
         if (canSend) onSubmit()
       }}
     >
-      <div className="relative rounded-2xl border border-sidebar-border bg-sidebar-accent/40 focus-within:border-sidebar-foreground/30 focus-within:ring-2 focus-within:ring-sidebar-foreground/15">
+      <div
+        className={cn(
+          "relative rounded-2xl border focus-within:ring-2",
+          isSidebar
+            ? "border-sidebar-border bg-sidebar-accent/40 focus-within:border-sidebar-foreground/30 focus-within:ring-sidebar-foreground/15"
+            : "border-border bg-muted/40 focus-within:border-foreground/30 focus-within:ring-foreground/15"
+        )}
+      >
         <Textarea
           value={displayValue}
           onChange={(e) => {
@@ -82,7 +92,12 @@ export function AskInput({
             isListening ? t("speech.placeholderListening") : t("placeholder")
           }
           rows={3}
-          className="min-h-[88px] max-h-48 resize-none border-0 bg-transparent px-4 py-4 pr-24 text-sm leading-relaxed text-sidebar-foreground shadow-none placeholder:text-sidebar-foreground/45 focus-visible:border-transparent focus-visible:ring-0 dark:bg-transparent"
+          className={cn(
+            "min-h-[88px] max-h-48 resize-none border-0 bg-transparent px-4 py-4 pr-24 text-sm leading-relaxed shadow-none focus-visible:border-transparent focus-visible:ring-0 dark:bg-transparent",
+            isSidebar
+              ? "text-sidebar-foreground placeholder:text-sidebar-foreground/45"
+              : "text-foreground placeholder:text-muted-foreground"
+          )}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault()
@@ -104,7 +119,9 @@ export function AskInput({
             className={cn(
               "size-8",
               !isListening &&
-                "bg-sidebar-accent text-sidebar-foreground hover:bg-sidebar-accent/80 hover:text-sidebar-foreground"
+                (isSidebar
+                  ? "bg-sidebar-accent text-sidebar-foreground hover:bg-sidebar-accent/80 hover:text-sidebar-foreground"
+                  : "bg-muted text-foreground hover:bg-muted/80 hover:text-foreground")
             )}
             onTranscriptionChange={handleFinalTranscript}
             onInterimChange={setInterim}
@@ -115,7 +132,12 @@ export function AskInput({
               type="button"
               size="icon-sm"
               variant="secondary"
-              className="size-8 cursor-pointer rounded-full bg-sidebar-accent text-sidebar-foreground hover:bg-sidebar-accent"
+              className={cn(
+                "size-8 cursor-pointer rounded-full",
+                isSidebar
+                  ? "bg-sidebar-accent text-sidebar-foreground hover:bg-sidebar-accent"
+                  : "bg-muted text-foreground hover:bg-muted"
+              )}
               aria-label={t("stop")}
               onClick={() => onStop?.()}
             >

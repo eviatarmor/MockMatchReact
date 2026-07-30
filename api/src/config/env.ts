@@ -56,6 +56,16 @@ const envSchema = z
       .int()
       .positive()
       .default(8_000),
+    /**
+     * Local IDE sandbox (gVisor). WS process `docker exec`s into this container.
+     * Empty name disables run (messages return a clear error).
+     */
+    SANDBOX_CONTAINER: z.string().default("mockmatch-sandbox"),
+    /**
+     * Host path bind-mounted at /workspace in the sandbox.
+     * Default: monorepo infra/sandbox/workspace (resolved in sandbox-runner).
+     */
+    SANDBOX_WORKSPACE_DIR: z.string().optional().default(""),
     /** LinkedIn OAuth (optional until portal + redirect wired). */
     LINKEDIN_CLIENT_ID: z.string().optional().default(""),
     LINKEDIN_CLIENT_SECRET: z.string().optional().default(""),

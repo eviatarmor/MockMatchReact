@@ -9,6 +9,8 @@ import type {
   CollabServerMessage,
   CollabEffectiveRole,
   CollabPermissions,
+  CollabSandboxStatus,
+  CollabPtyStatus,
 } from "./types"
 import type { SendCursorMeta } from "./use-collab-surface"
 
@@ -75,6 +77,34 @@ export function useCollabRoom({
   const [rev, setRev] = useState(0)
   /** Bumps only on peer doc.op — remount paper so live text always shows. */
   const [remoteEpoch, setRemoteEpoch] = useState(0)
+  /** Workspace sandbox Run / Run tests only (not the interactive shell). */
+  const [sandboxStatus, setSandboxStatus] =
+    useState<CollabSandboxStatus>("idle")
+  const [sandboxMode, setSandboxMode] = useState<"run" | "tests" | null>(null)
+  /** Monotonic terminal feed from sandbox.output / banners (Run/Tests). */
+  const [sandboxFeed, setSandboxFeed] = useState<{
+    seq: number
+    chunk: string
+  } | null>(null)
+  const sandboxFeedSeq = useRef(0)
+  const pushSandboxFeed = useCallback((chunk: string) => {
+    if (!chunk) return
+    sandboxFeedSeq.current += 1
+    setSandboxFeed({ seq: sandboxFeedSeq.current, chunk })
+  }, [])
+
+  /** Interactive PTY shell (SSH-like) — independent of Run busy state. */
+  const [ptyStatus, setPtyStatus] = useState<CollabPtyStatus>("closed")
+  const [ptyFeed, setPtyFeed] = useState<{
+    seq: number
+    chunk: string
+  } | null>(null)
+  const ptyFeedSeq = useRef(0)
+  const pushPtyFeed = useCallback((chunk: string) => {
+    if (!chunk) return
+    ptyFeedSeq.current += 1
+    setPtyFeed({ seq: ptyFeedSeq.current, chunk })
+  }, [])
 
   const wsRef = useRef<WebSocket | null>(null)
   const selfIdRef = useRef<string | null>(null)
@@ -312,6 +342,81 @@ export function useCollabRoom({
       return
     }
 
+    if (msg.type === "sandbox.started") {
+      // Only Run / Run tests drive the header busy spinner — never the shell.
+      if (msg.mode === "run" || msg.mode === "tests") {
+        setSandboxStatus("running")
+        setSandboxMode(msg.mode)
+        const who =
+          msg.userId === selfIdRef.current ? "You" : "Peer"
+        pushSandboxFeed(
+          `\r\n\x1b[36m[sandbox]\x1b[0m ${who} started ${msg.mode}: \x1b[33m${msg.command}\x1b[0m\r\n`
+        )
+      }
+      return
+    }
+
+    if (msg.type === "sandbox.output") {
+      const text =
+        msg.stream === "stderr"
+          ? `\x1b[31m${msg.chunk}\x1b[0m`
+          : msg.chunk
+      pushSandboxFeed(text.replace(/\r?\n/g, "\r\n"))
+      return
+    }
+
+    if (msg.type === "sandbox.finished") {
+      if (msg.mode === "run" || msg.mode === "tests" || !msg.mode) {
+        setSandboxStatus("idle")
+        setSandboxMode(null)
+        if (msg.error) {
+          pushSandboxFeed(
+            `\r\n\x1b[31m[sandbox]\x1b[0m ${msg.error}\r\n`
+          )
+        } else {
+          const code = msg.exitCode
+          const color = code === 0 ? "32" : "31"
+          pushSandboxFeed(
+            `\r\n\x1b[${color}m[sandbox]\x1b[0m exit ${code ?? "?"}\r\n`
+          )
+        }
+      }
+      return
+    }
+
+    if (msg.type === "sandbox.busy") {
+      pushSandboxFeed(
+        `\r\n\x1b[33m[sandbox]\x1b[0m ${msg.message}\r\n`
+      )
+      return
+    }
+
+    if (msg.type === "sandbox.pty.ready") {
+      setPtyStatus("open")
+      return
+    }
+
+    if (msg.type === "sandbox.pty.output") {
+      pushPtyFeed(msg.data)
+      return
+    }
+
+    if (msg.type === "sandbox.pty.exit") {
+      setPtyStatus("closed")
+      pushPtyFeed(
+        `\r\n\x1b[33m[shell exited ${msg.code ?? "?"}]\x1b[0m\r\n`
+      )
+      return
+    }
+
+    if (msg.type === "sandbox.pty.error") {
+      setPtyStatus("error")
+      pushPtyFeed(
+        `\r\n\x1b[31m[shell]\x1b[0m ${msg.message}\r\n`
+      )
+      return
+    }
+
     if (msg.type === "error") {
       if (msg.code === "room_full") {
         setStatus("room_full")
@@ -332,7 +437,7 @@ export function useCollabRoom({
       setStatus("error")
       setRoomError(msg.message)
     }
-  }, [settleOwnAck])
+  }, [settleOwnAck, pushSandboxFeed, pushPtyFeed])
 
   useEffect(() => {
     if (!enabled || !documentId) return
@@ -489,6 +594,89 @@ export function useCollabRoom({
     ws.send(JSON.stringify({ type: "presence.cursor", clear: true }))
   }, [])
 
+  /**
+   * Run / test in the gVisor sandbox via collab WS.
+   * Prefer passing latest `files` from the editor so peers share the same tree.
+   */
+  const sendSandboxRun = useCallback(
+    (opts: {
+      mode: "run" | "tests"
+      entryPath?: string
+      files?: Record<string, string>
+    }) => {
+      const ws = wsRef.current
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        pushSandboxFeed(
+          "\r\n\x1b[31m[sandbox]\x1b[0m Not connected to collaboration.\r\n"
+        )
+        return
+      }
+      if (sandboxStatus === "running") {
+        pushSandboxFeed(
+          "\r\n\x1b[33m[sandbox]\x1b[0m Already running.\r\n"
+        )
+        return
+      }
+      ws.send(
+        JSON.stringify({
+          type: "sandbox.run",
+          mode: opts.mode,
+          ...(opts.entryPath ? { entryPath: opts.entryPath } : {}),
+          ...(opts.files ? { files: opts.files } : {}),
+        })
+      )
+    },
+    [sandboxStatus, pushSandboxFeed]
+  )
+
+  /** Open long-lived interactive bash PTY in the sandbox. */
+  const openSandboxPty = useCallback(
+    (opts?: {
+      files?: Record<string, string>
+      cols?: number
+      rows?: number
+    }) => {
+      const ws = wsRef.current
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        pushPtyFeed(
+          "\r\n\x1b[31m[shell]\x1b[0m Not connected to collaboration.\r\n"
+        )
+        setPtyStatus("error")
+        return
+      }
+      setPtyStatus("connecting")
+      ws.send(
+        JSON.stringify({
+          type: "sandbox.pty.open",
+          cols: opts?.cols ?? 80,
+          rows: opts?.rows ?? 24,
+          ...(opts?.files ? { files: opts.files } : {}),
+        })
+      )
+    },
+    [pushPtyFeed]
+  )
+
+  const sendSandboxPtyInput = useCallback((data: string) => {
+    const ws = wsRef.current
+    if (!ws || ws.readyState !== WebSocket.OPEN || !data) return
+    ws.send(JSON.stringify({ type: "sandbox.pty.input", data }))
+  }, [])
+
+  const sendSandboxPtyResize = useCallback((cols: number, rows: number) => {
+    const ws = wsRef.current
+    if (!ws || ws.readyState !== WebSocket.OPEN) return
+    ws.send(JSON.stringify({ type: "sandbox.pty.resize", cols, rows }))
+  }, [])
+
+  const closeSandboxPty = useCallback(() => {
+    const ws = wsRef.current
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: "sandbox.pty.close" }))
+    }
+    setPtyStatus("closed")
+  }, [])
+
   return {
     status,
     /** "saving" while local ops in flight; "saved" after server echo settles. */
@@ -504,6 +692,16 @@ export function useCollabRoom({
     sendYUpdate,
     sendCursor,
     clearCursor,
+    sendSandboxRun,
+    openSandboxPty,
+    sendSandboxPtyInput,
+    sendSandboxPtyResize,
+    closeSandboxPty,
+    sandboxStatus,
+    sandboxMode,
+    sandboxFeed,
+    ptyStatus,
+    ptyFeed,
     /** True once room snapshot received (safe to broadcast edits). */
     live: status === "synced",
     connected: status === "synced" || status === "connecting",

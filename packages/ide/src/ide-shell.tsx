@@ -105,6 +105,8 @@ export function IdeShell({
   terminalWelcome,
   terminalCwd,
   onTerminalCommand,
+  terminalPty = null,
+  terminalPtyFeed = null,
   aiPanel,
   showAi: showAiControlled,
   defaultShowAi = false,
@@ -114,7 +116,16 @@ export function IdeShell({
   aiMaxWidth = 560,
   aiWidthStorageKey = "mockmatch.ide.ai-width",
   collab,
+  onRun,
+  onRunTests,
+  runBusy = false,
+  runTestsBusy = false,
+  runDisabled = false,
+  runTestsDisabled = false,
+  runActionsPlacement = "tabs",
+  terminalFeed = null,
 }: IdeShellProps) {
+  const showRunChrome = runActionsPlacement !== "none"
   const rootRef = useRef<HTMLDivElement>(null)
   const hasTree = Boolean(tree && tree.length > 0)
   const canToggleTree = hasTree && (treeToggleable ?? true)
@@ -194,6 +205,11 @@ export function IdeShell({
     },
     [showTerminalControlled, onShowTerminalChange]
   )
+
+  // Open bottom terminal when host pushes sandbox / runner output
+  useEffect(() => {
+    if (terminalFeed) setShowTerminal(true)
+  }, [terminalFeed, setShowTerminal])
 
   const [fullscreenInternal, setFullscreenInternal] = useState(defaultFullscreen)
   const fullscreen =
@@ -533,6 +549,10 @@ export function IdeShell({
     splitDown: () => {},
     nextTab: () => {},
     prevTab: () => {},
+    run: () => {},
+    runTests: () => {},
+    hasRun: false,
+    hasRunTests: false,
   })
 
   keyActionsRef.current = {
@@ -575,6 +595,16 @@ export function IdeShell({
     },
     nextTab: () => cycleTab(1),
     prevTab: () => cycleTab(-1),
+    run: () => {
+      if (!onRun || runDisabled || runBusy) return
+      onRun()
+    },
+    runTests: () => {
+      if (!onRunTests || runTestsDisabled || runTestsBusy) return
+      onRunTests()
+    },
+    hasRun: Boolean(onRun),
+    hasRunTests: Boolean(onRunTests),
   }
 
   useEffect(() => {
@@ -602,6 +632,11 @@ export function IdeShell({
 
       const match = matchIdeKeybinding(e)
       if (!match) return
+      // Don't capture F5 / Ctrl+Enter when host never wired sandbox actions.
+      if (match.action === "run" && !keyActionsRef.current.hasRun) return
+      if (match.action === "runTests" && !keyActionsRef.current.hasRunTests) {
+        return
+      }
 
       if (match.preventDefault) {
         e.preventDefault()
@@ -645,6 +680,12 @@ export function IdeShell({
           break
         case "prevTab":
           actions.prevTab()
+          break
+        case "run":
+          actions.run()
+          break
+        case "runTests":
+          actions.runTests()
           break
         case "save":
         case "blockBrowser":
@@ -690,6 +731,12 @@ export function IdeShell({
         }}
         onUnsplit={isMultiPane ? handleUnsplit : undefined}
         isSplit={isMultiPane}
+        onRun={showRunChrome ? onRun : undefined}
+        onRunTests={showRunChrome ? onRunTests : undefined}
+        runBusy={runBusy}
+        runTestsBusy={runTestsBusy}
+        runDisabled={runDisabled}
+        runTestsDisabled={runTestsDisabled}
         labels={labels}
       />
     ) : null)
@@ -813,6 +860,12 @@ export function IdeShell({
             }
             fullscreen={fullscreen}
             onToggleFullscreen={() => void toggleFullscreen()}
+            onRun={showRunChrome ? onRun : undefined}
+            onRunTests={showRunChrome ? onRunTests : undefined}
+            runBusy={runBusy}
+            runTestsBusy={runTestsBusy}
+            runDisabled={runDisabled}
+            runTestsDisabled={runTestsDisabled}
             theme={monacoTheme}
             settings={settings}
             editorOptions={editorOptions}
@@ -834,12 +887,16 @@ export function IdeShell({
             onCommand={onTerminalCommand}
             focusCwd={terminalFocusCwd}
             onFocusCwdConsumed={() => setTerminalFocusCwd(null)}
+            feed={terminalFeed}
+            pty={terminalPty}
+            ptyFeed={terminalPtyFeed}
           />
         </div>
 
         {hasAiPanel ? (
           <IdeAiPanel
             open={showAi}
+            colorScheme={termColorScheme}
             defaultWidth={aiDefaultWidth}
             minWidth={aiMinWidth}
             maxWidth={aiMaxWidth}

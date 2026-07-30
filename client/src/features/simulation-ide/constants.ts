@@ -76,7 +76,10 @@ const WORKSPACE_TREE_RAW: IdeTreeNode[] = [
       {
         id: "src/lib",
         name: "lib",
-        children: [{ id: "src/lib/utils.ts", name: "utils.ts" }],
+        children: [
+          { id: "src/lib/utils.ts", name: "utils.ts" },
+          { id: "src/lib/utils.test.ts", name: "utils.test.ts" },
+        ],
       },
     ],
   },
@@ -96,7 +99,7 @@ export const WORKSPACE_TABS: IdeTab[] = [
 
 const app = createApp()
 app.listen(3000, () => {
-  console.log("dev workspace preview — terminal/WS not wired yet")
+  console.log("workspace ready — Run uses the collab WS + sandbox")
 })
 `,
   },
@@ -122,6 +125,28 @@ app.listen(3000, () => {
   if (value == null) throw new Error("Expected value")
   return value
 }
+
+export function add(a: number, b: number): number {
+  return a + b
+}
+`,
+  },
+  {
+    id: "src/lib/utils.test.ts",
+    title: "utils.test.ts",
+    language: "typescript",
+    value: `import { describe, it } from "node:test"
+import assert from "node:assert/strict"
+import { add, assertDefined } from "./utils.ts"
+
+describe("utils", () => {
+  it("adds", () => {
+    assert.equal(add(2, 3), 5)
+  })
+  it("assertDefined", () => {
+    assert.equal(assertDefined(1), 1)
+  })
+})
 `,
   },
   {
@@ -133,7 +158,8 @@ app.listen(3000, () => {
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node --experimental-strip-types src/index.ts"
+    "start": "node --experimental-strip-types src/index.ts",
+    "test": "node --experimental-strip-types --test src/lib/utils.test.ts"
   }
 }
 `,
@@ -142,11 +168,9 @@ app.listen(3000, () => {
     id: "README.md",
     title: "README.md",
     language: "markdown",
-    value: `# Dev workspace preview
+    value: `# Dev workspace
 
-File tree + Monaco editor shell for MockMatch **workspace** format sessions.
-
-Live terminal and collab WS are not connected yet.
+Multiplayer IDE. **Run** / **Run tests** go through the collab WebSocket into the local gVisor sandbox (\`npm run sandbox:up\`).
 `,
   },
 ]

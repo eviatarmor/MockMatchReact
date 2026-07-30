@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next"
+import type { AssistantChrome } from "@mockmatch/ai-chat"
 import { cn } from "@/lib/utils"
 import { useAskPanel } from "../ask-context"
 import { useAskChat } from "../hooks/use-ask-chat"
@@ -12,6 +13,11 @@ type AskChatSurfaceProps = {
   readonly onClose?: () => void
   /** Suggestion marquee above the input. Default true (dashboard Ask). */
   readonly showSuggestions?: boolean
+  /**
+   * `sidebar` — always-dark dashboard chrome.
+   * `surface` — app/IDE theme tokens (use inside IdeAiPanel).
+   */
+  readonly chrome?: AssistantChrome
   readonly className?: string
 }
 
@@ -22,6 +28,7 @@ type AskChatSurfaceProps = {
 export function AskChatSurface({
   onClose,
   showSuggestions: showSuggestionsProp = true,
+  chrome = "sidebar",
   className,
 }: AskChatSurfaceProps) {
   const { t } = useTranslation("ask")
@@ -41,22 +48,43 @@ export function AskChatSurface({
 
   const inputResetKey = `${chatResetKey}:${messages.length}`
   const showSuggestions = showSuggestionsProp && showSuggestionsFromChat
+  const isSidebar = chrome === "sidebar"
 
   return (
     <div
       className={cn(
-        "flex h-full min-h-0 flex-col bg-sidebar text-sidebar-foreground",
+        "flex h-full min-h-0 flex-col",
+        // Sidebar chrome is always near-black; scope `.dark` so Streamdown/Shiki
+        // use dark tokens even when the app shell is light.
+        isSidebar
+          ? "bg-sidebar text-sidebar-foreground dark"
+          : "bg-background text-foreground",
         className
       )}
       aria-label={t("title")}
       data-slot="ask-chat-surface"
+      data-chrome={chrome}
     >
-      <AskHeader onClose={onClose ?? closePanel} onNewChat={newChat} />
-      <AskMessages messages={messages} status={status} error={error} />
+      <AskHeader
+        chrome={chrome}
+        onClose={onClose ?? closePanel}
+        onNewChat={newChat}
+      />
+      <AskMessages
+        messages={messages}
+        status={status}
+        error={error}
+        chrome={chrome}
+      />
       {showSuggestions ? (
-        <AskSuggestions onSelect={sendText} disabled={isBusy} />
+        <AskSuggestions
+          onSelect={sendText}
+          disabled={isBusy}
+          chrome={chrome}
+        />
       ) : null}
       <AskInput
+        chrome={chrome}
         value={input}
         onChange={setInput}
         onSubmit={() => void handleSubmit()}

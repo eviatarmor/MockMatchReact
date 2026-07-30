@@ -66,6 +66,12 @@ export type IdeEditorAreaProps = {
   onToggleAi?: () => void
   fullscreen?: boolean
   onToggleFullscreen?: () => void
+  onRun?: () => void
+  onRunTests?: () => void
+  runBusy?: boolean
+  runTestsBusy?: boolean
+  runDisabled?: boolean
+  runTestsDisabled?: boolean
   theme: string
   settings: IdeSettings
   editorOptions?: MonacoEditorOptions
@@ -110,6 +116,12 @@ function EditorGroupPane({
   onToggleAi,
   fullscreen,
   onToggleFullscreen,
+  onRun,
+  onRunTests,
+  runBusy,
+  runTestsBusy,
+  runDisabled,
+  runTestsDisabled,
   theme,
   settings,
   editorOptions,
@@ -144,6 +156,12 @@ function EditorGroupPane({
   onToggleAi?: () => void
   fullscreen?: boolean
   onToggleFullscreen?: () => void
+  onRun?: () => void
+  onRunTests?: () => void
+  runBusy?: boolean
+  runTestsBusy?: boolean
+  runDisabled?: boolean
+  runTestsDisabled?: boolean
   theme: string
   settings: IdeSettings
   editorOptions?: MonacoEditorOptions
@@ -188,6 +206,12 @@ function EditorGroupPane({
         onToggleAi={showChrome ? onToggleAi : undefined}
         fullscreen={showChrome ? fullscreen : undefined}
         onToggleFullscreen={showChrome ? onToggleFullscreen : undefined}
+        onRun={showChrome ? onRun : undefined}
+        onRunTests={showChrome ? onRunTests : undefined}
+        runBusy={runBusy}
+        runTestsBusy={runTestsBusy}
+        runDisabled={runDisabled}
+        runTestsDisabled={runTestsDisabled}
         labels={labels}
       />
       <div className="min-h-0 flex-1">
@@ -252,6 +276,12 @@ function LayoutNodeView({
   onToggleAi,
   fullscreen,
   onToggleFullscreen,
+  onRun,
+  onRunTests,
+  runBusy,
+  runTestsBusy,
+  runDisabled,
+  runTestsDisabled,
   theme,
   settings,
   editorOptions,
@@ -286,6 +316,12 @@ function LayoutNodeView({
   onToggleAi?: () => void
   fullscreen?: boolean
   onToggleFullscreen?: () => void
+  onRun?: () => void
+  onRunTests?: () => void
+  runBusy?: boolean
+  runTestsBusy?: boolean
+  runDisabled?: boolean
+  runTestsDisabled?: boolean
   theme: string
   settings: IdeSettings
   editorOptions?: MonacoEditorOptions
@@ -323,6 +359,12 @@ function LayoutNodeView({
         onToggleAi={onToggleAi}
         fullscreen={fullscreen}
         onToggleFullscreen={onToggleFullscreen}
+        onRun={onRun}
+        onRunTests={onRunTests}
+        runBusy={runBusy}
+        runTestsBusy={runTestsBusy}
+        runDisabled={runDisabled}
+        runTestsDisabled={runTestsDisabled}
         theme={theme}
         settings={settings}
         editorOptions={editorOptions}
@@ -378,6 +420,12 @@ function LayoutNodeView({
                 onToggleAi={onToggleAi}
                 fullscreen={fullscreen}
                 onToggleFullscreen={onToggleFullscreen}
+                onRun={onRun}
+                onRunTests={onRunTests}
+                runBusy={runBusy}
+                runTestsBusy={runTestsBusy}
+                runDisabled={runDisabled}
+                runTestsDisabled={runTestsDisabled}
                 theme={theme}
                 settings={settings}
                 editorOptions={editorOptions}
@@ -415,6 +463,12 @@ export function IdeEditorArea({
   onToggleAi,
   fullscreen,
   onToggleFullscreen,
+  onRun,
+  onRunTests,
+  runBusy,
+  runTestsBusy,
+  runDisabled,
+  runTestsDisabled,
   theme,
   settings,
   editorOptions,
@@ -452,6 +506,12 @@ export function IdeEditorArea({
         onToggleAi={onToggleAi}
         fullscreen={fullscreen}
         onToggleFullscreen={onToggleFullscreen}
+        onRun={onRun}
+        onRunTests={onRunTests}
+        runBusy={runBusy}
+        runTestsBusy={runTestsBusy}
+        runDisabled={runDisabled}
+        runTestsDisabled={runTestsDisabled}
         theme={theme}
         settings={settings}
         editorOptions={editorOptions}

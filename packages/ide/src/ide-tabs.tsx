@@ -1,9 +1,12 @@
 import {
   Columns2,
   FileCode2,
+  FlaskConical,
+  Loader2,
   Maximize2,
   Minimize2,
   Pin,
+  Play,
   Rows2,
   Sparkles,
   SquareSplitHorizontal,
@@ -57,6 +60,14 @@ export type IdeTabsProps = {
   onToggleAi?: () => void
   fullscreen?: boolean
   onToggleFullscreen?: () => void
+  onRun?: () => void
+  onRunTests?: () => void
+  runBusy?: boolean
+  runTestsBusy?: boolean
+  runDisabled?: boolean
+  runTestsDisabled?: boolean
+  /** When false, host places Run chrome elsewhere. */
+  showRunActions?: boolean
   labels?: IdeLabels
   className?: string
 }
@@ -80,10 +91,19 @@ export function IdeTabs({
   onToggleAi,
   fullscreen,
   onToggleFullscreen,
+  onRun,
+  onRunTests,
+  runBusy = false,
+  runTestsBusy = false,
+  runDisabled = false,
+  runTestsDisabled = false,
+  showRunActions = true,
   labels,
   className,
 }: IdeTabsProps) {
   const value = activeTabId ?? tabs[0]?.id
+  const hasRunActions =
+    showRunActions && Boolean(onRun || onRunTests)
 
   const ordered = [
     ...tabs.filter((t) => t.pinned),
@@ -287,6 +307,74 @@ export function IdeTabs({
       </div>
 
       <div className="flex shrink-0 items-center gap-0.5 border-l border-border/70 px-1">
+        {hasRunActions ? (
+          <>
+            {onRun ? (
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="default"
+                      size="sm"
+                      className="h-7 gap-1 px-2 text-xs font-medium"
+                      aria-label={labels?.run ?? "Run"}
+                      disabled={runDisabled || runBusy}
+                      onClick={onRun}
+                    />
+                  }
+                >
+                  {runBusy ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Play className="size-3.5 fill-current" />
+                  )}
+                  <span className="hidden sm:inline">
+                    {labels?.run ?? "Run"}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  {labels?.run ?? "Run"}
+                  <span className="ml-1.5 opacity-70">F5</span>
+                </TooltipContent>
+              </Tooltip>
+            ) : null}
+            {onRunTests ? (
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      className="h-7 gap-1 px-2 text-xs font-medium"
+                      aria-label={labels?.runTests ?? "Run tests"}
+                      disabled={runTestsDisabled || runTestsBusy}
+                      onClick={onRunTests}
+                    />
+                  }
+                >
+                  {runTestsBusy ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <FlaskConical className="size-3.5" />
+                  )}
+                  <span className="hidden sm:inline">
+                    {labels?.runTests ?? "Run tests"}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  {labels?.runTests ?? "Run tests"}
+                  <span className="ml-1.5 opacity-70">Ctrl+Shift+Enter</span>
+                </TooltipContent>
+              </Tooltip>
+            ) : null}
+            <div
+              className="mx-0.5 h-4 w-px shrink-0 bg-border"
+              aria-hidden
+            />
+          </>
+        ) : null}
         {onSplit ? (
           <DropdownMenu>
             <Tooltip>
