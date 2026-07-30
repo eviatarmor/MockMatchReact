@@ -85,8 +85,11 @@ export function useCollabYDoc({
       try {
         applyRemoteYUpdate(ydoc, decodeB64(updateB64))
         hasRemoteStateRef.current = true
-      } catch {
-        // ignore corrupt updates
+        // Immediate materialize (don't wait only for observer + rAF)
+        onRemoteMaterializeRef.current(materializeCollabYDoc(ydoc))
+      } catch (err) {
+        // Corrupt / empty update — leave hasRemoteState false so safety seed can run
+        console.warn("[collab] failed to apply remote Yjs update", err)
       }
     },
     getFullStateB64: () => encodeYUpdate(encodeFullYState(ydoc)),

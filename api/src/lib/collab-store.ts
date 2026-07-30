@@ -192,6 +192,31 @@ export async function ensureYjsState(
   return state
 }
 
+/** Serialize concurrent Yjs applies per room (load→apply→persist is not atomic). */
+const yjsApplyChains = new Map<string, Promise<unknown>>()
+
+async function withYjsApplyLock<T>(
+  kind: DocumentKind,
+  id: string,
+  fn: () => Promise<T>
+): Promise<T> {
+  const key = `${kind}:${id}`
+  const prev = yjsApplyChains.get(key) ?? Promise.resolve()
+  let release!: () => void
+  const gate = new Promise<void>((r) => {
+    release = r
+  })
+  const chained = prev.then(() => gate)
+  yjsApplyChains.set(key, chained)
+  await prev
+  try {
+    return await fn()
+  } finally {
+    release()
+    if (yjsApplyChains.get(key) === chained) yjsApplyChains.delete(key)
+  }
+}
+
 /**
  * Apply a client Yjs update, persist binary + JSON snapshot for Postgres flush.
  * Returns updated rev + full state encoding for late joiners (not sent every time).
@@ -204,55 +229,57 @@ export async function applyYjsUpdate(
   /** When true (edit role), keep prior templateId/style — content only. */
   lockDesign = false
 ): Promise<CollabDocSnapshot | null> {
-  const current = await getSnapshot(kind, id)
-  if (!current) return null
+  return withYjsApplyLock(kind, id, async () => {
+    const current = await getSnapshot(kind, id)
+    if (!current) return null
 
-  const ydoc = await loadYDoc(kind, id)
-  // Empty ydoc (no prior binary) — seed from JSON first
-  if (ydoc.getMap(COLLAB_Y_ROOT).size === 0) {
-    ydoc.transact(() => {
-      const root = ydoc.getMap(COLLAB_Y_ROOT)
-      root.set("title", current.title)
-      root.set("templateId", current.templateId)
-      root.set("style", jsonToY(current.style ?? {}))
-      root.set("document", jsonToY(current.document ?? {}))
-    })
-  }
+    const ydoc = await loadYDoc(kind, id)
+    // Empty ydoc (no prior binary) — seed from JSON first
+    if (ydoc.getMap(COLLAB_Y_ROOT).size === 0) {
+      ydoc.transact(() => {
+        const root = ydoc.getMap(COLLAB_Y_ROOT)
+        root.set("title", current.title)
+        root.set("templateId", current.templateId)
+        root.set("style", jsonToY(current.style ?? {}))
+        root.set("document", jsonToY(current.document ?? {}))
+      })
+    }
 
-  Y.applyUpdate(ydoc, update)
+    Y.applyUpdate(ydoc, update)
 
-  if (lockDesign) {
-    ydoc.transact(() => {
-      const root = ydoc.getMap(COLLAB_Y_ROOT)
-      root.set("templateId", current.templateId)
-      root.set("style", jsonToY(current.style ?? {}))
-    })
-  }
+    if (lockDesign) {
+      ydoc.transact(() => {
+        const root = ydoc.getMap(COLLAB_Y_ROOT)
+        root.set("templateId", current.templateId)
+        root.set("style", jsonToY(current.style ?? {}))
+      })
+    }
 
-  await persistYDoc(kind, id, ydoc)
+    await persistYDoc(kind, id, ydoc)
 
-  const mat = materializeYDoc(ydoc)
-  const snapshot: CollabDocSnapshot = {
-    ...current,
-    rev: current.rev + 1,
-    title: mat.title || current.title,
-    templateId: lockDesign
-      ? current.templateId
-      : mat.templateId || current.templateId,
-    style: lockDesign ? current.style : (mat.style ?? current.style),
-    document: mat.document ?? current.document,
-    updatedAt: new Date().toISOString(),
-    lastEditorUserId: actorUserId ?? current.lastEditorUserId,
-  }
+    const mat = materializeYDoc(ydoc)
+    const snapshot: CollabDocSnapshot = {
+      ...current,
+      rev: current.rev + 1,
+      title: mat.title || current.title,
+      templateId: lockDesign
+        ? current.templateId
+        : mat.templateId || current.templateId,
+      style: lockDesign ? current.style : (mat.style ?? current.style),
+      document: mat.document ?? current.document,
+      updatedAt: new Date().toISOString(),
+      lastEditorUserId: actorUserId ?? current.lastEditorUserId,
+    }
 
-  const redis = getRedis()
-  await redis
-    .pipeline()
-    .set(docKey(kind, id), JSON.stringify(snapshot), "EX", ROOM_TTL_SECONDS)
-    .set(dirtyKey(kind, id), "1", "EX", ROOM_TTL_SECONDS)
-    .exec()
+    const redis = getRedis()
+    await redis
+      .pipeline()
+      .set(docKey(kind, id), JSON.stringify(snapshot), "EX", ROOM_TTL_SECONDS)
+      .set(dirtyKey(kind, id), "1", "EX", ROOM_TTL_SECONDS)
+      .exec()
 
-  return snapshot
+    return snapshot
+  })
 }
 
 export function encodeYUpdateBase64(update: Uint8Array): string {

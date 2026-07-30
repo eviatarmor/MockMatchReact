@@ -5,7 +5,6 @@ import {
   getIdeFileYText,
   languageFromFileName,
   materializeIdeWorkspace,
-  setIdeWorkspaceDocument,
   setIdeWorkspaceTitle,
   setIdeWorkspaceTree,
 } from "@mockmatch/ide"
@@ -112,6 +111,10 @@ export function useCollabWorkspaceSession(seed: WorkspaceSessionSeed) {
   })
 
   const lastSnapRef = useRef<CollabYSnapshot | null>(null)
+  const applyRemoteUpdateRef = useRef(yjs.applyRemoteUpdate)
+  applyRemoteUpdateRef.current = yjs.applyRemoteUpdate
+  const seedFromSnapshotRef = useRef(yjs.seedFromSnapshot)
+  seedFromSnapshotRef.current = yjs.seedFromSnapshot
 
   const onSnapshot = useCallback(
     (snap: {
@@ -121,6 +124,7 @@ export function useCollabWorkspaceSession(seed: WorkspaceSessionSeed) {
       style: Record<string, unknown>
       document: unknown
     }) => {
+      // React only — Y.Doc must come from server yjs.sync (shared CRDT identity).
       lastSnapRef.current = {
         title: snap.title,
         templateId: snap.templateId,
@@ -134,26 +138,36 @@ export function useCollabWorkspaceSession(seed: WorkspaceSessionSeed) {
     [applyExternalDocument, seed.title]
   )
 
+  const onYjsSync = useCallback((updateB64: string) => {
+    applyRemoteUpdateRef.current(updateB64)
+  }, [])
+
+  const onYjsUpdate = useCallback((updateB64: string) => {
+    applyRemoteUpdateRef.current(updateB64)
+  }, [])
+
   const collab = useCollabRoom({
     kind: "workspace",
     documentId: seed.id,
     shareToken: seed.shareToken,
     onSnapshot,
-    onYjsSync: (u) => yjs.applyRemoteUpdate(u),
-    onYjsUpdate: (u) => yjs.applyRemoteUpdate(u),
+    onYjsSync,
+    onYjsUpdate,
   })
 
   sendYUpdateRef.current = collab.sendYUpdate
   const permissions: CollabPermissions = collab.permissions
   const ydoc = yjs.ydoc
 
-  // Safety seed if yjs.sync never arrives
+  // Safety: if server never sent yjs.sync but room is live, seed once from snapshot
+  // with REMOTE origin so hasRemoteState allows broadcast. Never seed with local
+  // setIdeWorkspaceDocument — that forks CRDT identity and typing never lands on peers.
   useEffect(() => {
     if (!collab.live || !lastSnapRef.current) return
     const root = ydoc.getMap("root")
     if (root.size > 0) return
-    yjs.seedFromSnapshot(lastSnapRef.current)
-  }, [collab.live, ydoc, yjs])
+    seedFromSnapshotRef.current(lastSnapRef.current)
+  }, [collab.live, ydoc])
 
   const setTitle = useCallback(
     (name: string) => {
@@ -513,15 +527,6 @@ export function useCollabWorkspaceSession(seed: WorkspaceSessionSeed) {
           ? collab.docSaveStatus
           : soloSaveStatus
 
-  // Seed Y from local if room live and empty after snapshot applied
-  useEffect(() => {
-    if (!collab.live) return
-    const root = ydoc.getMap("root")
-    if (root.size > 0) return
-    setIdeWorkspaceDocument(ydoc, catalogToDocument(treeRef.current, catalogRef.current))
-    setIdeWorkspaceTitle(ydoc, title)
-  }, [collab.live, ydoc, title])
-
   return {
     title,
     setTitle,
@@ -546,6 +551,8 @@ export function useCollabWorkspaceSession(seed: WorkspaceSessionSeed) {
     onRenameNode,
     collab,
     collabBag,
+    /** Alias used by simulation-ide-page */
+    collabProps: collabBag,
     permissions,
     saveStatus,
     ydoc,

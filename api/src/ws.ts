@@ -524,12 +524,18 @@ async function handleMessage(state: ClientState, raw: string): Promise<void> {
       return
     }
 
-    await fanout(kind, documentId, {
-      type: "yjs.update",
-      update: raw,
-      rev: snapshot.rev,
-      userId,
-    })
+    // Exclude sender — they already applied locally; avoids self-echo races
+    await fanout(
+      kind,
+      documentId,
+      {
+        type: "yjs.update",
+        update: raw,
+        rev: snapshot.rev,
+        userId,
+      },
+      userId
+    )
     void scheduleCollabFlush(kind, documentId)
     return
   }

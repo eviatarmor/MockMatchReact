@@ -2,6 +2,7 @@ import * as Y from "yjs"
 import {
   COLLAB_Y_ROOT,
   Y_ORIGIN_LOCAL,
+  Y_ORIGIN_REMOTE,
   jsonToY,
   mergeJsonIntoY,
   yToJson,
@@ -92,12 +93,13 @@ export function getIdeFileYText(
   let content = entry.get("content")
   if (content instanceof Y.Text) return content
   if (typeof content === "string") {
-    // Upgrade plain string to Y.Text once
+    // Upgrade plain string to Y.Text once. Use REMOTE origin so we do not
+    // broadcast a structure fork before peers share the same CRDT tree.
     ydoc.transact(() => {
       const t = new Y.Text()
       if (content) t.insert(0, content as string)
       entry.set("content", t)
-    }, Y_ORIGIN_LOCAL)
+    }, Y_ORIGIN_REMOTE)
     content = entry.get("content")
     return content instanceof Y.Text ? content : null
   }
