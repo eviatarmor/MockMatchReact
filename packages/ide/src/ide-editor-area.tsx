@@ -53,6 +53,7 @@ export type IdeEditorAreaProps = {
   onTabCopyPath?: (tabId: string) => void
   onTabCopyRelativePath?: (tabId: string) => void
   onTabReveal?: (tabId: string) => void
+  tabsClosable?: boolean
   onSplit?: (
     direction: IdeSplitDirection,
     tabId: string,
@@ -106,6 +107,7 @@ function EditorGroupPane({
   onTabCopyPath,
   onTabCopyRelativePath,
   onTabReveal,
+  tabsClosable = true,
   onSplit,
   onUnsplit,
   isSplit,
@@ -142,6 +144,7 @@ function EditorGroupPane({
   onTabCopyPath?: (tabId: string) => void
   onTabCopyRelativePath?: (tabId: string) => void
   onTabReveal?: (tabId: string) => void
+  tabsClosable?: boolean
   onSplit?: (
     direction: IdeSplitDirection,
     tabId: string,
@@ -193,6 +196,7 @@ function EditorGroupPane({
         onTabCopyPath={onTabCopyPath}
         onTabCopyRelativePath={onTabCopyRelativePath}
         onTabReveal={onTabReveal}
+        tabsClosable={tabsClosable}
         onSplit={
           onSplit
             ? (dir, tabId) => onSplit(dir, tabId, groupId)
@@ -268,6 +272,7 @@ function LayoutNodeView({
   onTabCopyPath,
   onTabCopyRelativePath,
   onTabReveal,
+  tabsClosable = true,
   onSplit,
   onUnsplit,
   showTerminal,
@@ -304,6 +309,7 @@ function LayoutNodeView({
   onTabCopyPath?: (tabId: string) => void
   onTabCopyRelativePath?: (tabId: string) => void
   onTabReveal?: (tabId: string) => void
+  tabsClosable?: boolean
   onSplit?: (
     direction: IdeSplitDirection,
     tabId: string,
@@ -349,6 +355,7 @@ function LayoutNodeView({
         onTabCopyPath={onTabCopyPath}
         onTabCopyRelativePath={onTabCopyRelativePath}
         onTabReveal={onTabReveal}
+        tabsClosable={tabsClosable}
         onSplit={onSplit}
         onUnsplit={onUnsplit}
         isSplit={isMulti}
@@ -412,6 +419,7 @@ function LayoutNodeView({
                 onTabCopyPath={onTabCopyPath}
                 onTabCopyRelativePath={onTabCopyRelativePath}
                 onTabReveal={onTabReveal}
+                tabsClosable={tabsClosable}
                 onSplit={onSplit}
                 onUnsplit={onUnsplit}
                 showTerminal={showTerminal}
@@ -455,6 +463,7 @@ export function IdeEditorArea({
   onTabCopyPath,
   onTabCopyRelativePath,
   onTabReveal,
+  tabsClosable = true,
   onSplit,
   onUnsplit,
   showTerminal,
@@ -498,6 +507,7 @@ export function IdeEditorArea({
         onTabCopyPath={onTabCopyPath}
         onTabCopyRelativePath={onTabCopyRelativePath}
         onTabReveal={onTabReveal}
+        tabsClosable={tabsClosable}
         onSplit={onSplit}
         onUnsplit={onUnsplit}
         showTerminal={showTerminal}

@@ -1,8 +1,10 @@
 import { AlignJustify, Clock, Sparkles } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
 import { Button } from "@mockmatch/ui/button"
 import { Badge } from "@mockmatch/ui/badge"
 import { resolveIcon } from "@/lib/icon-map"
+import { idePathForTrackId } from "@/features/simulation-ide/constants"
 import type { InterviewTrack, DifficultyLevel } from "../types"
 
 function difficultyVariant(level: DifficultyLevel): "outline" | "secondary" {
@@ -16,7 +18,9 @@ interface SimulationTrackCardProps {
 
 export function SimulationTrackCard({ track, recommended = false }: SimulationTrackCardProps) {
   const { t } = useTranslation("common")
+  const navigate = useNavigate()
   const Icon = resolveIcon(track.iconName, AlignJustify)
+  const idePath = idePathForTrackId(track.id)
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border bg-card p-4 shadow-sm">
@@ -59,7 +63,14 @@ export function SimulationTrackCard({ track, recommended = false }: SimulationTr
         </span>
       </div>
 
-      <Button variant="default" className="h-8 w-full gap-2 cursor-pointer">
+      <Button
+        variant="default"
+        className="h-8 w-full gap-2 cursor-pointer"
+        disabled={!idePath}
+        onClick={() => {
+          if (idePath) navigate(idePath)
+        }}
+      >
         {t("simulations.startPractice")}
       </Button>
     </div>

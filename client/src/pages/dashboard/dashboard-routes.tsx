@@ -58,7 +58,14 @@ export function dashboardRoutes() {
         <Route path="cover-letters/:letterId" element={<CoverLetterEditorPage />} />
         <Route path="resume-lab/templates" element={<ResumeTemplatesPage />} />
         <Route path="simulations/tracks" element={<SimulationTracksPage />} />
-        <Route path="simulations/ide/:format" element={<SimulationIdePage />} />
+        <Route
+          path="simulations/code-run/:format"
+          element={<SimulationIdePage />}
+        />
+        <Route
+          path="simulations/workspace"
+          element={<SimulationIdePage />}
+        />
         <Route path="resumes/:resumeId" element={<ResumeEditorPage />} />
         {DASHBOARD_ROUTES.map(({ path, titleKey }) => {
           if (path === "resume-lab") {

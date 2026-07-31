@@ -1,16 +1,47 @@
 import type { TrackFormat } from "@/features/simulations/types"
 
-/** URL path segment for IDE formats. */
-export type IdeFormatSlug = "code-run" | "workspace"
+/**
+ * Practice surface slugs.
+ * - code-run formats: under `/simulations/code-run/:format` (single-file / exercise)
+ * - workspace: under `/simulations/workspace` (freeform multi-file collab)
+ */
+export type IdeFormatSlug = "react" | "cpp-sort" | "shell" | "workspace"
+
+/** Formats allowed on `/simulations/code-run/:format`. */
+export type CodeRunFormatSlug = Exclude<IdeFormatSlug, "workspace">
+
+export type IdeLayoutMode = "ide" | "editor" | "shell"
 
 export type IdeFormatPreset = {
   readonly slug: IdeFormatSlug
-  readonly trackFormat: Extract<TrackFormat, "codeRun" | "workspace">
+  readonly trackFormat: TrackFormat
+  /** Full IDE with file tree. */
+  readonly treeEnabled: boolean
   readonly defaultShowTree: boolean
+  readonly defaultShowTerminal: boolean
+  readonly layout: IdeLayoutMode
+  /** Open seed tabs on mount (editor layouts). */
+  readonly openSeedTabs: boolean
+  /** When false, hide close chrome (code-run single-file). */
+  readonly tabsClosable: boolean
   readonly titleKey: string
   readonly descriptionKey: string
+  readonly badgeKey: string
 }
 
-export function isIdeFormatSlug(value: string | undefined): value is IdeFormatSlug {
-  return value === "code-run" || value === "workspace"
+export function isIdeFormatSlug(
+  value: string | undefined
+): value is IdeFormatSlug {
+  return (
+    value === "react" ||
+    value === "cpp-sort" ||
+    value === "shell" ||
+    value === "workspace"
+  )
+}
+
+export function isCodeRunFormatSlug(
+  value: string | undefined
+): value is CodeRunFormatSlug {
+  return value === "react" || value === "cpp-sort" || value === "shell"
 }

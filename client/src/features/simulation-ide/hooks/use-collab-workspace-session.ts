@@ -33,6 +33,12 @@ export type WorkspaceSessionSeed = {
   readonly shareToken?: string | null
 }
 
+export type WorkspaceSessionOptions = {
+  /** Open all seed files as permanent tabs on mount. */
+  readonly openSeedTabs?: boolean
+  readonly defaultShowTree?: boolean
+}
+
 function buildCatalogFromDoc(doc: IdeWorkspaceDocument): Map<string, IdeTab> {
   const map = new Map<string, IdeTab>()
   for (const [path, file] of Object.entries(doc.files)) {
@@ -64,17 +70,48 @@ function catalogToDocument(
   return { tree, files }
 }
 
-export function useCollabWorkspaceSession(seed: WorkspaceSessionSeed) {
+function seedTabsFromDocument(doc: IdeWorkspaceDocument): IdeTab[] {
+  return Object.entries(doc.files).map(([path, file]) => {
+    const title = path.includes("/")
+      ? path.slice(path.lastIndexOf("/") + 1)
+      : path
+    return {
+      id: path,
+      title,
+      language: file.language ?? languageFromFileName(title),
+      value: file.content,
+      preview: false,
+    }
+  })
+}
+
+export function useCollabWorkspaceSession(
+  seed: WorkspaceSessionSeed,
+  options: WorkspaceSessionOptions = {}
+) {
+  const openSeedTabs = options.openSeedTabs ?? false
   const [title, setTitleState] = useState(seed.title)
   const [tree, setTree] = useState<IdeTreeNode[]>(() => seed.document.tree)
   const treeRef = useRef(tree)
   treeRef.current = tree
 
   const catalogRef = useRef(buildCatalogFromDoc(seed.document))
-  const [tabs, setTabs] = useState<IdeTab[]>([])
-  const [activeTabId, setActiveTabId] = useState<string | undefined>()
-  const [selectedTreeId, setSelectedTreeId] = useState<string | undefined>()
-  const [showTree, setShowTree] = useState(true)
+  const initialTabs = useMemo(
+    () => (openSeedTabs ? seedTabsFromDocument(seed.document) : []),
+    // seed.id identity only — document hydrated via collab sync after mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [seed.id, openSeedTabs]
+  )
+  const [tabs, setTabs] = useState<IdeTab[]>(() => initialTabs)
+  const [activeTabId, setActiveTabId] = useState<string | undefined>(
+    () => initialTabs[0]?.id
+  )
+  const [selectedTreeId, setSelectedTreeId] = useState<string | undefined>(
+    () => initialTabs[0]?.id
+  )
+  const [showTree, setShowTree] = useState(
+    () => options.defaultShowTree ?? true
+  )
   const [createRequest, setCreateRequest] =
     useState<FileTreeCreateRequest | null>(null)
   const skipBroadcast = useRef(false)

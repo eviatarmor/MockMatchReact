@@ -1,9 +1,11 @@
 import { AlignJustify, Clock, Play, Sparkles } from "lucide-react"
 import { useTranslation } from "react-i18next"
+import { useNavigate } from "react-router-dom"
 import { Button } from "@mockmatch/ui/button"
 import { Badge } from "@mockmatch/ui/badge"
 import { EntityTable, type EntityTableColumn } from "@/components/data/entity-table"
 import { resolveIcon } from "@/lib/icon-map"
+import { idePathForTrackId } from "@/features/simulation-ide/constants"
 import type { DifficultyLevel, InterviewTrack } from "../types"
 
 function difficultyVariant(level: DifficultyLevel): "outline" | "secondary" {
@@ -17,6 +19,7 @@ interface TrackBrowserTableProps {
 
 export function TrackBrowserTable({ tracks, recommendedTrackIds }: TrackBrowserTableProps) {
   const { t } = useTranslation("common")
+  const navigate = useNavigate()
 
   const columns: EntityTableColumn[] = [
     { key: "track", label: t("simulations.tracksBrowser.columns.track") },
@@ -47,6 +50,7 @@ export function TrackBrowserTable({ tracks, recommendedTrackIds }: TrackBrowserT
       {tracks.map((track) => {
         const Icon = resolveIcon(track.iconName, AlignJustify)
         const isRecommended = recommendedTrackIds?.has(track.id) ?? false
+        const idePath = idePathForTrackId(track.id)
         return (
           <tr key={track.id} className="group hover:bg-muted/5 transition-colors">
             <td className="py-3 px-4">
@@ -98,7 +102,14 @@ export function TrackBrowserTable({ tracks, recommendedTrackIds }: TrackBrowserT
             </td>
             <td className="py-3 px-4">
               <div className="flex items-center justify-end">
-                <Button variant="ghost" className="h-7 gap-1.5 px-2 text-xs cursor-pointer">
+                <Button
+                  variant="ghost"
+                  className="h-7 gap-1.5 px-2 text-xs cursor-pointer"
+                  disabled={!idePath}
+                  onClick={() => {
+                    if (idePath) navigate(idePath)
+                  }}
+                >
                   <Play className="size-3" />
                   {t("simulations.startPractice")}
                 </Button>

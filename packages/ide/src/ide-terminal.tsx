@@ -172,11 +172,6 @@ export function IdeTerminal({
       }
 
       if (onCommandRef.current) {
-        if (command === "help") {
-          term.writeln("Host runner is active. Prefer the live remote PTY.")
-          prompt()
-          return
-        }
         try {
           const out = await onCommandRef.current(command)
           writeLines(term, out)

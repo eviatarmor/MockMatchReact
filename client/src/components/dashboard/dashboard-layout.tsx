@@ -24,7 +24,8 @@ function DashboardShell() {
     (matchPath("/cover-letters/:letterId", pathname) &&
       !matchPath("/cover-letters/templates", pathname)) ||
       matchPath("/resumes/:resumeId", pathname) ||
-      matchPath("/simulations/ide/:format", pathname)
+      matchPath("/simulations/code-run/:format", pathname) ||
+      matchPath("/simulations/workspace", pathname)
   )
 
   return (

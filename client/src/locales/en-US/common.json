@@ -1107,16 +1107,16 @@
         "description": "STAR-method stories on leadership, conflict, and impact."
       },
       "technicalCoding": {
-        "title": "Algorithms · Code run",
-        "description": "Write a solution and run it on the server — classic DSA / script tasks."
+        "title": "C++ · Sort algorithm",
+        "description": "Single-file C++ sort exercise — Monaco only (no file tree). No judge yet."
       },
       "liveCoding": {
-        "title": "Live coding · Workspace",
-        "description": "Full env over WebSocket: editor, files, and terminal — build and debug like on the job."
+        "title": "React · Counter lab",
+        "description": "Full IDE with file tree: build a small React counter component set."
       },
       "opsTerminal": {
-        "title": "Ops · Terminal lab",
-        "description": "Shell-only tasks for DevOps/SRE — logs, services, networking, incident drills."
+        "title": "Ops · Shell lab",
+        "description": "Shell-only incident drill — explore logs and status with a local terminal."
       },
       "systemDesign": {
         "title": "System Design",

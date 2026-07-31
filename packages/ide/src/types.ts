@@ -180,6 +180,11 @@ export type IdeShellProps = {
   onTabCopyPath?: (tabId: string) => void
   onTabCopyRelativePath?: (tabId: string) => void
   onTabReveal?: (tabId: string) => void
+  /**
+   * When false, hide close chrome and ignore close shortcuts / middle-click.
+   * Default true. Use for single-file code-run exercises.
+   */
+  tabsClosable?: boolean
 
   colorScheme?: IdeColorScheme
   settings?: Partial<IdeSettings>

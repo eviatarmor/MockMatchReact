@@ -5,9 +5,9 @@ Product-agnostic IDE shell for web apps and extensions:
 - **Optional file tree** — Kibo UI tree; spring open/close (resume-editor style); drag resize
 - **Monaco** — `monaco-editor@0.55.1` flush to the split edge
 - **Tabs** — `@mockmatch/ui/tabs` (file-tab chrome)
-- **Menubar** — File / View (theme, editor, split, AI, fullscreen, …)
+- **Menubar** — File / View (editor, split, AI, fullscreen, …)
 - **Optional AI panel** — right-side slot next to full screen; host injects chat UI
-- **Theme-aware** — Monaco `vs` / `vs-dark` from app light/dark
+- **Theme-aware** — always **auto** (Monaco follows app light/dark; no theme picker)
 
 > **Status:** private monorepo package. Editor chrome only — host owns run/judge/terminal/session/AI transport.
 
@@ -134,7 +134,7 @@ Pass `aiPanel` to enable the sparkles toggle (tab bar, next to full screen) and 
 
 Host owns transport, system prompt, and i18n (e.g. wire `@mockmatch/ai-chat`).
 
-The panel scopes light/dark CSS variables from the same scheme as Monaco/terminal (`editorTheme` + `colorScheme`). Prefer **surface** chrome for injected chat (not always-dark dashboard sidebar tokens) so text + code fences match the IDE theme.
+The panel scopes light/dark CSS variables from the same scheme as Monaco/terminal (always app auto + `colorScheme`). Prefer **surface** chrome for injected chat (not always-dark dashboard sidebar tokens) so text + code fences match the IDE theme.
 
 ### Monaco workers
 
@@ -179,5 +179,7 @@ import { useCollabRoom, useCollabYDoc } from "@mockmatch/collab"
 
 Practice formats use this package at:
 
-- `/simulations/ide/code-run` — code run (tree off by default)
-- `/simulations/ide/workspace` — dev workspace (tree on by default)
+- `/simulations/code-run/react` — multi-file exercise + collab
+- `/simulations/code-run/cpp-sort` — single-file code run (tabs not closable)
+- `/simulations/code-run/shell` — shell-only + collab presence
+- `/simulations/workspace` — freeform multi-file collab IDE

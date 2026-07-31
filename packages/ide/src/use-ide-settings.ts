@@ -9,7 +9,10 @@ function mergeSettings(
   base: IdeSettings,
   partial?: Partial<IdeSettings>
 ): IdeSettings {
-  return partial ? { ...base, ...partial } : base
+  // IDE theme is always app-linked (auto) — no user override.
+  const merged = partial ? { ...base, ...partial } : { ...base }
+  merged.editorTheme = "auto"
+  return merged
 }
 
 export type UseIdeSettingsOptions = {
@@ -59,10 +62,18 @@ export function useIdeSettings({
 
   const patchSettings = useCallback(
     (patch: Partial<IdeSettings>) => {
-      setSettings({ ...settings, ...patch })
+      const { editorTheme: _ignored, ...rest } = patch
+      setSettings({ ...settings, ...rest, editorTheme: "auto" })
     },
     [setSettings, settings]
   )
 
-  return { settings, patchSettings, setSettings }
+  const setSettingsForced = useCallback(
+    (next: IdeSettings) => {
+      setSettings({ ...next, editorTheme: "auto" })
+    },
+    [setSettings]
+  )
+
+  return { settings, patchSettings, setSettings: setSettingsForced }
 }

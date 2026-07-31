@@ -2,10 +2,20 @@
   "documentTitle": "Practice IDE · MockMatch",
   "emptyEditor": "Open a file to start editing",
   "formats": {
-    "codeRun": {
-      "title": "Code run",
-      "badge": "Preview",
-      "description": "Editor shell for submit/execute practice. Judge runner not connected yet."
+    "react": {
+      "title": "React · Counter lab",
+      "badge": "IDE",
+      "description": "Multi-file React exercise with file tree and Monaco."
+    },
+    "cppSort": {
+      "title": "C++ · Sort ints",
+      "badge": "Editor",
+      "description": "Single-file sorting algorithm — Monaco only, no file tree."
+    },
+    "shell": {
+      "title": "Ops · Shell lab",
+      "badge": "Terminal",
+      "description": "Shell-only incident drill. Explore logs with local commands."
     },
     "workspace": {
       "title": "Dev workspace",

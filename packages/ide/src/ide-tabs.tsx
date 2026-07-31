@@ -68,6 +68,8 @@ export type IdeTabsProps = {
   runTestsDisabled?: boolean
   /** When false, host places Run chrome elsewhere. */
   showRunActions?: boolean
+  /** When false, hide close UI (code-run single-file). Default true. */
+  tabsClosable?: boolean
   labels?: IdeLabels
   className?: string
 }
@@ -98,12 +100,15 @@ export function IdeTabs({
   runDisabled = false,
   runTestsDisabled = false,
   showRunActions = true,
+  tabsClosable = true,
   labels,
   className,
 }: IdeTabsProps) {
   const value = activeTabId ?? tabs[0]?.id
   const hasRunActions =
     showRunActions && Boolean(onRun || onRunTests)
+  const canClose = tabsClosable && Boolean(onTabClose)
+  const canCloseOthers = tabsClosable && Boolean(onTabCloseOthers)
 
   const ordered = [
     ...tabs.filter((t) => t.pinned),
@@ -143,8 +148,8 @@ export function IdeTabs({
                     : "bg-transparent text-muted-foreground hover:bg-background/60 hover:text-foreground"
                 )}
                 onAuxClick={(e) => {
-                  // Middle mouse → close (unless pinned)
-                  if (e.button === 1 && onTabClose && !tab.pinned) {
+                  // Middle mouse → close (unless pinned / closable off)
+                  if (e.button === 1 && canClose && onTabClose && !tab.pinned) {
                     e.preventDefault()
                     onTabClose(tab.id)
                   }
@@ -182,7 +187,7 @@ export function IdeTabs({
                     ) : null}
                   </span>
                 </button>
-                {onTabClose && !tab.pinned ? (
+                {canClose && onTabClose && !tab.pinned ? (
                   <Tooltip>
                     <TooltipTrigger
                       render={
@@ -219,17 +224,17 @@ export function IdeTabs({
                 ) : null}
               </ContextMenuTrigger>
               <ContextMenuContent className="min-w-48">
-                {onTabClose && !tab.pinned ? (
+                {canClose && onTabClose && !tab.pinned ? (
                   <ContextMenuItem onClick={() => onTabClose(tab.id)}>
                     {labels?.close ?? "Close"}
                   </ContextMenuItem>
                 ) : null}
-                {onTabCloseOthers ? (
+                {canCloseOthers && onTabCloseOthers ? (
                   <ContextMenuItem onClick={() => onTabCloseOthers(tab.id)}>
                     {labels?.closeOthers ?? "Close Others"}
                   </ContextMenuItem>
                 ) : null}
-                {(onTabClose || onTabCloseOthers) &&
+                {(canClose || canCloseOthers) &&
                 (onTabCopyPath ||
                   onTabCopyRelativePath ||
                   onTabPin ||

@@ -78,6 +78,7 @@ export function IdeShell({
   onTabCopyPath,
   onTabCopyRelativePath,
   onTabReveal,
+  tabsClosable = true,
   colorScheme = "auto",
   settings: settingsPartial,
   defaultSettings,
@@ -557,6 +558,7 @@ export function IdeShell({
 
   keyActionsRef.current = {
     closeTab: () => {
+      if (!tabsClosable) return
       const pane = focusedRef.current
       const group = groupsRef.current[pane]
       const id = group?.activeTabId
@@ -850,6 +852,7 @@ export function IdeShell({
             onTabCopyPath={onTabCopyPath}
             onTabCopyRelativePath={onTabCopyRelativePath}
             onTabReveal={onTabReveal}
+            tabsClosable={tabsClosable}
             onSplit={handleSplit}
             onUnsplit={isMultiPane ? handleUnsplit : undefined}
             showTerminal={showTerminal}

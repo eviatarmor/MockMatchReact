@@ -16,7 +16,6 @@ import { Kbd, KbdGroup } from "@mockmatch/ui/kbd"
 import { cn } from "@mockmatch/ui/utils"
 
 import type {
-  IdeEditorTheme,
   IdeLabels,
   IdeSettings,
   IdeSplitDirection,
@@ -52,18 +51,6 @@ export type IdeMenubarProps = {
 
 const FONT_SIZES = [12, 13, 14, 15, 16, 18, 20] as const
 const TAB_SIZES = [2, 4, 8] as const
-
-const THEMES: { value: IdeEditorTheme; labelKey: keyof IdeLabels; fallback: string }[] =
-  [
-    { value: "auto", labelKey: "themeAuto", fallback: "Auto (match app)" },
-    { value: "vs", labelKey: "themeLight", fallback: "Light" },
-    { value: "vs-dark", labelKey: "themeDark", fallback: "Dark" },
-    {
-      value: "hc-black",
-      labelKey: "themeHighContrast",
-      fallback: "High Contrast",
-    },
-  ]
 
 export function IdeMenubar({
   settings,
@@ -388,35 +375,6 @@ export function IdeMenubar({
             </MenubarSubContent>
           </MenubarSub>
 
-          <MenubarSeparator />
-
-          <MenubarSub>
-            <MenubarSubTrigger>
-              {labels.themeMenu ?? "Theme"}
-            </MenubarSubTrigger>
-            <MenubarSubContent>
-              <MenubarRadioGroup
-                value={settings.editorTheme}
-                onValueChange={(v) => {
-                  if (
-                    v === "auto" ||
-                    v === "vs" ||
-                    v === "vs-dark" ||
-                    v === "hc-black"
-                  ) {
-                    onPatchSettings({ editorTheme: v })
-                  }
-                }}
-              >
-                {THEMES.map((theme) => (
-                  <MenubarRadioItem key={theme.value} value={theme.value}>
-                    {(labels[theme.labelKey] as string | undefined) ??
-                      theme.fallback}
-                  </MenubarRadioItem>
-                ))}
-              </MenubarRadioGroup>
-            </MenubarSubContent>
-          </MenubarSub>
         </MenubarContent>
       </MenubarMenu>
     </Menubar>

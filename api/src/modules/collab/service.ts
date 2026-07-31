@@ -47,9 +47,21 @@ async function publishRoomControl(
  */
 const SHARE_SENTINEL_EXPIRES = new Date("9999-12-31T23:59:59.000Z")
 
-function shareUrl(kind: DocumentKind, documentId: string, rawToken: string): string {
+function shareUrl(
+  kind: DocumentKind,
+  documentId: string,
+  rawToken: string,
+  /** IDE practice format slug when kind is workspace. */
+  workspaceFormat = "workspace"
+): string {
   if (kind === "workspace") {
-    const url = new URL("/simulations/ide/workspace", env.APP_URL)
+    const format = workspaceFormat.trim() || "workspace"
+    // Freeform collab IDE lives at /simulations/workspace; exercises under code-run.
+    const path =
+      format === "workspace"
+        ? "/simulations/workspace"
+        : `/simulations/code-run/${format}`
+    const url = new URL(path, env.APP_URL)
     url.searchParams.set("id", documentId)
     url.searchParams.set("share", rawToken)
     return url.toString()
@@ -131,9 +143,18 @@ export async function createShareLink(
     })
   }
 
+  let workspaceFormat = "workspace"
+  if (kind === "workspace") {
+    const ws = await db.query.ideWorkspaces.findFirst({
+      where: eq(ideWorkspaces.id, documentId),
+      columns: { templateId: true },
+    })
+    if (ws?.templateId) workspaceFormat = ws.templateId
+  }
+
   return {
     shareId: row.id,
-    url: shareUrl(kind, documentId, rawToken),
+    url: shareUrl(kind, documentId, rawToken, workspaceFormat),
     role: row.role,
     /** Null — links expire when the owner leaves the room, not by clock. */
     expiresAt: null as string | null,

@@ -52,8 +52,12 @@ application tracking, practice, and readiness insights.
 
 ### Practice area
 5. **Simulations** (\`/simulations\`) — recent practice **sessions** (searchable list) plus a featured **interview tracks** strip; **Browse all** opens \`/simulations/tracks\`. Sidebar filters: **format** (practice environment), role family, difficulty, duration. **Formats** (catalog; full runners not complete): **Code run** (submit/execute code on a server), **Dev workspace** (live multiplayer IDE + terminal), **Terminal lab** (shell-only ops/DevOps tasks), **Conversation** (AI interviewer dialogue). Tracks matching the user's resume role can sort first and show a "For you" badge (not a filter).
-   - **Code run** IDE: \`/simulations/ide/code-run\` — tabs + Monaco; file tree off by default. **Run** / **Run tests** on the tab bar (preview; judge not complete). AI Assistant panel available.
-   - **Dev workspace** IDE: \`/simulations/ide/workspace\` — multi-file collab on \`@mockmatch/ide\`: auto-creates a durable workspace, live Yjs buffers, remote carets/selections/pointers, owner **Share** link (\`?id=\` + \`?share=\`). Same owner-must-be-in-room share rules as resume/cover letter. **Run** / **Run tests** are placeholders until a judge lands. Terminal + AI panel available (local terminal chrome; no remote code sandbox).
+   - **Code run** (\`/simulations/code-run/:format\`) — exercise rooms with **live collab** (Yjs, presence, share):
+     - **react** — multi-file IDE exercise (tree + Monaco). Counter lab.
+     - **cpp-sort** — **single-file** Monaco only (no tree); **tabs cannot be closed**. Run / Run tests in header.
+     - **shell** — terminal only; local incident-drill commands; presence + share.
+   - **Dev workspace** (\`/simulations/workspace\`) — freeform multi-file collab IDE (not under code-run).
+   - Share URLs include \`id\` + \`share\` query params (owner must stay in room).
 6. **Question Bank** (\`/question-bank\`) — practice question library by domain/difficulty.
 
 ### Insights area
@@ -98,7 +102,7 @@ application tracking, practice, and readiness insights.
 ### Collaboration
 - Resume, cover letter, and **dev workspace** IDE support **share links** that stay active only while the owner is in the document; when the owner leaves, the link expires and collaborators are dropped from the session (reopen does not revive the old link — owner must create a new one). Removing someone from the share dialog kicks them out of the live session immediately.
 - Roles: view | edit (owner full access). Only the owner sees the Share button.
-- Dev workspace collab: open **Simulations → Dev workspace** (\`/simulations/ide/workspace\`); share URL includes \`id\` + \`share\` query params.
+- Code-run collab: **Simulations** tracks → \`/simulations/code-run/<format>\`. Freeform IDE: \`/simulations/workspace\`. Share URLs use \`id\` + \`share\`.
 - May require credits depending on plan/grant.
 
 ### Auth

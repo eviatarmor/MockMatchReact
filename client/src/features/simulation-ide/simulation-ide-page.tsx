@@ -1,5 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react"
+import {
+  useLocation,
   useNavigate,
   useParams,
   useSearchParams,
@@ -9,6 +17,8 @@ import { FlaskConical, Loader2, Play, Share2 } from "lucide-react"
 import {
   IdeMenubar,
   IdeShell,
+  IdeTerminal,
+  useColorScheme,
   useIdeSettings,
 } from "@mockmatch/ide"
 import { Badge } from "@mockmatch/ui/badge"
@@ -26,58 +36,80 @@ import { ShareDialog } from "@/features/collab/components/share-dialog"
 import { useTheme } from "@/components/theme-provider"
 import { AskChatSurface } from "@/features/ask/components/ask-chat-surface"
 import { trpc } from "@/lib/trpc"
-import { WORKSPACE_TABS, WORKSPACE_TREE } from "./constants"
-import { useSimulationIdeSession } from "./hooks/use-simulation-ide-session"
+import {
+  IDE_FORMAT_PRESETS,
+  SHELL_CWD,
+  SHELL_WELCOME,
+  pathForFormat,
+  seedDocumentForFormat,
+  shellExerciseCommand,
+} from "./constants"
 import {
   parseWorkspaceDocument,
-  documentFromTabs,
   useCollabWorkspaceSession,
   type WorkspaceSessionSeed,
 } from "./hooks/use-collab-workspace-session"
-import { isIdeFormatSlug } from "./types"
+import {
+  isCodeRunFormatSlug,
+  isIdeFormatSlug,
+  type IdeFormatSlug,
+} from "./types"
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 export function SimulationIdePageContent() {
   const { format: formatParam } = useParams<{ format: string }>()
+  const { pathname } = useLocation()
   const navigate = useNavigate()
 
-  const valid = isIdeFormatSlug(formatParam)
+  // `/simulations/workspace` is freeform collab; exercises stay under code-run.
+  const isWorkspaceRoute =
+    pathname === "/simulations/workspace" ||
+    pathname.startsWith("/simulations/workspace?")
+
+  const format: IdeFormatSlug | null = isWorkspaceRoute
+    ? "workspace"
+    : isCodeRunFormatSlug(formatParam)
+      ? formatParam
+      : null
 
   useEffect(() => {
-    if (!valid) {
+    if (isWorkspaceRoute) return
+    // Old link: /simulations/code-run/workspace → /simulations/workspace
+    if (formatParam === "workspace") {
+      navigate(pathForFormat("workspace"), { replace: true })
+      return
+    }
+    if (!format) {
       navigate("/simulations", { replace: true })
     }
-  }, [valid, navigate])
+  }, [isWorkspaceRoute, formatParam, format, navigate])
 
-  if (!valid) {
+  if (!format) {
     return null
   }
 
-  if (formatParam === "workspace") {
-    return <WorkspaceCollabBootstrap />
-  }
-
-  return <SimulationIdeSession format={formatParam} />
+  return <ExerciseCollabBootstrap format={format} />
 }
 
 /**
- * Ensure a durable workspace id for collab.
+ * Ensure a durable collab workspace id for any practice format.
  * - `?id=` + optional `?share=` for join
  * - else create one and replace into URL
  */
-function WorkspaceCollabBootstrap() {
+function ExerciseCollabBootstrap({ format }: { format: IdeFormatSlug }) {
   const { t } = useTranslation("simulation-ide")
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const idParam = searchParams.get("id")
   const shareToken = searchParams.get("share")
   const isValidId = typeof idParam === "string" && UUID_RE.test(idParam)
+  const preset = IDE_FORMAT_PRESETS[format]
 
   const create = trpc.ideWorkspaces.create.useMutation({
     onSuccess: (ws) => {
-      navigate(`/simulations/ide/workspace?id=${ws.id}`, { replace: true })
+      navigate(`${pathForFormat(format)}?id=${ws.id}`, { replace: true })
     },
   })
 
@@ -87,12 +119,12 @@ function WorkspaceCollabBootstrap() {
     if (createOnce.current || create.isPending || create.isSuccess) return
     createOnce.current = true
     create.mutate({
-      title: t("formats.workspace.title"),
-      document: documentFromTabs(WORKSPACE_TREE, WORKSPACE_TABS),
+      title: t(preset.titleKey),
+      templateId: format,
+      document: seedDocumentForFormat(format),
     })
-  }, [isValidId, shareToken, create, t])
+  }, [isValidId, shareToken, create, t, format, preset.titleKey])
 
-  // Share-only without id is invalid
   if (shareToken && !isValidId) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 p-8 text-sm text-muted-foreground">
@@ -118,17 +150,20 @@ function WorkspaceCollabBootstrap() {
   }
 
   return (
-    <WorkspaceCollabLoader
+    <ExerciseCollabLoader
+      format={format}
       workspaceId={idParam}
       shareToken={shareToken}
     />
   )
 }
 
-function WorkspaceCollabLoader({
+function ExerciseCollabLoader({
+  format,
   workspaceId,
   shareToken,
 }: {
+  format: IdeFormatSlug
   workspaceId: string
   shareToken: string | null
 }) {
@@ -151,6 +186,19 @@ function WorkspaceCollabLoader({
       retry: false,
     }
   )
+
+  useEffect(() => {
+    if (!query.data?.templateId) return
+    const stored = query.data.templateId
+    if (isIdeFormatSlug(stored) && stored !== format) {
+      const qs = new URLSearchParams()
+      qs.set("id", workspaceId)
+      if (shareToken) qs.set("share", shareToken)
+      navigate(`${pathForFormat(stored)}?${qs.toString()}`, {
+        replace: true,
+      })
+    }
+  }, [query.data?.templateId, format, workspaceId, shareToken, navigate])
 
   if (query.isLoading || (shareToken && access.isLoading)) {
     return (
@@ -176,6 +224,10 @@ function WorkspaceCollabLoader({
     )
   }
 
+  const resolvedFormat = isIdeFormatSlug(query.data.templateId)
+    ? query.data.templateId
+    : format
+
   const seed: WorkspaceSessionSeed = {
     id: query.data.id,
     title: query.data.title,
@@ -183,24 +235,20 @@ function WorkspaceCollabLoader({
     shareToken,
   }
 
-  return <WorkspaceCollabSession key={seed.id} seed={seed} />
+  if (resolvedFormat === "shell") {
+    return <ShellCollabSession key={seed.id} seed={seed} format={resolvedFormat} />
+  }
+
+  return (
+    <EditorCollabSession
+      key={seed.id}
+      seed={seed}
+      format={resolvedFormat}
+    />
+  )
 }
 
-function WorkspaceCollabSession({
-  seed,
-}: {
-  seed: WorkspaceSessionSeed
-}) {
-  const { t } = useTranslation("simulation-ide")
-  const { resolvedTheme } = useTheme()
-  const session = useCollabWorkspaceSession(seed)
-  const { settings, patchSettings, setSettings } = useIdeSettings()
-  const pageRef = useRef<HTMLDivElement>(null)
-  const [fullscreen, setFullscreen] = useState(false)
-  const [showTerminal, setShowTerminal] = useState(true)
-  const [showAi, setShowAi] = useState(false)
-  const [shareOpen, setShareOpen] = useState(false)
-
+function useCollabHeaderAccess(seed: WorkspaceSessionSeed) {
   const access = trpc.collab.getAccess.useQuery(
     {
       kind: "workspace",
@@ -209,11 +257,66 @@ function WorkspaceCollabSession({
     },
     { staleTime: 30_000 }
   )
-  const isOwner = access.data?.role === "owner"
-  const canShare = Boolean(access.data?.canShare)
-  const isPaidOwner = Boolean(
-    access.data?.isPaidOwner ?? access.data?.isOwnerPaid
-  )
+  return {
+    isOwner: access.data?.role === "owner",
+    canShare: Boolean(access.data?.canShare),
+    isPaidOwner: Boolean(
+      access.data?.isPaidOwner ?? access.data?.isOwnerPaid
+    ),
+  }
+}
+
+function CollabRoomGates({
+  status,
+  roomError,
+  children,
+}: {
+  status: string
+  roomError: string | null
+  children: ReactNode
+}) {
+  if (status === "room_full") {
+    return (
+      <RoomFullGate backHref="/simulations" message={roomError} />
+    )
+  }
+  if (status === "room_closed") {
+    return (
+      <RoomFullGate
+        backHref="/simulations"
+        message={roomError}
+        variant="closed"
+      />
+    )
+  }
+  return children
+}
+
+/** Full IDE / Monaco-only collab exercises (react, cpp-sort, workspace). */
+function EditorCollabSession({
+  seed,
+  format,
+}: {
+  seed: WorkspaceSessionSeed
+  format: Exclude<IdeFormatSlug, "shell">
+}) {
+  const { t } = useTranslation("simulation-ide")
+  const { resolvedTheme } = useTheme()
+  const preset = IDE_FORMAT_PRESETS[format]
+  const session = useCollabWorkspaceSession(seed, {
+    openSeedTabs: preset.openSeedTabs,
+    defaultShowTree: preset.defaultShowTree,
+  })
+  const { settings, patchSettings, setSettings } = useIdeSettings()
+  const pageRef = useRef<HTMLDivElement>(null)
+  const [fullscreen, setFullscreen] = useState(false)
+  const [showTerminal, setShowTerminal] = useState(preset.defaultShowTerminal)
+  const [showAi, setShowAi] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
+  const { isOwner, canShare, isPaidOwner } = useCollabHeaderAccess(seed)
+
+  const treeEnabled = preset.treeEnabled
+  const tabsClosable = preset.tabsClosable
 
   const toggleFullscreen = useCallback(async () => {
     const el = pageRef.current
@@ -249,206 +352,215 @@ function WorkspaceCollabSession({
   const labels = useIdeLabels(t)
   const run = usePlaceholderRunActions(setShowTerminal)
 
-  if (session.collab.status === "room_full") {
-    return (
-      <RoomFullGate
-        backHref="/simulations"
-        message={session.collab.roomError}
-      />
-    )
-  }
-
-  if (session.collab.status === "room_closed") {
-    return (
-      <RoomFullGate
-        backHref="/simulations"
-        message={session.collab.roomError}
-        variant="closed"
-      />
-    )
-  }
-
   return (
-    <div ref={pageRef} className="flex h-full min-h-0 flex-col bg-background">
-      <div className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-1.5">
-        <h1 className="shrink-0 text-sm font-medium text-foreground">
-          {session.title || t("formats.workspace.title")}
-        </h1>
-        <Badge variant="secondary" className="shrink-0 text-xs font-normal">
-          {t("formats.workspace.badge")}
-        </Badge>
-        <IdeMenubar
-          className="shrink-0"
-          settings={settings}
-          onPatchSettings={patchSettings}
-          showTree={session.showTree}
-          treeToggleable
-          onToggleTree={() => session.setShowTree(!session.showTree)}
-          showTerminal={showTerminal}
-          onToggleTerminal={() => setShowTerminal((v) => !v)}
-          showAi={showAi}
-          onToggleAi={() => setShowAi((v) => !v)}
-          fullscreen={fullscreen}
-          onToggleFullscreen={() => void toggleFullscreen()}
-          onCreateFile={() => session.requestCreate("file")}
-          onCreateFolder={() => session.requestCreate("folder")}
-          hideRunMenu
-          labels={labels}
-        />
-
-        {/* Center of gap: after View menubar → before Saved badge */}
-        <TooltipProvider delay={300}>
-          <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="default"
-                    className="h-8 cursor-pointer gap-1.5 px-3"
-                    disabled={run.runBusy || run.runTestsBusy}
-                    onClick={run.onRun}
-                    aria-label={t("actions.run")}
-                  />
-                }
-              >
-                {run.runBusy ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <Play className="size-3.5 fill-current" />
-                )}
-                <span>{t("actions.run")}</span>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                {t("actions.run")}
-                <span className="ml-1.5 opacity-70">F5</span>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="secondary"
-                    className="h-8 cursor-pointer gap-1.5 px-3"
-                    disabled={run.runBusy || run.runTestsBusy}
-                    onClick={run.onRunTests}
-                    aria-label={t("actions.runTests")}
-                  />
-                }
-              >
-                {run.runBusy ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <FlaskConical className="size-3.5" />
-                )}
-                <span className="hidden sm:inline">{t("actions.runTests")}</span>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">
-                {t("actions.runTests")}
-                <span className="ml-1.5 opacity-70">Ctrl+Shift+Enter</span>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </TooltipProvider>
-
-        <div className="flex shrink-0 items-center gap-2">
-          <SaveStatusBadge status={session.saveStatus} labels={saveLabels} />
-          <PresenceAvatarStack
-            peers={session.collab.peers}
-            self={session.collab.self}
+    <CollabRoomGates
+      status={session.collab.status}
+      roomError={session.collab.roomError}
+    >
+      <div ref={pageRef} className="flex h-full min-h-0 flex-col bg-background">
+        <div className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-1.5">
+          <h1 className="shrink-0 text-sm font-medium text-foreground">
+            {session.title || t(preset.titleKey)}
+          </h1>
+          <Badge variant="secondary" className="shrink-0 text-xs font-normal">
+            {t(preset.badgeKey)}
+          </Badge>
+          <IdeMenubar
+            className="shrink-0"
+            settings={settings}
+            onPatchSettings={patchSettings}
+            showTree={treeEnabled ? session.showTree : undefined}
+            treeToggleable={treeEnabled}
+            onToggleTree={
+              treeEnabled
+                ? () => session.setShowTree(!session.showTree)
+                : undefined
+            }
+            showTerminal={showTerminal}
+            onToggleTerminal={() => setShowTerminal((v) => !v)}
+            showAi={showAi}
+            onToggleAi={() => setShowAi((v) => !v)}
+            fullscreen={fullscreen}
+            onToggleFullscreen={() => void toggleFullscreen()}
+            onCreateFile={
+              treeEnabled ? () => session.requestCreate("file") : undefined
+            }
+            onCreateFolder={
+              treeEnabled ? () => session.requestCreate("folder") : undefined
+            }
+            hideRunMenu
+            labels={labels}
           />
-          {isOwner && (
-            <Button
-              type="button"
-              size="sm"
-              variant="secondary"
-              className="h-8 cursor-pointer gap-1.5"
-              onClick={() => setShareOpen(true)}
-            >
-              <Share2 className="size-3.5" />
-              <span className="hidden sm:inline">{t("collab.share")}</span>
-            </Button>
-          )}
-        </div>
-      </div>
-      <div className="min-h-0 flex-1">
-        <IdeShell
-          className="h-full min-h-0"
-          hideMenubar
-          tree={session.tree}
-          showTree={session.showTree}
-          onShowTreeChange={session.setShowTree}
-          treeToggleable
-          selectedTreeId={session.selectedTreeId}
-          onTreeSelectionChange={session.onTreeSelectionChange}
-          onCreateFile={session.onCreateFile}
-          onCreateFolder={session.onCreateFolder}
-          onDeleteNode={session.onDeleteNode}
-          onRenameNode={session.onRenameNode}
-          createRequest={session.createRequest}
-          onFilePreview={session.onFilePreview}
-          onFileOpen={session.onFileOpen}
-          tabs={session.tabs}
-          activeTabId={session.activeTabId}
-          onActiveTabChange={session.onActiveTabChange}
-          onTabChange={session.onTabChange}
-          onTabClose={session.onTabClose}
-          colorScheme={resolvedTheme}
-          settings={settings}
-          onSettingsChange={setSettings}
-          showTerminal={showTerminal}
-          onShowTerminalChange={setShowTerminal}
-          showAi={showAi}
-          onShowAiChange={setShowAi}
-          aiPanel={({ close }) => (
-            <AskChatSurface
-              chrome="surface"
-              onClose={close}
-              showSuggestions={false}
+
+          {/* Center: Run / Run tests (react, workspace, code-run) */}
+          <TooltipProvider delay={300}>
+            <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="default"
+                      className="h-8 cursor-pointer gap-1.5 px-3"
+                      disabled={run.runBusy || run.runTestsBusy}
+                      onClick={run.onRun}
+                      aria-label={t("actions.run")}
+                    />
+                  }
+                >
+                  {run.runBusy ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <Play className="size-3.5 fill-current" />
+                  )}
+                  <span>{t("actions.run")}</span>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  {t("actions.run")}
+                  <span className="ml-1.5 opacity-70">F5</span>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      className="h-8 cursor-pointer gap-1.5 px-3"
+                      disabled={run.runBusy || run.runTestsBusy}
+                      onClick={run.onRunTests}
+                      aria-label={t("actions.runTests")}
+                    />
+                  }
+                >
+                  {run.runBusy ? (
+                    <Loader2 className="size-3.5 animate-spin" />
+                  ) : (
+                    <FlaskConical className="size-3.5" />
+                  )}
+                  <span className="hidden sm:inline">
+                    {t("actions.runTests")}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  {t("actions.runTests")}
+                  <span className="ml-1.5 opacity-70">Ctrl+Shift+Enter</span>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </TooltipProvider>
+
+          <div className="flex shrink-0 items-center gap-2">
+            <SaveStatusBadge status={session.saveStatus} labels={saveLabels} />
+            <PresenceAvatarStack
+              peers={session.collab.peers}
+              self={session.collab.self}
             />
-          )}
-          onRun={run.onRun}
-          onRunTests={run.onRunTests}
-          runBusy={run.runBusy}
-          runTestsBusy={run.runTestsBusy}
-          runActionsPlacement="none"
-          labels={labels}
-          collab={session.collabProps}
-        />
+            {isOwner && (
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                className="h-8 cursor-pointer gap-1.5"
+                onClick={() => setShareOpen(true)}
+              >
+                <Share2 className="size-3.5" />
+                <span className="hidden sm:inline">{t("collab.share")}</span>
+              </Button>
+            )}
+          </div>
+        </div>
+        <div className="min-h-0 flex-1">
+          <IdeShell
+            className="h-full min-h-0"
+            hideMenubar
+            tree={treeEnabled ? session.tree : undefined}
+            showTree={treeEnabled ? session.showTree : false}
+            onShowTreeChange={treeEnabled ? session.setShowTree : undefined}
+            treeToggleable={treeEnabled}
+            selectedTreeId={treeEnabled ? session.selectedTreeId : undefined}
+            onTreeSelectionChange={
+              treeEnabled ? session.onTreeSelectionChange : undefined
+            }
+            onCreateFile={treeEnabled ? session.onCreateFile : undefined}
+            onCreateFolder={treeEnabled ? session.onCreateFolder : undefined}
+            onDeleteNode={treeEnabled ? session.onDeleteNode : undefined}
+            onRenameNode={treeEnabled ? session.onRenameNode : undefined}
+            createRequest={treeEnabled ? session.createRequest : undefined}
+            onFilePreview={treeEnabled ? session.onFilePreview : undefined}
+            onFileOpen={treeEnabled ? session.onFileOpen : undefined}
+            tabs={session.tabs}
+            activeTabId={session.activeTabId}
+            onActiveTabChange={session.onActiveTabChange}
+            onTabChange={session.onTabChange}
+            onTabClose={tabsClosable ? session.onTabClose : undefined}
+            tabsClosable={tabsClosable}
+            colorScheme={resolvedTheme}
+            settings={settings}
+            onSettingsChange={setSettings}
+            showTerminal={showTerminal}
+            onShowTerminalChange={setShowTerminal}
+            showAi={showAi}
+            onShowAiChange={setShowAi}
+            aiPanel={({ close }) => (
+              <AskChatSurface
+                chrome="surface"
+                onClose={close}
+                showSuggestions={false}
+              />
+            )}
+            onRun={run.onRun}
+            onRunTests={run.onRunTests}
+            runBusy={run.runBusy}
+            runTestsBusy={run.runTestsBusy}
+            runActionsPlacement="none"
+            labels={labels}
+            collab={session.collabProps}
+          />
+        </div>
+        {isOwner && (
+          <ShareDialog
+            open={shareOpen}
+            onOpenChange={setShareOpen}
+            kind="workspace"
+            documentId={seed.id}
+            documentTitle={session.title}
+            canShare={canShare}
+            isOwner={isOwner}
+            isPaidOwner={isPaidOwner}
+          />
+        )}
       </div>
-      {isOwner && (
-        <ShareDialog
-          open={shareOpen}
-          onOpenChange={setShareOpen}
-          kind="workspace"
-          documentId={seed.id}
-          documentTitle={session.title}
-          canShare={canShare}
-          isOwner={isOwner}
-          isPaidOwner={isPaidOwner}
-        />
-      )}
-    </div>
+    </CollabRoomGates>
   )
 }
 
-/** Local-only code-run preview (no durable collab). */
-function SimulationIdeSession({
+/** Shell-only collab exercise — presence + share; local terminal chrome. */
+function ShellCollabSession({
+  seed,
   format,
 }: {
-  format: "code-run" | "workspace"
+  seed: WorkspaceSessionSeed
+  format: "shell"
 }) {
   const { t } = useTranslation("simulation-ide")
   const { resolvedTheme } = useTheme()
-  const session = useSimulationIdeSession(format)
-  const { settings, patchSettings, setSettings } = useIdeSettings()
+  const scheme = useColorScheme(
+    resolvedTheme === "light" || resolvedTheme === "dark"
+      ? resolvedTheme
+      : "auto"
+  )
+  const preset = IDE_FORMAT_PRESETS[format]
+  const session = useCollabWorkspaceSession(seed, {
+    openSeedTabs: false,
+    defaultShowTree: false,
+  })
   const pageRef = useRef<HTMLDivElement>(null)
   const [fullscreen, setFullscreen] = useState(false)
-  const [showTerminal, setShowTerminal] = useState(format === "workspace")
-  const [showAi, setShowAi] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
+  const { isOwner, canShare, isPaidOwner } = useCollabHeaderAccess(seed)
 
   const toggleFullscreen = useCallback(async () => {
     const el = pageRef.current
@@ -472,104 +584,92 @@ function SimulationIdeSession({
     return () => document.removeEventListener("fullscreenchange", onFs)
   }, [])
 
-  const labels = useIdeLabels(t)
-  const run = usePlaceholderRunActions(setShowTerminal)
+  const saveLabels = useMemo(
+    () => ({
+      saved: t("collab.saved"),
+      saving: t("collab.saving"),
+      error: t("collab.saveError"),
+    }),
+    [t]
+  )
+
+  const onCommand = useCallback((command: string) => {
+    return shellExerciseCommand(command)
+  }, [])
 
   return (
-    <div ref={pageRef} className="flex h-full min-h-0 flex-col bg-background">
-      <div className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-1.5">
-        <h1 className="shrink-0 text-sm font-medium text-foreground">
-          {t(session.preset.titleKey)}
-        </h1>
-        <Badge variant="secondary" className="shrink-0 text-xs font-normal">
-          {t(
-            `formats.${session.preset.trackFormat === "codeRun" ? "codeRun" : "workspace"}.badge`
-          )}
-        </Badge>
-        <IdeMenubar
-          className="min-w-0"
-          settings={settings}
-          onPatchSettings={patchSettings}
-          showTree={session.showTree}
-          treeToggleable
-          onToggleTree={() => session.setShowTree(!session.showTree)}
-          showTerminal={showTerminal}
-          onToggleTerminal={() => setShowTerminal((v) => !v)}
-          showAi={showAi}
-          onToggleAi={() => setShowAi((v) => !v)}
-          fullscreen={fullscreen}
-          onToggleFullscreen={() => void toggleFullscreen()}
-          onCreateFile={() => session.requestCreate("file")}
-          onCreateFolder={() => session.requestCreate("folder")}
-          onRun={run.onRun}
-          onRunTests={run.onRunTests}
-          runBusy={run.runBusy}
-          runTestsBusy={run.runTestsBusy}
-          labels={labels}
-        />
-      </div>
-      <div className="min-h-0 flex-1">
-        <IdeShell
-          className="h-full min-h-0"
-          hideMenubar
-          tree={session.tree}
-          showTree={session.showTree}
-          onShowTreeChange={session.setShowTree}
-          treeToggleable
-          selectedTreeId={session.selectedTreeId}
-          onTreeSelectionChange={session.onTreeSelectionChange}
-          defaultExpandedIds={session.defaultExpandedIds}
-          onCreateFile={session.onCreateFile}
-          onCreateFolder={session.onCreateFolder}
-          onDeleteNode={session.onDeleteNode}
-          onRenameNode={session.onRenameNode}
-          onCopyNode={session.onCopyNode}
-          onCutNode={session.onCutNode}
-          onPasteNode={session.onPasteNode}
-          onDuplicateNode={session.onDuplicateNode}
-          canPaste={session.canPaste}
-          createRequest={session.createRequest}
-          onFilePreview={session.onFilePreview}
-          onFileOpen={session.onFileOpen}
-          tabs={session.tabs}
-          activeTabId={session.activeTabId}
-          onActiveTabChange={session.onActiveTabChange}
-          onTabChange={session.onTabChange}
-          onTabClose={session.onTabClose}
-          onTabCloseOthers={session.onTabCloseOthers}
-          onTabPin={session.onTabPin}
-          onTabCopyPath={session.onTabCopyPath}
-          onTabCopyRelativePath={session.onTabCopyRelativePath}
-          onTabReveal={session.onTabReveal}
-          colorScheme={resolvedTheme}
-          settings={settings}
-          onSettingsChange={setSettings}
-          showTerminal={showTerminal}
-          onShowTerminalChange={setShowTerminal}
-          showAi={showAi}
-          onShowAiChange={setShowAi}
-          aiPanel={({ close }) => (
-            <AskChatSurface
-              chrome="surface"
-              onClose={close}
-              showSuggestions={false}
+    <CollabRoomGates
+      status={session.collab.status}
+      roomError={session.collab.roomError}
+    >
+      <div ref={pageRef} className="flex h-full min-h-0 flex-col bg-background">
+        <div className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-1.5">
+          <h1 className="shrink-0 text-sm font-medium text-foreground">
+            {session.title || t(preset.titleKey)}
+          </h1>
+          <Badge variant="secondary" className="shrink-0 text-xs font-normal">
+            {t(preset.badgeKey)}
+          </Badge>
+          <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+            {t(preset.descriptionKey)}
+          </p>
+          <div className="flex shrink-0 items-center gap-2">
+            <SaveStatusBadge status={session.saveStatus} labels={saveLabels} />
+            <PresenceAvatarStack
+              peers={session.collab.peers}
+              self={session.collab.self}
             />
-          )}
-          onRun={run.onRun}
-          onRunTests={run.onRunTests}
-          runBusy={run.runBusy}
-          runTestsBusy={run.runTestsBusy}
-          labels={labels}
-        />
+            {isOwner && (
+              <Button
+                type="button"
+                size="sm"
+                variant="secondary"
+                className="h-8 cursor-pointer gap-1.5"
+                onClick={() => setShareOpen(true)}
+              >
+                <Share2 className="size-3.5" />
+                <span className="hidden sm:inline">{t("collab.share")}</span>
+              </Button>
+            )}
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              className="h-8 shrink-0 cursor-pointer"
+              onClick={() => void toggleFullscreen()}
+            >
+              {fullscreen
+                ? t("actions.exitFullscreen")
+                : t("actions.fullscreen")}
+            </Button>
+          </div>
+        </div>
+        <div className="min-h-0 flex-1 bg-background p-0">
+          <IdeTerminal
+            className="h-full min-h-0 w-full"
+            colorScheme={scheme}
+            welcome={SHELL_WELCOME}
+            cwd={SHELL_CWD}
+            onCommand={onCommand}
+          />
+        </div>
+        {isOwner && (
+          <ShareDialog
+            open={shareOpen}
+            onOpenChange={setShareOpen}
+            kind="workspace"
+            documentId={seed.id}
+            documentTitle={session.title}
+            canShare={canShare}
+            isOwner={isOwner}
+            isPaidOwner={isPaidOwner}
+          />
+        )}
       </div>
-    </div>
+    </CollabRoomGates>
   )
 }
 
-/**
- * Placeholder Run / Run tests until a judge/runner is wired.
- * Opens terminal; busy flags exercise IDE button chrome.
- */
 function usePlaceholderRunActions(
   setShowTerminal: (open: boolean | ((v: boolean) => boolean)) => void
 ) {

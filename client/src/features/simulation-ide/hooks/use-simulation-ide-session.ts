@@ -61,10 +61,21 @@ export function useSimulationIdeSession(format: IdeFormatSlug) {
   const clipboardRef = useRef<ClipboardState | null>(null)
   const [canPaste, setCanPaste] = useState(false)
 
-  const [tabs, setTabs] = useState<IdeTab[]>([])
-  const [activeTabId, setActiveTabId] = useState<string | undefined>()
-  const [selectedTreeId, setSelectedTreeId] = useState<string | undefined>()
-  const [showTree, setShowTree] = useState(preset.defaultShowTree)
+  const seedTabs = useMemo(() => {
+    if (!preset.openSeedTabs) return [] as IdeTab[]
+    return tabsForFormat(format).map((tab) => ({ ...tab, preview: false }))
+  }, [format, preset.openSeedTabs])
+
+  const [tabs, setTabs] = useState<IdeTab[]>(() => seedTabs)
+  const [activeTabId, setActiveTabId] = useState<string | undefined>(
+    () => seedTabs[0]?.id
+  )
+  const [selectedTreeId, setSelectedTreeId] = useState<string | undefined>(
+    () => seedTabs[0]?.id
+  )
+  const [showTree, setShowTree] = useState(
+    () => preset.treeEnabled && preset.defaultShowTree
+  )
   const [createRequest, setCreateRequest] =
     useState<FileTreeCreateRequest | null>(null)
 

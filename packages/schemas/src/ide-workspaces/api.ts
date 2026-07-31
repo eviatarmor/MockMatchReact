@@ -13,6 +13,8 @@ export const ideWorkspaceIdInputSchema = entityIdInputSchema
 
 export const ideWorkspaceCreateInputSchema = z.object({
   title: z.string().trim().min(1).max(200).optional(),
+  /** Practice format / layout key (e.g. react, cpp-sort, shell, workspace). */
+  templateId: z.string().trim().min(1).max(64).optional(),
   document: ideWorkspaceDocumentSchema.optional(),
 })
 

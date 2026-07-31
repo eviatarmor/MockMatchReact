@@ -104,7 +104,7 @@ export async function createIdeWorkspace(
       userId,
       title: input.title ?? "Untitled workspace",
       status: "draft",
-      templateId: DEFAULT_WORKSPACE_TEMPLATE_ID,
+      templateId: input.templateId?.trim() || DEFAULT_WORKSPACE_TEMPLATE_ID,
       style: {},
       document: input.document ?? blankWorkspaceDocument(),
     })
