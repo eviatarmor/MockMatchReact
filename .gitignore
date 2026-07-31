@@ -14,9 +14,6 @@ client/dist/
 !.env.example
 !**/.env.example
 
-# Firecracker binaries (always downloaded latest via sandbox:install-firecracker)
-infra/sandbox/agent/bin/
-
 # misc
 .DS_Store
 *.pem

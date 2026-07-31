@@ -39,7 +39,7 @@ export type IdeTerminalPanelProps = {
   ) => string | string[] | void | Promise<string | string[] | void>
   focusCwd?: string | null
   onFocusCwdConsumed?: () => void
-  /** Push into the active terminal session (sandbox WS feed). */
+  /** Push into the active terminal session (host runner feed). */
   feed?: { seq: number; chunk: string } | null
   /** SSH-like PTY (raw keys + remote echo). */
   pty?: {

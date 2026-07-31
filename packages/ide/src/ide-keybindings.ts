@@ -77,7 +77,7 @@ export function matchIdeKeybinding(
     return { action: "toggleFullscreen", preventDefault: true }
   }
 
-  // F5 — run (host sandbox)
+  // F5 — run (host runner)
   if (!mod && !alt && !shift && e.key === "F5") {
     return { action: "run", preventDefault: true }
   }

@@ -7,8 +7,7 @@
 npm run infra:up                    # Postgres + Redis
 cp api/.env.example api/.env        # if needed
 cd api && npm run db:migrate        # through 0005 document collab shares
-npm run sandbox:install-gvisor      # once — gVisor runsc (IDE sandbox)
-npm run dev                         # sandbox + client + api + ws + worker + studio
+npm run dev                         # client + api + ws + worker + studio
 # or split:
 npm run dev:api
 npm run dev:ws                      # collab WebSocket :3001
@@ -36,23 +35,6 @@ npm run db:schema:mermaid
 # Re-run after schema changes / db:generate
 ```
 
-## IDE sandbox (gVisor) — optional, for `@mockmatch/ide` realtime
-
-```bash
-npm run sandbox:install-gvisor   # once — hardened runsc (network=none)
-npm run sandbox:up               # build image (session containers created on demand)
-npm run sandbox:smoke            # ephemeral isolation check
-npm run sandbox:shell            # interactive bash (sample mount)
-npm run sandbox:down             # remove all mm-sbx-* session containers
-```
-
-Docs: `infra/sandbox/README.md`, `docs/sandbox-isolation.md`, `docs/sandbox-runbooks.md`.  
-One isolation unit per collab session; guest root `/workspace`.  
-Local: Docker+gVisor backend (optional orchestrator on :3010). Prod: `SANDBOX_ORCHESTRATOR_URL` on api/ws.  
-Fallback: `$env:SANDBOX_RUNTIME="runc"` in `api/.env`, then `npm run sandbox:up`.  
-Isolation suite: `npm run sandbox:isolation`.
-
-
 ## Production
 
 No in-repo production bootstrap (DigitalOcean / Terraform removed). Revisit when a new host is chosen.
@@ -62,3 +44,4 @@ No in-repo production bootstrap (DigitalOcean / Terraform removed). Revisit when
 - Production hosting / IaC
 - Full LinkedIn OAuth authorize/callback handlers (stubs + env/secrets only)
 - Google OAuth
+- IDE code runner / judge (Run / Run tests are placeholders)

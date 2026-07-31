@@ -115,9 +115,9 @@ export type IdeLabels = {
   unsplit?: string
   splitMenu?: string
   copied?: string
-  /** Run active code in the host sandbox. */
+  /** Run active code via host-provided runner. */
   run?: string
-  /** Run tests in the host sandbox. */
+  /** Run tests via host-provided runner. */
   runTests?: string
   runMenu?: string
 }
@@ -216,7 +216,7 @@ export type IdeShellProps = {
   ) => string | string[] | void | Promise<string | string[] | void>
   /**
    * SSH-like PTY bridge. When `pty.active`, the terminal sends raw keystrokes
-   * and writes `terminalPtyFeed` (host owns collab WS `sandbox.pty.*`).
+   * and writes `terminalPtyFeed` (host owns remote PTY transport).
    */
   terminalPty?: {
     active: boolean
@@ -246,13 +246,13 @@ export type IdeShellProps = {
   collab?: IdeCollabProps | null
 
   /**
-   * Host sandbox actions. When set, Run / Run tests appear on the tab bar
+   * Host run actions. When set, Run / Run tests appear on the tab bar
    * (and Run menu) unless `runActionsPlacement` is `"none"`.
    * Package owns chrome only — host owns docker/gVisor/judge (often via WS).
    */
   onRun?: () => void
   onRunTests?: () => void
-  /** Disable Run while a sandbox job is in flight. */
+  /** Disable Run while a job is in flight. */
   runBusy?: boolean
   /** Disable Run tests while a test job is in flight. */
   runTestsBusy?: boolean
@@ -265,7 +265,7 @@ export type IdeShellProps = {
    */
   runActionsPlacement?: "tabs" | "none"
   /**
-   * Push text into the active terminal (e.g. sandbox.output from collab WS).
+   * Push text into the active terminal (e.g. runner stdout from the host).
    * Bump `seq` for each chunk so the same text can repeat.
    */
   terminalFeed?: { seq: number; chunk: string } | null

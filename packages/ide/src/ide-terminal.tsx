@@ -63,7 +63,7 @@ function writeLines(term: Terminal, lines: string | string[] | void) {
 /**
  * Interactive xterm.js panel.
  * - Default: local echo line shell
- * - `pty.active`: raw passthrough (sandbox bash over WS)
+ * - `pty.active`: raw passthrough (host-owned remote shell over WS)
  */
 export function IdeTerminal({
   className,
@@ -173,7 +173,7 @@ export function IdeTerminal({
 
       if (onCommandRef.current) {
         if (command === "help") {
-          term.writeln("Host runner is active. Prefer the live sandbox PTY.")
+          term.writeln("Host runner is active. Prefer the live remote PTY.")
           prompt()
           return
         }

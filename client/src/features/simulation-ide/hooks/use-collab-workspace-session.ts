@@ -1,15 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { IdeTab, IdeTreeNode, FileTreeCreateRequest } from "@mockmatch/ide"
 import {
-  applySandboxFsToYDoc,
   ensureIdeFileYText,
   getIdeFileYText,
   languageFromFileName,
-  materializeIdeWorkspace,
   setIdeWorkspaceTitle,
   setIdeWorkspaceTree,
 } from "@mockmatch/ide"
-import { pathsToTree } from "../lib/paths-to-tree"
 import {
   useCollabYDoc,
   type CollabYSnapshot,
@@ -148,52 +145,7 @@ export function useCollabWorkspaceSession(seed: WorkspaceSessionSeed) {
     applyRemoteUpdateRef.current(updateB64)
   }, [])
 
-  const lastFsHashRef = useRef("")
-  const applyingFsRef = useRef(false)
-
   const ydoc = yjs.ydoc
-
-  const onSandboxFs = useCallback(
-    (files: Record<string, string>, hash: string) => {
-      if (hash && hash === lastFsHashRef.current) return
-      lastFsHashRef.current = hash
-      applyingFsRef.current = true
-      try {
-        const treeNext = pathsToTree(Object.keys(files))
-        // Merge into Y first (sandbox-fs origin → materialize → tree/tabs/Monaco)
-        applySandboxFsToYDoc(ydoc, files, treeNext)
-        // Optimistic React update (materialize also runs via observer)
-        skipBroadcast.current = true
-        setTree(treeNext)
-        catalogRef.current = buildCatalogFromDoc({
-          tree: treeNext,
-          files: Object.fromEntries(
-            Object.entries(files).map(([p, content]) => {
-              const name = p.includes("/") ? p.slice(p.lastIndexOf("/") + 1) : p
-              return [
-                p,
-                { language: languageFromFileName(name), content },
-              ]
-            })
-          ),
-        })
-        setTabs((prev) =>
-          prev.map((t) => {
-            const next = catalogRef.current.get(t.id)
-            return next
-              ? { ...next, preview: t.preview, dirty: false }
-              : t
-          })
-        )
-      } finally {
-        // Defer so tree effect does not re-push pre-FS tree
-        queueMicrotask(() => {
-          applyingFsRef.current = false
-        })
-      }
-    },
-    [ydoc]
-  )
 
   const collab = useCollabRoom({
     kind: "workspace",
@@ -202,7 +154,6 @@ export function useCollabWorkspaceSession(seed: WorkspaceSessionSeed) {
     onSnapshot,
     onYjsSync,
     onYjsUpdate,
-    onSandboxFs,
   })
 
   sendYUpdateRef.current = collab.sendYUpdate
@@ -259,7 +210,6 @@ export function useCollabWorkspaceSession(seed: WorkspaceSessionSeed) {
       skipBroadcast.current = false
       return
     }
-    if (applyingFsRef.current) return
     if (!collab.live || !permissions.canEditContent) return
     const timer = window.setTimeout(() => {
       setIdeWorkspaceTree(ydoc, treeRef.current)
@@ -520,70 +470,6 @@ export function useCollabWorkspaceSession(seed: WorkspaceSessionSeed) {
     ]
   )
 
-  /**
-   * Flatten workspace files for sandbox WS.
-   * Prefer live Y.Text / materialize so peer edits are included.
-   */
-  const collectSandboxFiles = useCallback((): Record<string, string> => {
-    const out: Record<string, string> = {}
-    for (const [path, tab] of catalogRef.current.entries()) {
-      out[path] = tab.value
-    }
-    for (const tab of tabs) {
-      out[tab.id] = tab.value
-    }
-    if (collab.live) {
-      try {
-        const mat = materializeIdeWorkspace(ydoc)
-        for (const [path, file] of Object.entries(mat.document.files)) {
-          out[path] = file.content
-        }
-      } catch {
-        // fall back to catalog/tabs
-      }
-    }
-    return out
-  }, [tabs, collab.live, ydoc])
-
-  const runSandbox = useCallback(
-    (mode: "run" | "tests") => {
-      collab.sendSandboxRun({
-        mode,
-        entryPath: activeTabId,
-        files: collectSandboxFiles(),
-      })
-    },
-    [collab, activeTabId, collectSandboxFiles]
-  )
-
-  /** Open interactive SSH-like shell when terminal is shown / WS live. */
-  const openSandboxPty = useCallback(
-    (cols?: number, rows?: number) => {
-      collab.openSandboxPty({
-        files: collectSandboxFiles(),
-        cols,
-        rows,
-      })
-    },
-    [collab, collectSandboxFiles]
-  )
-
-  // While terminal is open: push IDE buffers → sandbox host so shell sees edits
-  useEffect(() => {
-    if (collab.ptyStatus !== "open") return
-    if (!permissions.canEditContent) return
-    const timer = window.setInterval(() => {
-      if (applyingFsRef.current) return
-      collab.pushSandboxFs(collectSandboxFiles())
-    }, 800)
-    return () => window.clearInterval(timer)
-  }, [
-    collab.ptyStatus,
-    permissions.canEditContent,
-    collab,
-    collectSandboxFiles,
-  ])
-
   const saveStatus =
     collab.status === "connecting"
       ? ("saving" as const)
@@ -622,15 +508,6 @@ export function useCollabWorkspaceSession(seed: WorkspaceSessionSeed) {
     permissions,
     saveStatus,
     ydoc,
-    runSandbox,
-    openSandboxPty,
-    sendSandboxPtyInput: collab.sendSandboxPtyInput,
-    sendSandboxPtyResize: collab.sendSandboxPtyResize,
-    closeSandboxPty: collab.closeSandboxPty,
-    sandboxStatus: collab.sandboxStatus,
-    sandboxFeed: collab.sandboxFeed,
-    ptyStatus: collab.ptyStatus,
-    ptyFeed: collab.ptyFeed,
   }
 }
 

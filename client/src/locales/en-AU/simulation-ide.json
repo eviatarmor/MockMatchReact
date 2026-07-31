@@ -76,8 +76,8 @@
     "run": "Run",
     "runTests": "Run tests",
     "runMenu": "Run",
-    "runNeedsWs": "Connect to the workspace (WebSocket) to run in the sandbox.",
-    "runNotWired": "Sandbox runner not connected yet. Start local sandbox with npm run sandbox:up.",
-    "runTestsNotWired": "Test runner not connected yet. Start local sandbox with npm run sandbox:up."
+    "runNeedsWs": "Connect to the workspace to run code.",
+    "runNotWired": "Code runner not wired yet.",
+    "runTestsNotWired": "Test runner not wired yet."
   }
 }

@@ -31,7 +31,6 @@ interface UseCollabRoomArgs {
     userId: string,
     rev: number
   ) => void
-  readonly onSandboxFs?: (files: Record<string, string>, hash: string) => void
 }
 
 /**
@@ -46,7 +45,6 @@ export function useCollabRoom({
   onSnapshot,
   onYjsSync,
   onYjsUpdate,
-  onSandboxFs,
 }: UseCollabRoomArgs) {
   const ticketMut = trpc.collab.wsTicket.useMutation()
   const ticketMutRef = useRef(ticketMut)
@@ -78,6 +76,5 @@ export function useCollabRoom({
     onSnapshot,
     onYjsSync,
     onYjsUpdate,
-    onSandboxFs,
   })
 }

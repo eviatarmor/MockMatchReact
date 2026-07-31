@@ -1,7 +1,7 @@
 import type { IdeTreeNode } from "@mockmatch/ide"
 
 /**
- * Build a file-tree from a flat list of file paths (e.g. sandbox FS).
+ * Build a file-tree from a flat list of file paths.
  * Folder ids are path prefixes; file ids equal full paths.
  */
 export function pathsToTree(paths: readonly string[]): IdeTreeNode[] {

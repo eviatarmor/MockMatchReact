@@ -7,8 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run sandbox:up && concurrently -n client,api,ws,worker,studio,sbx -c cyan,magenta,green,blue,yellow,red \"npm:dev --workspace=client\" \"npm:dev --workspace=@mockmatch/api\" \"npm:dev:ws --workspace=@mockmatch/api\" \"npm:dev:worker --workspace=@mockmatch/api\" \"npm:db:studio --workspace=@mockmatch/api\" \"npm run dev:sandbox-orchestrator --workspace=@mockmatch/api\"",
-    "dev:sandbox": "npm run dev:sandbox-orchestrator --workspace=@mockmatch/api",
+    "dev": "concurrently -n client,api,ws,worker,studio -c cyan,magenta,green,blue,yellow \"npm:dev --workspace=client\" \"npm:dev --workspace=@mockmatch/api\" \"npm:dev:ws --workspace=@mockmatch/api\" \"npm:dev:worker --workspace=@mockmatch/api\" \"npm:db:studio --workspace=@mockmatch/api\"",
     "dev:client": "npm run dev --workspace=client",
     "dev:api": "npm run dev --workspace=@mockmatch/api",
     "dev:ws": "npm run dev:ws --workspace=@mockmatch/api",
@@ -16,16 +15,6 @@
     "dev:studio": "npm run db:studio --workspace=@mockmatch/api",
     "infra:up": "docker compose -f infra/docker-compose.yml up -d",
     "infra:down": "docker compose -f infra/docker-compose.yml down",
-    "sandbox:install-gvisor": "docker compose -f infra/sandbox/docker-compose.gvisor.yml run --rm runsc-installer && docker info",
-    "sandbox:install-firecracker": "node infra/sandbox/scripts/install-firecracker.mjs",
-    "sandbox:firecracker-check": "node infra/sandbox/scripts/install-firecracker.mjs --check",
-    "sandbox:up": "docker compose -f infra/sandbox/docker-compose.yml --profile manual build",
-    "sandbox:build": "docker compose -f infra/sandbox/docker-compose.yml --profile manual build",
-    "sandbox:down": "node infra/sandbox/scripts/stop-sessions.mjs",
-    "sandbox:shell": "docker compose -f infra/sandbox/docker-compose.yml --profile manual run --rm --entrypoint jail-run sandbox -- bash -l",
-    "sandbox:smoke": "node infra/sandbox/scripts/smoke-test.mjs",
-    "sandbox:isolation": "node infra/sandbox/scripts/isolation-suite.mjs",
-
     "db:schema:mermaid": "npm run db:schema:mermaid --workspace=@mockmatch/api",
     "typecheck": "npm run typecheck --workspace=@mockmatch/api && npm run typecheck --workspace=client",
     "lint": "npm run lint --workspace=client",

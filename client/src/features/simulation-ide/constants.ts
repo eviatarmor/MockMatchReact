@@ -99,7 +99,7 @@ export const WORKSPACE_TABS: IdeTab[] = [
 
 const app = createApp()
 app.listen(3000, () => {
-  console.log("workspace ready — Run uses the collab WS + sandbox")
+  console.log("workspace ready — multiplayer collab IDE")
 })
 `,
   },
@@ -170,7 +170,7 @@ describe("utils", () => {
     language: "markdown",
     value: `# Dev workspace
 
-Multiplayer IDE. **Run** / **Run tests** go through the collab WebSocket into the local gVisor sandbox (\`npm run sandbox:up\`).
+Multiplayer IDE with live collab (Yjs, presence, share links). **Run** / **Run tests** are placeholders until a judge is wired.
 `,
   },
 ]

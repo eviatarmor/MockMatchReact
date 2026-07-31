@@ -13,16 +13,16 @@ Product-agnostic IDE shell for web apps and extensions:
 
 ### Run / Run tests
 
-Host wires sandbox execution (MockMatch: collab WS → `docker exec` sandbox). Package renders chrome when callbacks are set:
+Optional host-owned actions. Package only renders chrome when callbacks are set:
 
 ```tsx
 <IdeShell
   tabs={tabs}
-  onRun={() => collab.sendSandboxRun({ mode: "run", files })}
-  onRunTests={() => collab.sendSandboxRun({ mode: "tests", files })}
-  runBusy={sandboxStatus === "running"}
+  onRun={() => { /* host judge / runner */ }}
+  onRunTests={() => { /* host test runner */ }}
+  runBusy={runStatus === "running"}
   runActionsPlacement="none" // host centers buttons in page header
-  terminalFeed={sandboxFeed} // stream sandbox.output into xterm
+  terminalFeed={outputFeed} // optional push into xterm
 />
 ```
 
@@ -35,7 +35,7 @@ Host wires sandbox execution (MockMatch: collab WS → `docker exec` sandbox). P
 
 Shortcuts: **F5** / **Ctrl+Enter** → Run; **Ctrl+Shift+Enter** → Run tests.
 
-Local isolation: `infra/sandbox` (gVisor) — **one container per session**, guest `/workspace`. WS protocol: `sandbox.run` / `sandbox.started` / `sandbox.output` / `sandbox.finished`.
+MockMatch does **not** ship a remote code sandbox (no Firecracker / gVisor containers). Host can wire a future judge without changing this package.
 
 ## Install (monorepo)
 

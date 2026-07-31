@@ -247,30 +247,7 @@ function WorkspaceCollabSession({
   )
 
   const labels = useIdeLabels(t)
-  // Only Run / Run tests — never the interactive shell
-  const runBusy = session.sandboxStatus === "running"
-  const wsLive = session.collab.live
-  const ptyOpen =
-    session.ptyStatus === "open" || session.ptyStatus === "connecting"
-
-  const onRun = useCallback(() => {
-    setShowTerminal(true)
-    session.runSandbox("run")
-  }, [session])
-
-  const onRunTests = useCallback(() => {
-    setShowTerminal(true)
-    session.runSandbox("tests")
-  }, [session])
-
-  // Open interactive sandbox PTY when WS is live + terminal visible.
-  // Do not retry on error (avoids spin if sandbox is down). Re-open after clean exit.
-  useEffect(() => {
-    if (!wsLive || !showTerminal) return
-    const st = session.ptyStatus
-    if (st === "open" || st === "connecting" || st === "error") return
-    session.openSandboxPty(100, 30)
-  }, [wsLive, showTerminal, session.ptyStatus, session.openSandboxPty])
+  const run = usePlaceholderRunActions(setShowTerminal)
 
   if (session.collab.status === "room_full") {
     return (
@@ -330,13 +307,13 @@ function WorkspaceCollabSession({
                     size="sm"
                     variant="default"
                     className="h-8 cursor-pointer gap-1.5 px-3"
-                    disabled={!wsLive || runBusy}
-                    onClick={onRun}
+                    disabled={run.runBusy || run.runTestsBusy}
+                    onClick={run.onRun}
                     aria-label={t("actions.run")}
                   />
                 }
               >
-                {runBusy ? (
+                {run.runBusy ? (
                   <Loader2 className="size-3.5 animate-spin" />
                 ) : (
                   <Play className="size-3.5 fill-current" />
@@ -344,7 +321,7 @@ function WorkspaceCollabSession({
                 <span>{t("actions.run")}</span>
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                {wsLive ? t("actions.run") : t("actions.runNeedsWs")}
+                {t("actions.run")}
                 <span className="ml-1.5 opacity-70">F5</span>
               </TooltipContent>
             </Tooltip>
@@ -356,13 +333,13 @@ function WorkspaceCollabSession({
                     size="sm"
                     variant="secondary"
                     className="h-8 cursor-pointer gap-1.5 px-3"
-                    disabled={!wsLive || runBusy}
-                    onClick={onRunTests}
+                    disabled={run.runBusy || run.runTestsBusy}
+                    onClick={run.onRunTests}
                     aria-label={t("actions.runTests")}
                   />
                 }
               >
-                {runBusy ? (
+                {run.runBusy ? (
                   <Loader2 className="size-3.5 animate-spin" />
                 ) : (
                   <FlaskConical className="size-3.5" />
@@ -370,7 +347,7 @@ function WorkspaceCollabSession({
                 <span className="hidden sm:inline">{t("actions.runTests")}</span>
               </TooltipTrigger>
               <TooltipContent side="bottom">
-                {wsLive ? t("actions.runTests") : t("actions.runNeedsWs")}
+                {t("actions.runTests")}
                 <span className="ml-1.5 opacity-70">Ctrl+Shift+Enter</span>
               </TooltipContent>
             </Tooltip>
@@ -433,23 +410,11 @@ function WorkspaceCollabSession({
               showSuggestions={false}
             />
           )}
-          onRun={onRun}
-          onRunTests={onRunTests}
-          runBusy={runBusy}
-          runTestsBusy={runBusy}
-          runDisabled={!wsLive}
-          runTestsDisabled={!wsLive}
+          onRun={run.onRun}
+          onRunTests={run.onRunTests}
+          runBusy={run.runBusy}
+          runTestsBusy={run.runTestsBusy}
           runActionsPlacement="none"
-          terminalFeed={session.sandboxFeed}
-          terminalWelcome="Connecting to sandbox shell…"
-          terminalCwd="/workspace"
-          terminalPty={{
-            // Raw mode as soon as we try to connect (no local fake prompt)
-            active: ptyOpen || session.ptyStatus === "error" || wsLive,
-            onData: (data) => session.sendSandboxPtyInput(data),
-            onResize: (cols, rows) => session.sendSandboxPtyResize(cols, rows),
-          }}
-          terminalPtyFeed={session.ptyFeed}
           labels={labels}
           collab={session.collabProps}
         />
@@ -508,7 +473,7 @@ function SimulationIdeSession({
   }, [])
 
   const labels = useIdeLabels(t)
-  const sandbox = useSandboxRunActions(setShowTerminal)
+  const run = usePlaceholderRunActions(setShowTerminal)
 
   return (
     <div ref={pageRef} className="flex h-full min-h-0 flex-col bg-background">
@@ -536,10 +501,10 @@ function SimulationIdeSession({
           onToggleFullscreen={() => void toggleFullscreen()}
           onCreateFile={() => session.requestCreate("file")}
           onCreateFolder={() => session.requestCreate("folder")}
-          onRun={sandbox.onRun}
-          onRunTests={sandbox.onRunTests}
-          runBusy={sandbox.runBusy}
-          runTestsBusy={sandbox.runTestsBusy}
+          onRun={run.onRun}
+          onRunTests={run.onRunTests}
+          runBusy={run.runBusy}
+          runTestsBusy={run.runTestsBusy}
           labels={labels}
         />
       </div>
@@ -590,10 +555,10 @@ function SimulationIdeSession({
               showSuggestions={false}
             />
           )}
-          onRun={sandbox.onRun}
-          onRunTests={sandbox.onRunTests}
-          runBusy={sandbox.runBusy}
-          runTestsBusy={sandbox.runTestsBusy}
+          onRun={run.onRun}
+          onRunTests={run.onRunTests}
+          runBusy={run.runBusy}
+          runTestsBusy={run.runTestsBusy}
           labels={labels}
         />
       </div>
@@ -602,10 +567,10 @@ function SimulationIdeSession({
 }
 
 /**
- * Placeholder sandbox actions until API `docker exec` / judge lands.
+ * Placeholder Run / Run tests until a judge/runner is wired.
  * Opens terminal; busy flags exercise IDE button chrome.
  */
-function useSandboxRunActions(
+function usePlaceholderRunActions(
   setShowTerminal: (open: boolean | ((v: boolean) => boolean)) => void
 ) {
   const { t } = useTranslation("simulation-ide")
@@ -616,7 +581,6 @@ function useSandboxRunActions(
     if (runBusy || runTestsBusy) return
     setShowTerminal(true)
     setRunBusy(true)
-    // Host will POST files → sandbox runner here.
     console.info(t("actions.runNotWired"))
     window.setTimeout(() => setRunBusy(false), 500)
   }, [runBusy, runTestsBusy, setShowTerminal, t])

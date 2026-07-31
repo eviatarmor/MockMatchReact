@@ -206,7 +206,7 @@ export function IdeShell({
     [showTerminalControlled, onShowTerminalChange]
   )
 
-  // Open bottom terminal when host pushes sandbox / runner output
+  // Open bottom terminal when host pushes runner output
   useEffect(() => {
     if (terminalFeed) setShowTerminal(true)
   }, [terminalFeed, setShowTerminal])
@@ -632,7 +632,7 @@ export function IdeShell({
 
       const match = matchIdeKeybinding(e)
       if (!match) return
-      // Don't capture F5 / Ctrl+Enter when host never wired sandbox actions.
+      // Don't capture F5 / Ctrl+Enter when host never wired run actions.
       if (match.action === "run" && !keyActionsRef.current.hasRun) return
       if (match.action === "runTests" && !keyActionsRef.current.hasRunTests) {
         return

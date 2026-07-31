@@ -26,7 +26,7 @@ export function blankWorkspaceDocument(): IdeWorkspaceDocumentJson {
       "src/index.ts": {
         language: "typescript",
         content:
-          'console.log("workspace ready — Run uses collab WS + sandbox")\n',
+          'console.log("workspace ready — multiplayer collab IDE")\n',
       },
       "src/lib/utils.ts": {
         language: "typescript",

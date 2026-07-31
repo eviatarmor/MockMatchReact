@@ -13,7 +13,7 @@ import { ensureIdeFileYText, getIdeFileYText } from "./ide-collab-ydoc"
 export const SANDBOX_FS_ORIGIN = "sandbox-fs"
 
 /**
- * Apply a full sandbox host snapshot into the collab Y.Doc:
+ * Apply a full host FS snapshot into the collab Y.Doc:
  * - create/update Y.Text contents
  * - remove files missing from snapshot
  * - replace tree structure

@@ -92,7 +92,7 @@ Don't start the dev server or open browser devtools yourself. Instead, ask the u
 
 Run from repo root:
 ```bash
-npm run dev          # sandbox (gVisor) + client + api + ws + worker + Drizzle Studio
+npm run dev          # client + api + ws + worker + Drizzle Studio
 npm run dev:client   # vite only
 npm run dev:api      # Hono + tRPC API
 npm run dev:ws       # collab WebSocket
