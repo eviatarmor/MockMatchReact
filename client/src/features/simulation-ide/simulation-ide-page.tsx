@@ -14,6 +14,7 @@ import {
 } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { FlaskConical, Loader2, Play, Share2 } from "lucide-react"
+import { RobotLoader } from "@mockmatch/ui/robot-loader"
 import {
   IdeMenubar,
   IdeShell,
@@ -196,7 +197,7 @@ function ExerciseCollabBootstrap({ format }: { format: IdeFormatSlug }) {
   if (!isValidId) {
     const exerciseFailed = isCatalog && exerciseQuery.isError
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-2 p-8 text-sm text-muted-foreground">
+      <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-sm text-muted-foreground">
         {exerciseFailed || create.isError ? (
           <>
             {exerciseFailed
@@ -217,7 +218,7 @@ function ExerciseCollabBootstrap({ format }: { format: IdeFormatSlug }) {
           </>
         ) : (
           <>
-            <Loader2 className="size-4 animate-spin" />
+            <RobotLoader size="md" label={t("collab.preparing")} />
             {t("collab.preparing")}
           </>
         )}
@@ -278,8 +279,8 @@ function ExerciseCollabLoader({
 
   if (query.isLoading || (shareToken && access.isLoading)) {
     return (
-      <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" />
+      <div className="flex h-full flex-col items-center justify-center gap-3 text-sm text-muted-foreground">
+        <RobotLoader size="md" label={t("collab.loading")} />
         {t("collab.loading")}
       </div>
     )

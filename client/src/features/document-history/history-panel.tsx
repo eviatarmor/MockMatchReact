@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useInView } from "react-intersection-observer"
-import { History, Loader2 } from "lucide-react"
+import { History } from "lucide-react"
 import type { DocumentKind } from "@mockmatch/schemas"
+import { Skeleton } from "@mockmatch/ui/skeleton"
 import { StaggerItem } from "@mockmatch/ui/stagger"
 import { cn } from "@/lib/utils"
 import { formatRelativeTime } from "@/lib/format-relative-time"
@@ -10,6 +11,16 @@ import { trpc } from "@/lib/trpc"
 import { VersionPreviewDialog } from "./version-preview-dialog"
 
 const PAGE_SIZE = 15
+const SKELETON_ROWS = 6
+
+function HistoryRowSkeleton() {
+  return (
+    <div className="rounded-lg px-2.5 py-2">
+      <Skeleton className="h-4 w-28" />
+      <Skeleton className="mt-1.5 h-3 w-20" />
+    </div>
+  )
+}
 
 type HistoryPanelProps = {
   readonly kind: DocumentKind
@@ -68,10 +79,13 @@ export function HistoryPanel({
 
   if (list.isLoading) {
     return (
-      <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" />
-        {t("history.loading")}
-      </div>
+      <ul className="space-y-0.5" aria-busy="true" aria-label={t("history.loading")}>
+        {Array.from({ length: SKELETON_ROWS }, (_, i) => (
+          <li key={i}>
+            <HistoryRowSkeleton />
+          </li>
+        ))}
+      </ul>
     )
   }
 
@@ -120,10 +134,14 @@ export function HistoryPanel({
       <div ref={loadMoreRef} className="h-1 w-full" aria-hidden />
 
       {list.isFetchingNextPage && (
-        <div className="flex items-center justify-center gap-2 py-3 text-xs text-muted-foreground">
-          <Loader2 className="size-3.5 animate-spin" />
-          {t("history.loading")}
-        </div>
+        <ul className="mt-0.5 space-y-0.5" aria-busy="true" aria-label={t("history.loading")}>
+          <li>
+            <HistoryRowSkeleton />
+          </li>
+          <li>
+            <HistoryRowSkeleton />
+          </li>
+        </ul>
       )}
 
       <VersionPreviewDialog

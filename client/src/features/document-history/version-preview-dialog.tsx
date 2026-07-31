@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Loader2, RotateCcw } from "lucide-react"
+import { Skeleton } from "@mockmatch/ui/skeleton"
 import { toast } from "sonner"
 import type { DocumentKind } from "@mockmatch/schemas"
 import {
@@ -182,9 +183,25 @@ export function VersionPreviewDialog({
         }
       >
         {query.isLoading && (
-          <div className="flex items-center justify-center gap-2 p-12 text-sm text-muted-foreground">
-            <Loader2 className="size-4 animate-spin" />
-            {t("history.loading")}
+          <div
+            className="flex justify-center bg-neutral-100 py-6 dark:bg-neutral-950"
+            aria-busy="true"
+            aria-label={t("history.loading")}
+          >
+            <div className="flex w-[min(100%,42rem)] flex-col gap-4 rounded-sm bg-white p-10 shadow-sm dark:bg-neutral-900">
+              <Skeleton className="h-6 w-2/5" />
+              <Skeleton className="h-3 w-1/3" />
+              <div className="mt-2 flex flex-col gap-2.5">
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-11/12" />
+                <Skeleton className="h-3 w-4/5" />
+                <Skeleton className="mt-3 h-3 w-full" />
+                <Skeleton className="h-3 w-10/12" />
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-3/5" />
+              </div>
+            </div>
           </div>
         )}
         {query.isError && (

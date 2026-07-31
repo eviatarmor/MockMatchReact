@@ -1,4 +1,5 @@
 import type { ReactNode } from "react"
+import { RobotLoader } from "@mockmatch/ui/robot-loader"
 
 interface EntityListStatesProps {
   readonly isError: boolean
@@ -33,9 +34,10 @@ export function EntityListStates({
 
   if (isLoading) {
     return (
-      <p className="rounded-xl border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
-        {loadingMessage}
-      </p>
+      <div className="flex flex-col items-center justify-center gap-3 rounded-xl border bg-card px-4 py-10 text-center text-sm text-muted-foreground">
+        <RobotLoader size="md" label={loadingMessage} />
+        <p>{loadingMessage}</p>
+      </div>
     )
   }
 

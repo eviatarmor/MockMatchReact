@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 import { Outlet } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
+import { RobotLoader } from "@mockmatch/ui/robot-loader"
 import { isUnauthorizedError } from "@/lib/auth/errors"
 import { setUser } from "@/lib/auth/session"
 import { forceLogout, handleUnauthorized } from "@/lib/auth/session-guard"
@@ -35,11 +36,25 @@ export function RequireAuth() {
   }, [me.isError, me.error, queryClient])
 
   if (me.isLoading) {
-    return <div className="h-svh w-full bg-sidebar" aria-busy="true" />
+    return (
+      <div
+        className="flex h-svh w-full items-center justify-center bg-sidebar"
+        aria-busy="true"
+      >
+        <RobotLoader size="lg" />
+      </div>
+    )
   }
 
   if (me.isError || !me.data) {
-    return <div className="h-svh w-full bg-sidebar" aria-busy="true" />
+    return (
+      <div
+        className="flex h-svh w-full items-center justify-center bg-sidebar"
+        aria-busy="true"
+      >
+        <RobotLoader size="lg" />
+      </div>
+    )
   }
 
   return <Outlet />

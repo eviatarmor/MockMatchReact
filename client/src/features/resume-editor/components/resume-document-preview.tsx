@@ -1,6 +1,7 @@
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
-import { AlertCircle, Loader2 } from "lucide-react"
+import { AlertCircle } from "lucide-react"
+import { RobotLoader } from "@mockmatch/ui/robot-loader"
 import { resolveStyleClasses } from "@/components/document-editor"
 import { parseDocumentStyle } from "@/lib/parse-document-style"
 import { trpc } from "@/lib/trpc"
@@ -77,8 +78,8 @@ export function ResumeDocumentPreview({
 
   if ((query.isLoading || query.isFetching) && !view) {
     return (
-      <div className={shell}>
-        <Loader2 className="size-4 animate-spin" />
+      <div className={`${shell} flex-col gap-3`}>
+        <RobotLoader size="sm" label={t("loading")} />
         {t("loading")}
       </div>
     )

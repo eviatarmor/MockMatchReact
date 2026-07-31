@@ -1,7 +1,8 @@
 import { useCallback, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
-import { AlertCircle, Loader2 } from "lucide-react"
+import { AlertCircle } from "lucide-react"
+import { RobotLoader } from "@mockmatch/ui/robot-loader"
 import { useNavbarSlots } from "@/hooks/use-navbar-slots"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { useCanvasViewport } from "@/hooks/use-canvas-viewport"
@@ -323,8 +324,8 @@ export function ResumeEditorPageContent() {
 
   if (query.isLoading || (shareToken && access.isLoading)) {
     return (
-      <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" />
+      <div className="flex h-full flex-col items-center justify-center gap-3 text-sm text-muted-foreground">
+        <RobotLoader size="md" label={t("loading")} />
         {t("loading")}
       </div>
     )

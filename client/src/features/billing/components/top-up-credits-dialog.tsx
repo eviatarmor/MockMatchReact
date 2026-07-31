@@ -1,4 +1,5 @@
 import { Loader2 } from "lucide-react"
+import { RobotLoader } from "@mockmatch/ui/robot-loader"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { toast } from "sonner"
@@ -73,7 +74,10 @@ export function TopUpCreditsDialog({
 
         <div className="mt-4 flex flex-col gap-3">
           {packsQuery.isLoading || summaryQuery.isLoading ? (
-            <p className="text-sm text-muted-foreground">{t("navbar.creditsCard.loading")}</p>
+            <div className="flex flex-col items-center justify-center gap-3 py-6 text-sm text-muted-foreground">
+              <RobotLoader size="sm" label={t("navbar.creditsCard.loading")} />
+              <p>{t("navbar.creditsCard.loading")}</p>
+            </div>
           ) : !stripeConfigured ? (
             <p className="text-sm text-muted-foreground">{tb("usage.stripeNotConfigured")}</p>
           ) : packs.length === 0 ? (
