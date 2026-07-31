@@ -82,6 +82,9 @@ application tracking, practice, and readiness insights.
 11. **Help & support** (\`/help\`) — topic-based support request (billing, bug, account, feature request, general info). Optional screenshots. Follow-up uses the signed-in account email. Also in the user menu (avatar).
 - **Feedback** (navbar button) — short anonymous product notes (message + page path/locale only; no name/email sent to triage). For structured support, use Help.
 
+### Other
+- **404 / not found** — any unknown path shows a full-page “Page not found” screen (lost robot mascot) with a **Go to home** link back to \`/\` (which lands in the app). No auth required for this page.
+
 ## How-tos (common)
 
 ### Score / improve a resume
