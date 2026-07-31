@@ -12,6 +12,7 @@ import { TrpcProvider } from "./lib/trpc/provider"
 import { HomePage } from "./pages/home-page"
 import { LoginPage } from "./pages/login-page"
 import { SignupPage } from "./pages/signup-page"
+import { NotFoundPage } from "./pages/not-found-page"
 import { dashboardRoutes } from "./pages/dashboard/dashboard-routes"
 
 createRoot(document.getElementById("root")!).render(
@@ -25,6 +26,7 @@ createRoot(document.getElementById("root")!).render(
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               {dashboardRoutes()}
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
             <ThemedToaster />
           </BrowserRouter>
