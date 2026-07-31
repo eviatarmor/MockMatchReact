@@ -28,6 +28,11 @@ export function ProfileSection({ form, email, avatarUrl }: ProfileSectionProps) 
   const avatar = useProfileAvatar(avatarUrl)
 
   const displayName = fullName || email
+  // Placeholder shows the account name (not a fake "John Doe").
+  const fullNamePlaceholder =
+    fullName?.trim() ||
+    email.split("@")[0]?.trim() ||
+    t("profile.fullNamePlaceholder")
   const busy = avatar.isUploading || avatar.isRemoving
 
   return (
@@ -68,11 +73,10 @@ export function ProfileSection({ form, email, avatarUrl }: ProfileSectionProps) 
               </span>
             </button>
             <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-              <span className="truncate text-sm font-medium text-foreground">{fullName}</span>
+              <span className="truncate text-sm font-medium text-foreground">
+                {displayName}
+              </span>
               <span className="truncate text-xs text-muted-foreground">{email}</span>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {t("profile.photo.clickHint")}
-              </p>
               {avatar.avatarUrl ? (
                 <Button
                   type="button"
@@ -95,20 +99,21 @@ export function ProfileSection({ form, email, avatarUrl }: ProfileSectionProps) 
             </div>
           </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="account-email">{t("profile.emailLabel")}</Label>
-            <Input id="account-email" value={email} readOnly disabled />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="account-full-name">{t("profile.fullNameLabel")}</Label>
-            <Input
-              id="account-full-name"
-              placeholder={t("profile.fullNamePlaceholder")}
-              aria-invalid={Boolean(form.formState.errors.fullName)}
-              {...form.register("fullName", { required: true, maxLength: 256 })}
-            />
-            <p className="text-xs text-muted-foreground">{t("profile.fullNameHelp")}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="account-email">{t("profile.emailLabel")}</Label>
+              <Input id="account-email" value={email} readOnly disabled />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="account-full-name">{t("profile.fullNameLabel")}</Label>
+              <Input
+                id="account-full-name"
+                placeholder={fullNamePlaceholder}
+                aria-invalid={Boolean(form.formState.errors.fullName)}
+                {...form.register("fullName", { required: true, maxLength: 256 })}
+              />
+              <p className="text-xs text-muted-foreground">{t("profile.fullNameHelp")}</p>
+            </div>
           </div>
         </CardContent>
       </Card>

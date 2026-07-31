@@ -80,7 +80,7 @@ export function RegionSection({ form }: RegionSectionProps) {
     <SectionShell heading={t("region.heading")} description={t("region.description")}>
       <Card>
         <CardContent className="flex flex-col gap-4">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="account-language">{t("region.languageLabel")}</Label>
               <Controller

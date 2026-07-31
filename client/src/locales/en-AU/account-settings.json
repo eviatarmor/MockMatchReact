@@ -30,7 +30,6 @@
     "photo": {
       "add": "Add photo",
       "change": "Change photo",
-      "clickHint": "Click the photo to change it",
       "remove": "Remove photo",
       "removing": "Removing…",
       "dialogTitle": "Profile photo",
