@@ -232,6 +232,35 @@ import { EntityTable } from "@/components/data/entity-table"
 
 **Do not use for:** Magic UI `progressive-blur` on page-scroll lists (bleeds borders / sticky hacks) — only if content lives in a **fixed-height clipped scroller**. Magic UI `AnimatedList` is for landing-page notification demos (reverses order) — not product data lists.
 
+### Loading states — `RobotLoader` vs skeleton vs spinner
+
+Pick by **shape of the wait**, not habit. Do not invent a third brand loader.
+
+| When | Use | Import / notes |
+|------|-----|----------------|
+| Content-area wait (full pane, auth gate, empty shell, entity list with no layout to mimic) | **`RobotLoader`** | `@mockmatch/ui/robot-loader` — sizes `sm` \| `md` \| `lg`; pass `label` for a11y; center with optional muted caption |
+| Layout-shaped wait (list rows, cards, table, document preview page) | **`Skeleton`** | `@mockmatch/ui/skeleton` — match final UI silhouette |
+| Buttons, toolbar, save badge, filters, row actions, toast, other chrome | **`Spinner` / `Loader2`** | `@mockmatch/ui/spinner` or lucide `Loader2` — keep tiny |
+
+**Already wired (robot)**
+| Surface | Notes |
+|---------|--------|
+| `RequireAuth` | Full-viewport gate while `auth.me` loads |
+| Resume / cover-letter / IDE collab page load + “preparing” | Full-pane `md` |
+| Document previews (no data yet) | `sm` |
+| `EntityListStates` loading | Labs list shell (no row skeleton yet) |
+| Top-up credits dialog (packs) | Content block `sm` |
+
+**Already wired (skeleton — keep skeleton, not robot)**
+| Surface | Notes |
+|---------|--------|
+| Document history list + load-more | Row silhouettes in `history-panel` |
+| Version preview dialog body | Page-shaped skeleton (not robot) |
+| Discover job list / details | Job row + details skeletons |
+| Billing usage / payment / history | Card / table shape placeholders |
+
+**Do not:** put robot in buttons or micro chrome; replace history/list skeletons with robot; hand-roll alternate spinners when `RobotLoader` / `Skeleton` / `Spinner` already fit.
+
 ## React skills
 
 `client/.agents/skills/` contains Vercel-authored skill rule packs (composition patterns, React best-practices, view transitions). These encode the project's preferred React 19 patterns (e.g. no `forwardRef`, derived state without effects, memoization rules) — consult them when writing or reviewing component code.
