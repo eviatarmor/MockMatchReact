@@ -27,7 +27,7 @@ export function BillingPageContent() {
 
   return (
     <DashboardPageShell title={t("title")}>
-      <div className="flex flex-col gap-6">
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
         <DashboardPageHeader title={t("title")} description={t("description")} />
         <ScrollSpyTabs tabs={tabs} defaultTabId="usage" />
       </div>

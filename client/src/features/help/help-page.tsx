@@ -33,7 +33,7 @@ export function HelpPageContent() {
 
   return (
     <DashboardPageShell title={t("title")}>
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
         <DashboardPageHeader title={t("title")} description={t("description")} />
 
         <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
@@ -133,3 +133,4 @@ export function HelpPageContent() {
     </DashboardPageShell>
   )
 }
+
