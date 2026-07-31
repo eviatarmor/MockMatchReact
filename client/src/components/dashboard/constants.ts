@@ -12,6 +12,7 @@ import {
   Settings,
   CreditCard,
   ShieldCheck,
+  LifeBuoy,
   LogOut,
   LayoutGrid,
   Dumbbell,
@@ -61,6 +62,14 @@ export const NAV_SECTIONS: NavSection[] = [
       { title: "navItems.interviewRecorder", icon: AudioWaveform, href: "/interview-recorder" },
     ],
   },
+  {
+    id: "support",
+    labelKey: "navGroups.support",
+    icon: LifeBuoy,
+    items: [
+      { title: "navItems.help", icon: LifeBuoy, href: "/help" },
+    ],
+  },
 ]
 
 // Flat list retained for the navbar breadcrumb lookup.
@@ -78,6 +87,7 @@ export const USER_MENU_ACTIONS: UserMenuAction[] = [
   { labelKey: "userMenu.accountSettings", icon: Settings },
   { labelKey: "userMenu.billing", icon: CreditCard },
   { labelKey: "userMenu.privacy", icon: ShieldCheck },
+  { labelKey: "userMenu.help", icon: LifeBuoy },
 ]
 
 export const USER_MENU_LOGOUT: UserMenuAction = {

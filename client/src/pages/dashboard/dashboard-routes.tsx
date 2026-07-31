@@ -17,6 +17,7 @@ import { ApplicationDetailPage } from "@/pages/dashboard/application-detail-page
 import { AccountSettingsPage } from "@/pages/dashboard/account-settings-page";
 import { BillingPage } from "@/pages/dashboard/billing-page";
 import { PrivacyPage } from "@/pages/dashboard/privacy-page"
+import { HelpPage } from "@/pages/dashboard/help-page"
 import { SimulationsPage } from "@/pages/dashboard/simulations-page"
 import { SimulationTracksPage } from "@/pages/dashboard/simulation-tracks-page"
 import { SimulationIdePage } from "@/pages/dashboard/simulation-ide-page"
@@ -42,6 +43,7 @@ const DASHBOARD_ROUTES = [
   { path: "account-settings", titleKey: "userMenu.accountSettings" },
   { path: "billing", titleKey: "userMenu.billing" },
   { path: "privacy", titleKey: "userMenu.privacy" },
+  { path: "help", titleKey: "userMenu.help" },
 ] as const;
 
 export function dashboardRoutes() {
@@ -113,6 +115,9 @@ export function dashboardRoutes() {
           }
           if (path === "privacy") {
             return <Route key={path} path={path} element={<PrivacyPage />} />;
+          }
+          if (path === "help") {
+            return <Route key={path} path={path} element={<HelpPage />} />;
           }
           return <Route key={path} path={path} element={<DashboardRoutePage path={path} titleKey={titleKey} />} />;
         })}

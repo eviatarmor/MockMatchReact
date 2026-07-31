@@ -9,6 +9,7 @@ import { jobsRouter } from "../modules/jobs/router.js"
 import { practiceExercisesRouter } from "../modules/practice-exercises/router.js"
 import { questionsRouter } from "../modules/questions/router.js"
 import { resumesRouter } from "../modules/resumes/router.js"
+import { supportRouter } from "../modules/support/router.js"
 import { router } from "./trpc.js"
 
 export const appRouter = router({
@@ -23,6 +24,7 @@ export const appRouter = router({
   ideWorkspaces: ideWorkspacesRouter,
   practiceExercises: practiceExercisesRouter,
   jobs: jobsRouter,
+  support: supportRouter,
 })
 
 export type AppRouter = typeof appRouter

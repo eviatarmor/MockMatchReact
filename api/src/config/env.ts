@@ -134,6 +134,16 @@ const envSchema = z
       .int()
       .nonnegative()
       .default(4),
+    /**
+     * Jira (optional). Empty → support mutations accept + log stub ticket keys.
+     * Wire REST in modules/support/jira-client.ts when ready.
+     */
+    JIRA_BASE_URL: z.string().optional().default(""),
+    JIRA_EMAIL: z.string().optional().default(""),
+    JIRA_API_TOKEN: z.string().optional().default(""),
+    JIRA_PROJECT_KEY: z.string().optional().default(""),
+    JIRA_ISSUE_TYPE_FEEDBACK: z.string().optional().default("Task"),
+    JIRA_ISSUE_TYPE_HELP: z.string().optional().default("Task"),
   })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV === "production" && data.OTP_STUB_CODE !== "") {

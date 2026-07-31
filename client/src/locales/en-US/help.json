@@ -1,0 +1,51 @@
+{
+  "documentTitle": "Help & support — MockMatch",
+  "title": "Help & support",
+  "description": "Choose a topic and tell us what you need. We follow up on support requests using your account email.",
+  "fields": {
+    "topic": "Topic",
+    "subject": "Subject",
+    "subjectPlaceholder": "Short summary (optional)",
+    "subjectHint": "Optional. Helps us route your request faster.",
+    "message": "Message",
+    "messagePlaceholder": "Describe the issue or question in a few sentences…",
+    "photos": "Screenshots (optional)"
+  },
+  "photos": {
+    "add": "Add photo",
+    "hint": "Up to {{max}} screenshots",
+    "remove": "Remove photo",
+    "invalidType": "{{name}} is not a supported image type.",
+    "tooLarge": "{{name}} is larger than 2 MB."
+  },
+  "topics": {
+    "billing": {
+      "label": "Billing",
+      "description": "Credits, plans, invoices, payments"
+    },
+    "bug": {
+      "label": "Bug",
+      "description": "Something broken or unexpected"
+    },
+    "account": {
+      "label": "Account",
+      "description": "Login, profile, access"
+    },
+    "feature": {
+      "label": "Feature request",
+      "description": "Ideas to improve MockMatch"
+    },
+    "info": {
+      "label": "General info",
+      "description": "How something works"
+    }
+  },
+  "actions": {
+    "send": "Send request",
+    "sending": "Sending…"
+  },
+  "toast": {
+    "success": "Request sent. We’ll get back to you soon.",
+    "error": "Could not send your request. Try again."
+  }
+}

@@ -20,6 +20,7 @@ const USER_MENU_ROUTES: Record<string, string> = {
   "userMenu.accountSettings": "/account-settings",
   "userMenu.billing": "/billing",
   "userMenu.privacy": "/privacy",
+  "userMenu.help": "/help",
 }
 
 interface IconRailProps {

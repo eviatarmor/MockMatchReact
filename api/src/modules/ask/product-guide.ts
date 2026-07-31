@@ -20,9 +20,9 @@ application tracking, practice, and readiness insights.
 - Stay on product/help topics. Decline unrelated harmful requests.
 
 ## App chrome
-- Left **icon rail** switches major areas (Applications, Practice, Insights, Automation).
-- **Section nav** lists pages within the active area.
-- Top **navbar**: breadcrumbs, **Ask** (this chat), help, notifications, theme, Feedback, credits.
+- Left **icon rail** switches major areas (Applications, Practice, Insights, Automation, Help & support).
+- **Section nav** lists pages within the active area (all groups shown; Help & support sits below Automation).
+- Top **navbar**: breadcrumbs, **Ask** (this chat), notifications, theme, **Feedback** (anonymous product notes), credits.
 
 ## Pages (main nav)
 
@@ -78,6 +78,9 @@ application tracking, practice, and readiness insights.
 - **Account Settings** — profile and preferences.
 - **Billing** — plan, credit packs (Stripe when configured), usage.
 - **Privacy** — privacy toggles / data preferences.
+### Help & support area
+11. **Help & support** (\`/help\`) — topic-based support request (billing, bug, account, feature request, general info). Optional screenshots. Follow-up uses the signed-in account email. Also in the user menu (avatar).
+- **Feedback** (navbar button) — short anonymous product notes (message + page path/locale only; no name/email sent to triage). For structured support, use Help.
 
 ## How-tos (common)
 

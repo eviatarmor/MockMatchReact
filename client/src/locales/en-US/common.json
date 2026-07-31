@@ -14,7 +14,8 @@
     "applications": "Applications",
     "practice": "Practice",
     "insights": "Insights",
-    "automation": "Automation"
+    "automation": "Automation",
+    "support": "Help & support"
   },
   "navItems": {
     "resumeLab": "Resume Lab",
@@ -27,13 +28,24 @@
     "autofill": "Autofill",
     "interviewRecorder": "Interview Recorder",
     "discover": "Discover",
-    "applications": "Applications"
+    "applications": "Applications",
+    "help": "Help & support"
   },
   "userMenu": {
     "accountSettings": "Account Settings",
     "billing": "Billing",
     "privacy": "Privacy",
+    "help": "Help & support",
     "logout": "Log out"
+  },
+  "feedback": {
+    "title": "Send feedback",
+    "placeholder": "What should we improve or fix?",
+    "privacy": "We review every note carefully and anonymously.",
+    "send": "Send",
+    "sending": "Sending…",
+    "success": "Thanks — your feedback was sent.",
+    "error": "Could not send feedback. Try again."
   },
   "theme": {
     "toggle": "Toggle theme"

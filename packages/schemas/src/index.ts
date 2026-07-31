@@ -9,4 +9,5 @@ export * from "./billing/index.js"
 export * from "./jobs/index.js"
 export * from "./collab/index.js"
 export * from "./ide-workspaces/index.js"
+export * from "./support/index.js"
 
