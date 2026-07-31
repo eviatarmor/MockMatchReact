@@ -18,6 +18,8 @@ export const users = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     email: text("email").notNull(),
     fullName: text("full_name"),
+    /** S3 object key for profile photo (`avatars/{userId}/{uuid}.ext`). Not a URL. */
+    avatarKey: text("avatar_key"),
     preferences: jsonb("preferences")
       .$type<UserPreferencesJson>()
       .notNull()

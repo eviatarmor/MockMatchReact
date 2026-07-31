@@ -65,8 +65,10 @@ export function UserMenu({
       <DropdownMenuContent side={side} align={align} className={contentClassName}>
         <DropdownMenuGroup>
           <DropdownMenuLabel className="flex items-center gap-3 px-2 py-1.5">
-            <Avatar size="sm">
-              <AvatarImage src={user.avatarUrl} alt={user.name} />
+            <Avatar key={user.avatarUrl ?? "no-avatar"} size="sm">
+              {user.avatarUrl ? (
+                <AvatarImage src={user.avatarUrl} alt={user.name} />
+              ) : null}
               <AvatarFallback>{initials(user.name)}</AvatarFallback>
             </Avatar>
             <div className="flex flex-col overflow-hidden">

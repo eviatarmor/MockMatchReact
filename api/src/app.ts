@@ -8,6 +8,7 @@ import { askRoutes } from "./modules/ask/routes.js"
 import { documentAiRoutes } from "./modules/document-ai/routes.js"
 import { billingWebhookRoutes } from "./modules/billing/webhook-routes.js"
 import { exportRoutes } from "./modules/export/routes.js"
+import { avatarRoutes } from "./modules/account/avatar-routes.js"
 import { createContext } from "./trpc/context.js"
 import { appRouter } from "./trpc/router.js"
 
@@ -20,7 +21,8 @@ export function createApp() {
       origin: env.APP_URL,
       credentials: true,
       allowHeaders: ["Content-Type", "Authorization"],
-      allowMethods: ["GET", "POST", "OPTIONS"],
+      // PUT for browser S3 presign uploads (avatars, etc.)
+      allowMethods: ["GET", "POST", "PUT", "OPTIONS"],
     })
   )
 
@@ -30,6 +32,8 @@ export function createApp() {
   app.route("/billing", billingWebhookRoutes)
   // Binary PDF download (Playwright → print page).
   app.route("/export", exportRoutes)
+  // Profile avatars (HMAC-signed public image stream).
+  app.route("/account/avatar", avatarRoutes)
   // In-app Ask assistant (AI SDK UI message stream).
   app.route("/ask", askRoutes)
   // Resume / cover-letter editor AI assistant (AI SDK UI message stream).

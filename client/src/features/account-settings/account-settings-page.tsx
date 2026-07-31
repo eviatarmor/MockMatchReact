@@ -13,11 +13,11 @@ import { AccountAccessSection } from "@/features/account-settings/right-pane/acc
 
 export function AccountSettingsPageContent() {
   const { t } = useTranslation("account-settings")
-  const { form, email } = useAccountSettingsForm()
+  const { form, email, avatarUrl } = useAccountSettingsForm()
 
   const tabs = useMemo<ScrollSpyTabItem[]>(() => {
     const content: Record<string, React.ReactNode> = {
-      profile: <ProfileSection form={form} email={email} />,
+      profile: <ProfileSection form={form} email={email} avatarUrl={avatarUrl} />,
       appearance: <AppearanceSection />,
       voice: <VoiceSection form={form} />,
       region: <RegionSection form={form} />,
@@ -29,7 +29,7 @@ export function AccountSettingsPageContent() {
       icon,
       content: content[id],
     }))
-  }, [form, email, t])
+  }, [form, email, avatarUrl, t])
 
   return (
     <DashboardPageShell title={t("title")}>

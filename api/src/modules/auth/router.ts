@@ -10,6 +10,7 @@ import {
   setAuthCookies,
 } from "../../lib/cookies.js"
 import { publicProcedure, protectedProcedure, router } from "../../trpc/trpc.js"
+import { getAccount } from "../account/service.js"
 import {
   logout,
   logoutAll,
@@ -75,10 +76,13 @@ export const authRouter = router({
       throw new TRPCError({ code: "UNAUTHORIZED", message: "User not found." })
     }
 
+    // Reuse account DTO signing so avatarUrl stays consistent with account.get.
+    const account = await getAccount(ctx.db, user.id)
     return {
-      id: user.id,
-      email: user.email,
-      fullName: user.fullName,
+      id: account.id,
+      email: account.email,
+      fullName: account.fullName,
+      avatarUrl: account.avatarUrl,
     }
   }),
 })

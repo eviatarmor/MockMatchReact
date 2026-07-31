@@ -12,6 +12,7 @@ import { trpc } from "@/lib/trpc"
 export interface UseAccountSettingsFormResult {
   readonly form: UseFormReturn<AccountSettingsForm>
   readonly email: string
+  readonly avatarUrl: string | null
   readonly isLoading: boolean
   readonly isSaving: boolean
 }
@@ -105,6 +106,7 @@ export function useAccountSettingsForm(): UseAccountSettingsFormResult {
   return {
     form,
     email: accountQuery.data?.email ?? "",
+    avatarUrl: accountQuery.data?.avatarUrl ?? null,
     isLoading: accountQuery.isLoading,
     isSaving,
   }

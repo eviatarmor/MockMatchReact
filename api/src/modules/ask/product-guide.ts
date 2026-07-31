@@ -75,7 +75,7 @@ application tracking, practice, and readiness insights.
 10. **Interview Recorder** (\`/interview-recorder\`) — connect to real interviews for transcription/insights (surface in nav).
 
 ### Account
-- **Account Settings** — profile and preferences.
+- **Account Settings** — profile (name + optional profile photo via click-on-avatar crop), preferences, and account access. Photo shows in the sidebar user menu when set.
 - **Billing** — plan, credit packs (Stripe when configured), usage.
 - **Privacy** — privacy toggles / data preferences.
 ### Help & support area

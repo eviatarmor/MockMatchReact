@@ -52,7 +52,7 @@ export function IconRail({
       sessionUser?.email ||
       t("appName"),
     email: me.data?.email || sessionUser?.email || "",
-    avatarUrl: undefined as string | undefined,
+    avatarUrl: me.data?.avatarUrl ?? undefined,
   }
 
   return (
@@ -150,8 +150,10 @@ export function IconRail({
           <button type="button" className="mt-1 flex cursor-pointer items-center justify-center rounded-full" aria-label={user.name} />
         }
         trigger={
-          <Avatar size="sm">
-            <AvatarImage src={user.avatarUrl} alt={user.name} />
+          <Avatar key={user.avatarUrl ?? "no-avatar"} size="sm">
+            {user.avatarUrl ? (
+              <AvatarImage src={user.avatarUrl} alt={user.name} />
+            ) : null}
             <AvatarFallback>{initials(user.name)}</AvatarFallback>
           </Avatar>
         }

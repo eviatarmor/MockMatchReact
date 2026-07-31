@@ -7,6 +7,7 @@
  */
 import {
   CreateBucketCommand,
+  DeleteObjectCommand,
   GetObjectCommand,
   HeadBucketCommand,
   PutObjectCommand,
@@ -126,6 +127,44 @@ export async function getObjectText(key: string): Promise<string | null> {
     if (!body) return null
     return await body.transformToString()
   } catch {
+    return null
+  }
+}
+
+/** Best-effort delete; ignores missing objects / unconfigured S3. */
+export async function deleteObject(key: string): Promise<void> {
+  if (!isS3Configured() || !key.trim()) return
+  try {
+    await getS3Client().send(
+      new DeleteObjectCommand({
+        Bucket: s3Bucket(),
+        Key: key,
+      })
+    )
+  } catch (err) {
+    logger.warn({ err, key }, "S3 deleteObject failed")
+  }
+}
+
+export async function getObjectBytes(
+  key: string
+): Promise<{ body: Uint8Array; contentType: string } | null> {
+  if (!isS3Configured() || !key.trim()) return null
+  try {
+    const res = await getS3Client().send(
+      new GetObjectCommand({
+        Bucket: s3Bucket(),
+        Key: key,
+      })
+    )
+    if (!res.Body) return null
+    const body = await res.Body.transformToByteArray()
+    return {
+      body,
+      contentType: res.ContentType?.trim() || "application/octet-stream",
+    }
+  } catch (err) {
+    logger.warn({ err, key }, "S3 getObjectBytes failed")
     return null
   }
 }
