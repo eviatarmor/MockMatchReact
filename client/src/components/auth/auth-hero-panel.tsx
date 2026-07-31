@@ -27,7 +27,7 @@ export function AuthHeroPanel({
   descriptionKey = "common:heroHeadline.description",
   middleSlot,
 }: AuthHeroPanelProps) {
-  const { t } = useTranslation(["common", "login"])
+  const { t } = useTranslation(["common", "login", "not-found"])
 
   return (
     <div className="relative hidden flex-1 flex-col justify-between overflow-hidden bg-primary p-12 text-white lg:flex">

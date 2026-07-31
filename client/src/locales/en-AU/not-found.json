@@ -4,5 +4,12 @@
   "title": "Page not found",
   "description": "This URL doesn't match any page in MockMatch. Check the link or head back home.",
   "goHome": "Go to home",
-  "illustrationLabel": "Lost robot mascot"
+  "goBack": "Go back",
+  "illustrationLabel": "Lost robot mascot",
+  "hero": {
+    "eyebrow": "Wrong turn",
+    "title": "This path isn't on the map.",
+    "description": "Our robot looked everywhere — this link may be outdated, mistyped, or never existed."
+  },
+  "footerMessage": "Your resume lab and practice stay right where you left them."
 }

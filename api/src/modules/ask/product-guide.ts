@@ -83,7 +83,7 @@ application tracking, practice, and readiness insights.
 - **Feedback** (navbar button) — short anonymous product notes (message + page path/locale only; no name/email sent to triage). For structured support, use Help.
 
 ### Other
-- **404 / not found** — any unknown path shows a full-page “Page not found” screen (lost robot mascot) with a **Go to home** link back to \`/\` (which lands in the app). No auth required for this page.
+- **404 / not found** — any unknown path shows a full-page split “Page not found” screen (brand hero with lost robot mascot + content column) with **Go to home** (\`/\`) and **Go back**. No auth required for this page.
 
 ## How-tos (common)
 

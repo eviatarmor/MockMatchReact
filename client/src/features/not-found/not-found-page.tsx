@@ -1,34 +1,32 @@
-import { Link } from "react-router-dom"
+import { MapPin } from "lucide-react"
 import { useTranslation } from "react-i18next"
-import { Button } from "@mockmatch/ui/button"
+import { AuthHeroPanel } from "@/components/auth/auth-hero-panel"
+import { NotFoundContentPanel } from "@/features/not-found/right-pane/not-found-content-panel"
 import { RobotLost } from "@mockmatch/ui/robot-lost"
 
 export function NotFoundPageContent() {
   const { t } = useTranslation("not-found")
 
   return (
-    <main className="flex min-h-svh w-full flex-col items-center justify-center bg-background px-6 py-16">
-      <div className="flex max-w-md flex-col items-center gap-6 text-center">
-        <RobotLost size="lg" label={t("illustrationLabel")} />
-
-        <div className="flex flex-col gap-2">
-          <p className="text-sm font-medium tracking-widest text-muted-foreground uppercase">
-            {t("code")}
+    <div className="flex min-h-screen w-full">
+      <AuthHeroPanel
+        eyebrowIcon={MapPin}
+        eyebrowKey="not-found:hero.eyebrow"
+        titleKey="not-found:hero.title"
+        descriptionKey="not-found:hero.description"
+        middleSlot={
+          <div className="flex justify-center py-2">
+            <RobotLost size="lg" label={t("illustrationLabel")} />
+          </div>
+        }
+        bottomSlot={
+          <p className="flex items-center gap-1.5 text-sm text-white/70">
+            <MapPin className="size-4 shrink-0" />
+            {t("footerMessage")}
           </p>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-            {t("title")}
-          </h1>
-          <p className="text-sm text-muted-foreground sm:text-base">{t("description")}</p>
-        </div>
-
-        <Button
-          size="lg"
-          className="cursor-pointer"
-          render={<Link to="/" />}
-        >
-          {t("goHome")}
-        </Button>
-      </div>
-    </main>
+        }
+      />
+      <NotFoundContentPanel />
+    </div>
   )
 }
