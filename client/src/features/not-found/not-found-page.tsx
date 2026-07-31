@@ -2,7 +2,6 @@ import { MapPin } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { AuthHeroPanel } from "@/components/auth/auth-hero-panel"
 import { NotFoundContentPanel } from "@/features/not-found/right-pane/not-found-content-panel"
-import { RobotLost } from "@mockmatch/ui/robot-lost"
 
 export function NotFoundPageContent() {
   const { t } = useTranslation("not-found")
@@ -14,11 +13,7 @@ export function NotFoundPageContent() {
         eyebrowKey="not-found:hero.eyebrow"
         titleKey="not-found:hero.title"
         descriptionKey="not-found:hero.description"
-        middleSlot={
-          <div className="flex justify-center py-2">
-            <RobotLost size="lg" label={t("illustrationLabel")} />
-          </div>
-        }
+        middleSlot={<></>}
         bottomSlot={
           <p className="flex items-center gap-1.5 text-sm text-white/70">
             <MapPin className="size-4 shrink-0" />

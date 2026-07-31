@@ -63,7 +63,7 @@ export function InteractiveGridPattern({
       // viewBox keeps hit-testing aligned when the SVG is stretched with CSS.
       viewBox={`0 0 ${width * horizontal} ${height * vertical}`}
       className={cn(
-        "absolute inset-0 h-full w-full border border-current/30",
+        "pointer-events-auto absolute inset-0 h-full w-full border border-current/30",
         className
       )}
       {...props}
@@ -79,9 +79,9 @@ export function InteractiveGridPattern({
           // empty cells hoverable (required for the interactive effect).
           pointerEvents="all"
           className={cn(
-            "fill-transparent stroke-gray-400/30 transition-[fill] duration-100 ease-in-out not-[&:hover]:duration-1000",
+            "fill-transparent stroke-white/15 transition-[fill] duration-100 ease-in-out not-[&:hover]:duration-1000",
             // Default hover fill when caller does not override via squaresClassName
-            "hover:fill-gray-300/30",
+            "hover:fill-white/15",
             squaresClassName
           )}
         />

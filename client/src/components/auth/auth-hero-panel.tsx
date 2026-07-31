@@ -31,20 +31,9 @@ export function AuthHeroPanel({
 
   return (
     <div className="relative hidden flex-1 flex-col justify-between overflow-hidden bg-primary p-12 text-white lg:flex">
-      {/* z-0 + full-panel hit target; content below uses pointer-events-none so hover reaches cells */}
+      {/* Content under the grid so cells always receive hover (transparent fills keep copy visible). */}
       {/* 32×32 (~1k cells) + CSS-only hover — 80×80 + React state re-rendered all 6400 rects per pointer move */}
-      <InteractiveGridPattern
-        aria-hidden="true"
-        width={28}
-        height={28}
-        squares={[32, 32]}
-        className={cn(
-          "z-0 border-0",
-          "[mask-image:radial-gradient(400px_circle_at_center,white,transparent)]"
-        )}
-        squaresClassName="hover:fill-blue-500/40"
-      />
-      <div className="pointer-events-none relative z-10 flex w-full max-w-md flex-1 flex-col justify-between">
+      <div className="relative z-0 flex w-full max-w-md flex-1 flex-col justify-between">
         <div className="flex items-center gap-2">
           <span className="flex size-8 items-center justify-center rounded-lg bg-white p-1">
             <AppLogo className="size-full" />
@@ -77,6 +66,19 @@ export function AuthHeroPanel({
           </p>
         )}
       </div>
+
+      {/* z-10 hit layer on top; white/20 shows on primary (blue-on-blue was invisible). */}
+      <InteractiveGridPattern
+        aria-hidden="true"
+        width={28}
+        height={28}
+        squares={[32, 32]}
+        className={cn(
+          "pointer-events-auto z-10 border-0",
+          "[mask-image:radial-gradient(400px_circle_at_center,white,transparent)]"
+        )}
+        squaresClassName="hover:fill-white/20"
+      />
     </div>
   )
 }

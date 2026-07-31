@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { Button } from "@mockmatch/ui/button"
+import { RobotLost } from "@mockmatch/ui/robot-lost"
 import { AppLogo } from "@/components/icons/app-logo"
 
 export function NotFoundContentPanel() {
@@ -28,7 +29,11 @@ export function NotFoundContentPanel() {
           </span>
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex justify-center">
+          <RobotLost size="lg" label={t("not-found:illustrationLabel")} />
+        </div>
+
+        <div className="flex flex-col gap-2 text-center">
           <p className="text-sm font-medium tracking-widest text-muted-foreground uppercase">
             {t("not-found:code")}
           </p>
