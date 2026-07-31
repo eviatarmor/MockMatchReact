@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
-import { motion, AnimatePresence } from "motion/react"
 import { PanelRightClose } from "lucide-react"
+import { CollapsibleSidePanel } from "@mockmatch/ui/collapsible-side-panel"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@mockmatch/ui/tooltip"
 import { ScrollArea } from "@mockmatch/ui/scroll-area"
@@ -25,8 +25,6 @@ const PANEL_DEFAULT_PX = 320
 const PANEL_MIN_PX = 280
 const PANEL_MAX_PX = 720
 const PANEL_WIDTH_STORAGE_KEY = "mockmatch.resume-editor.rail-width"
-
-const PANEL_SPRING = { type: "spring" as const, stiffness: 320, damping: 34 }
 
 interface EditorRailProps {
   readonly resumeId: string
@@ -129,7 +127,7 @@ export function EditorRail({
   const defaultPanel = visibleItems[0]?.id ?? null
   const [activePanel, setActivePanel] = useState<EditorPanelId | null>(defaultPanel)
 
-  const { width: panelWidth, startResize, isDragging } = useSidePanelWidth({
+  const { width: panelWidth, startResize } = useSidePanelWidth({
     defaultWidth: PANEL_DEFAULT_PX,
     min: PANEL_MIN_PX,
     max: PANEL_MAX_PX,
@@ -154,33 +152,29 @@ export function EditorRail({
 
   const panelOpen =
     activePanel != null && railItemAllowed(activePanel, permissions)
-  const isAiPanel = activePanel === "ai"
+  // Keep last panel content mounted during exit slide
+  const lastPanelRef = useRef(activePanel)
+  if (activePanel) lastPanelRef.current = activePanel
+  const displayPanel = activePanel ?? lastPanelRef.current
+  const isAiPanel = displayPanel === "ai"
 
   return (
     <TooltipProvider delay={300}>
       <div className="relative z-10 flex h-full min-h-0 w-full overflow-hidden">
-        <div className="relative min-h-0 min-w-0 flex-1">{children}</div>
+        <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">
+          {children}
 
-        {/*
-          Do not set AnimatePresence initial={false} — it suppresses initial
-          animations for every nested motion node (StaggerItem included).
-        */}
-        <AnimatePresence>
-          {panelOpen && activePanel && (
-            <motion.aside
-              key="editor-side-panel"
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: panelWidth, opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              // Spring for open/close; instant while dragging so resize feels tight.
-              transition={isDragging ? { duration: 0 } : PANEL_SPRING}
-              className="relative h-full shrink-0 overflow-hidden border-l border-border/60 bg-background text-foreground"
-            >
-              {/* Fixed inner width so content doesn't reflow mid-animation */}
-              <div
-                className="relative flex h-full min-h-0 flex-col"
-                style={{ width: panelWidth }}
-              >
+          {/* Overlay slide — canvas not reflowed during open */}
+          <CollapsibleSidePanel
+            open={panelOpen}
+            width={panelWidth}
+            side="right"
+            mode="overlay"
+            slot="editor-side-panel"
+            className="border-l border-border/60 bg-background text-foreground"
+          >
+            {displayPanel ? (
+              <>
                 <SidePanelResizeHandle
                   onPointerDown={startResize}
                   label={t("rail.resize")}
@@ -189,10 +183,10 @@ export function EditorRail({
                 <div className="flex items-start justify-between gap-2 border-b border-border/60 px-4 pb-4 pt-4">
                   <div className="min-w-0">
                     <h2 className="text-base font-semibold text-foreground">
-                      {t(`${activePanel}.title`)}
+                      {t(`${displayPanel}.title`)}
                     </h2>
                     <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
-                      {t(`${activePanel}.description`)}
+                      {t(`${displayPanel}.description`)}
                     </p>
                   </div>
                   <Button
@@ -212,9 +206,9 @@ export function EditorRail({
                   </div>
                 ) : (
                   <ScrollArea className="min-h-0 flex-1">
-                    <div key={activePanel} className="px-4 py-4">
+                    <div key={displayPanel} className="px-4 py-4">
                       <PanelBody
-                        panel={activePanel}
+                        panel={displayPanel}
                         resumeId={resumeId}
                         activeTemplateId={activeTemplateId}
                         onTemplateChange={onTemplateChange}
@@ -228,10 +222,10 @@ export function EditorRail({
                     </div>
                   </ScrollArea>
                 )}
-              </div>
-            </motion.aside>
-          )}
-        </AnimatePresence>
+              </>
+            ) : null}
+          </CollapsibleSidePanel>
+        </div>
 
         <nav className="flex w-12 shrink-0 flex-col items-center gap-1 border-l border-border/60 bg-background py-3 text-foreground">
           {visibleItems.map((item) => {

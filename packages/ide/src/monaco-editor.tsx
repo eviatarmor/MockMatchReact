@@ -44,7 +44,8 @@ function buildEditorOptions(
   extra?: monaco.editor.IStandaloneEditorConstructionOptions
 ): monaco.editor.IStandaloneEditorConstructionOptions {
   return {
-    automaticLayout: true,
+    // Color picker language feature is expensive on open; host can re-enable via extra.
+    colorDecorators: false,
     minimap: { enabled: settings.minimap },
     wordWrap: settings.wordWrap,
     lineNumbers: settings.lineNumbers,
@@ -63,6 +64,43 @@ function buildEditorOptions(
     padding: { top: 8, bottom: 8 },
     contextmenu: true,
     ...extra,
+    // Never use automaticLayout — it reflows on every parent size tick (tree/AI
+    // width anim) and freezes shell animations. We layout via rAF ResizeObserver.
+    // Forced after spread so hosts cannot re-enable by accident.
+    automaticLayout: false,
+  }
+}
+
+/**
+ * Schedule work after paint. Prefer idle so shell springs/opacity can finish;
+ * hard-timeout so the editor never stays blank for long.
+ */
+function afterPaint(run: () => void): () => void {
+  let cancelled = false
+  let idleId: number | undefined
+  let timeoutId: number | undefined
+  let raf2 = 0
+  const raf1 = requestAnimationFrame(() => {
+    raf2 = requestAnimationFrame(() => {
+      if (cancelled) return
+      const start = () => {
+        if (!cancelled) run()
+      }
+      if (typeof requestIdleCallback === "function") {
+        idleId = requestIdleCallback(start, { timeout: 64 })
+      } else {
+        timeoutId = window.setTimeout(start, 0)
+      }
+    })
+  })
+  return () => {
+    cancelled = true
+    cancelAnimationFrame(raf1)
+    cancelAnimationFrame(raf2)
+    if (idleId != null && typeof cancelIdleCallback === "function") {
+      cancelIdleCallback(idleId)
+    }
+    if (timeoutId != null) window.clearTimeout(timeoutId)
   }
 }
 
@@ -92,34 +130,82 @@ export function MonacoEditor({
     onChangeRef.current = onChange
   }, [onChange])
 
-  // Create editor + attach shared model once per mount.
+  // Create editor after first paint so tree/panel transitions are not starved.
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
 
-    const model = acquireMonacoModel(modelId, value, language)
-    modelIdRef.current = modelId
+    let disposed = false
+    let editor: monaco.editor.IStandaloneCodeEditor | null = null
+    let contentSub: monaco.IDisposable | null = null
+    let ro: ResizeObserver | null = null
+    let layoutTimer = 0
+    let lastW = -1
+    let lastH = -1
 
-    const editor = monaco.editor.create(el, {
-      model,
-      theme,
-      ...buildEditorOptions(settings, {
-        ...options,
-        readOnly: collab?.readOnly ?? options?.readOnly,
-      }),
-    })
-    editorRef.current = editor
-    setEditorInstance(editor)
+    /**
+     * Trailing debounce (~panel CSS duration): during tree width transitions the
+     * host resizes every frame; layout() only once size settles. Drag-resize
+     * still feels live enough at ~8 updates/s after settle window.
+     */
+    const LAYOUT_DEBOUNCE_MS = 120
 
-    const sub = model.onDidChangeContent(() => {
-      // When Y-bound, host may still want change notifications
-      onChangeRef.current?.(model.getValue())
+    const scheduleLayout = () => {
+      if (layoutTimer) window.clearTimeout(layoutTimer)
+      layoutTimer = window.setTimeout(() => {
+        layoutTimer = 0
+        editor?.layout()
+      }, LAYOUT_DEBOUNCE_MS)
+    }
+
+    const cancelSchedule = afterPaint(() => {
+      if (disposed || !containerRef.current) return
+      const host = containerRef.current
+
+      const model = acquireMonacoModel(modelId, value, language)
+      modelIdRef.current = modelId
+
+      editor = monaco.editor.create(host, {
+        model,
+        theme,
+        ...buildEditorOptions(settings, {
+          ...options,
+          readOnly: collab?.readOnly ?? options?.readOnly,
+        }),
+      })
+      editorRef.current = editor
+
+      contentSub = model.onDidChangeContent(() => {
+        onChangeRef.current?.(model.getValue())
+      })
+
+      ro = new ResizeObserver((entries) => {
+        const entry = entries[0]
+        if (!entry || !editor) return
+        const { width, height } = entry.contentRect
+        if (width <= 0 || height <= 0) return
+        if (Math.abs(width - lastW) < 0.5 && Math.abs(height - lastH) < 0.5) {
+          return
+        }
+        lastW = width
+        lastH = height
+        scheduleLayout()
+      })
+      ro.observe(host)
+      editor.layout()
+      setEditorInstance(editor)
     })
 
     return () => {
-      sub.dispose()
-      editor.setModel(null)
-      editor.dispose()
+      disposed = true
+      cancelSchedule()
+      if (layoutTimer) window.clearTimeout(layoutTimer)
+      ro?.disconnect()
+      contentSub?.dispose()
+      if (editor) {
+        editor.setModel(null)
+        editor.dispose()
+      }
       editorRef.current = null
       setEditorInstance(null)
       releaseMonacoModel(modelId)

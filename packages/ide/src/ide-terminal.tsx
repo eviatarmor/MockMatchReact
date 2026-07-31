@@ -279,21 +279,29 @@ export function IdeTerminal({
       }
     })
 
-    const ro = new ResizeObserver(() => {
-      try {
-        fit.fit()
-        const p = ptyRef.current
-        if (p?.active && p.onResize) {
-          p.onResize(term.cols, term.rows)
+    // Trailing debounce: terminal height CSS anim resizes every frame — fit once settled.
+    let fitTimer = 0
+    const scheduleFit = () => {
+      if (fitTimer) window.clearTimeout(fitTimer)
+      fitTimer = window.setTimeout(() => {
+        fitTimer = 0
+        try {
+          fit.fit()
+          const p = ptyRef.current
+          if (p?.active && p.onResize) {
+            p.onResize(term.cols, term.rows)
+          }
+        } catch {
+          // ignore fit races while hidden
         }
-      } catch {
-        // ignore fit races while hidden
-      }
-    })
+      }, 120)
+    }
+    const ro = new ResizeObserver(() => scheduleFit())
     ro.observe(host)
 
     return () => {
       disposable.dispose()
+      if (fitTimer) window.clearTimeout(fitTimer)
       ro.disconnect()
       term.dispose()
       termRef.current = null

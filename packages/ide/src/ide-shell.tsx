@@ -6,7 +6,7 @@ import {
   useState,
   type MouseEvent as ReactMouseEvent,
 } from "react"
-import { AnimatePresence, motion } from "motion/react"
+import { CollapsibleSidePanel } from "@mockmatch/ui/collapsible-side-panel"
 import { cn } from "@mockmatch/ui/utils"
 
 import { IdeAiPanel } from "./ide-ai-panel"
@@ -44,7 +44,6 @@ import { resolveMonacoTheme, useColorScheme } from "./use-color-scheme"
 import { useIdeSettings } from "./use-ide-settings"
 import { useLeftPanelWidth } from "./use-left-panel-width"
 
-const TREE_SPRING = { type: "spring" as const, stiffness: 320, damping: 34 }
 const ROOT_GROUP_ID: EditorGroupId = "g0"
 
 export function IdeShell({
@@ -262,7 +261,7 @@ export function IdeShell({
     onSettingsChange,
   })
 
-  const { width: treeWidth, startResize, isDragging } = useLeftPanelWidth({
+  const { width: treeWidth, startResize } = useLeftPanelWidth({
     defaultWidth: treeDefaultWidth,
     min: treeMinWidth,
     max: treeMaxWidth,
@@ -793,53 +792,47 @@ export function IdeShell({
       ) : null}
 
       <div className="relative flex min-h-0 flex-1 overflow-hidden">
-        <AnimatePresence initial={false}>
-          {showTree && tree ? (
-            <motion.aside
-              key="ide-tree-panel"
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: treeWidth, opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              transition={isDragging ? { duration: 0 } : TREE_SPRING}
-              className="relative h-full shrink-0 overflow-hidden border-r border-border bg-muted/20"
-            >
-              <div
-                className="relative flex h-full min-h-0 flex-col"
-                style={{ width: treeWidth }}
-              >
-                {treeHeader}
-                <div className="min-h-0 flex-1 overflow-hidden">
-                  <FileTree
-                    tree={tree}
-                    selectedId={selectedTreeId}
-                    onSelectionChange={onTreeSelectionChange}
-                    defaultExpandedIds={defaultExpandedIds}
-                    onFilePreview={onFilePreview}
-                    onFileOpen={onFileOpen}
-                    onCreateFile={onCreateFile}
-                    onCreateFolder={onCreateFolder}
-                    onDelete={onDeleteNode}
-                    onRename={onRenameNode}
-                    onCopy={onCopyNode}
-                    onCut={onCutNode}
-                    onPaste={onPasteNode}
-                    onDuplicate={onDuplicateNode}
-                    onOpenInTerminal={openFolderInTerminal}
-                    canPaste={canPaste}
-                    createRequest={createRequest}
-                    labels={labels}
-                  />
-                </div>
-                <TreeResizeHandle
-                  onPointerDown={startResize}
-                  label={labels?.resizeTree ?? "Resize file tree"}
-                />
-              </div>
-            </motion.aside>
-          ) : null}
-        </AnimatePresence>
+        {/* Push + CSS width — Monaco layout debounced until width settles */}
+        {tree ? (
+          <CollapsibleSidePanel
+            open={showTree}
+            width={treeWidth}
+            side="left"
+            mode="push"
+            slot="ide-tree-panel"
+            className="border-r border-border bg-muted/20"
+          >
+            {treeHeader}
+            <div className="min-h-0 flex-1 overflow-hidden">
+              <FileTree
+                tree={tree}
+                selectedId={selectedTreeId}
+                onSelectionChange={onTreeSelectionChange}
+                defaultExpandedIds={defaultExpandedIds}
+                onFilePreview={onFilePreview}
+                onFileOpen={onFileOpen}
+                onCreateFile={onCreateFile}
+                onCreateFolder={onCreateFolder}
+                onDelete={onDeleteNode}
+                onRename={onRenameNode}
+                onCopy={onCopyNode}
+                onCut={onCutNode}
+                onPaste={onPasteNode}
+                onDuplicate={onDuplicateNode}
+                onOpenInTerminal={openFolderInTerminal}
+                canPaste={canPaste}
+                createRequest={createRequest}
+                labels={labels}
+              />
+            </div>
+            <TreeResizeHandle
+              onPointerDown={startResize}
+              label={labels?.resizeTree ?? "Resize file tree"}
+            />
+          </CollapsibleSidePanel>
+        ) : null}
 
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
           <IdeEditorArea
             documents={tabs}
             layout={layout}
@@ -896,21 +889,22 @@ export function IdeShell({
             pty={terminalPty}
             ptyFeed={terminalPtyFeed}
           />
-        </div>
 
-        {hasAiPanel ? (
-          <IdeAiPanel
-            open={showAi}
-            colorScheme={termColorScheme}
-            defaultWidth={aiDefaultWidth}
-            minWidth={aiMinWidth}
-            maxWidth={aiMaxWidth}
-            widthStorageKey={aiWidthStorageKey}
-            resizeLabel={labels?.resizeAi ?? "Resize AI panel"}
-          >
-            {aiPanelNode}
-          </IdeAiPanel>
-        ) : null}
+          {/* Overlay AI — does not push Monaco during slide */}
+          {hasAiPanel ? (
+            <IdeAiPanel
+              open={showAi}
+              colorScheme={termColorScheme}
+              defaultWidth={aiDefaultWidth}
+              minWidth={aiMinWidth}
+              maxWidth={aiMaxWidth}
+              widthStorageKey={aiWidthStorageKey}
+              resizeLabel={labels?.resizeAi ?? "Resize AI panel"}
+            >
+              {aiPanelNode}
+            </IdeAiPanel>
+          ) : null}
+        </div>
       </div>
     </div>
   )

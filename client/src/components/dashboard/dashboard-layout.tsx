@@ -45,11 +45,12 @@ function DashboardShell() {
           onToggle={toggle}
         />
 
-        {/* Content area floats as an inset, rounded card on the dark shell. */}
+        {/* Content card: gap when Ask closed; flush to panel when open (push layout). */}
         <main
           className={cn(
             "my-2 flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-border/60 bg-neutral-50 shadow-sm dark:bg-neutral-950",
-            // Gap to shell edge when Ask closed; flush against right chrome when open.
+            // Align margin change with Ask CSS width (~360ms) so the card doesn't snap.
+            "transition-[margin] duration-[360ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
             askOpen ? "mr-0" : "mr-2"
           )}
         >

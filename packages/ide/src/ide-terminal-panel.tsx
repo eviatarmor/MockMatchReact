@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import { motion } from "motion/react"
 import { Pin, Plus, TerminalSquare, X } from "lucide-react"
 import { Button } from "@mockmatch/ui/button"
 import {
@@ -68,9 +67,6 @@ function newSession(cwd?: string): IdeTerminalSession {
   }
 }
 
-/** Height ease — spring + xterm mount on open was nuking INP / expand frames. */
-const TERM_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1]
-
 export function IdeTerminalPanel({
   open,
   onOpenChange,
@@ -112,7 +108,7 @@ export function IdeTerminalPanel({
   } | null>(null)
   const flushSeqRef = useRef(0)
 
-  const { height, startResize, isDragging } = useBottomPanelHeight({
+  const { height, startResize } = useBottomPanelHeight({
     defaultHeight,
     min: minHeight,
     max: maxHeight,
@@ -448,34 +444,21 @@ export function IdeTerminalPanel({
     )
   }
 
+  // CSS height transition; Monaco/xterm layout debounced until settle.
   return (
-    <motion.div
-      initial={false}
-      animate={{
-        height: open ? height : 0,
-        opacity: open ? 1 : 0,
-      }}
-      transition={
-        isDragging
-          ? { duration: 0 }
-          : {
-              height: { duration: 0.22, ease: TERM_EASE },
-              opacity: { duration: 0.16, ease: "easeOut" },
-            }
-      }
+    <div
       className={cn(
         "relative shrink-0 overflow-hidden border-t border-border bg-background",
+        "transition-[height] duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
         !open && "pointer-events-none border-t-transparent",
         className
       )}
+      style={{ height: open ? height : 0 }}
       data-slot="ide-terminal-panel"
       data-layout="dock"
       aria-hidden={!open}
     >
-      <div
-        className="relative flex min-h-0 flex-col"
-        style={{ height }}
-      >
+      <div className="relative flex min-h-0 flex-col" style={{ height }}>
         <TerminalResizeHandle
           onPointerDown={startResize}
           label={labels?.resizeTerminal ?? "Resize terminal"}
@@ -483,6 +466,6 @@ export function IdeTerminalPanel({
         {tabBar}
         {termBodies}
       </div>
-    </motion.div>
+    </div>
   )
 }
