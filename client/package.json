@@ -28,6 +28,7 @@
     "@mockmatch/ui": "*",
     "@mockmatch/ai-chat": "*",
     "@mockmatch/ide": "*",
+    "@mockmatch/browser-runner": "*",
     "@mockmatch/document-editor": "*",
     "@mockmatch/collab": "*",
     "@mockmatch/document-assistant": "*",

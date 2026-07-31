@@ -516,6 +516,33 @@ export function useCollabWorkspaceSession(
           ? collab.docSaveStatus
           : soloSaveStatus
 
+  /**
+   * Snapshot all known files for the client-side runner.
+   * Prefer non-empty Y.Text when collab is live; fall back to catalog/tab
+   * so an empty Y map does not wipe seed content.
+   */
+  const getFilesSnapshot = useCallback((): Record<string, string> => {
+    const pick = (path: string, fallback: string): string => {
+      if (collab.live) {
+        const yt = getIdeFileYText(ydoc, path)
+        if (yt) {
+          const text = yt.toString()
+          if (text.length > 0) return text
+        }
+      }
+      return fallback
+    }
+
+    const out: Record<string, string> = {}
+    for (const [path, tab] of catalogRef.current.entries()) {
+      out[path] = pick(path, tab.value)
+    }
+    for (const tab of tabs) {
+      out[tab.id] = pick(tab.id, tab.value)
+    }
+    return out
+  }, [collab.live, ydoc, tabs])
+
   return {
     title,
     setTitle,
@@ -545,6 +572,7 @@ export function useCollabWorkspaceSession(
     permissions,
     saveStatus,
     ydoc,
+    getFilesSnapshot,
   }
 }
 

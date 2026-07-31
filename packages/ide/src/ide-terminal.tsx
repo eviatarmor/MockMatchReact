@@ -85,6 +85,8 @@ export function IdeTerminal({
   const lastFeedSeq = useRef(0)
   const lastPtyFeedSeq = useRef(0)
   const welcomeShown = useRef(false)
+  const feedRef = useRef(feed)
+  const ptyFeedRef = useRef(ptyFeed)
 
   useEffect(() => {
     onCommandRef.current = onCommand
@@ -99,23 +101,39 @@ export function IdeTerminal({
   }, [pty])
 
   useEffect(() => {
-    if (!feed || feed.seq === lastFeedSeq.current) return
-    lastFeedSeq.current = feed.seq
-    const term = termRef.current
-    if (!term) return
-    // In local line mode, clear partial input so banners don't glue
-    if (!ptyRef.current?.active && lineRef.current.length > 0) {
+    feedRef.current = feed
+  }, [feed])
+
+  useEffect(() => {
+    ptyFeedRef.current = ptyFeed
+  }, [ptyFeed])
+
+  const writeFeedChunk = (
+    term: Terminal,
+    chunk: string,
+    clearPartialLine: boolean
+  ) => {
+    if (clearPartialLine && !ptyRef.current?.active && lineRef.current.length > 0) {
       term.write("\r\n")
       lineRef.current = ""
     }
-    term.write(feed.chunk)
+    term.write(chunk)
+  }
+
+  useEffect(() => {
+    if (!feed || feed.seq === lastFeedSeq.current) return
+    const term = termRef.current
+    // Do not advance seq until xterm exists — otherwise Run output is dropped.
+    if (!term) return
+    lastFeedSeq.current = feed.seq
+    writeFeedChunk(term, feed.chunk, true)
   }, [feed])
 
   useEffect(() => {
     if (!ptyFeed || ptyFeed.seq === lastPtyFeedSeq.current) return
-    lastPtyFeedSeq.current = ptyFeed.seq
     const term = termRef.current
     if (!term) return
+    lastPtyFeedSeq.current = ptyFeed.seq
     term.write(ptyFeed.chunk)
   }, [ptyFeed])
 
@@ -152,6 +170,18 @@ export function IdeTerminal({
         term.writeln(welcome)
         term.write(`\x1b[32m${cwd}\x1b[0m $ `)
       }
+    }
+
+    // Replay feed that arrived before xterm finished mounting
+    const pending = feedRef.current
+    if (pending && pending.seq !== lastFeedSeq.current) {
+      lastFeedSeq.current = pending.seq
+      writeFeedChunk(term, pending.chunk, true)
+    }
+    const pendingPty = ptyFeedRef.current
+    if (pendingPty && pendingPty.seq !== lastPtyFeedSeq.current) {
+      lastPtyFeedSeq.current = pendingPty.seq
+      term.write(pendingPty.chunk)
     }
 
     const prompt = () => {

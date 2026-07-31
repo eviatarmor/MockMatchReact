@@ -49,6 +49,7 @@ import {
   useCollabWorkspaceSession,
   type WorkspaceSessionSeed,
 } from "./hooks/use-collab-workspace-session"
+import { useBrowserRunActions } from "./hooks/use-browser-run-actions"
 import {
   isCodeRunFormatSlug,
   isIdeFormatSlug,
@@ -425,7 +426,12 @@ function EditorCollabSession({
   )
 
   const labels = useIdeLabels(t)
-  const run = usePlaceholderRunActions(setShowTerminal)
+  const run = useBrowserRunActions({
+    preset,
+    activeTabId: session.activeTabId,
+    getFilesSnapshot: session.getFilesSnapshot,
+    setShowTerminal,
+  })
 
   return (
     <CollabRoomGates
@@ -510,7 +516,7 @@ function EditorCollabSession({
                     />
                   }
                 >
-                  {run.runBusy ? (
+                  {run.runTestsBusy ? (
                     <Loader2 className="size-3.5 animate-spin" />
                   ) : (
                     <FlaskConical className="size-3.5" />
@@ -580,6 +586,7 @@ function EditorCollabSession({
             onSettingsChange={setSettings}
             showTerminal={showTerminal}
             onShowTerminalChange={setShowTerminal}
+            terminalFeed={run.terminalFeed}
             showAi={showAi}
             onShowAiChange={setShowAi}
             aiPanel={({ close }) => (
@@ -774,32 +781,6 @@ function ShellCollabSession({
       </div>
     </CollabRoomGates>
   )
-}
-
-function usePlaceholderRunActions(
-  setShowTerminal: (open: boolean | ((v: boolean) => boolean)) => void
-) {
-  const { t } = useTranslation("simulation-ide")
-  const [runBusy, setRunBusy] = useState(false)
-  const [runTestsBusy, setRunTestsBusy] = useState(false)
-
-  const onRun = useCallback(() => {
-    if (runBusy || runTestsBusy) return
-    setShowTerminal(true)
-    setRunBusy(true)
-    console.info(t("actions.runNotWired"))
-    window.setTimeout(() => setRunBusy(false), 500)
-  }, [runBusy, runTestsBusy, setShowTerminal, t])
-
-  const onRunTests = useCallback(() => {
-    if (runBusy || runTestsBusy) return
-    setShowTerminal(true)
-    setRunTestsBusy(true)
-    console.info(t("actions.runTestsNotWired"))
-    window.setTimeout(() => setRunTestsBusy(false), 500)
-  }, [runBusy, runTestsBusy, setShowTerminal, t])
-
-  return { onRun, onRunTests, runBusy, runTestsBusy }
 }
 
 function useIdeLabels(t: ReturnType<typeof useTranslation>["t"]) {

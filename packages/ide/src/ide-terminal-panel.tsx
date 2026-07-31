@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { motion } from "motion/react"
 import { Pin, Plus, TerminalSquare, X } from "lucide-react"
 import { Button } from "@mockmatch/ui/button"
@@ -100,6 +100,17 @@ export function IdeTerminalPanel({
   const [everOpened, setEverOpened] = useState(open || fill)
   /** Defer xterm body one frame so height animation can paint first. */
   const [bodyReady, setBodyReady] = useState(false)
+  /**
+   * Host Run output may arrive before xterm mounts (2 rAF defer).
+   * Buffer chunks and flush as a synthetic feed once body is ready.
+   */
+  const pendingFeedRef = useRef("")
+  const lastSeenFeedSeq = useRef(0)
+  const [flushFeed, setFlushFeed] = useState<{
+    seq: number
+    chunk: string
+  } | null>(null)
+  const flushSeqRef = useRef(0)
 
   const { height, startResize, isDragging } = useBottomPanelHeight({
     defaultHeight,
@@ -123,6 +134,38 @@ export function IdeTerminalPanel({
       cancelAnimationFrame(raf2)
     }
   }, [open, fill, bodyReady])
+
+  // Accumulate feed while xterm not ready; pass through when ready
+  useEffect(() => {
+    if (!feed || feed.seq === lastSeenFeedSeq.current) return
+    lastSeenFeedSeq.current = feed.seq
+    if (!bodyReady) {
+      pendingFeedRef.current += feed.chunk
+      return
+    }
+    // If we had backlog, prepend once
+    if (pendingFeedRef.current) {
+      const backlog = pendingFeedRef.current
+      pendingFeedRef.current = ""
+      flushSeqRef.current += 1
+      setFlushFeed({
+        seq: flushSeqRef.current,
+        chunk: backlog + feed.chunk,
+      })
+      return
+    }
+    flushSeqRef.current += 1
+    setFlushFeed({ seq: flushSeqRef.current, chunk: feed.chunk })
+  }, [feed, bodyReady])
+
+  // Drain backlog when body becomes ready with no new feed event
+  useEffect(() => {
+    if (!bodyReady || !pendingFeedRef.current) return
+    const backlog = pendingFeedRef.current
+    pendingFeedRef.current = ""
+    flushSeqRef.current += 1
+    setFlushFeed({ seq: flushSeqRef.current, chunk: backlog })
+  }, [bodyReady])
 
   useEffect(() => {
     if (!focusCwd) return
@@ -379,7 +422,7 @@ export function IdeTerminalPanel({
                 onCommand={
                   onCommand ? (cmd) => onCommand(cmd, s.id) : undefined
                 }
-                feed={s.id === activeId ? feed : null}
+                feed={s.id === activeId ? flushFeed : null}
                 pty={s.id === activeId ? pty : null}
                 ptyFeed={s.id === activeId ? ptyFeed : null}
               />

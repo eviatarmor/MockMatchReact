@@ -12,6 +12,11 @@
       "badge": "Editor",
       "description": "Single-file sorting algorithm — Monaco only, no file tree."
     },
+    "jsSum": {
+      "title": "JavaScript · Sum lines",
+      "badge": "Editor",
+      "description": "Single-file JS exercise — runs in the browser via WASM worker."
+    },
     "shell": {
       "title": "Ops · Shell lab",
       "badge": "Terminal",

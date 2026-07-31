@@ -157,6 +157,29 @@ int main() {
 `,
 }
 
+const JS_SUM_FILES: ExerciseContentCache = {
+  "sum.js": `// Exercise: sum numbers from stdin (one integer per line; blank line ends).
+// Client-side runner — console.log goes to the IDE terminal.
+// Helpers: readStdin(), readline(), process.stdout.write(...)
+
+function sumLines(text) {
+  let total = 0
+  for (const line of text.split("\\n")) {
+    const t = line.trim()
+    if (!t) continue
+    const n = Number(t)
+    if (!Number.isNaN(n)) total += n
+  }
+  return total
+}
+
+// Demo input when stdin is empty
+const sample = "1\\n2\\n3\\n"
+const input = readStdin().trim() ? readStdin() : sample
+console.log(sumLines(input))
+`,
+}
+
 const SHELL_FILES: ExerciseContentCache = {
   "deploy.log": `[12:01:02] build ok image=api:2026.07.31-a3
 [12:02:11] rollout started replicas=3
@@ -195,6 +218,8 @@ function languageFromPath(path: string): string {
     case "tsx":
       return "typescript"
     case "js":
+    case "mjs":
+    case "cjs":
     case "jsx":
       return "javascript"
     case "cpp":
@@ -308,6 +333,37 @@ export const EXERCISE_SEEDS: ExerciseSeed[] = [
       { id: "sort.cpp", name: "sort.cpp" },
     ]),
     contentCache: CPP_FILES,
+  },
+  {
+    slug: "js-sum",
+    title: "JavaScript · Sum lines",
+    description:
+      "Single-file JS exercise: sum integers from stdin. Runs in the browser via client-side runner.",
+    prompt:
+      "Implement sumLines (or equivalent) so console.log prints the total of integers in the input. One number per line. When stdin is empty the sample 1/2/3 should print 6.",
+    aiContext:
+      "JS fundamentals + I/O style algorithms. Assess correctness on empty input, non-numeric lines, negatives. Client-side browser runner (no Node). Variants: product, max, mean, parse CSV.",
+    format: "code_run",
+    layout: "editor",
+    domain: "coding",
+    difficulty: "easy",
+    languages: ["javascript"],
+    roleFamilies: ["engineering"],
+    tags: ["algorithms", "javascript", "stdin", "browser-runner"],
+    durationMin: 15,
+    uiFlags: {
+      treeEnabled: false,
+      defaultShowTree: false,
+      defaultShowTerminal: true,
+      openSeedTabs: true,
+      tabsClosable: false,
+      defaultOpenPaths: ["sum.js"],
+    },
+    contentVersion: "v1",
+    contentManifest: filesToManifest(JS_SUM_FILES, [
+      { id: "sum.js", name: "sum.js" },
+    ]),
+    contentCache: JS_SUM_FILES,
   },
   {
     slug: "shell",

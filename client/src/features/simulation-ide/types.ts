@@ -2,14 +2,19 @@ import type { TrackFormat } from "@/features/simulations/types"
 
 /**
  * Practice surface slugs.
- * - code-run: `/simulations/code-run/:format` (react, cpp-sort)
+ * - code-run: `/simulations/code-run/:format` (react, cpp-sort, js-sum)
  * - terminal-lab: `/simulations/terminal-lab` (shell)
  * - workspace: `/simulations/workspace` (freeform multi-file collab)
  */
-export type IdeFormatSlug = "react" | "cpp-sort" | "shell" | "workspace"
+export type IdeFormatSlug =
+  | "react"
+  | "cpp-sort"
+  | "js-sum"
+  | "shell"
+  | "workspace"
 
 /** Formats allowed on `/simulations/code-run/:format`. */
-export type CodeRunFormatSlug = "react" | "cpp-sort"
+export type CodeRunFormatSlug = "react" | "cpp-sort" | "js-sum"
 
 export type IdeLayoutMode = "ide" | "editor" | "shell"
 
@@ -28,6 +33,8 @@ export type IdeFormatPreset = {
   readonly titleKey: string
   readonly descriptionKey: string
   readonly badgeKey: string
+  /** Client browser-runner defaults for this format. */
+  readonly runtime?: FormatRuntimeHint
 }
 
 export function isIdeFormatSlug(
@@ -36,6 +43,7 @@ export function isIdeFormatSlug(
   return (
     value === "react" ||
     value === "cpp-sort" ||
+    value === "js-sum" ||
     value === "shell" ||
     value === "workspace"
   )
@@ -44,5 +52,21 @@ export function isIdeFormatSlug(
 export function isCodeRunFormatSlug(
   value: string | undefined
 ): value is CodeRunFormatSlug {
-  return value === "react" || value === "cpp-sort"
+  return value === "react" || value === "cpp-sort" || value === "js-sum"
+}
+
+/** Default entry + language for client-side runner (when set). */
+export type FormatRuntimeHint = {
+  readonly language:
+    | "python"
+    | "javascript"
+    | "typescript"
+    | "c"
+    | "cpp"
+    | "go"
+    | "rust"
+    | "java"
+    | "csharp"
+    | "nodejs"
+  readonly entryPath: string
 }

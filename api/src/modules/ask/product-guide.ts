@@ -51,10 +51,11 @@ application tracking, practice, and readiness insights.
    - Application detail drill-down for a single tracked job.
 
 ### Practice area
-5. **Simulations** (\`/simulations\`) — recent practice **sessions** (searchable list) plus a featured **interview tracks** strip; **Browse all** opens \`/simulations/tracks\`. Sidebar filters: **format** (practice environment), role family, difficulty, duration. **Formats** (catalog; full runners not complete): **Code run** (submit/execute code on a server), **Dev workspace** (live multiplayer IDE + terminal), **Terminal lab** (shell-only ops/DevOps tasks), **Conversation** (AI interviewer dialogue). Tracks matching the user's resume role can sort first and show a "For you" badge (not a filter).
+5. **Simulations** (\`/simulations\`) — recent practice **sessions** (searchable list) plus a featured **interview tracks** strip; **Browse all** opens \`/simulations/tracks\`. Sidebar filters: **format** (practice environment), role family, difficulty, duration. **Formats** (catalog; runners rolling out): **Code run** (client-side browser runner for supported languages; more languages/WASM next), **Dev workspace** (live multiplayer IDE + terminal), **Terminal lab** (shell-only ops/DevOps tasks), **Conversation** (AI interviewer dialogue). Tracks matching the user's resume role can sort first and show a "For you" badge (not a filter).
    - **Code run** (\`/simulations/code-run/:format\`) — exercise rooms with **live collab** (Yjs, presence, share):
-     - **react** — multi-file IDE exercise (tree + Monaco). Counter lab.
-     - **cpp-sort** — **single-file** Monaco only (no tree); **tabs cannot be closed**. Run / Run tests in header.
+     - **react** — multi-file IDE exercise (tree + Monaco). Counter lab. Web-app run (Node/React) not wired yet.
+     - **cpp-sort** — **single-file** Monaco only (no tree); **tabs cannot be closed**. C++ browser runtime planned (WASI/clang).
+     - **js-sum** — **single-file** JavaScript; **Run** executes in the browser worker and streams stdout to the terminal.
    - **Terminal lab** (\`/simulations/terminal-lab\`) — shell-only multi-tab terminal (add/remove tabs like editor); collab presence + share.
    - **Dev workspace** (\`/simulations/workspace\`) — freeform multi-file collab IDE.
    - Share URLs include \`id\` + \`share\` query params (owner must stay in room).

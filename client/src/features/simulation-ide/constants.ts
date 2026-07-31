@@ -16,6 +16,7 @@ export const IDE_FORMAT_PRESETS: Record<IdeFormatSlug, IdeFormatPreset> = {
     titleKey: "formats.react.title",
     descriptionKey: "formats.react.description",
     badgeKey: "formats.react.badge",
+    runtime: { language: "nodejs", entryPath: "src/main.tsx" },
   },
   "cpp-sort": {
     slug: "cpp-sort",
@@ -29,6 +30,21 @@ export const IDE_FORMAT_PRESETS: Record<IdeFormatSlug, IdeFormatPreset> = {
     titleKey: "formats.cppSort.title",
     descriptionKey: "formats.cppSort.description",
     badgeKey: "formats.cppSort.badge",
+    runtime: { language: "cpp", entryPath: "sort.cpp" },
+  },
+  "js-sum": {
+    slug: "js-sum",
+    trackFormat: "codeRun",
+    treeEnabled: false,
+    defaultShowTree: false,
+    defaultShowTerminal: true,
+    layout: "editor",
+    openSeedTabs: true,
+    tabsClosable: false,
+    titleKey: "formats.jsSum.title",
+    descriptionKey: "formats.jsSum.description",
+    badgeKey: "formats.jsSum.badge",
+    runtime: { language: "javascript", entryPath: "sum.js" },
   },
   shell: {
     slug: "shell",
@@ -185,7 +201,8 @@ export const CPP_SORT_TABS: IdeTab[] = [
     language: "cpp",
     value: `// Exercise: sort an array of integers (ascending).
 // Implement sortInts in-place. Any correct algorithm is fine
-// (bubble, insertion, quicksort, …). No judge is connected.
+// (bubble, insertion, quicksort, …).
+// C++ client runner (WASI/clang) is next — Run shows status for now.
 
 #include <iostream>
 #include <vector>
@@ -204,6 +221,36 @@ int main() {
   std::cout << '\\n';
   return 0;
 }
+`,
+  },
+]
+
+// ── JavaScript sum (browser-runner demo) ────────────────────────────────────
+
+export const JS_SUM_TABS: IdeTab[] = [
+  {
+    id: "sum.js",
+    title: "sum.js",
+    language: "javascript",
+    value: `// Exercise: sum numbers from stdin (one integer per line; blank line ends).
+// Client-side runner — console.log goes to the IDE terminal.
+// Helpers: readStdin(), readline(), process.stdout.write(...)
+
+function sumLines(text) {
+  let total = 0
+  for (const line of text.split("\\n")) {
+    const t = line.trim()
+    if (!t) continue
+    const n = Number(t)
+    if (!Number.isNaN(n)) total += n
+  }
+  return total
+}
+
+// Demo input when stdin is empty
+const sample = "1\\n2\\n3\\n"
+const input = readStdin().trim() ? readStdin() : sample
+console.log(sumLines(input))
 `,
   },
 ]
@@ -373,6 +420,8 @@ export function tabsForFormat(slug: IdeFormatSlug): IdeTab[] {
       return REACT_TABS
     case "cpp-sort":
       return CPP_SORT_TABS
+    case "js-sum":
+      return JS_SUM_TABS
     case "shell":
       return []
     case "workspace":
@@ -387,6 +436,7 @@ export function treeForFormat(slug: IdeFormatSlug): IdeTreeNode[] {
     case "workspace":
       return WORKSPACE_TREE
     case "cpp-sort":
+    case "js-sum":
     case "shell":
       return []
   }

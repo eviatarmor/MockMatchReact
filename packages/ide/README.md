@@ -35,7 +35,7 @@ Optional host-owned actions. Package only renders chrome when callbacks are set:
 
 Shortcuts: **F5** / **Ctrl+Enter** → Run; **Ctrl+Shift+Enter** → Run tests.
 
-MockMatch does **not** ship a remote code sandbox (no Firecracker / gVisor containers). Host can wire a future judge without changing this package.
+MockMatch runs client-side code via **`@mockmatch/browser-runner`** (host-owned). This package stays chrome-only — no engine deps. No remote Firecracker/gVisor sandbox.
 
 ## Install (monorepo)
 
@@ -181,5 +181,6 @@ Practice formats use this package at:
 
 - `/simulations/code-run/react` — multi-file exercise + collab
 - `/simulations/code-run/cpp-sort` — single-file code run (tabs not closable)
+- `/simulations/code-run/js-sum` — single-file JS; client-side Run via browser-runner
 - `/simulations/terminal-lab` — multi-tab shell lab + collab presence
 - `/simulations/workspace` — freeform multi-file collab IDE
