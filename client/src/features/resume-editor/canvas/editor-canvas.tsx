@@ -12,6 +12,9 @@ import type { CollabPeer } from "@/features/collab/types"
 import type { ResumeHandlers } from "../hooks/use-resume-document"
 import type { ResumeDocument, EditorTemplate } from "../types"
 
+/** Initial grid size before first onTransform (scale 1). */
+const GRID_DOT_FALLBACK = 24
+
 interface EditorCanvasProps {
   readonly document: ResumeDocument
   readonly template: EditorTemplate
@@ -28,6 +31,9 @@ interface EditorCanvasProps {
  * Pan-and-zoomable document canvas.
  * Remote cursors are paper-relative (may sit outside the page on the grid).
  * Pointer tracking binds to the full transform wrapper so the grid counts.
+ *
+ * Dot grid background is updated via DOM in `onTransform` (not React state)
+ * so panning does not re-render the résumé tree every pointer frame.
  */
 export function EditorCanvas({
   document,
@@ -40,7 +46,7 @@ export function EditorCanvas({
   sendCursor,
   clearCursor,
 }: EditorCanvasProps) {
-  const { ref, scale, offset, onTransform } = viewport
+  const { ref, scale, onTransform, bindGridLayer } = viewport
   const noop = () => {}
   const { surfaceRef, surfaceSize, bindViewport } = useCollabSurface(
     sendCursor ?? noop,
@@ -48,23 +54,39 @@ export function EditorCanvas({
   )
   const wrapperProbeRef = useRef<HTMLDivElement | null>(null)
 
-  // Bind pointer tracking to the transform wrapper (full grid area)
+  // Bind pointer tracking once wrapper exists — not on every pan frame
   useEffect(() => {
     if (!sendCursor) return
-    const api = ref.current
-    const wrapper = api?.instance?.wrapperComponent ?? null
-    return bindViewport(wrapper)
-  }, [sendCursor, bindViewport, ref, scale, offset.x, offset.y])
+    let raf = 0
+    let cleanup: (() => void) | undefined
 
-  // Fallback: if wrapper not ready, probe via a layout effect child
+    const tryBind = () => {
+      const wrapper = ref.current?.instance?.wrapperComponent ?? null
+      if (wrapper) {
+        bindGridLayer(wrapper)
+        cleanup = bindViewport(wrapper)
+        return
+      }
+      raf = requestAnimationFrame(tryBind)
+    }
+    tryBind()
+
+    return () => {
+      cancelAnimationFrame(raf)
+      cleanup?.()
+    }
+  }, [sendCursor, bindViewport, bindGridLayer, ref])
+
+  // Fallback: if wrapper not ready via API, probe from content DOM
   useEffect(() => {
     if (!sendCursor || !wrapperProbeRef.current) return
     const wrapper = wrapperProbeRef.current.closest(
       ".react-transform-wrapper"
     ) as HTMLElement | null
     if (!wrapper) return
+    bindGridLayer(wrapper)
     return bindViewport(wrapper)
-  }, [sendCursor, bindViewport])
+  }, [sendCursor, bindViewport, bindGridLayer])
 
   const clearEditing = () => {
     const active = window.document.activeElement
@@ -86,10 +108,11 @@ export function EditorCanvas({
         requestAnimationFrame(() => {
           const wrapper = api.instance.wrapperComponent
           const content = api.instance.contentComponent
+          if (wrapper) bindGridLayer(wrapper)
           if (!wrapper || !content) return
-          const scale = ZOOM.default
-          const x = (wrapper.clientWidth - content.offsetWidth * scale) / 2
-          api.setTransform(x, 48, scale, 0)
+          const nextScale = ZOOM.default
+          const x = (wrapper.clientWidth - content.offsetWidth * nextScale) / 2
+          api.setTransform(x, 48, nextScale, 0)
         })
       }}
       doubleClick={{ disabled: true }}
@@ -101,10 +124,11 @@ export function EditorCanvas({
       <TransformComponent
         wrapperClass="!absolute !inset-0 !z-0 !h-full !w-full cursor-grab bg-neutral-100 active:cursor-grabbing dark:bg-neutral-950 [--dot:var(--color-neutral-300)] dark:[--dot:var(--color-neutral-600)]"
         wrapperStyle={{
+          // Size/position updated imperatively in onTransform — avoid React pan thrash
           backgroundImage:
             "radial-gradient(circle, var(--dot) 1px, transparent 1px)",
-          backgroundSize: `${24 * scale}px ${24 * scale}px`,
-          backgroundPosition: `${offset.x}px ${offset.y}px`,
+          backgroundSize: `${GRID_DOT_FALLBACK}px ${GRID_DOT_FALLBACK}px`,
+          backgroundPosition: "0px 0px",
         }}
       >
         <div ref={wrapperProbeRef} className="relative pt-12">

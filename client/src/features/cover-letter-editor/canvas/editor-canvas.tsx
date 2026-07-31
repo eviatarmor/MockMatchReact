@@ -24,6 +24,9 @@ interface EditorCanvasProps {
   readonly clearCursor?: () => void
 }
 
+/** Initial grid size before first onTransform (scale 1). */
+const GRID_DOT_FALLBACK = 24
+
 export function EditorCanvas({
   document,
   template,
@@ -35,7 +38,7 @@ export function EditorCanvas({
   sendCursor,
   clearCursor,
 }: EditorCanvasProps) {
-  const { ref, scale, offset, onTransform } = viewport
+  const { ref, scale, onTransform, bindGridLayer } = viewport
   const noop = () => {}
   const { surfaceRef, surfaceSize, bindViewport } = useCollabSurface(
     sendCursor ?? noop,
@@ -45,10 +48,25 @@ export function EditorCanvas({
 
   useEffect(() => {
     if (!sendCursor) return
-    const api = ref.current
-    const wrapper = api?.instance?.wrapperComponent ?? null
-    return bindViewport(wrapper)
-  }, [sendCursor, bindViewport, ref, scale, offset.x, offset.y])
+    let raf = 0
+    let cleanup: (() => void) | undefined
+
+    const tryBind = () => {
+      const wrapper = ref.current?.instance?.wrapperComponent ?? null
+      if (wrapper) {
+        bindGridLayer(wrapper)
+        cleanup = bindViewport(wrapper)
+        return
+      }
+      raf = requestAnimationFrame(tryBind)
+    }
+    tryBind()
+
+    return () => {
+      cancelAnimationFrame(raf)
+      cleanup?.()
+    }
+  }, [sendCursor, bindViewport, bindGridLayer, ref])
 
   useEffect(() => {
     if (!sendCursor || !wrapperProbeRef.current) return
@@ -56,8 +74,9 @@ export function EditorCanvas({
       ".react-transform-wrapper"
     ) as HTMLElement | null
     if (!wrapper) return
+    bindGridLayer(wrapper)
     return bindViewport(wrapper)
-  }, [sendCursor, bindViewport])
+  }, [sendCursor, bindViewport, bindGridLayer])
 
   const clearEditing = () => {
     const active = window.document.activeElement
@@ -79,10 +98,11 @@ export function EditorCanvas({
         requestAnimationFrame(() => {
           const wrapper = api.instance.wrapperComponent
           const content = api.instance.contentComponent
+          if (wrapper) bindGridLayer(wrapper)
           if (!wrapper || !content) return
-          const scale = ZOOM.default
-          const x = (wrapper.clientWidth - content.offsetWidth * scale) / 2
-          api.setTransform(x, 48, scale, 0)
+          const nextScale = ZOOM.default
+          const x = (wrapper.clientWidth - content.offsetWidth * nextScale) / 2
+          api.setTransform(x, 48, nextScale, 0)
         })
       }}
       doubleClick={{ disabled: true }}
@@ -96,8 +116,8 @@ export function EditorCanvas({
         wrapperStyle={{
           backgroundImage:
             "radial-gradient(circle, var(--dot) 1px, transparent 1px)",
-          backgroundSize: `${24 * scale}px ${24 * scale}px`,
-          backgroundPosition: `${offset.x}px ${offset.y}px`,
+          backgroundSize: `${GRID_DOT_FALLBACK}px ${GRID_DOT_FALLBACK}px`,
+          backgroundPosition: "0px 0px",
         }}
       >
         <div ref={wrapperProbeRef} className="relative pt-12">
