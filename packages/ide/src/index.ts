@@ -6,6 +6,7 @@
 export { IdeShell } from "./ide-shell"
 export { FileTree, type FileTreeProps } from "./file-tree"
 export { MonacoEditor, type MonacoEditorProps } from "./monaco-editor"
+export { ensureMonacoEnvironment } from "./monaco-environment"
 export {
   acquireMonacoModel,
   releaseMonacoModel,

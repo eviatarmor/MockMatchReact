@@ -1,3 +1,4 @@
+import "./monaco-environment"
 import * as monaco from "monaco-editor"
 
 type ModelEntry = {

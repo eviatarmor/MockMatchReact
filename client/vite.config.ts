@@ -14,8 +14,13 @@ export default defineConfig({
     },
   },
   // Browser-runner: esbuild-wasm + Pyodide CDN + Runno clang
+  // monaco workers use Vite `?worker` (see packages/ide/src/monaco-environment.ts)
   optimizeDeps: {
     exclude: ["esbuild-wasm", "@runno/runtime", "@runno/wasi"],
+    include: ["monaco-editor"],
+  },
+  worker: {
+    format: "es",
   },
   server: {
     // Allow dynamic import of Pyodide from jsDelivr

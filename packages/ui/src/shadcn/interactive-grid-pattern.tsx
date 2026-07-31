@@ -1,4 +1,4 @@
-import { useState, type SVGProps } from "react"
+import { useMemo, type SVGProps } from "react"
 
 import { cn } from "../lib/utils"
 
@@ -19,8 +19,14 @@ interface InteractiveGridPatternProps extends SVGProps<SVGSVGElement> {
   squaresClassName?: string
 }
 
+/** Soft cap — large grids (e.g. 80×80) create thousands of DOM nodes and tank paint. */
+const MAX_AXIS = 40
+
 /**
  * The InteractiveGridPattern component.
+ *
+ * Hover is pure CSS (`:hover`) — no React state — so pointer moves do not
+ * re-render the full grid.
  *
  * @see InteractiveGridPatternProps for the props interface.
  * @returns A React component.
@@ -33,8 +39,22 @@ export function InteractiveGridPattern({
   squaresClassName,
   ...props
 }: InteractiveGridPatternProps) {
-  const [horizontal, vertical] = squares
-  const [hoveredSquare, setHoveredSquare] = useState<number | null>(null)
+  const horizontal = Math.min(MAX_AXIS, Math.max(1, squares[0]))
+  const vertical = Math.min(MAX_AXIS, Math.max(1, squares[1]))
+
+  const cells = useMemo(() => {
+    const total = horizontal * vertical
+    const list: { index: number; x: number; y: number }[] = []
+    list.length = total
+    for (let index = 0; index < total; index++) {
+      list[index] = {
+        index,
+        x: (index % horizontal) * width,
+        y: Math.floor(index / horizontal) * height,
+      }
+    }
+    return list
+  }, [horizontal, vertical, width, height])
 
   return (
     <svg
@@ -48,29 +68,24 @@ export function InteractiveGridPattern({
       )}
       {...props}
     >
-      {Array.from({ length: horizontal * vertical }).map((_, index) => {
-        const x = (index % horizontal) * width
-        const y = Math.floor(index / horizontal) * height
-        return (
-          <rect
-            key={index}
-            x={x}
-            y={y}
-            width={width}
-            height={height}
-            // SVG default hit-testing ignores transparent fills — "all" keeps
-            // empty cells hoverable (required for the interactive effect).
-            pointerEvents="all"
-            className={cn(
-              "stroke-gray-400/30 transition-all duration-100 ease-in-out not-[&:hover]:duration-1000",
-              hoveredSquare === index ? "fill-gray-300/30" : "fill-transparent",
-              squaresClassName
-            )}
-            onMouseEnter={() => setHoveredSquare(index)}
-            onMouseLeave={() => setHoveredSquare(null)}
-          />
-        )
-      })}
+      {cells.map(({ index, x, y }) => (
+        <rect
+          key={index}
+          x={x}
+          y={y}
+          width={width}
+          height={height}
+          // SVG default hit-testing ignores transparent fills — "all" keeps
+          // empty cells hoverable (required for the interactive effect).
+          pointerEvents="all"
+          className={cn(
+            "fill-transparent stroke-gray-400/30 transition-[fill] duration-100 ease-in-out not-[&:hover]:duration-1000",
+            // Default hover fill when caller does not override via squaresClassName
+            "hover:fill-gray-300/30",
+            squaresClassName
+          )}
+        />
+      ))}
     </svg>
   )
 }

@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { EntityRowActions } from "@/components/data/entity-row-actions"
 import { ScaledDocumentFrame } from "@/components/data/scaled-document-frame"
-import { BlurFade } from "@mockmatch/ui/blur-fade"
+import { StaggerItem } from "@mockmatch/ui/stagger"
 import { formatRelativeTime } from "@/lib/format-relative-time"
 import { scoreBand, type ScoreBand } from "@/lib/score-tier"
 import { cn } from "@/lib/utils"
@@ -132,7 +132,7 @@ export function DocumentThumbnailCard({
   className,
 }: DocumentThumbnailCardProps) {
   return (
-    <BlurFade delay={index * 0.05} inView direction="up" className={cn("w-full", className)}>
+    <StaggerItem index={index} direction="up" className={cn("w-full", className)}>
       <div className="group relative w-full overflow-hidden rounded-xl">
         <button
           type="button"
@@ -197,6 +197,6 @@ export function DocumentThumbnailCard({
           </div>
         </div>
       </div>
-    </BlurFade>
+    </StaggerItem>
   )
 }

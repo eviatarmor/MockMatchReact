@@ -1,3 +1,6 @@
+// Side-effect: MonacoEnvironment.getWorker (must load with this module)
+import "./monaco-environment"
+
 import { useEffect, useRef, useState } from "react"
 import * as monaco from "monaco-editor"
 import { cn } from "@mockmatch/ui/utils"

@@ -32,16 +32,17 @@ export function AuthHeroPanel({
   return (
     <div className="relative hidden flex-1 flex-col justify-between overflow-hidden bg-primary p-12 text-white lg:flex">
       {/* z-0 + full-panel hit target; content below uses pointer-events-none so hover reaches cells */}
+      {/* 32×32 (~1k cells) + CSS-only hover — 80×80 + React state re-rendered all 6400 rects per pointer move */}
       <InteractiveGridPattern
         aria-hidden="true"
-        width={20}
-        height={20}
-        squares={[80, 80]}
+        width={28}
+        height={28}
+        squares={[32, 32]}
         className={cn(
           "z-0 border-0",
           "[mask-image:radial-gradient(400px_circle_at_center,white,transparent)]"
         )}
-        squaresClassName="hover:fill-blue-500"
+        squaresClassName="hover:fill-blue-500/40"
       />
       <div className="pointer-events-none relative z-10 flex w-full max-w-md flex-1 flex-col justify-between">
         <div className="flex items-center gap-2">
