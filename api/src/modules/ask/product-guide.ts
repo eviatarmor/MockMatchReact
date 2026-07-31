@@ -22,7 +22,7 @@ application tracking, practice, and readiness insights.
 ## App chrome
 - Left **icon rail** switches major areas (Applications, Practice, Insights, Automation, Help & support).
 - **Section nav** lists pages within the active area (all groups shown; Help & support sits below Automation).
-- Top **navbar**: breadcrumbs, **Ask** (this chat), notifications, theme, **Feedback** (anonymous product notes), credits.
+- Top **navbar**: breadcrumbs, **Ask** (this chat), **notifications** (bell inbox + **View all** → \`/notifications\` paginated list; mark-read; demo seed data until live events ship), theme, **Feedback** (anonymous product notes), credits.
 
 ## Pages (main nav)
 

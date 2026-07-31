@@ -761,6 +761,57 @@
       "devError": "Could not grant dev credits"
     }
   },
+  "notifications": {
+    "ariaLabel": "Notifications",
+    "ariaLabelUnread": "Notifications, {{count}} unread",
+    "title": "Notifications",
+    "documentTitle": "Notifications — MockMatch",
+    "pageDescription": "Product updates, credits, exports, and activity in one place.",
+    "markAllRead": "Mark all as read",
+    "viewAll": "View all notifications",
+    "unreadCount": "{{count}} unread",
+    "loading": "Loading notifications…",
+    "loadingMore": "Loading more…",
+    "loadError": "Could not load notifications. Try again.",
+    "endOfList": "You're all caught up — no more notifications.",
+    "emptyTitle": "You're all caught up",
+    "emptyDescription": "Product updates and activity will show up here.",
+    "dates": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "unknown": "Unknown date"
+    },
+    "items": {
+      "welcome": {
+        "title": "Welcome to <strong>MockMatch</strong>",
+        "body": "Start in <strong>Resume Lab</strong> — score your resume, then practice interviews with AI."
+      },
+      "creditsGranted": {
+        "title": "Credits ready",
+        "body": "Your account has credits for AI features. Top up anytime from <strong>Billing</strong>."
+      },
+      "resumeExport": {
+        "title": "Resume export <strong>ready</strong>",
+        "body": "Your PDF export finished. Open <strong>Resume Lab</strong> to download or keep editing."
+      },
+      "collabShare": {
+        "title": "Someone joined your doc",
+        "body": "A collaborator opened a shared <strong>resume</strong> or cover letter while you were editing."
+      },
+      "practiceFeedback": {
+        "title": "Practice session scored",
+        "body": "Your latest simulation has feedback. Review <strong>strengths</strong> and next steps."
+      },
+      "discoverFit": {
+        "title": "New high-fit roles",
+        "body": "Discover found jobs that match your profile. Check fit scores and generate <em>tailored docs</em>."
+      },
+      "billingReminder": {
+        "title": "Low credits",
+        "body": "You're running low on credits. Grab a pack so <strong>AI coaching</strong> and exports stay unlocked."
+      }
+    }
+  },
   "recorder": {
     "documentTitle": "Interview Recorder — MockMatch",
     "title": "Interview Recorder",

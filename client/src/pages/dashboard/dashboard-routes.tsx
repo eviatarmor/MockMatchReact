@@ -27,6 +27,7 @@ import { PerformancePage } from "@/pages/dashboard/performance-page"
 import { AutofillPage } from "@/pages/dashboard/autofill-page"
 import { JobWorkflowPage } from "@/pages/dashboard/job-workflow-page";
 import { InterviewRecorderPage } from "@/pages/dashboard/interview-recorder-page";
+import { NotificationsPage } from "@/pages/dashboard/notifications-page";
 
 const DASHBOARD_ROUTES = [
   { path: "resume-lab", titleKey: "navItems.resumeLab" },
@@ -73,6 +74,7 @@ export function dashboardRoutes() {
           element={<SimulationIdePage />}
         />
         <Route path="resumes/:resumeId" element={<ResumeEditorPage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
         {DASHBOARD_ROUTES.map(({ path, titleKey }) => {
           if (path === "resume-lab") {
             return <Route key={path} path={path} element={<ResumeLabPage />} />;
