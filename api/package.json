@@ -21,7 +21,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
-    "db:schema:mermaid": "tsx scripts/generate-schema-mermaid.ts"
+    "db:schema:mermaid": "tsx scripts/generate-schema-mermaid.ts",
+    "db:seed:exercises": "tsx scripts/seed-practice-exercises.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",

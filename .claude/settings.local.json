@@ -13,5 +13,8 @@
       "mcp__Claude_in_Chrome__browser_batch",
       "mcp__plugin_context-mode_context-mode__ctx_batch_execute"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ]
 }

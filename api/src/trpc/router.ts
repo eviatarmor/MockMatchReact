@@ -6,6 +6,7 @@ import { coverLettersRouter } from "../modules/cover-letters/router.js"
 import { documentVersionsRouter } from "../modules/document-versions/router.js"
 import { ideWorkspacesRouter } from "../modules/ide-workspaces/router.js"
 import { jobsRouter } from "../modules/jobs/router.js"
+import { practiceExercisesRouter } from "../modules/practice-exercises/router.js"
 import { questionsRouter } from "../modules/questions/router.js"
 import { resumesRouter } from "../modules/resumes/router.js"
 import { router } from "./trpc.js"
@@ -20,6 +21,7 @@ export const appRouter = router({
   resumes: resumesRouter,
   coverLetters: coverLettersRouter,
   ideWorkspaces: ideWorkspacesRouter,
+  practiceExercises: practiceExercisesRouter,
   jobs: jobsRouter,
 })
 

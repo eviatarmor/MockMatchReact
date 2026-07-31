@@ -56,11 +56,13 @@ function shareUrl(
 ): string {
   if (kind === "workspace") {
     const format = workspaceFormat.trim() || "workspace"
-    // Freeform collab IDE lives at /simulations/workspace; exercises under code-run.
+    // Routes: workspace + terminal-lab are dedicated; exercises under code-run.
     const path =
       format === "workspace"
         ? "/simulations/workspace"
-        : `/simulations/code-run/${format}`
+        : format === "shell" || format === "terminal-lab"
+          ? "/simulations/terminal-lab"
+          : `/simulations/code-run/${format}`
     const url = new URL(path, env.APP_URL)
     url.searchParams.set("id", documentId)
     url.searchParams.set("share", rawToken)

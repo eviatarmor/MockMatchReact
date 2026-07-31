@@ -1,5 +1,5 @@
 import type { editor } from "monaco-editor"
-import type { ReactNode } from "react"
+import type { ReactNode, RefObject } from "react"
 
 import type { IdeCollabProps } from "./collab/types"
 
@@ -204,6 +204,11 @@ export type IdeShellProps = {
   fullscreen?: boolean
   defaultFullscreen?: boolean
   onFullscreenChange?: (fullscreen: boolean) => void
+  /**
+   * Element to put into browser fullscreen (e.g. host page wrapping share header).
+   * Defaults to the IDE shell root.
+   */
+  fullscreenTargetRef?: RefObject<HTMLElement | null>
   menubar?: ReactNode
   hideMenubar?: boolean
 

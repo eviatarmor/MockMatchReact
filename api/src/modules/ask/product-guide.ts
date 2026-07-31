@@ -55,9 +55,10 @@ application tracking, practice, and readiness insights.
    - **Code run** (\`/simulations/code-run/:format\`) — exercise rooms with **live collab** (Yjs, presence, share):
      - **react** — multi-file IDE exercise (tree + Monaco). Counter lab.
      - **cpp-sort** — **single-file** Monaco only (no tree); **tabs cannot be closed**. Run / Run tests in header.
-     - **shell** — terminal only; local incident-drill commands; presence + share.
-   - **Dev workspace** (\`/simulations/workspace\`) — freeform multi-file collab IDE (not under code-run).
+   - **Terminal lab** (\`/simulations/terminal-lab\`) — shell-only multi-tab terminal (add/remove tabs like editor); collab presence + share.
+   - **Dev workspace** (\`/simulations/workspace\`) — freeform multi-file collab IDE.
    - Share URLs include \`id\` + \`share\` query params (owner must stay in room).
+   - **Exercise catalog** is Postgres \`practice_exercises\` (slug, domain, difficulty, prompt, tags, embedding-ready). Starter **files** live under S3 prefix \`exercises/<slug>/<version>/\` (dev mirror in \`content_cache\`). Seed: \`npm run db:seed:exercises\` in \`api/\`.
 6. **Question Bank** (\`/question-bank\`) — practice question library by domain/difficulty.
 
 ### Insights area
@@ -102,7 +103,7 @@ application tracking, practice, and readiness insights.
 ### Collaboration
 - Resume, cover letter, and **dev workspace** IDE support **share links** that stay active only while the owner is in the document; when the owner leaves, the link expires and collaborators are dropped from the session (reopen does not revive the old link — owner must create a new one). Removing someone from the share dialog kicks them out of the live session immediately.
 - Roles: view | edit (owner full access). Only the owner sees the Share button.
-- Code-run collab: **Simulations** tracks → \`/simulations/code-run/<format>\`. Freeform IDE: \`/simulations/workspace\`. Share URLs use \`id\` + \`share\`.
+- Code-run: \`/simulations/code-run/<format>\`. Terminal lab: \`/simulations/terminal-lab\`. Freeform IDE: \`/simulations/workspace\`. Share uses \`id\` + \`share\`.
 - May require credits depending on plan/grant.
 
 ### Auth

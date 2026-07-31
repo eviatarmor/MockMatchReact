@@ -66,6 +66,10 @@ export function dashboardRoutes() {
           path="simulations/workspace"
           element={<SimulationIdePage />}
         />
+        <Route
+          path="simulations/terminal-lab"
+          element={<SimulationIdePage />}
+        />
         <Route path="resumes/:resumeId" element={<ResumeEditorPage />} />
         {DASHBOARD_ROUTES.map(({ path, titleKey }) => {
           if (path === "resume-lab") {

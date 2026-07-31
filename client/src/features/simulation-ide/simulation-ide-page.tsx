@@ -17,7 +17,7 @@ import { FlaskConical, Loader2, Play, Share2 } from "lucide-react"
 import {
   IdeMenubar,
   IdeShell,
-  IdeTerminal,
+  IdeTerminalPanel,
   useColorScheme,
   useIdeSettings,
 } from "@mockmatch/ide"
@@ -63,28 +63,42 @@ export function SimulationIdePageContent() {
   const { pathname } = useLocation()
   const navigate = useNavigate()
 
-  // `/simulations/workspace` is freeform collab; exercises stay under code-run.
   const isWorkspaceRoute =
     pathname === "/simulations/workspace" ||
-    pathname.startsWith("/simulations/workspace?")
+    pathname.startsWith("/simulations/workspace/")
+  const isTerminalLabRoute =
+    pathname === "/simulations/terminal-lab" ||
+    pathname.startsWith("/simulations/terminal-lab/")
 
   const format: IdeFormatSlug | null = isWorkspaceRoute
     ? "workspace"
-    : isCodeRunFormatSlug(formatParam)
-      ? formatParam
-      : null
+    : isTerminalLabRoute
+      ? "shell"
+      : isCodeRunFormatSlug(formatParam)
+        ? formatParam
+        : null
 
   useEffect(() => {
-    if (isWorkspaceRoute) return
-    // Old link: /simulations/code-run/workspace → /simulations/workspace
+    if (isWorkspaceRoute || isTerminalLabRoute) return
+    // Legacy routes → dedicated paths
     if (formatParam === "workspace") {
       navigate(pathForFormat("workspace"), { replace: true })
+      return
+    }
+    if (formatParam === "shell") {
+      navigate(pathForFormat("shell"), { replace: true })
       return
     }
     if (!format) {
       navigate("/simulations", { replace: true })
     }
-  }, [isWorkspaceRoute, formatParam, format, navigate])
+  }, [
+    isWorkspaceRoute,
+    isTerminalLabRoute,
+    formatParam,
+    format,
+    navigate,
+  ])
 
   if (!format) {
     return null
@@ -106,6 +120,17 @@ function ExerciseCollabBootstrap({ format }: { format: IdeFormatSlug }) {
   const shareToken = searchParams.get("share")
   const isValidId = typeof idParam === "string" && UUID_RE.test(idParam)
   const preset = IDE_FORMAT_PRESETS[format]
+  /** Catalog exercises (not freeform workspace) load seed from DB/S3. */
+  const isCatalog = format !== "workspace"
+
+  const exerciseQuery = trpc.practiceExercises.bySlug.useQuery(
+    { slug: format },
+    {
+      enabled: isCatalog && !isValidId && !shareToken,
+      retry: false,
+      staleTime: 60_000,
+    }
+  )
 
   const create = trpc.ideWorkspaces.create.useMutation({
     onSuccess: (ws) => {
@@ -117,13 +142,40 @@ function ExerciseCollabBootstrap({ format }: { format: IdeFormatSlug }) {
   useEffect(() => {
     if (isValidId || shareToken) return
     if (createOnce.current || create.isPending || create.isSuccess) return
+
+    if (isCatalog) {
+      if (exerciseQuery.isLoading || exerciseQuery.isError) return
+      if (!exerciseQuery.data) return
+      createOnce.current = true
+      create.mutate({
+        title: exerciseQuery.data.title,
+        templateId: format,
+        document: exerciseQuery.data.document as {
+          tree: never
+          files: Record<string, { language?: string; content: string }>
+        },
+      })
+      return
+    }
+
     createOnce.current = true
     create.mutate({
       title: t(preset.titleKey),
       templateId: format,
       document: seedDocumentForFormat(format),
     })
-  }, [isValidId, shareToken, create, t, format, preset.titleKey])
+  }, [
+    isValidId,
+    shareToken,
+    create,
+    t,
+    format,
+    preset.titleKey,
+    isCatalog,
+    exerciseQuery.isLoading,
+    exerciseQuery.isError,
+    exerciseQuery.data,
+  ])
 
   if (shareToken && !isValidId) {
     return (
@@ -141,10 +193,33 @@ function ExerciseCollabBootstrap({ format }: { format: IdeFormatSlug }) {
   }
 
   if (!isValidId) {
+    const exerciseFailed = isCatalog && exerciseQuery.isError
     return (
-      <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" />
-        {create.isError ? t("collab.createError") : t("collab.preparing")}
+      <div className="flex h-full flex-col items-center justify-center gap-2 p-8 text-sm text-muted-foreground">
+        {exerciseFailed || create.isError ? (
+          <>
+            {exerciseFailed
+              ? t("collab.loadError")
+              : t("collab.createError")}
+            <p className="max-w-md text-center text-xs">
+              {exerciseFailed
+                ? "Run: cd api && npm run db:migrate && npm run db:seed:exercises"
+                : null}
+            </p>
+            <Button
+              variant="outline"
+              className="cursor-pointer"
+              onClick={() => navigate("/simulations")}
+            >
+              {t("collab.backToSimulations")}
+            </Button>
+          </>
+        ) : (
+          <>
+            <Loader2 className="size-4 animate-spin" />
+            {t("collab.preparing")}
+          </>
+        )}
       </div>
     )
   }
@@ -476,6 +551,9 @@ function EditorCollabSession({
           <IdeShell
             className="h-full min-h-0"
             hideMenubar
+            fullscreen={fullscreen}
+            onFullscreenChange={setFullscreen}
+            fullscreenTargetRef={pageRef}
             tree={treeEnabled ? session.tree : undefined}
             showTree={treeEnabled ? session.showTree : false}
             onShowTreeChange={treeEnabled ? session.setShowTree : undefined}
@@ -537,7 +615,7 @@ function EditorCollabSession({
   )
 }
 
-/** Shell-only collab exercise — presence + share; local terminal chrome. */
+/** Shell-only collab exercise — presence + share; multi-tab terminal. */
 function ShellCollabSession({
   seed,
   format,
@@ -557,10 +635,20 @@ function ShellCollabSession({
     openSeedTabs: false,
     defaultShowTree: false,
   })
+  /** Catalog metadata (welcome, virtual FS for cat/ls). */
+  const exerciseQuery = trpc.practiceExercises.bySlug.useQuery(
+    { slug: "shell" },
+    { staleTime: 60_000, retry: false }
+  )
   const pageRef = useRef<HTMLDivElement>(null)
   const [fullscreen, setFullscreen] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const { isOwner, canShare, isPaidOwner } = useCollabHeaderAccess(seed)
+
+  const shellWelcome =
+    exerciseQuery.data?.uiFlags?.shellWelcome ?? SHELL_WELCOME
+  const shellCwd = exerciseQuery.data?.uiFlags?.shellCwd ?? SHELL_CWD
+  const shellFiles = exerciseQuery.data?.files ?? {}
 
   const toggleFullscreen = useCallback(async () => {
     const el = pageRef.current
@@ -593,9 +681,15 @@ function ShellCollabSession({
     [t]
   )
 
-  const onCommand = useCallback((command: string) => {
-    return shellExerciseCommand(command)
-  }, [])
+  const onCommand = useCallback(
+    (command: string) => {
+      return shellExerciseCommand(command, {
+        cwd: shellCwd,
+        files: shellFiles,
+      })
+    },
+    [shellCwd, shellFiles]
+  )
 
   return (
     <CollabRoomGates
@@ -605,13 +699,15 @@ function ShellCollabSession({
       <div ref={pageRef} className="flex h-full min-h-0 flex-col bg-background">
         <div className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-1.5">
           <h1 className="shrink-0 text-sm font-medium text-foreground">
-            {session.title || t(preset.titleKey)}
+            {session.title ||
+              exerciseQuery.data?.title ||
+              t(preset.titleKey)}
           </h1>
           <Badge variant="secondary" className="shrink-0 text-xs font-normal">
             {t(preset.badgeKey)}
           </Badge>
           <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-            {t(preset.descriptionKey)}
+            {exerciseQuery.data?.description || t(preset.descriptionKey)}
           </p>
           <div className="flex shrink-0 items-center gap-2">
             <SaveStatusBadge status={session.saveStatus} labels={saveLabels} />
@@ -645,12 +741,22 @@ function ShellCollabSession({
           </div>
         </div>
         <div className="min-h-0 flex-1 bg-background p-0">
-          <IdeTerminal
-            className="h-full min-h-0 w-full"
+          <IdeTerminalPanel
+            layout="fill"
+            open
+            onOpenChange={() => {}}
             colorScheme={scheme}
-            welcome={SHELL_WELCOME}
-            cwd={SHELL_CWD}
+            welcome={shellWelcome}
+            defaultCwd={shellCwd}
             onCommand={onCommand}
+            labels={{
+              newTerminal: t("actions.newTerminal"),
+              closeTerminal: t("actions.closeTerminal"),
+              close: t("actions.close"),
+              closeOthers: t("actions.closeOthers"),
+              pinTab: t("actions.pinTab"),
+              unpinTab: t("actions.unpinTab"),
+            }}
           />
         </div>
         {isOwner && (

@@ -2,13 +2,14 @@ import type { TrackFormat } from "@/features/simulations/types"
 
 /**
  * Practice surface slugs.
- * - code-run formats: under `/simulations/code-run/:format` (single-file / exercise)
- * - workspace: under `/simulations/workspace` (freeform multi-file collab)
+ * - code-run: `/simulations/code-run/:format` (react, cpp-sort)
+ * - terminal-lab: `/simulations/terminal-lab` (shell)
+ * - workspace: `/simulations/workspace` (freeform multi-file collab)
  */
 export type IdeFormatSlug = "react" | "cpp-sort" | "shell" | "workspace"
 
 /** Formats allowed on `/simulations/code-run/:format`. */
-export type CodeRunFormatSlug = Exclude<IdeFormatSlug, "workspace">
+export type CodeRunFormatSlug = "react" | "cpp-sort"
 
 export type IdeLayoutMode = "ide" | "editor" | "shell"
 
@@ -43,5 +44,5 @@ export function isIdeFormatSlug(
 export function isCodeRunFormatSlug(
   value: string | undefined
 ): value is CodeRunFormatSlug {
-  return value === "react" || value === "cpp-sort" || value === "shell"
+  return value === "react" || value === "cpp-sort"
 }

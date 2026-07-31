@@ -95,6 +95,7 @@ export function IdeShell({
   fullscreen: fullscreenControlled,
   defaultFullscreen = false,
   onFullscreenChange,
+  fullscreenTargetRef,
   menubar,
   hideMenubar = false,
   showTerminal: showTerminalControlled,
@@ -494,7 +495,8 @@ export function IdeShell({
   )
 
   const toggleFullscreen = useCallback(async () => {
-    const el = rootRef.current
+    // Prefer host wrapper (share header + IDE) when provided
+    const el = fullscreenTargetRef?.current ?? rootRef.current
     if (!el) return
     try {
       if (!document.fullscreenElement) {
@@ -507,7 +509,7 @@ export function IdeShell({
     } catch {
       // blocked
     }
-  }, [setFullscreen])
+  }, [fullscreenTargetRef, setFullscreen])
 
   useEffect(() => {
     const onFsChange = () => {

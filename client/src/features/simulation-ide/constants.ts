@@ -220,47 +220,37 @@ Commands: help · ls · cat deploy.log · cat status.txt · clear
 
 export const SHELL_CWD = "~/incident-42"
 
-/** Local line-mode shell for the terminal exercise (no real FS). */
-export function shellExerciseCommand(command: string): string[] {
+/** Local line-mode shell for the terminal exercise (virtual FS from catalog). */
+export function shellExerciseCommand(
+  command: string,
+  opts?: { cwd?: string; files?: Record<string, string> }
+): string[] {
+  const cwd = opts?.cwd ?? SHELL_CWD
+  const files = opts?.files ?? {}
+  const names = Object.keys(files)
   const cmd = command.trim()
   if (!cmd) return []
 
   if (cmd === "help") {
     return [
       "Available: help, ls, cat <file>, pwd, clear, whoami",
-      "Hint: start with ls, then cat deploy.log",
+      names.length
+        ? `Files: ${names.join(", ")}`
+        : "Hint: start with ls, then cat deploy.log",
     ]
   }
-  if (cmd === "pwd") return [SHELL_CWD]
+  if (cmd === "pwd") return [cwd]
   if (cmd === "whoami") return ["oncall"]
   if (cmd === "ls" || cmd === "ls -la") {
-    return ["deploy.log  status.txt  README  bin/"]
-  }
-  if (cmd === "cat deploy.log" || cmd === "cat ./deploy.log") {
-    return [
-      "[12:01:02] build ok image=api:2026.07.31-a3",
-      "[12:02:11] rollout started replicas=3",
-      "[12:03:44] WARN probe fail pod=api-7f9x  readiness timeout",
-      "[12:04:01] ERROR connection pool exhausted db=primary",
-      "[12:04:18] ERROR 503 /v1/ready upstream timeout",
-    ]
-  }
-  if (cmd === "cat status.txt" || cmd === "cat ./status.txt") {
-    return [
-      "service: api",
-      "version: 2026.07.31-a3",
-      "prev:    2026.07.30-c1  (healthy)",
-      "notes:   connection pool max lowered in last PR",
-    ]
-  }
-  if (cmd === "cat README" || cmd === "cat ./README") {
-    return [
-      "Incident box — simulated only.",
-      "Goal: identify likely regression from deploy.log + status.txt.",
-    ]
+    return [names.length ? names.join("  ") : "(empty)"]
   }
   if (cmd.startsWith("cat ")) {
-    return [`cat: ${cmd.slice(4).trim()}: No such file or directory`]
+    const name = cmd.slice(4).trim().replace(/^\.\//, "")
+    const body = files[name]
+    if (body == null) {
+      return [`cat: ${name}: No such file or directory`]
+    }
+    return body.replace(/\r\n/g, "\n").split("\n")
   }
   return [`command not found: ${cmd.split(/\s+/)[0] ?? cmd}`]
 }
@@ -416,10 +406,13 @@ export function defaultExpandedForFormat(slug: IdeFormatSlug): string[] {
 export const CODE_RUN_BASE_PATH = "/simulations/code-run"
 /** Freeform multi-file collab IDE (not under code-run). */
 export const WORKSPACE_BASE_PATH = "/simulations/workspace"
+/** Shell-only terminal lab. */
+export const TERMINAL_LAB_BASE_PATH = "/simulations/terminal-lab"
 
 /** App path for a practice format (share links + create redirect). */
 export function pathForFormat(slug: IdeFormatSlug): string {
   if (slug === "workspace") return WORKSPACE_BASE_PATH
+  if (slug === "shell") return TERMINAL_LAB_BASE_PATH
   return `${CODE_RUN_BASE_PATH}/${slug}`
 }
 

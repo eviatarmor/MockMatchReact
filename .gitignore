@@ -14,6 +14,10 @@ client/dist/
 !.env.example
 !**/.env.example
 
+# local docker data (postgres / redis / s3proxy) — keep folder via README only
+infra/volumes/**
+!infra/volumes/.gitkeep
+
 # misc
 .DS_Store
 *.pem
