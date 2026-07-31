@@ -180,6 +180,54 @@ console.log(sumLines(input))
 `,
 }
 
+const TS_SUM_FILES: ExerciseContentCache = {
+  "sum.ts": `// Exercise: sum numbers (TypeScript).
+// Client-side: esbuild-wasm strips types, then runs as JS.
+// Helpers: readStdin(), readline(), process.stdout.write(...)
+
+function sumLines(text: string): number {
+  let total = 0
+  for (const line of text.split("\\n")) {
+    const t = line.trim()
+    if (!t) continue
+    const n = Number(t)
+    if (!Number.isNaN(n)) total += n
+  }
+  return total
+}
+
+const sample = "1\\n2\\n3\\n"
+const input = readStdin().trim() ? readStdin() : sample
+console.log(sumLines(input))
+`,
+}
+
+const PY_HELLO_FILES: ExerciseContentCache = {
+  "main.py": `# Exercise: sum integers from stdin (one per line).
+# Client-side Python via Pyodide — print() goes to the IDE terminal.
+# First run downloads the Python WASM runtime (~10MB+, then cached).
+
+import sys
+
+def sum_lines(text: str) -> int:
+    total = 0
+    for line in text.splitlines():
+        t = line.strip()
+        if not t:
+            continue
+        try:
+            total += int(t)
+        except ValueError:
+            pass
+    return total
+
+sample = "1\\n2\\n3\\n"
+raw = sys.stdin.read()
+text = raw if raw.strip() else sample
+print(sum_lines(text))
+`,
+}
+
 const SHELL_FILES: ExerciseContentCache = {
   "deploy.log": `[12:01:02] build ok image=api:2026.07.31-a3
 [12:02:11] rollout started replicas=3
@@ -222,12 +270,12 @@ function languageFromPath(path: string): string {
     case "cjs":
     case "jsx":
       return "javascript"
+    case "py":
+      return "python"
     case "cpp":
     case "cc":
     case "cxx":
       return "cpp"
-    case "py":
-      return "python"
     case "json":
       return "json"
     case "md":
@@ -364,6 +412,68 @@ export const EXERCISE_SEEDS: ExerciseSeed[] = [
       { id: "sum.js", name: "sum.js" },
     ]),
     contentCache: JS_SUM_FILES,
+  },
+  {
+    slug: "ts-sum",
+    title: "TypeScript · Sum lines",
+    description:
+      "Single-file TypeScript: sum integers. Transpiled with esbuild-wasm, runs in the browser.",
+    prompt:
+      "Implement sumLines(text: string): number. When stdin is empty, the sample 1/2/3 should print 6.",
+    aiContext:
+      "TypeScript fundamentals. Types are stripped client-side (esbuild-wasm). Assess correctness. Variants: generics, readonly input, parse floats.",
+    format: "code_run",
+    layout: "editor",
+    domain: "coding",
+    difficulty: "easy",
+    languages: ["typescript"],
+    roleFamilies: ["engineering"],
+    tags: ["algorithms", "typescript", "browser-runner"],
+    durationMin: 15,
+    uiFlags: {
+      treeEnabled: false,
+      defaultShowTree: false,
+      defaultShowTerminal: true,
+      openSeedTabs: true,
+      tabsClosable: false,
+      defaultOpenPaths: ["sum.ts"],
+    },
+    contentVersion: "v1",
+    contentManifest: filesToManifest(TS_SUM_FILES, [
+      { id: "sum.ts", name: "sum.ts" },
+    ]),
+    contentCache: TS_SUM_FILES,
+  },
+  {
+    slug: "py-hello",
+    title: "Python · Sum lines",
+    description:
+      "Single-file Python: sum integers from stdin. Runs via Pyodide (CPython WASM) in the browser.",
+    prompt:
+      "Implement sum_lines so print() outputs the total of integers in the input. When stdin is empty, sample 1/2/3 should print 6. First run downloads Pyodide.",
+    aiContext:
+      "Python fundamentals in browser (Pyodide). Assess correctness, ValueError handling. Variants: product, mean, list comprehension rewrite.",
+    format: "code_run",
+    layout: "editor",
+    domain: "coding",
+    difficulty: "easy",
+    languages: ["python"],
+    roleFamilies: ["engineering"],
+    tags: ["algorithms", "python", "pyodide", "browser-runner"],
+    durationMin: 15,
+    uiFlags: {
+      treeEnabled: false,
+      defaultShowTree: false,
+      defaultShowTerminal: true,
+      openSeedTabs: true,
+      tabsClosable: false,
+      defaultOpenPaths: ["main.py"],
+    },
+    contentVersion: "v1",
+    contentManifest: filesToManifest(PY_HELLO_FILES, [
+      { id: "main.py", name: "main.py" },
+    ]),
+    contentCache: PY_HELLO_FILES,
   },
   {
     slug: "shell",

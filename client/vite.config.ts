@@ -13,4 +13,14 @@ export default defineConfig({
       ),
     },
   },
+  // Browser-runner: esbuild-wasm + Pyodide CDN assets
+  optimizeDeps: {
+    exclude: ["esbuild-wasm"],
+  },
+  server: {
+    // Allow dynamic import of Pyodide from jsDelivr
+    fs: {
+      allow: [".."],
+    },
+  },
 })

@@ -55,7 +55,9 @@ application tracking, practice, and readiness insights.
    - **Code run** (\`/simulations/code-run/:format\`) — exercise rooms with **live collab** (Yjs, presence, share):
      - **react** — multi-file IDE exercise (tree + Monaco). Counter lab. Web-app run (Node/React) not wired yet.
      - **cpp-sort** — **single-file** Monaco only (no tree); **tabs cannot be closed**. C++ browser runtime planned (WASI/clang).
-     - **js-sum** — **single-file** JavaScript; **Run** executes in the browser worker and streams stdout to the terminal.
+     - **js-sum** — **single-file** JavaScript; **Run** executes client-side and prints to the terminal.
+     - **ts-sum** — **single-file** TypeScript; esbuild-wasm transpile then client-side run.
+     - **py-hello** — **single-file** Python via Pyodide (first Run downloads WASM runtime).
    - **Terminal lab** (\`/simulations/terminal-lab\`) — shell-only multi-tab terminal (add/remove tabs like editor); collab presence + share.
    - **Dev workspace** (\`/simulations/workspace\`) — freeform multi-file collab IDE.
    - Share URLs include \`id\` + \`share\` query params (owner must stay in room).

@@ -1055,18 +1055,32 @@
       "title": "Recent sessions",
       "description": "Your practice runs and how they scored.",
       "columns": {
-        "role": "Role",
-        "track": "Track",
-        "date": "Date",
-        "duration": "Duration",
+        "session": "Session",
         "score": "Score",
-        "status": "Status"
+        "status": "Status",
+        "updated": "Updated"
       },
       "durationSuffix": "min",
       "statusLabels": {
         "completed": "Completed",
         "in_progress": "In progress",
         "abandoned": "Abandoned"
+      },
+      "rowActions": {
+        "preview": "Open",
+        "edit": "Continue",
+        "export": "Export",
+        "duplicate": "Duplicate",
+        "delete": "Delete"
+      },
+      "deleteConfirm": {
+        "title": "Delete session?",
+        "message": "“{{title}}” will be removed from your history. This cannot be undone.",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      },
+      "toast": {
+        "deleted": "Session removed"
       },
       "emptyTitle": "No sessions yet",
       "emptyDescription": "Start a simulation track to practice with an AI interviewer.",

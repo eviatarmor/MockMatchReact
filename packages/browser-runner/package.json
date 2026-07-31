@@ -18,5 +18,8 @@
     "react": {
       "optional": true
     }
+  },
+  "dependencies": {
+    "esbuild-wasm": "^0.25.5"
   }
 }

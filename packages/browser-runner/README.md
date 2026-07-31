@@ -3,17 +3,16 @@
 Client-side code execution for IDE hosts (MockMatch practice, future extensions).
 
 - **Host owns chrome** — pair with `@mockmatch/ide` via `onRun` + `terminalFeed`
-- **WASM-first** — language adapters in Dedicated Workers where possible
-- **Lazy assets** — heavy runtimes download on first use (later phases)
+- **WASM-first** — language adapters; heavy assets lazy-loaded
 - **OSS free for commercial** — no WebContainers / CheerpX (see license table)
 
 ## Status
 
 | Language | Adapter | Notes |
 |----------|---------|--------|
-| JavaScript | **Shipped** | Worker sandbox, console → stdout |
-| TypeScript | Planned | esbuild-wasm |
-| Python | Planned | Pyodide (MPL-2.0) |
+| JavaScript | **Shipped** | Main-thread AsyncFunction + fake console |
+| TypeScript | **Shipped** | esbuild-wasm transpile → JS runner |
+| Python | **Shipped** | Pyodide (CPython WASM), lazy CDN load |
 | C / C++ | Planned | WASI + clang-in-browser |
 | Go / Rust / Java / C# | Later | Prefer Linux-in-browser (v86) |
 | Node / React / Angular | Later | Sandpack (MIT) and/or Node in VM |
@@ -34,16 +33,15 @@ Client-side code execution for IDE hosts (MockMatch practice, future extensions)
 import {
   createBrowserRunner,
   formatRunEventLine,
-  languageFromPath,
 } from "@mockmatch/browser-runner"
 
 const runner = createBrowserRunner()
 
 await runner.run(
   {
-    language: "javascript",
-    files: { "main.js": "console.log(1 + 2)\n" },
-    entryPath: "main.js",
+    language: "python",
+    files: { "main.py": "print(1 + 2)\n" },
+    entryPath: "main.py",
   },
   (event) => {
     const line = formatRunEventLine(event)
@@ -54,32 +52,24 @@ await runner.run(
 runner.dispose()
 ```
 
-React:
-
-```ts
-import { useBrowserRunner } from "@mockmatch/browser-runner"
-
-const runner = useBrowserRunner()
-```
-
 ## Security model
 
 | Rule | Behavior |
 |------|----------|
-| Isolation | User JS runs in a **Dedicated Worker** (no app DOM / cookies) |
-| Network | Not exposed to user code (no `fetch` bridge) |
-| Timeout | Default 15s; abort via `AbortSignal` |
+| Isolation | Fake console/process; no app DOM / cookies in user code path |
+| Network | Not exposed for JS/TS helpers; Pyodide may load packages only if we enable micropip later |
+| Timeout | JS/TS ~15s, Python ~30s; abort via `AbortSignal` |
 | Untrusted | Treat exercise code as hostile |
 
-## License matrix (planned / in use)
+## License matrix
 
 | Component | Role | License |
 |-----------|------|---------|
 | This package | Orchestration | Private monorepo (MockMatch) |
-| Pyodide | Python | MPL-2.0 |
 | esbuild-wasm | TS/JS transpile | MIT |
-| browser_wasi_shim / Runno | WASI host | MIT (verify at pin) |
-| LLVM/clang wasm | C/C++ | Apache-2.0 |
+| Pyodide | Python | MPL-2.0 |
+| browser_wasi_shim / Runno | WASI host (later) | MIT (verify at pin) |
+| LLVM/clang wasm | C/C++ (later) | Apache-2.0 |
 | copy/v86 | Linux VM (later) | BSD-2-Clause |
 | Sandpack | Web previews (later) | MIT |
 
@@ -87,13 +77,11 @@ const runner = useBrowserRunner()
 
 Always re-verify LICENSE files when pinning versions.
 
-## Architecture
+## Assets
 
-```
-createBrowserRunner()
-  → LanguageAdapter per language
-  → Worker / WASM engine
-  → RunEvent stream → host terminal
-```
+| Runtime | Source |
+|---------|--------|
+| esbuild WASM | jsDelivr `esbuild-wasm@0.25.5` |
+| Pyodide | jsDelivr `pyodide/v0.27.5/full/` |
 
-See repo plan: client-side code execution (`@mockmatch/browser-runner`).
+See `src/assets/manifest.ts`.

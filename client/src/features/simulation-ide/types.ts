@@ -2,7 +2,7 @@ import type { TrackFormat } from "@/features/simulations/types"
 
 /**
  * Practice surface slugs.
- * - code-run: `/simulations/code-run/:format` (react, cpp-sort, js-sum)
+ * - code-run: `/simulations/code-run/:format` (react, cpp-sort, js-sum, ts-sum, py-hello)
  * - terminal-lab: `/simulations/terminal-lab` (shell)
  * - workspace: `/simulations/workspace` (freeform multi-file collab)
  */
@@ -10,11 +10,18 @@ export type IdeFormatSlug =
   | "react"
   | "cpp-sort"
   | "js-sum"
+  | "ts-sum"
+  | "py-hello"
   | "shell"
   | "workspace"
 
 /** Formats allowed on `/simulations/code-run/:format`. */
-export type CodeRunFormatSlug = "react" | "cpp-sort" | "js-sum"
+export type CodeRunFormatSlug =
+  | "react"
+  | "cpp-sort"
+  | "js-sum"
+  | "ts-sum"
+  | "py-hello"
 
 export type IdeLayoutMode = "ide" | "editor" | "shell"
 
@@ -44,6 +51,8 @@ export function isIdeFormatSlug(
     value === "react" ||
     value === "cpp-sort" ||
     value === "js-sum" ||
+    value === "ts-sum" ||
+    value === "py-hello" ||
     value === "shell" ||
     value === "workspace"
   )
@@ -52,7 +61,13 @@ export function isIdeFormatSlug(
 export function isCodeRunFormatSlug(
   value: string | undefined
 ): value is CodeRunFormatSlug {
-  return value === "react" || value === "cpp-sort" || value === "js-sum"
+  return (
+    value === "react" ||
+    value === "cpp-sort" ||
+    value === "js-sum" ||
+    value === "ts-sum" ||
+    value === "py-hello"
+  )
 }
 
 /** Default entry + language for client-side runner (when set). */

@@ -1,4 +1,6 @@
 import { createJavascriptAdapter } from "./adapters/javascript"
+import { createPythonAdapter } from "./adapters/python-pyodide"
+import { createTypescriptAdapter } from "./adapters/typescript-esbuild"
 import { createUnsupportedAdapter } from "./adapters/unsupported"
 import type {
   BrowserRunner,
@@ -9,9 +11,9 @@ import type {
   RuntimeLanguage,
 } from "./types"
 
+const SUPPORTED: RuntimeLanguage[] = ["javascript", "typescript", "python"]
+
 const UNSUPPORTED: RuntimeLanguage[] = [
-  "python",
-  "typescript",
   "c",
   "cpp",
   "go",
@@ -24,13 +26,15 @@ const UNSUPPORTED: RuntimeLanguage[] = [
 function defaultAdapters(): LanguageAdapter[] {
   return [
     createJavascriptAdapter(),
+    createTypescriptAdapter(),
+    createPythonAdapter(),
     createUnsupportedAdapter(UNSUPPORTED),
   ]
 }
 
 /**
  * Create a host-side browser code runner.
- * JS runs in a Dedicated Worker; other languages stub until adapters land.
+ * JS / TS / Python shipped; other languages stub until later phases.
  */
 export function createBrowserRunner(
   options: BrowserRunnerOptions = {}
@@ -56,11 +60,11 @@ export function createBrowserRunner(
 
   return {
     supportedLanguages() {
-      return ["javascript"]
+      return [...SUPPORTED]
     },
 
     isSupported(language) {
-      return language === "javascript"
+      return SUPPORTED.includes(language)
     },
 
     async ensureReady(language, onProgress?: EnsureReadyProgress) {
@@ -94,7 +98,10 @@ export function createBrowserRunner(
             phase: "error",
             message: `Entry file not found: ${req.entryPath}`,
           })
-          onEvent({ type: "stderr", chunk: `Entry file not found: ${req.entryPath}\n` })
+          onEvent({
+            type: "stderr",
+            chunk: `Entry file not found: ${req.entryPath}\n`,
+          })
           onEvent({ type: "exit", code: 1, durationMs: 0 })
           return
         }
@@ -118,15 +125,10 @@ export function createBrowserRunner(
           onEvent({
             type: "status",
             phase: "loading",
-            message: `Loading ${req.language} runtime…`,
+            message: "Initializing…",
           })
-          await adapter.ensureReady(req.language, (p, label) => {
-            onEvent({
-              type: "status",
-              phase: "loading",
-              message: `${label} (${Math.round(p * 100)}%)`,
-            })
-          })
+          // No granular engine progress — keep terminal copy product-simple
+          await adapter.ensureReady(req.language)
         }
 
         await adapter.run(req, onEvent, merged)

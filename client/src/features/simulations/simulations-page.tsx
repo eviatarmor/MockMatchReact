@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { History, Play } from "lucide-react"
+import { toast } from "sonner"
 import { Button } from "@mockmatch/ui/button"
 import { Separator } from "@mockmatch/ui/separator"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
@@ -13,6 +14,7 @@ import { SessionTable } from "./components/session-table"
 import { TrackBrowserSection } from "./components/track-browser-section"
 import { useSessionsList } from "./hooks/use-sessions-list"
 import { INTERVIEW_TRACKS } from "./constants"
+import type { RecentSession } from "./types"
 
 export function SimulationsPageContent() {
   const { t } = useTranslation("common")
@@ -20,6 +22,11 @@ export function SimulationsPageContent() {
   const list = useSessionsList()
 
   const goToTracks = () => navigate("/simulations/tracks")
+
+  const handleDelete = (session: RecentSession) => {
+    list.removeSession(session)
+    toast.success(t("simulations.recentSessions.toast.deleted"))
+  }
 
   const emptyState = (
     <EntityEmptyState
@@ -61,11 +68,13 @@ export function SimulationsPageContent() {
           actions={
             <Button
               variant="default"
-              className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
+              className="h-8 w-8 cursor-pointer gap-1.5 px-0 sm:w-auto sm:px-3"
               onClick={goToTracks}
             >
               <Play className="size-4" />
-              <span className="hidden sm:inline">{t("dashboard.actions.startSimulation")}</span>
+              <span className="hidden sm:inline">
+                {t("dashboard.actions.startSimulation")}
+              </span>
             </Button>
           }
         />
@@ -78,7 +87,11 @@ export function SimulationsPageContent() {
           loadingMessage={t("simulations.recentSessions.loading")}
           emptyState={emptyState}
         >
-          <SessionTable sessions={list.items} />
+          <SessionTable
+            sessions={list.items}
+            onDelete={handleDelete}
+            deletingId={list.deletingId}
+          />
           <EntityTablePagination
             page={list.page}
             totalPages={list.totalPages}

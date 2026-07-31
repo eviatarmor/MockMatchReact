@@ -4,8 +4,8 @@ export type SessionStatus = "completed" | "in_progress" | "abandoned"
 /**
  * How a practice session runs (environment). Catalog only — not wired to runners yet.
  *
- * - `codeRun` — write code, server executes (judge / one-shot run). SWE algorithms, scripts.
- * - `workspace` — live session over WS: editor + filesystem + terminal. Full-stack, pair-coding.
+ * - `codeRun` — write code, client/server executes. SWE algorithms, scripts.
+ * - `workspace` — live session over WS: editor + filesystem + terminal.
  * - `terminal` — shell-only lab. DevOps / SRE / ops incident tasks.
  * - `conversation` — AI interviewer dialogue (behavioral, product, design, etc.).
  */
@@ -37,11 +37,20 @@ export interface InterviewTrack {
   readonly descriptionKey: string
 }
 
+/**
+ * Recent practice session row (history table).
+ * Shape mirrors resume-lab list items for consistent table UX.
+ */
 export interface RecentSession {
   readonly id: string
-  readonly role: string
+  /** Primary title (role / exercise name). */
+  readonly title: string
+  /** Track or format label (subtitle). */
   readonly track: string
-  readonly date: string
+  /** Optional catalog track id for resume navigation. */
+  readonly trackId?: string
+  /** ISO timestamp for relative “Updated” column. */
+  readonly updatedAt: string
   readonly durationMin: number
   readonly score: number | null
   readonly status: SessionStatus

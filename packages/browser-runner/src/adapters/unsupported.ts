@@ -1,10 +1,6 @@
 import type { LanguageAdapter, RuntimeLanguage } from "../types"
 
 const MESSAGES: Partial<Record<RuntimeLanguage, string>> = {
-  python:
-    "Python runtime (Pyodide) is not wired yet. Coming in the next browser-runner phase.",
-  typescript:
-    "TypeScript runtime (esbuild-wasm) is not wired yet. Use plain .js for now, or wait for the TS adapter.",
   c: "C runtime (WASI/clang) is not wired yet.",
   cpp: "C++ runtime (WASI/clang) is not wired yet. cpp-sort will run client-side once the C++ adapter lands.",
   go: "Go runtime is not available yet (planned: TinyGo WASI or Linux-in-browser).",

@@ -5,32 +5,48 @@ import type { RecentSession } from "../types"
 
 interface SessionTableProps {
   readonly sessions: readonly RecentSession[]
+  readonly onDelete: (session: RecentSession) => void
+  readonly deletingId?: string | null
 }
 
-export function SessionTable({ sessions }: SessionTableProps) {
+export function SessionTable({
+  sessions,
+  onDelete,
+  deletingId,
+}: SessionTableProps) {
   const { t } = useTranslation("common")
 
   const columns: EntityTableColumn[] = [
-    { key: "role", label: t("simulations.recentSessions.columns.role") },
     {
-      key: "track",
-      label: t("simulations.recentSessions.columns.track"),
+      key: "session",
+      label: t("simulations.recentSessions.columns.session"),
+    },
+    {
+      key: "score",
+      label: t("simulations.recentSessions.columns.score"),
+      className: "text-center",
+    },
+    {
+      key: "status",
+      label: t("simulations.recentSessions.columns.status"),
+    },
+    {
+      key: "updated",
+      label: t("simulations.recentSessions.columns.updated"),
       className: "hidden sm:table-cell",
     },
-    {
-      key: "date",
-      label: t("simulations.recentSessions.columns.date"),
-      className: "hidden md:table-cell",
-    },
-    { key: "duration", label: t("simulations.recentSessions.columns.duration") },
-    { key: "score", label: t("simulations.recentSessions.columns.score") },
-    { key: "status", label: t("simulations.recentSessions.columns.status") },
+    { key: "actions", className: "text-right w-12" },
   ]
 
   return (
     <EntityTable columns={columns} isEmpty={false} emptyMessage="">
       {sessions.map((session) => (
-        <SessionTableRow key={session.id} session={session} />
+        <SessionTableRow
+          key={session.id}
+          session={session}
+          onDelete={() => onDelete(session)}
+          isDeleting={deletingId === session.id}
+        />
       ))}
     </EntityTable>
   )

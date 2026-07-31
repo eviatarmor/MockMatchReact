@@ -1,57 +1,87 @@
+import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { Badge } from "@mockmatch/ui/badge"
-import type { RecentSession, SessionStatus } from "../types"
-
-function statusVariant(status: SessionStatus): "outline" | "secondary" | "default" {
-  if (status === "completed") return "outline"
-  if (status === "in_progress") return "default"
-  return "secondary"
-}
+import { DocumentScoreBadge } from "@/components/data/document-score-badge"
+import { EntityRowActions } from "@/components/data/entity-row-actions"
+import { formatRelativeTime } from "@/lib/format-relative-time"
+import { avatarClassFor, titleToAvatarText } from "@/lib/title-avatar"
+import { idePathForTrackId } from "@/features/simulation-ide/constants"
+import { SessionStatusBadge } from "./session-status-badge"
+import type { RecentSession } from "../types"
 
 interface SessionTableRowProps {
   readonly session: RecentSession
+  readonly onDelete: () => void
+  readonly isDeleting?: boolean
 }
 
-export function SessionTableRow({ session }: SessionTableRowProps) {
+export function SessionTableRow({
+  session,
+  onDelete,
+  isDeleting,
+}: SessionTableRowProps) {
   const { t } = useTranslation("common")
+  const navigate = useNavigate()
+  const avatarText = titleToAvatarText(session.title)
+  const avatarClass = avatarClassFor(avatarText)
+
+  const openSession = () => {
+    if (session.trackId) {
+      const path = idePathForTrackId(session.trackId)
+      if (path) {
+        navigate(path)
+        return
+      }
+    }
+    navigate("/simulations/tracks")
+  }
 
   return (
     <tr className="group border-b border-border/40 transition-colors hover:bg-muted/5">
       <td className="py-3 px-4">
-        <div className="flex flex-col min-w-0">
-          <span className="font-semibold text-sm text-foreground truncate">
-            {session.role}
-          </span>
-          <span className="text-xs text-muted-foreground truncate sm:hidden">
-            {session.track}
-          </span>
-        </div>
+        <button
+          type="button"
+          onClick={openSession}
+          className="flex w-full items-center gap-3 text-left cursor-pointer"
+        >
+          <div
+            className={`flex size-10 shrink-0 items-center justify-center rounded-xl text-sm font-semibold select-none ${avatarClass}`}
+          >
+            {avatarText}
+          </div>
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
+              {session.title}
+            </span>
+            <span className="truncate text-xs text-muted-foreground">
+              {session.track}
+              <span className="mx-1.5 text-border">·</span>
+              {session.durationMin}{" "}
+              {t("simulations.recentSessions.durationSuffix")}
+            </span>
+          </div>
+        </button>
       </td>
 
-      <td className="py-3 px-4 text-sm text-muted-foreground hidden sm:table-cell">
-        {session.track}
+      <td className="px-4 py-3 text-center">
+        <DocumentScoreBadge score={session.score} />
       </td>
 
-      <td className="py-3 px-4 text-sm text-muted-foreground hidden md:table-cell">
-        {session.date}
+      <td className="px-4 py-3">
+        <SessionStatusBadge status={session.status} />
       </td>
 
-      <td className="py-3 px-4 text-sm text-muted-foreground">
-        {session.durationMin} {t("simulations.recentSessions.durationSuffix")}
+      <td className="hidden px-4 py-3 text-sm text-muted-foreground sm:table-cell">
+        {formatRelativeTime(session.updatedAt)}
       </td>
 
-      <td className="py-3 px-4 text-sm">
-        {session.score !== null ? (
-          <span className="font-medium tabular-nums">{session.score}</span>
-        ) : (
-          <span className="text-muted-foreground">—</span>
-        )}
-      </td>
-
-      <td className="py-3 px-4">
-        <Badge variant={statusVariant(session.status)}>
-          {t(`simulations.recentSessions.statusLabels.${session.status}`)}
-        </Badge>
+      <td className="px-4 py-3 text-right">
+        <EntityRowActions
+          translationPrefix="simulations.recentSessions"
+          entityTitle={session.title}
+          onOpen={openSession}
+          onDelete={onDelete}
+          isDeleting={isDeleting}
+        />
       </td>
     </tr>
   )

@@ -173,41 +173,63 @@ export const TRACK_DURATION_BUCKETS: readonly DurationBucket[] = [
   "long",
 ] as const
 
+/** Mock history until sessions API lands — dates relative to “now” for formatRelativeTime. */
+function daysAgoIso(days: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() - days)
+  d.setHours(14, 30, 0, 0)
+  return d.toISOString()
+}
+
 export const MOCK_RECENT_SESSIONS: readonly RecentSession[] = [
   {
     id: "s1",
-    role: "Senior Product Designer",
+    title: "Senior Product Designer",
     track: "Behavioral",
-    date: "Jun 14",
+    trackId: "behavioral",
+    updatedAt: daysAgoIso(2),
     durationMin: 24,
     score: 82,
     status: "completed",
   },
   {
     id: "s2",
-    role: "Staff Engineer",
+    title: "Staff Engineer",
     track: "System Design",
-    date: "Jun 11",
+    trackId: "system-design",
+    updatedAt: daysAgoIso(5),
     durationMin: 38,
     score: 74,
     status: "completed",
   },
   {
     id: "s3",
-    role: "PM, Growth",
+    title: "PM, Growth",
     track: "Product Sense",
-    date: "Jun 9",
+    trackId: "product-sense",
+    updatedAt: daysAgoIso(7),
     durationMin: 18,
     score: null,
     status: "in_progress",
   },
   {
     id: "s4",
-    role: "SRE",
-    track: "Ops · Terminal lab",
-    date: "Jun 5",
+    title: "SRE",
+    track: "Ops · Shell lab",
+    trackId: "ops-terminal",
+    updatedAt: daysAgoIso(12),
     durationMin: 12,
     score: null,
     status: "abandoned",
+  },
+  {
+    id: "s5",
+    title: "JavaScript · Sum lines",
+    track: "Code run",
+    trackId: "technical-coding",
+    updatedAt: daysAgoIso(1),
+    durationMin: 8,
+    score: 91,
+    status: "completed",
   },
 ] as const

@@ -46,6 +46,34 @@ export const IDE_FORMAT_PRESETS: Record<IdeFormatSlug, IdeFormatPreset> = {
     badgeKey: "formats.jsSum.badge",
     runtime: { language: "javascript", entryPath: "sum.js" },
   },
+  "ts-sum": {
+    slug: "ts-sum",
+    trackFormat: "codeRun",
+    treeEnabled: false,
+    defaultShowTree: false,
+    defaultShowTerminal: true,
+    layout: "editor",
+    openSeedTabs: true,
+    tabsClosable: false,
+    titleKey: "formats.tsSum.title",
+    descriptionKey: "formats.tsSum.description",
+    badgeKey: "formats.tsSum.badge",
+    runtime: { language: "typescript", entryPath: "sum.ts" },
+  },
+  "py-hello": {
+    slug: "py-hello",
+    trackFormat: "codeRun",
+    treeEnabled: false,
+    defaultShowTree: false,
+    defaultShowTerminal: true,
+    layout: "editor",
+    openSeedTabs: true,
+    tabsClosable: false,
+    titleKey: "formats.pyHello.title",
+    descriptionKey: "formats.pyHello.description",
+    badgeKey: "formats.pyHello.badge",
+    runtime: { language: "python", entryPath: "main.py" },
+  },
   shell: {
     slug: "shell",
     trackFormat: "terminal",
@@ -255,6 +283,64 @@ console.log(sumLines(input))
   },
 ]
 
+export const TS_SUM_TABS: IdeTab[] = [
+  {
+    id: "sum.ts",
+    title: "sum.ts",
+    language: "typescript",
+    value: `// Exercise: sum numbers (TypeScript).
+// Client-side: esbuild-wasm strips types, then runs as JS.
+// Helpers: readStdin(), readline(), process.stdout.write(...)
+
+function sumLines(text: string): number {
+  let total = 0
+  for (const line of text.split("\\n")) {
+    const t = line.trim()
+    if (!t) continue
+    const n = Number(t)
+    if (!Number.isNaN(n)) total += n
+  }
+  return total
+}
+
+const sample = "1\\n2\\n3\\n"
+const input = readStdin().trim() ? readStdin() : sample
+console.log(sumLines(input))
+`,
+  },
+]
+
+export const PY_HELLO_TABS: IdeTab[] = [
+  {
+    id: "main.py",
+    title: "main.py",
+    language: "python",
+    value: `# Exercise: sum integers from stdin (one per line).
+# Client-side Python via Pyodide — print() goes to the IDE terminal.
+# First run downloads the Python WASM runtime (~10MB+, then cached).
+
+import sys
+
+def sum_lines(text: str) -> int:
+    total = 0
+    for line in text.splitlines():
+        t = line.strip()
+        if not t:
+            continue
+        try:
+            total += int(t)
+        except ValueError:
+            pass
+    return total
+
+sample = "1\\n2\\n3\\n"
+raw = sys.stdin.read()
+text = raw if raw.strip() else sample
+print(sum_lines(text))
+`,
+  },
+]
+
 // ── Shell lab ───────────────────────────────────────────────────────────────
 
 export const SHELL_WELCOME = `Ops shell lab — incident drill (no remote host).
@@ -422,6 +508,10 @@ export function tabsForFormat(slug: IdeFormatSlug): IdeTab[] {
       return CPP_SORT_TABS
     case "js-sum":
       return JS_SUM_TABS
+    case "ts-sum":
+      return TS_SUM_TABS
+    case "py-hello":
+      return PY_HELLO_TABS
     case "shell":
       return []
     case "workspace":
@@ -437,6 +527,8 @@ export function treeForFormat(slug: IdeFormatSlug): IdeTreeNode[] {
       return WORKSPACE_TREE
     case "cpp-sort":
     case "js-sum":
+    case "ts-sum":
+    case "py-hello":
     case "shell":
       return []
   }

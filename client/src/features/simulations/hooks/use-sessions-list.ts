@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useCallback, useMemo, useState } from "react"
 import { usePageClamp, usePaginatedSearch } from "@/hooks/use-paginated-search"
 import { MOCK_RECENT_SESSIONS } from "../constants"
 import type { RecentSession } from "../types"
@@ -7,7 +7,7 @@ function matchesSearch(session: RecentSession, needle: string) {
   if (!needle) return true
   const q = needle.toLowerCase()
   return (
-    session.role.toLowerCase().includes(q) ||
+    session.title.toLowerCase().includes(q) ||
     session.track.toLowerCase().includes(q) ||
     session.status.toLowerCase().includes(q)
   )
@@ -16,10 +16,14 @@ function matchesSearch(session: RecentSession, needle: string) {
 /** Client-side mock list until sessions API lands. */
 export function useSessionsList() {
   const pagination = usePaginatedSearch()
+  const [sessions, setSessions] = useState<RecentSession[]>(() => [
+    ...MOCK_RECENT_SESSIONS,
+  ])
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const filtered = useMemo(
-    () => MOCK_RECENT_SESSIONS.filter((s) => matchesSearch(s, pagination.debouncedSearch)),
-    [pagination.debouncedSearch]
+    () => sessions.filter((s) => matchesSearch(s, pagination.debouncedSearch)),
+    [sessions, pagination.debouncedSearch]
   )
 
   const total = filtered.length
@@ -36,6 +40,15 @@ export function useSessionsList() {
     return filtered.slice(start, start + pagination.pageSize)
   }, [filtered, pagination.page, pagination.pageSize])
 
+  const removeSession = useCallback((session: RecentSession) => {
+    setDeletingId(session.id)
+    // Mock delete — local only until sessions API
+    window.setTimeout(() => {
+      setSessions((prev) => prev.filter((s) => s.id !== session.id))
+      setDeletingId(null)
+    }, 200)
+  }, [])
+
   return {
     search: pagination.search,
     setSearch: pagination.setSearch,
@@ -50,5 +63,7 @@ export function useSessionsList() {
     isError: false,
     isEmpty: items.length === 0,
     hasActiveSearch: Boolean(pagination.debouncedSearch),
+    removeSession,
+    deletingId,
   }
 }

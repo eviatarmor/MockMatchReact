@@ -15,7 +15,17 @@
     "jsSum": {
       "title": "JavaScript · Sum lines",
       "badge": "Editor",
-      "description": "Single-file JS exercise — runs in the browser via WASM worker."
+      "description": "Single-file JS exercise — runs in the browser via client runner."
+    },
+    "tsSum": {
+      "title": "TypeScript · Sum lines",
+      "badge": "Editor",
+      "description": "Single-file TS exercise — esbuild-wasm transpile, then browser run."
+    },
+    "pyHello": {
+      "title": "Python · Sum lines",
+      "badge": "Editor",
+      "description": "Single-file Python — Pyodide (CPython WASM) in the browser."
     },
     "shell": {
       "title": "Ops · Shell lab",
@@ -33,8 +43,8 @@
     "saved": "Saved",
     "saving": "Saving…",
     "saveError": "Save failed",
-    "preparing": "Preparing workspace…",
-    "loading": "Loading workspace…",
+    "preparing": "Initializing…",
+    "loading": "Initializing…",
     "loadError": "Could not load this workspace.",
     "createError": "Could not create workspace.",
     "badShareLink": "This share link is missing a workspace id.",

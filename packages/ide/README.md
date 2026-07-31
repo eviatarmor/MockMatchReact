@@ -182,5 +182,7 @@ Practice formats use this package at:
 - `/simulations/code-run/react` — multi-file exercise + collab
 - `/simulations/code-run/cpp-sort` — single-file code run (tabs not closable)
 - `/simulations/code-run/js-sum` — single-file JS; client-side Run via browser-runner
+- `/simulations/code-run/ts-sum` — single-file TS (esbuild-wasm)
+- `/simulations/code-run/py-hello` — single-file Python (Pyodide)
 - `/simulations/terminal-lab` — multi-tab shell lab + collab presence
 - `/simulations/workspace` — freeform multi-file collab IDE
