@@ -1,0 +1,50 @@
+﻿{
+    "jsSum":  {
+                  "title":  "JavaScript Â· Sum lines",
+                  "description":  "Sum integers from stdin. Client-side Run + Run tests."
+              },
+    "tsSum":  {
+                  "title":  "TypeScript Â· Sum lines",
+                  "description":  "Typed sum from stdin. esbuild-wasm then browser run."
+              },
+    "pyHello":  {
+                    "title":  "Python Â· Sum lines",
+                    "description":  "Sum integers in Python via Pyodide in the browser."
+                },
+    "jsFizzbuzz":  {
+                       "title":  "JavaScript Â· FizzBuzz",
+                       "description":  "Classic FizzBuzz for 1..n from stdin."
+                   },
+    "jsReverse":  {
+                      "title":  "JavaScript Â· Reverse string",
+                      "description":  "Reverse one line of text from stdin."
+                  },
+    "pyFactorial":  {
+                        "title":  "Python Â· Factorial",
+                        "description":  "Compute n! from a single integer input."
+                    },
+    "tsPalindrome":  {
+                         "title":  "TypeScript Â· Palindrome",
+                         "description":  "Check if a line is a palindrome (ignore case/punctuation)."
+                     },
+    "pyVowels":  {
+                     "title":  "Python Â· Count vowels",
+                     "description":  "Count a/e/i/o/u in a line of text."
+                 },
+    "cppSort":  {
+                    "title":  "C++ Â· Sort ints",
+                    "description":  "In-place sort (C++ runner coming next)."
+                },
+    "react":  {
+                  "title":  "React Â· Counter lab",
+                  "description":  "Multi-file React IDE exercise with file tree."
+              },
+    "shell":  {
+                  "title":  "Ops Â· Shell lab",
+                  "description":  "Shell-only incident drill with local terminal commands."
+              },
+    "workspace":  {
+                      "title":  "Dev workspace",
+                      "description":  "Freeform multiplayer IDE for multi-file practice."
+                  }
+}

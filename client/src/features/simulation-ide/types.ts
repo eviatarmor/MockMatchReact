@@ -1,10 +1,11 @@
 import type { TrackFormat } from "@/features/simulations/types"
+import type { RuntimeLanguage } from "@mockmatch/browser-runner"
 
 /**
  * Practice surface slugs.
- * - code-run: `/simulations/code-run/:format` (react, cpp-sort, js-sum, ts-sum, py-hello)
+ * - code-run: `/simulations/code-run/:format`
  * - terminal-lab: `/simulations/terminal-lab` (shell)
- * - workspace: `/simulations/workspace` (freeform multi-file collab)
+ * - workspace: `/simulations/workspace`
  */
 export type IdeFormatSlug =
   | "react"
@@ -12,18 +13,24 @@ export type IdeFormatSlug =
   | "js-sum"
   | "ts-sum"
   | "py-hello"
+  | "js-fizzbuzz"
+  | "js-reverse"
+  | "py-factorial"
+  | "ts-palindrome"
+  | "py-vowels"
   | "shell"
   | "workspace"
 
 /** Formats allowed on `/simulations/code-run/:format`. */
-export type CodeRunFormatSlug =
-  | "react"
-  | "cpp-sort"
-  | "js-sum"
-  | "ts-sum"
-  | "py-hello"
+export type CodeRunFormatSlug = Exclude<IdeFormatSlug, "shell" | "workspace">
 
 export type IdeLayoutMode = "ide" | "editor" | "shell"
+
+export type IoTestCase = {
+  readonly name: string
+  readonly stdin?: string
+  readonly expectedStdout?: string
+}
 
 export type IdeFormatPreset = {
   readonly slug: IdeFormatSlug
@@ -44,17 +51,40 @@ export type IdeFormatPreset = {
   readonly runtime?: FormatRuntimeHint
 }
 
+export const ALL_IDE_FORMAT_SLUGS: readonly IdeFormatSlug[] = [
+  "react",
+  "cpp-sort",
+  "js-sum",
+  "ts-sum",
+  "py-hello",
+  "js-fizzbuzz",
+  "js-reverse",
+  "py-factorial",
+  "ts-palindrome",
+  "py-vowels",
+  "shell",
+  "workspace",
+] as const
+
+export const CODE_RUN_FORMAT_SLUGS: readonly CodeRunFormatSlug[] = [
+  "react",
+  "cpp-sort",
+  "js-sum",
+  "ts-sum",
+  "py-hello",
+  "js-fizzbuzz",
+  "js-reverse",
+  "py-factorial",
+  "ts-palindrome",
+  "py-vowels",
+] as const
+
 export function isIdeFormatSlug(
   value: string | undefined
 ): value is IdeFormatSlug {
   return (
-    value === "react" ||
-    value === "cpp-sort" ||
-    value === "js-sum" ||
-    value === "ts-sum" ||
-    value === "py-hello" ||
-    value === "shell" ||
-    value === "workspace"
+    value !== undefined &&
+    (ALL_IDE_FORMAT_SLUGS as readonly string[]).includes(value)
   )
 }
 
@@ -62,26 +92,15 @@ export function isCodeRunFormatSlug(
   value: string | undefined
 ): value is CodeRunFormatSlug {
   return (
-    value === "react" ||
-    value === "cpp-sort" ||
-    value === "js-sum" ||
-    value === "ts-sum" ||
-    value === "py-hello"
+    value !== undefined &&
+    (CODE_RUN_FORMAT_SLUGS as readonly string[]).includes(value)
   )
 }
 
 /** Default entry + language for client-side runner (when set). */
 export type FormatRuntimeHint = {
-  readonly language:
-    | "python"
-    | "javascript"
-    | "typescript"
-    | "c"
-    | "cpp"
-    | "go"
-    | "rust"
-    | "java"
-    | "csharp"
-    | "nodejs"
+  readonly language: RuntimeLanguage
   readonly entryPath: string
+  /** I/O cases for Run tests */
+  readonly tests?: readonly IoTestCase[]
 }

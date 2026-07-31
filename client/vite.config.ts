@@ -13,14 +13,25 @@ export default defineConfig({
       ),
     },
   },
-  // Browser-runner: esbuild-wasm + Pyodide CDN assets
+  // Browser-runner: esbuild-wasm + Pyodide CDN + Runno clang
   optimizeDeps: {
-    exclude: ["esbuild-wasm"],
+    exclude: ["esbuild-wasm", "@runno/runtime", "@runno/wasi"],
   },
   server: {
     // Allow dynamic import of Pyodide from jsDelivr
     fs: {
       allow: [".."],
+    },
+    // C/C++ (Runno) needs SharedArrayBuffer → cross-origin isolation
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "require-corp",
+    },
+  },
+  preview: {
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "require-corp",
     },
   },
 })

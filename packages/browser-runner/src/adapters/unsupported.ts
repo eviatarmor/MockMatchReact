@@ -1,8 +1,6 @@
 import type { LanguageAdapter, RuntimeLanguage } from "../types"
 
 const MESSAGES: Partial<Record<RuntimeLanguage, string>> = {
-  c: "C runtime (WASI/clang) is not wired yet.",
-  cpp: "C++ runtime (WASI/clang) is not wired yet. cpp-sort will run client-side once the C++ adapter lands.",
   go: "Go runtime is not available yet (planned: TinyGo WASI or Linux-in-browser).",
   rust: "Rust runtime is not available yet (planned: Linux-in-browser toolchain).",
   java: "Java runtime is not available yet (planned: JDK in browser Linux VM).",

@@ -1,3 +1,4 @@
+import { createCCppAdapter } from "./adapters/c-cpp-runno"
 import { createJavascriptAdapter } from "./adapters/javascript"
 import { createPythonAdapter } from "./adapters/python-pyodide"
 import { createTypescriptAdapter } from "./adapters/typescript-esbuild"
@@ -8,14 +9,19 @@ import type {
   EnsureReadyProgress,
   LanguageAdapter,
   RunEvent,
+  RunRequest,
   RuntimeLanguage,
 } from "./types"
 
-const SUPPORTED: RuntimeLanguage[] = ["javascript", "typescript", "python"]
-
-const UNSUPPORTED: RuntimeLanguage[] = [
+const SUPPORTED: RuntimeLanguage[] = [
+  "javascript",
+  "typescript",
+  "python",
   "c",
   "cpp",
+]
+
+const UNSUPPORTED: RuntimeLanguage[] = [
   "go",
   "rust",
   "java",
@@ -28,13 +34,42 @@ function defaultAdapters(): LanguageAdapter[] {
     createJavascriptAdapter(),
     createTypescriptAdapter(),
     createPythonAdapter(),
+    createCCppAdapter(),
     createUnsupportedAdapter(UNSUPPORTED),
   ]
+}
+
+/** Normalize stdout for I/O tests (trim ends, unify newlines). */
+export function normalizeStdout(text: string): string {
+  return text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trimEnd()
+}
+
+async function captureRun(
+  adapter: LanguageAdapter,
+  req: RunRequest,
+  signal?: AbortSignal
+): Promise<{ stdout: string; stderr: string; code: number }> {
+  let stdout = ""
+  let stderr = ""
+  let code = 1
+
+  await adapter.run(
+    { ...req, tests: undefined },
+    (event) => {
+      if (event.type === "stdout") stdout += event.chunk
+      if (event.type === "stderr") stderr += event.chunk
+      if (event.type === "exit") code = event.code
+    },
+    signal
+  )
+
+  return { stdout, stderr, code }
 }
 
 /**
  * Create a host-side browser code runner.
  * JS / TS / Python shipped; other languages stub until later phases.
+ * When `req.tests` is set, runs I/O cases and emits `test-result` events.
  */
 export function createBrowserRunner(
   options: BrowserRunnerOptions = {}
@@ -44,7 +79,6 @@ export function createBrowserRunner(
 
   for (const adapter of adapters) {
     for (const lang of adapter.languages) {
-      // First registration wins (real adapters before stubs)
       if (!byLang.has(lang)) {
         byLang.set(lang, adapter)
       }
@@ -73,7 +107,7 @@ export function createBrowserRunner(
       if (!adapter) {
         throw new Error(`No adapter for language: ${language}`)
       }
-      onProgress?.(0, `Preparing ${language}…`)
+      onProgress?.(0, "Initializing…")
       await adapter.ensureReady?.(language, onProgress)
       onProgress?.(1, "Ready")
     },
@@ -81,7 +115,6 @@ export function createBrowserRunner(
     async run(req, onEvent, signal) {
       guard()
 
-      // Cancel previous run
       activeAbort?.abort()
       const local = new AbortController()
       activeAbort = local
@@ -90,6 +123,7 @@ export function createBrowserRunner(
       signal?.addEventListener("abort", onAbort, { once: true })
 
       const merged = local.signal
+      const started = performance.now()
 
       try {
         if (!(req.entryPath in req.files)) {
@@ -127,10 +161,78 @@ export function createBrowserRunner(
             phase: "loading",
             message: "Initializing…",
           })
-          // No granular engine progress — keep terminal copy product-simple
           await adapter.ensureReady(req.language)
         }
 
+        if (merged.aborted) {
+          onEvent({ type: "stderr", chunk: "\n[aborted]\n" })
+          onEvent({ type: "exit", code: 130, durationMs: 0 })
+          return
+        }
+
+        // ── I/O test harness ──────────────────────────────────────────
+        const tests = req.tests
+        if (tests && tests.length > 0) {
+          onEvent({
+            type: "status",
+            phase: "running",
+            message: `Running ${tests.length} test(s)…`,
+          })
+
+          let passed = 0
+          for (const test of tests) {
+            if (merged.aborted) {
+              onEvent({ type: "stderr", chunk: "\n[aborted]\n" })
+              onEvent({
+                type: "exit",
+                code: 130,
+                durationMs: Math.round(performance.now() - started),
+              })
+              return
+            }
+
+            const { stdout, code } = await captureRun(
+              adapter,
+              {
+                ...req,
+                stdin: test.stdin ?? "",
+                tests: undefined,
+              },
+              merged
+            )
+
+            const actual = normalizeStdout(stdout)
+            const expected = normalizeStdout(test.expectedStdout ?? "")
+            // Treat non-zero exit as fail unless expected empty and we only care stdout
+            const pass = code === 0 && actual === expected
+            if (pass) passed += 1
+
+            onEvent({
+              type: "test-result",
+              name: test.name,
+              pass,
+              actual,
+              expected,
+            })
+          }
+
+          const allPass = passed === tests.length
+          onEvent({
+            type: "status",
+            phase: "done",
+            message: allPass
+              ? `All ${passed} test(s) passed`
+              : `${passed}/${tests.length} test(s) passed`,
+          })
+          onEvent({
+            type: "exit",
+            code: allPass ? 0 : 1,
+            durationMs: Math.round(performance.now() - started),
+          })
+          return
+        }
+
+        // ── Single run ────────────────────────────────────────────────
         await adapter.run(req, onEvent, merged)
       } finally {
         signal?.removeEventListener("abort", onAbort)
@@ -162,9 +264,14 @@ export function formatRunEventLine(event: RunEvent): string | null {
     case "exit":
       return `\r\n\x1b[90m[exit ${event.code} · ${event.durationMs}ms]\x1b[0m\r\n`
     case "test-result":
-      return event.pass
-        ? `\r\n\x1b[32m✓ ${event.name}\x1b[0m\r\n`
-        : `\r\n\x1b[31m✗ ${event.name}\x1b[0m\r\n`
+      if (event.pass) {
+        return `\r\n\x1b[32m✓ ${event.name}\x1b[0m\r\n`
+      }
+      return (
+        `\r\n\x1b[31m✗ ${event.name}\x1b[0m\r\n` +
+        `\x1b[90m  expected: ${JSON.stringify(event.expected ?? "")}\x1b[0m\r\n` +
+        `\x1b[90m  actual:   ${JSON.stringify(event.actual ?? "")}\x1b[0m\r\n`
+      )
     default:
       return null
   }

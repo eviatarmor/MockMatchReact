@@ -20,6 +20,7 @@
     }
   },
   "dependencies": {
+    "@runno/runtime": "^0.10.0",
     "esbuild-wasm": "^0.25.5"
   }
 }

@@ -76,6 +76,12 @@ const vector1536 = customType<{ data: number[]; driverData: string }>({
   },
 })
 
+export type ExerciseIoTest = {
+  name: string
+  stdin?: string
+  expectedStdout?: string
+}
+
 export type ExerciseUiFlags = {
   treeEnabled: boolean
   defaultShowTree: boolean
@@ -88,6 +94,12 @@ export type ExerciseUiFlags = {
   /** Shell lab extras */
   shellWelcome?: string
   shellCwd?: string
+  /** I/O cases for client-side “Run tests”. */
+  tests?: ExerciseIoTest[]
+  /** Entry path for the browser runner (when code_run). */
+  entryPath?: string
+  /** Runtime language for the browser runner. */
+  runtimeLanguage?: string
 }
 
 export type ExerciseTreeNode = {

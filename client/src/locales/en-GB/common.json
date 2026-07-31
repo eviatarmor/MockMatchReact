@@ -1116,53 +1116,53 @@
       }
     },
     "tracks": {
-      "behavioral": {
-        "title": "Behavioral",
-        "description": "STAR-method stories on leadership, conflict, and impact."
+      "jsSum": {
+        "title": "JavaScript · Sum lines",
+        "description": "Sum integers from stdin. Client-side Run + Run tests."
       },
-      "technicalCoding": {
-        "title": "C++ · Sort algorithm",
-        "description": "Single-file C++ sort exercise — Monaco only (no file tree). No judge yet."
+      "tsSum": {
+        "title": "TypeScript · Sum lines",
+        "description": "Typed sum from stdin. esbuild-wasm then browser run."
       },
-      "liveCoding": {
+      "pyHello": {
+        "title": "Python · Sum lines",
+        "description": "Sum integers in Python via Pyodide in the browser."
+      },
+      "jsFizzbuzz": {
+        "title": "JavaScript · FizzBuzz",
+        "description": "Classic FizzBuzz for 1..n from stdin."
+      },
+      "jsReverse": {
+        "title": "JavaScript · Reverse string",
+        "description": "Reverse one line of text from stdin."
+      },
+      "pyFactorial": {
+        "title": "Python · Factorial",
+        "description": "Compute n! from a single integer input."
+      },
+      "tsPalindrome": {
+        "title": "TypeScript · Palindrome",
+        "description": "Check if a line is a palindrome (ignore case/punctuation)."
+      },
+      "pyVowels": {
+        "title": "Python · Count vowels",
+        "description": "Count a/e/i/o/u in a line of text."
+      },
+      "cppSort": {
+        "title": "C++ · Sort ints",
+        "description": "In-place sort — client-side clang++ (Runno). Run / Run tests."
+      },
+      "react": {
         "title": "React · Counter lab",
-        "description": "Full IDE with file tree: build a small React counter component set."
+        "description": "Multi-file React IDE exercise with file tree."
       },
-      "opsTerminal": {
+      "shell": {
         "title": "Ops · Shell lab",
-        "description": "Shell-only incident drill — explore logs and status with a local terminal."
+        "description": "Shell-only incident drill with local terminal commands."
       },
-      "systemDesign": {
-        "title": "System Design",
-        "description": "Architect a scalable system out loud, end to end."
-      },
-      "productSense": {
-        "title": "Product Sense",
-        "description": "Product critique, metrics, and prioritization tradeoffs."
-      },
-      "caseStudy": {
-        "title": "Case Study",
-        "description": "Structure an ambiguous business problem under time."
-      },
-      "financeQuant": {
-        "title": "Finance · Quant",
-        "description": "Markets, valuation, and mental-math drills."
-      },
-      "pmStrategy": {
-        "title": "PM · Strategy",
-        "description": "Roadmap, go-to-market, and stakeholder alignment scenarios."
-      },
-      "leadership": {
-        "title": "Leadership",
-        "description": "Influence without authority, team conflicts, and culture."
-      },
-      "dataAnalytics": {
-        "title": "Data · Analytics",
-        "description": "SQL, metrics interpretation, and experiment design."
-      },
-      "communication": {
-        "title": "Communication",
-        "description": "Clarity, executive presence, and persuasion under pressure."
+      "workspace": {
+        "title": "Dev workspace",
+        "description": "Freeform multiplayer IDE for multi-file practice."
       }
     }
   }

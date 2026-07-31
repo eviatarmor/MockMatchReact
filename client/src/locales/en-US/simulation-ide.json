@@ -10,7 +10,7 @@
     "cppSort": {
       "title": "C++ · Sort ints",
       "badge": "Editor",
-      "description": "Single-file sorting algorithm — Monaco only, no file tree."
+      "description": "Single-file C++ sort — runs with clang++ in the browser (Runno)."
     },
     "jsSum": {
       "title": "JavaScript · Sum lines",
@@ -26,6 +26,31 @@
       "title": "Python · Sum lines",
       "badge": "Editor",
       "description": "Single-file Python — Pyodide (CPython WASM) in the browser."
+    },
+    "jsFizzbuzz": {
+      "title": "JavaScript · FizzBuzz",
+      "badge": "Editor",
+      "description": "Print FizzBuzz for 1..n. Use Run tests to check cases."
+    },
+    "jsReverse": {
+      "title": "JavaScript · Reverse string",
+      "badge": "Editor",
+      "description": "Reverse a line from stdin."
+    },
+    "pyFactorial": {
+      "title": "Python · Factorial",
+      "badge": "Editor",
+      "description": "Compute n! from stdin."
+    },
+    "tsPalindrome": {
+      "title": "TypeScript · Palindrome",
+      "badge": "Editor",
+      "description": "Palindrome check with types stripped by esbuild-wasm."
+    },
+    "pyVowels": {
+      "title": "Python · Count vowels",
+      "badge": "Editor",
+      "description": "Count vowels in a line of text."
     },
     "shell": {
       "title": "Ops · Shell lab",

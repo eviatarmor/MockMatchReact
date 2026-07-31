@@ -135,7 +135,8 @@ No judge is connected — focus on structure and component design.
 const CPP_FILES: ExerciseContentCache = {
   "sort.cpp": `// Exercise: sort an array of integers (ascending).
 // Implement sortInts in-place. Any correct algorithm is fine
-// (bubble, insertion, quicksort, …). No judge is connected.
+// (bubble, insertion, quicksort, …).
+// Client-side C++ via clang++ WASM (Runno). Use Run / Run tests.
 
 #include <iostream>
 #include <vector>
@@ -148,14 +149,21 @@ void sortInts(std::vector<int>& a) {
 int main() {
   std::vector<int> nums = {5, 1, 4, 2, 8};
   sortInts(nums);
-  for (int x : nums) {
-    std::cout << x << ' ';
+  for (size_t i = 0; i < nums.size(); i++) {
+    if (i) std::cout << ' ';
+    std::cout << nums[i];
   }
   std::cout << '\\n';
   return 0;
 }
 `,
 }
+
+const SUM_IO_TESTS = [
+  { name: "1+2+3", stdin: "1\n2\n3\n", expectedStdout: "6" },
+  { name: "negatives", stdin: "10\n-3\n-2\n", expectedStdout: "5" },
+  { name: "single zero", stdin: "0\n", expectedStdout: "0" },
+] as const
 
 const JS_SUM_FILES: ExerciseContentCache = {
   "sum.js": `// Exercise: sum numbers from stdin (one integer per line; blank line ends).
@@ -205,7 +213,6 @@ console.log(sumLines(input))
 const PY_HELLO_FILES: ExerciseContentCache = {
   "main.py": `# Exercise: sum integers from stdin (one per line).
 # Client-side Python via Pyodide — print() goes to the IDE terminal.
-# First run downloads the Python WASM runtime (~10MB+, then cached).
 
 import sys
 
@@ -225,6 +232,85 @@ sample = "1\\n2\\n3\\n"
 raw = sys.stdin.read()
 text = raw if raw.strip() else sample
 print(sum_lines(text))
+`,
+}
+
+const JS_FIZZBUZZ_FILES: ExerciseContentCache = {
+  "fizzbuzz.js": `// Exercise: FizzBuzz
+// Read n from stdin. Print 1..n, one per line.
+// Multiples of 3 → Fizz, 5 → Buzz, both → FizzBuzz.
+
+function fizzBuzz(n) {
+  const lines = []
+  for (let i = 1; i <= n; i++) {
+    // TODO: implement
+    lines.push(String(i))
+  }
+  return lines.join("\\n")
+}
+
+const n = Number((readStdin().trim() || "5").split("\\n")[0])
+console.log(fizzBuzz(n))
+`,
+}
+
+const JS_REVERSE_FILES: ExerciseContentCache = {
+  "reverse.js": `// Exercise: reverse a string
+// Read one line from stdin; print it reversed.
+
+function reverse(s) {
+  // TODO
+  return s
+}
+
+const line = (readline() ?? "").replace(/\\r$/, "")
+console.log(reverse(line))
+`,
+}
+
+const PY_FACTORIAL_FILES: ExerciseContentCache = {
+  "factorial.py": `# Exercise: factorial
+# Read n from stdin; print n!
+
+import sys
+
+def factorial(n: int) -> int:
+    # TODO
+    return 1
+
+raw = sys.stdin.read().strip() or "5"
+n = int(raw.splitlines()[0])
+print(factorial(n))
+`,
+}
+
+const TS_PALINDROME_FILES: ExerciseContentCache = {
+  "palindrome.ts": `// Exercise: is palindrome?
+// Read one line; print "true" or "false".
+// Ignore case and non-alphanumeric characters.
+
+function isPalindrome(s: string): boolean {
+  // TODO
+  return false
+}
+
+const line = (readline() ?? "").replace(/\\r$/, "")
+console.log(isPalindrome(line) ? "true" : "false")
+`,
+}
+
+const PY_VOWELS_FILES: ExerciseContentCache = {
+  "vowels.py": `# Exercise: count vowels
+# Read one line; print count of a/e/i/o/u (case-insensitive).
+
+import sys
+
+def count_vowels(s: str) -> int:
+    # TODO
+    return 0
+
+line = (sys.stdin.readline() or "").rstrip("\\n\\r")
+print(count_vowels(line))
 `,
 }
 
@@ -371,10 +457,19 @@ export const EXERCISE_SEEDS: ExerciseSeed[] = [
     uiFlags: {
       treeEnabled: false,
       defaultShowTree: false,
-      defaultShowTerminal: false,
+      defaultShowTerminal: true,
       openSeedTabs: true,
       tabsClosable: false,
       defaultOpenPaths: ["sort.cpp"],
+      entryPath: "sort.cpp",
+      runtimeLanguage: "cpp",
+      tests: [
+        {
+          name: "sample array",
+          stdin: "",
+          expectedStdout: "1 2 4 5 8",
+        },
+      ],
     },
     contentVersion: "v1",
     contentManifest: filesToManifest(CPP_FILES, [
@@ -406,6 +501,9 @@ export const EXERCISE_SEEDS: ExerciseSeed[] = [
       openSeedTabs: true,
       tabsClosable: false,
       defaultOpenPaths: ["sum.js"],
+      entryPath: "sum.js",
+      runtimeLanguage: "javascript",
+      tests: [...SUM_IO_TESTS],
     },
     contentVersion: "v1",
     contentManifest: filesToManifest(JS_SUM_FILES, [
@@ -437,6 +535,9 @@ export const EXERCISE_SEEDS: ExerciseSeed[] = [
       openSeedTabs: true,
       tabsClosable: false,
       defaultOpenPaths: ["sum.ts"],
+      entryPath: "sum.ts",
+      runtimeLanguage: "typescript",
+      tests: [...SUM_IO_TESTS],
     },
     contentVersion: "v1",
     contentManifest: filesToManifest(TS_SUM_FILES, [
@@ -468,12 +569,210 @@ export const EXERCISE_SEEDS: ExerciseSeed[] = [
       openSeedTabs: true,
       tabsClosable: false,
       defaultOpenPaths: ["main.py"],
+      entryPath: "main.py",
+      runtimeLanguage: "python",
+      tests: [...SUM_IO_TESTS],
     },
     contentVersion: "v1",
     contentManifest: filesToManifest(PY_HELLO_FILES, [
       { id: "main.py", name: "main.py" },
     ]),
     contentCache: PY_HELLO_FILES,
+  },
+  {
+    slug: "js-fizzbuzz",
+    title: "JavaScript · FizzBuzz",
+    description:
+      "Classic FizzBuzz: print 1..n with Fizz/Buzz/FizzBuzz from stdin n.",
+    prompt:
+      "Read n from stdin. Print numbers 1..n one per line; multiples of 3 → Fizz, 5 → Buzz, both → FizzBuzz.",
+    aiContext:
+      "Classic interview warm-up. Assess loops, modulo, string building. Client-side JS runner with I/O tests.",
+    format: "code_run",
+    layout: "editor",
+    domain: "coding",
+    difficulty: "easy",
+    languages: ["javascript"],
+    roleFamilies: ["engineering"],
+    tags: ["algorithms", "javascript", "fizzbuzz", "browser-runner"],
+    durationMin: 20,
+    uiFlags: {
+      treeEnabled: false,
+      defaultShowTree: false,
+      defaultShowTerminal: true,
+      openSeedTabs: true,
+      tabsClosable: false,
+      defaultOpenPaths: ["fizzbuzz.js"],
+      entryPath: "fizzbuzz.js",
+      runtimeLanguage: "javascript",
+      tests: [
+        {
+          name: "n=5",
+          stdin: "5\n",
+          expectedStdout: "1\n2\nFizz\n4\nBuzz",
+        },
+        {
+          name: "n=15",
+          stdin: "15\n",
+          expectedStdout:
+            "1\n2\nFizz\n4\nBuzz\nFizz\n7\n8\nFizz\nBuzz\n11\nFizz\n13\n14\nFizzBuzz",
+        },
+      ],
+    },
+    contentVersion: "v1",
+    contentManifest: filesToManifest(JS_FIZZBUZZ_FILES, [
+      { id: "fizzbuzz.js", name: "fizzbuzz.js" },
+    ]),
+    contentCache: JS_FIZZBUZZ_FILES,
+  },
+  {
+    slug: "js-reverse",
+    title: "JavaScript · Reverse string",
+    description: "Reverse one line of text from stdin.",
+    prompt: "Read one line; print it reversed.",
+    aiContext:
+      "String fundamentals. Assess iteration or built-ins. Empty string edge case.",
+    format: "code_run",
+    layout: "editor",
+    domain: "coding",
+    difficulty: "easy",
+    languages: ["javascript"],
+    roleFamilies: ["engineering"],
+    tags: ["algorithms", "javascript", "strings", "browser-runner"],
+    durationMin: 10,
+    uiFlags: {
+      treeEnabled: false,
+      defaultShowTree: false,
+      defaultShowTerminal: true,
+      openSeedTabs: true,
+      tabsClosable: false,
+      defaultOpenPaths: ["reverse.js"],
+      entryPath: "reverse.js",
+      runtimeLanguage: "javascript",
+      tests: [
+        { name: "hello", stdin: "hello\n", expectedStdout: "olleh" },
+        { name: "palindrome", stdin: "racecar\n", expectedStdout: "racecar" },
+        { name: "empty", stdin: "\n", expectedStdout: "" },
+      ],
+    },
+    contentVersion: "v1",
+    contentManifest: filesToManifest(JS_REVERSE_FILES, [
+      { id: "reverse.js", name: "reverse.js" },
+    ]),
+    contentCache: JS_REVERSE_FILES,
+  },
+  {
+    slug: "py-factorial",
+    title: "Python · Factorial",
+    description: "Compute n! from a single integer on stdin.",
+    prompt: "Read n; print n! (0! = 1).",
+    aiContext:
+      "Loops or recursion. Edge case 0. Client-side Pyodide with I/O tests.",
+    format: "code_run",
+    layout: "editor",
+    domain: "coding",
+    difficulty: "easy",
+    languages: ["python"],
+    roleFamilies: ["engineering"],
+    tags: ["algorithms", "python", "math", "browser-runner"],
+    durationMin: 12,
+    uiFlags: {
+      treeEnabled: false,
+      defaultShowTree: false,
+      defaultShowTerminal: true,
+      openSeedTabs: true,
+      tabsClosable: false,
+      defaultOpenPaths: ["factorial.py"],
+      entryPath: "factorial.py",
+      runtimeLanguage: "python",
+      tests: [
+        { name: "5!", stdin: "5\n", expectedStdout: "120" },
+        { name: "0!", stdin: "0\n", expectedStdout: "1" },
+        { name: "7!", stdin: "7\n", expectedStdout: "5040" },
+      ],
+    },
+    contentVersion: "v1",
+    contentManifest: filesToManifest(PY_FACTORIAL_FILES, [
+      { id: "factorial.py", name: "factorial.py" },
+    ]),
+    contentCache: PY_FACTORIAL_FILES,
+  },
+  {
+    slug: "ts-palindrome",
+    title: "TypeScript · Palindrome",
+    description:
+      "Check if a line is a palindrome; ignore case and non-alphanumeric chars.",
+    prompt:
+      'Read one line; print "true" or "false". Ignore case and non-alphanumeric characters.',
+    aiContext:
+      "String cleaning + two-pointer or reverse. TypeScript strip via esbuild-wasm.",
+    format: "code_run",
+    layout: "editor",
+    domain: "coding",
+    difficulty: "medium",
+    languages: ["typescript"],
+    roleFamilies: ["engineering"],
+    tags: ["algorithms", "typescript", "strings", "browser-runner"],
+    durationMin: 15,
+    uiFlags: {
+      treeEnabled: false,
+      defaultShowTree: false,
+      defaultShowTerminal: true,
+      openSeedTabs: true,
+      tabsClosable: false,
+      defaultOpenPaths: ["palindrome.ts"],
+      entryPath: "palindrome.ts",
+      runtimeLanguage: "typescript",
+      tests: [
+        { name: "racecar", stdin: "racecar\n", expectedStdout: "true" },
+        { name: "hello", stdin: "hello\n", expectedStdout: "false" },
+        {
+          name: "A man a plan",
+          stdin: "A man a plan a canal Panama\n",
+          expectedStdout: "true",
+        },
+      ],
+    },
+    contentVersion: "v1",
+    contentManifest: filesToManifest(TS_PALINDROME_FILES, [
+      { id: "palindrome.ts", name: "palindrome.ts" },
+    ]),
+    contentCache: TS_PALINDROME_FILES,
+  },
+  {
+    slug: "py-vowels",
+    title: "Python · Count vowels",
+    description: "Count a/e/i/o/u in a line (case-insensitive).",
+    prompt: "Read one line; print the vowel count.",
+    aiContext: "Character iteration, case folding. Simple Pyodide exercise.",
+    format: "code_run",
+    layout: "editor",
+    domain: "coding",
+    difficulty: "easy",
+    languages: ["python"],
+    roleFamilies: ["engineering"],
+    tags: ["algorithms", "python", "strings", "browser-runner"],
+    durationMin: 10,
+    uiFlags: {
+      treeEnabled: false,
+      defaultShowTree: false,
+      defaultShowTerminal: true,
+      openSeedTabs: true,
+      tabsClosable: false,
+      defaultOpenPaths: ["vowels.py"],
+      entryPath: "vowels.py",
+      runtimeLanguage: "python",
+      tests: [
+        { name: "hello", stdin: "hello\n", expectedStdout: "2" },
+        { name: "rhythm", stdin: "rhythm\n", expectedStdout: "0" },
+        { name: "Education", stdin: "Education\n", expectedStdout: "5" },
+      ],
+    },
+    contentVersion: "v1",
+    contentManifest: filesToManifest(PY_VOWELS_FILES, [
+      { id: "vowels.py", name: "vowels.py" },
+    ]),
+    contentCache: PY_VOWELS_FILES,
   },
   {
     slug: "shell",

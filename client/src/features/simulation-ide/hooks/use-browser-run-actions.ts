@@ -6,7 +6,7 @@ import {
   looksLikeWebAppEntry,
   type RuntimeLanguage,
 } from "@mockmatch/browser-runner"
-import type { IdeFormatPreset } from "../types"
+import type { IdeFormatPreset, IoTestCase } from "../types"
 
 export type TerminalFeed = { seq: number; chunk: string }
 
@@ -19,7 +19,7 @@ type UseBrowserRunActionsArgs = {
 
 /**
  * Wire IdeShell Run / Run tests to @mockmatch/browser-runner.
- * Streams RunEvents into terminalFeed for xterm.
+ * Buffers output then flushes after xterm is mountable.
  */
 export function useBrowserRunActions({
   preset,
@@ -38,7 +38,6 @@ export function useBrowserRunActions({
   const abortRef = useRef<AbortController | null>(null)
 
   useEffect(() => {
-    // Recreate after Strict Mode dispose
     if (!runnerRef.current) {
       runnerRef.current = createBrowserRunner()
     }
@@ -49,17 +48,12 @@ export function useBrowserRunActions({
     }
   }, [])
 
-  /**
-   * Push one terminal chunk. Callers that fire many events in one turn
-   * should join first — terminal panel also buffers until xterm mounts.
-   */
   const pushTerminal = useCallback((chunk: string) => {
     if (!chunk) return
     seqRef.current += 1
     setTerminalFeed({ seq: seqRef.current, chunk })
   }, [])
 
-  /** Wait 2 frames so IdeTerminalPanel bodyReady + xterm can mount. */
   const waitTerminalReady = useCallback(
     () =>
       new Promise<void>((resolve) => {
@@ -74,6 +68,7 @@ export function useBrowserRunActions({
     language: RuntimeLanguage
     entryPath: string
     files: Record<string, string>
+    tests?: readonly IoTestCase[]
   } | null => {
     const files = getFilesSnapshot()
     const paths = Object.keys(files)
@@ -88,7 +83,12 @@ export function useBrowserRunActions({
       ) {
         language = "nodejs"
       }
-      return { language, entryPath, files }
+      return {
+        language,
+        entryPath,
+        files,
+        tests: preset.runtime.tests,
+      }
     }
 
     const entryPath =
@@ -106,79 +106,94 @@ export function useBrowserRunActions({
     return { language, entryPath, files }
   }, [activeTabId, getFilesSnapshot, preset.runtime])
 
-  const onRun = useCallback(() => {
-    if (runBusy || runTestsBusy) return
+  const execute = useCallback(
+    (mode: "run" | "tests") => {
+      if (runBusy || runTestsBusy) return
 
-    const target = resolveRunTarget()
-    if (!target) {
-      setShowTerminal(true)
-      pushTerminal("\r\nNo files to run.\r\n")
-      return
-    }
+      const target = resolveRunTarget()
+      if (!target) {
+        setShowTerminal(true)
+        pushTerminal("\r\nNo files to run.\r\n")
+        return
+      }
 
-    abortRef.current?.abort()
-    const ac = new AbortController()
-    abortRef.current = ac
-
-    setShowTerminal(true)
-    setRunBusy(true)
-
-    const runner = runnerRef.current
-    if (!runner) {
-      setRunBusy(false)
-      return
-    }
-
-    void (async () => {
-      // Buffer all output, then write once after xterm is mountable.
-      // IdeTerminalPanel defers body by 2 rAF — streaming was lost.
-      const parts: string[] = [
-        `\r\n\x1b[36m═══ Run ${target.entryPath} (${target.language}) ═══\x1b[0m\r\n`,
-      ]
-
-      try {
-        await runner.run(
-          {
-            language: target.language,
-            files: target.files,
-            entryPath: target.entryPath,
-          },
-          (event) => {
-            const line = formatRunEventLine(event)
-            if (line) parts.push(line)
-          },
-          ac.signal
+      if (mode === "tests" && (!target.tests || target.tests.length === 0)) {
+        setShowTerminal(true)
+        pushTerminal(
+          "\r\n\x1b[90mNo tests defined for this exercise.\x1b[0m\r\n"
         )
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err)
-        parts.push(`\r\n\x1b[31m${msg}\x1b[0m\r\n`)
+        return
       }
 
-      await waitTerminalReady()
-      if (!ac.signal.aborted) {
-        pushTerminal(parts.join(""))
-      }
-      if (abortRef.current === ac) abortRef.current = null
-      setRunBusy(false)
-    })()
-  }, [
-    pushTerminal,
-    resolveRunTarget,
-    runBusy,
-    runTestsBusy,
-    setShowTerminal,
-    waitTerminalReady,
-  ])
+      abortRef.current?.abort()
+      const ac = new AbortController()
+      abortRef.current = ac
 
-  const onRunTests = useCallback(() => {
-    if (runBusy || runTestsBusy) return
-    setShowTerminal(true)
-    setRunTestsBusy(true)
-    pushTerminal(
-      "\r\n\x1b[90mTest runner not wired yet (I/O cases land with the next browser-runner phase).\x1b[0m\r\n"
-    )
-    window.setTimeout(() => setRunTestsBusy(false), 400)
-  }, [pushTerminal, runBusy, runTestsBusy, setShowTerminal])
+      setShowTerminal(true)
+      if (mode === "tests") setRunTestsBusy(true)
+      else setRunBusy(true)
+
+      const runner = runnerRef.current
+      if (!runner) {
+        setRunBusy(false)
+        setRunTestsBusy(false)
+        return
+      }
+
+      void (async () => {
+        const label =
+          mode === "tests"
+            ? `═══ Tests ${target.entryPath} (${target.language}) ═══`
+            : `═══ Run ${target.entryPath} (${target.language}) ═══`
+        const parts: string[] = [`\r\n\x1b[36m${label}\x1b[0m\r\n`]
+
+        try {
+          await runner.run(
+            {
+              language: target.language,
+              files: target.files,
+              entryPath: target.entryPath,
+              tests:
+                mode === "tests" && target.tests
+                  ? target.tests.map((t) => ({
+                      name: t.name,
+                      stdin: t.stdin,
+                      expectedStdout: t.expectedStdout,
+                    }))
+                  : undefined,
+            },
+            (event) => {
+              const line = formatRunEventLine(event)
+              if (line) parts.push(line)
+            },
+            ac.signal
+          )
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : String(err)
+          parts.push(`\r\n\x1b[31m${msg}\x1b[0m\r\n`)
+        }
+
+        await waitTerminalReady()
+        if (!ac.signal.aborted) {
+          pushTerminal(parts.join(""))
+        }
+        if (abortRef.current === ac) abortRef.current = null
+        setRunBusy(false)
+        setRunTestsBusy(false)
+      })()
+    },
+    [
+      pushTerminal,
+      resolveRunTarget,
+      runBusy,
+      runTestsBusy,
+      setShowTerminal,
+      waitTerminalReady,
+    ]
+  )
+
+  const onRun = useCallback(() => execute("run"), [execute])
+  const onRunTests = useCallback(() => execute("tests"), [execute])
 
   return {
     onRun,

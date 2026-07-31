@@ -17,11 +17,16 @@ export type {
   RuntimeLanguage,
 } from "./types"
 
-export { createBrowserRunner, formatRunEventLine } from "./create-browser-runner"
+export {
+  createBrowserRunner,
+  formatRunEventLine,
+  normalizeStdout,
+} from "./create-browser-runner"
 export { languageFromPath, looksLikeWebAppEntry } from "./language-from-path"
 export { createJavascriptAdapter } from "./adapters/javascript"
 export { createTypescriptAdapter } from "./adapters/typescript-esbuild"
 export { createPythonAdapter } from "./adapters/python-pyodide"
+export { createCCppAdapter } from "./adapters/c-cpp-runno"
 export { createUnsupportedAdapter } from "./adapters/unsupported"
 export {
   ESBUILD_WASM_URL,

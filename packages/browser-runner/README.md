@@ -13,9 +13,20 @@ Client-side code execution for IDE hosts (MockMatch practice, future extensions)
 | JavaScript | **Shipped** | Main-thread AsyncFunction + fake console |
 | TypeScript | **Shipped** | esbuild-wasm transpile → JS runner |
 | Python | **Shipped** | Pyodide (CPython WASM), lazy CDN load |
-| C / C++ | Planned | WASI + clang-in-browser |
+| C / C++ | **Shipped** | `@runno/runtime` clang / clang++ (MIT) |
 | Go / Rust / Java / C# | Later | Prefer Linux-in-browser (v86) |
 | Node / React / Angular | Later | Sandpack (MIT) and/or Node in VM |
+
+### C/C++ headers
+
+Runno needs **cross-origin isolation** (`SharedArrayBuffer`):
+
+```
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp
+```
+
+Local Vite `client/vite.config.ts` sets these for `dev` / `preview`.
 
 ## Install (monorepo)
 
@@ -68,8 +79,8 @@ runner.dispose()
 | This package | Orchestration | Private monorepo (MockMatch) |
 | esbuild-wasm | TS/JS transpile | MIT |
 | Pyodide | Python | MPL-2.0 |
-| browser_wasi_shim / Runno | WASI host (later) | MIT (verify at pin) |
-| LLVM/clang wasm | C/C++ (later) | Apache-2.0 |
+| @runno/runtime | C/C++ clang/clang++ + WASI | MIT |
+| LLVM/clang (via Runno) | Compiler binaries | Apache-2.0 |
 | copy/v86 | Linux VM (later) | BSD-2-Clause |
 | Sandpack | Web previews (later) | MIT |
 
