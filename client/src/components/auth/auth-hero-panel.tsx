@@ -1,4 +1,4 @@
-import { BadgeCheck, Sparkles, type LucideIcon } from "lucide-react"
+import { BadgeCheck } from "lucide-react"
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import { AppLogo } from "@/components/icons/app-logo"
@@ -11,28 +11,43 @@ import { cn } from "@/lib/utils"
 interface AuthHeroPanelProps {
   readonly trustMessageKey?: string
   readonly bottomSlot?: ReactNode
-  readonly eyebrowIcon?: LucideIcon
-  readonly eyebrowKey?: string
   readonly titleKey?: string
   readonly descriptionKey?: string
-  readonly middleSlot?: ReactNode
+  /**
+   * Middle stack under the headline.
+   * `undefined` → login defaults (features + readiness).
+   * `null` → empty (e.g. 404).
+   * Otherwise render the provided node.
+   */
+  readonly middleSlot?: ReactNode | null
 }
 
+/**
+ * Persuade-side auth column: Prep Ultramarine field, interactive grid, logo, headline, proof.
+ */
 export function AuthHeroPanel({
   trustMessageKey,
   bottomSlot,
-  eyebrowIcon: EyebrowIcon = Sparkles,
-  eyebrowKey = "common:heroHeadline.eyebrow",
   titleKey = "common:heroHeadline.title",
   descriptionKey = "common:heroHeadline.description",
   middleSlot,
 }: AuthHeroPanelProps) {
   const { t } = useTranslation(["common", "login", "not-found"])
 
+  const middle =
+    middleSlot === undefined ? (
+      <>
+        <FeatureHighlightList features={FEATURE_HIGHLIGHTS} />
+        <ReadinessSummaryCard summary={READINESS_SUMMARY} />
+      </>
+    ) : (
+      middleSlot
+    )
+
   return (
-    <div className="relative hidden flex-1 flex-col justify-between overflow-hidden bg-primary p-12 text-white lg:flex">
-      {/* Content under the grid so cells always receive hover (transparent fills keep copy visible). */}
-      {/* 32×32 (~1k cells) + CSS-only hover — 80×80 + React state re-rendered all 6400 rects per pointer move */}
+    <div className="relative hidden flex-1 flex-col justify-between overflow-hidden bg-primary p-12 text-primary-foreground lg:flex">
+      {/* Content under the grid so cells receive hover (transparent fills keep copy visible). */}
+      {/* 32×32 + CSS-only hover — denser grids re-render too hard on pointer move. */}
       <div className="relative z-0 flex w-full max-w-md flex-1 flex-col justify-between">
         <div className="flex items-center gap-2">
           <span className="flex size-8 items-center justify-center rounded-lg bg-white p-1">
@@ -41,33 +56,28 @@ export function AuthHeroPanel({
           <span className="text-lg font-semibold">{t("common:appName")}</span>
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-8">
           <div className="flex flex-col gap-3">
-            <span className="flex items-center gap-1.5 text-xs font-semibold tracking-widest text-white/70 uppercase">
-              <EyebrowIcon className="size-3.5" />
-              {t(eyebrowKey)}
-            </span>
-            <h1 className="text-4xl font-bold leading-tight">{t(titleKey)}</h1>
-            <p className="text-white/80">{t(descriptionKey)}</p>
+            <h1 className="text-4xl font-bold leading-tight tracking-tight text-balance">
+              {t(titleKey)}
+            </h1>
+            <p className="max-w-prose text-base text-primary-foreground/80 text-pretty">
+              {t(descriptionKey)}
+            </p>
           </div>
 
-          {middleSlot ?? (
-            <>
-              <FeatureHighlightList features={FEATURE_HIGHLIGHTS} />
-              <ReadinessSummaryCard summary={READINESS_SUMMARY} />
-            </>
-          )}
+          {middle}
         </div>
 
         {bottomSlot ?? (
-          <p className="flex items-center gap-1.5 text-sm text-white/70">
-            <BadgeCheck className="size-4 shrink-0" />
-            {trustMessageKey && t(trustMessageKey)}
+          <p className="flex items-center gap-1.5 text-sm text-primary-foreground/70">
+            <BadgeCheck className="size-4 shrink-0" aria-hidden />
+            {trustMessageKey ? t(trustMessageKey) : null}
           </p>
         )}
       </div>
 
-      {/* z-10 hit layer on top; white/20 shows on primary (blue-on-blue was invisible). */}
+      {/* z-10 hit layer on top; white/20 shows on primary. */}
       <InteractiveGridPattern
         aria-hidden="true"
         width={28}

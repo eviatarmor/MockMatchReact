@@ -26,7 +26,7 @@ interface TopUpCreditsDialogProps {
   readonly onOpenChange: (open: boolean) => void
 }
 
-/** Shine-border pack card — Stripe top-up, billing link, optional dev grant. */
+/** AI credits top-up — colorful shine border signals AI commerce (exception to quiet chrome). */
 export function TopUpCreditsDialog({
   open,
   onOpenChange,
@@ -84,7 +84,7 @@ export function TopUpCreditsDialog({
             <p className="text-sm text-muted-foreground">{tb("usage.packsUnavailable")}</p>
           ) : (
             <div className="flex flex-col gap-2">
-              <span className="text-xs uppercase tracking-wide text-muted-foreground">
+              <span className="text-xs font-medium text-muted-foreground">
                 {tb("usage.packsHeading")}
               </span>
               {packs.map((pack) => (
@@ -117,7 +117,7 @@ export function TopUpCreditsDialog({
             <>
               <Separator />
               <div className="flex flex-col gap-2">
-                <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                <span className="text-xs font-medium text-muted-foreground">
                   {t("navbar.creditsCard.devHeading")}
                 </span>
                 <Button

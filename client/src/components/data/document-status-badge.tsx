@@ -22,7 +22,7 @@ export function DocumentStatusBadge({
   return (
     <Badge
       variant={status === "active" ? "default" : "outline"}
-      className={cn(className)}
+      className={cn("text-2xs font-medium", className)}
     >
       {t(`${translationPrefix}.${status}`)}
     </Badge>

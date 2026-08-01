@@ -12,10 +12,10 @@ export function PrepTaskRow({ task }: PrepTaskRowProps) {
   const ActionIcon = task.actionIcon
 
   return (
-    <div className="flex items-center justify-between gap-3 border-b py-2.5 last:border-b-0">
+    <div className="flex items-center justify-between gap-3 border-b border-border/40 py-2.5 last:border-b-0">
       <div className="flex items-center gap-2.5">
         <Checkbox checked={task.completed} disabled />
-        <span className={cn("text-sm", task.completed && "text-muted-foreground line-through")}>
+        <span className={cn("text-sm text-foreground", task.completed && "text-muted-foreground line-through")}>
           {t(task.labelKey)}
         </span>
       </div>

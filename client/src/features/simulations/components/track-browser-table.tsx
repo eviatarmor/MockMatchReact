@@ -52,34 +52,37 @@ export function TrackBrowserTable({ tracks, recommendedTrackIds }: TrackBrowserT
         const isRecommended = recommendedTrackIds?.has(track.id) ?? false
         const idePath = idePathForTrackId(track.id)
         return (
-          <tr key={track.id} className="group hover:bg-muted/5 transition-colors">
-            <td className="py-3 px-4">
-              <div className="flex items-start gap-3 min-w-0">
+          <tr
+            key={track.id}
+            className="group border-b border-border/40 transition-colors hover:bg-muted/5"
+          >
+            <td className="px-4 py-3">
+              <div className="flex min-w-0 items-start gap-3">
                 <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <Icon className="size-4" />
                 </div>
-                <div className="flex flex-col gap-0.5 min-w-0">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-sm font-medium group-hover:text-primary transition-colors truncate">
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="truncate text-sm font-medium transition-colors group-hover:text-primary">
                       {t(track.titleKey)}
                     </span>
                     {isRecommended ? (
                       <Badge
                         variant="outline"
-                        className="shrink-0 gap-1 border-primary/30 text-primary text-[10px] px-1.5 py-0"
+                        className="shrink-0 gap-1 border-primary/30 px-1.5 py-0 text-2xs text-primary"
                       >
                         <Sparkles className="size-2.5" />
                         {t("simulations.tracksBrowser.recommendedBadge")}
                       </Badge>
                     ) : null}
                   </div>
-                  <span className="text-xs text-muted-foreground line-clamp-1">
+                  <span className="line-clamp-1 text-xs text-muted-foreground">
                     {t(track.descriptionKey)}
                   </span>
                 </div>
               </div>
             </td>
-            <td className="py-3 px-4 hidden sm:table-cell">
+            <td className="hidden px-4 py-3 sm:table-cell">
               <div className="flex flex-col gap-0.5">
                 <span className="text-sm font-medium text-foreground">
                   {t(`simulations.format.${track.format}`)}
@@ -89,22 +92,22 @@ export function TrackBrowserTable({ tracks, recommendedTrackIds }: TrackBrowserT
                 </span>
               </div>
             </td>
-            <td className="py-3 px-4">
-              <Badge variant={difficultyVariant(track.difficulty)}>
+            <td className="px-4 py-3">
+              <Badge variant={difficultyVariant(track.difficulty)} className="text-2xs">
                 {t(`simulations.difficulty.${track.difficulty}`)}
               </Badge>
             </td>
-            <td className="py-3 px-4 text-sm text-muted-foreground hidden md:table-cell">
+            <td className="hidden px-4 py-3 text-sm text-muted-foreground md:table-cell">
               <span className="flex items-center gap-1">
                 <Clock className="size-3.5 shrink-0" />
                 {track.durationMin} {t("simulations.recentSessions.durationSuffix")}
               </span>
             </td>
-            <td className="py-3 px-4">
+            <td className="px-4 py-3">
               <div className="flex items-center justify-end">
                 <Button
                   variant="ghost"
-                  className="h-7 gap-1.5 px-2 text-xs cursor-pointer"
+                  className="h-7 cursor-pointer gap-1.5 px-2 text-xs"
                   disabled={!idePath}
                   onClick={() => {
                     if (idePath) navigate(idePath)

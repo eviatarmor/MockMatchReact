@@ -7,8 +7,8 @@ export interface ReadinessArea {
 
 export interface NextUpItem {
   readonly id: string
-  readonly title: string
-  readonly subtitle: string
+  readonly titleKey: string
+  readonly subtitleKey: string
   readonly iconName: string
 }
 

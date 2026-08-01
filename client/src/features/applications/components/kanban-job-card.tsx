@@ -62,7 +62,7 @@ export function KanbanJobCard({ job, onRemove }: KanbanJobCardProps) {
   return (
     <div
       onClick={openDetail}
-      className="flex flex-col gap-2.5 rounded-xl border bg-card p-3 shadow-sm transition-colors hover:border-primary cursor-pointer"
+      className="flex cursor-pointer flex-col gap-2.5 rounded-xl border border-border/60 bg-card p-3 shadow-sm transition-[border-color,box-shadow] hover:border-primary/70 hover:shadow-sm"
     >
       <div className="flex items-start gap-2.5">
         <div
@@ -180,11 +180,11 @@ export function KanbanJobCard({ job, onRemove }: KanbanJobCardProps) {
       </div>
 
       {job.nextStep && (
-        <div className="flex items-center gap-1.5 rounded-lg bg-muted/60 px-2 py-1.5 text-xs text-muted-foreground">
-          <Clock className="size-3 shrink-0" />
+        <div className="flex items-center gap-1.5 rounded-lg bg-muted/40 px-2 py-1.5 text-xs text-muted-foreground">
+          <Clock className="size-3 shrink-0" aria-hidden />
           <span className="truncate">{job.nextStep}</span>
           {job.nextStepDate && job.nextStepDate !== "no date" && (
-            <span className="ml-auto shrink-0 text-foreground/60">· {job.nextStepDate}</span>
+            <span className="ml-auto shrink-0 text-muted-foreground">· {job.nextStepDate}</span>
           )}
         </div>
       )}

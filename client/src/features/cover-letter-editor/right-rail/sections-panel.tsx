@@ -43,7 +43,7 @@ function SectionRow({ block, index, total, handlers }: {
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
         "rounded-lg border border-border/60 bg-muted/30",
-        isDragging && "z-10 opacity-80 shadow-md"
+        isDragging && "z-10 opacity-80 shadow-sm"
       )}
     >
       {/* Entrance only — dnd transform stays on the outer <li>. */}

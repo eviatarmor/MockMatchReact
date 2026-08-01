@@ -36,35 +36,39 @@ export function ResumeTableRow({
 
   return (
     <tr className="group border-b border-border/40 transition-colors hover:bg-muted/5">
-      <td className="py-3 px-4">
-        <button type="button" onClick={openEditor} className="flex w-full items-center gap-3 text-left cursor-pointer">
+      <td className="px-4 py-3">
+        <button
+          type="button"
+          onClick={openEditor}
+          className="flex w-full cursor-pointer items-center gap-3 text-left"
+        >
           <div
-            className={`flex size-10 shrink-0 items-center justify-center rounded-xl text-sm font-semibold select-none ${avatarClass}`}
+            className={`flex size-10 shrink-0 select-none items-center justify-center rounded-xl text-sm font-semibold ${avatarClass}`}
           >
             {resume.avatarText}
           </div>
-          <div className="flex flex-col min-w-0">
-            <span className="font-semibold text-sm text-foreground truncate group-hover:text-primary transition-colors">
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
               {resume.title}
             </span>
-            <span className="text-xs text-muted-foreground truncate">{subtitle}</span>
+            <span className="truncate text-xs text-muted-foreground">{subtitle}</span>
           </div>
         </button>
       </td>
 
-      <td className="py-3 px-4 text-center">
+      <td className="px-4 py-3 text-center">
         <ResumeScoreBadge score={resume.generalScore} />
       </td>
 
-      <td className="py-3 px-4">
+      <td className="px-4 py-3">
         <DocumentStatusBadge status={resume.status} translationPrefix="resumeLab.table.statusLabels" />
       </td>
 
-      <td className="py-3 px-4 text-sm text-muted-foreground hidden sm:table-cell">
+      <td className="hidden px-4 py-3 text-sm text-muted-foreground sm:table-cell">
         {formatRelativeTime(resume.updatedAt)}
       </td>
 
-      <td className="py-3 px-4 text-right">
+      <td className="px-4 py-3 text-right">
         <EntityRowActions
           translationPrefix="resumeLab.table"
           entityTitle={resume.title}

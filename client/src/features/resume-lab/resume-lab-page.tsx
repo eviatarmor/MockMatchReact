@@ -1,9 +1,10 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { FileText, Loader2, Plus, Upload } from "lucide-react"
+import { FileText, Plus, Upload } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@mockmatch/ui/button"
+import { Spinner } from "@mockmatch/ui/spinner"
 import { Separator } from "@mockmatch/ui/separator"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
@@ -139,7 +140,7 @@ export function ResumeLabPageContent() {
                 aria-busy={pdfImport.isPending}
               >
                 {pdfImport.isPending ? (
-                  <Loader2 className="size-4 animate-spin" />
+                  <Spinner className="size-3.5" />
                 ) : (
                   <Upload className="size-4" />
                 )}

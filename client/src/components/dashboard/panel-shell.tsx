@@ -26,7 +26,7 @@ export function PanelShell({
     <div className={cn("flex h-full min-h-0 flex-col", className)}>
       <div
         className={cn(
-          "shrink-0 border-b bg-background p-4 pr-12",
+          "shrink-0 border-b border-border/60 bg-card p-4 pr-12",
           headerClassName
         )}
       >
@@ -36,7 +36,7 @@ export function PanelShell({
         <div className="flex flex-col gap-4 p-4">{children}</div>
       </div>
       {footer != null && (
-        <div className="shrink-0 border-t bg-background p-4">{footer}</div>
+        <div className="shrink-0 border-t border-border/60 bg-card p-4">{footer}</div>
       )}
     </div>
   )

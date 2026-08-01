@@ -127,7 +127,7 @@ export function ProfilePhotoDialog({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="flex min-h-72 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-muted/40 px-4 text-center text-sm text-muted-foreground transition-colors hover:bg-muted"
+              className="flex min-h-72 w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 bg-muted/30 px-4 text-center text-sm text-muted-foreground transition-colors hover:border-border hover:bg-muted/50"
             >
               <span className="font-medium text-foreground">
                 {t("profile.photo.chooseFile")}

@@ -1,5 +1,6 @@
 import { useMemo } from "react"
-import { Cloud, CloudOff, Loader2 } from "lucide-react"
+import { Cloud, CloudOff } from "lucide-react"
+import { Spinner } from "@mockmatch/ui/spinner"
 import type { SaveStatus } from "@/hooks/use-document-autosave"
 import { cn } from "@/lib/utils"
 
@@ -21,7 +22,7 @@ export function SaveStatusBadge({ status, labels }: SaveStatusBadgeProps) {
     if (status === "saving") {
       return {
         label: labels.saving,
-        icon: <Loader2 className="size-3 shrink-0 animate-spin" />,
+        icon: <Spinner className="size-3 shrink-0" />,
         className: "bg-muted text-muted-foreground",
       }
     }
@@ -43,7 +44,7 @@ export function SaveStatusBadge({ status, labels }: SaveStatusBadgeProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs tabular-nums",
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-2xs tabular-nums",
         className
       )}
       data-status={status === "idle" ? "saved" : status}

@@ -11,7 +11,7 @@ export function SectionShell({ heading, description, children }: SectionShellPro
   return (
     <section className="flex flex-col gap-4">
       <div>
-        <h2 className="text-lg font-semibold text-foreground">{heading}</h2>
+        <h2 className="font-heading text-base font-medium text-foreground">{heading}</h2>
         <p className="mt-1 text-sm text-muted-foreground">{description}</p>
       </div>
       {children}

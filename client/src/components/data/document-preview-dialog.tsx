@@ -41,12 +41,12 @@ export function DocumentPreviewDialog({
         className="flex h-[min(92vh,1100px)] max-h-[min(92vh,1100px)] w-[min(920px,calc(100%-1.5rem))] max-w-none flex-col gap-0 overflow-hidden p-0 sm:max-w-none"
       >
         <DialogHeader className="shrink-0 border-b border-border/60 px-4 py-3 pr-12">
-          <DialogTitle className="truncate">{title}</DialogTitle>
+          <DialogTitle className="truncate text-base font-medium">{title}</DialogTitle>
           <DialogDescription
             className={
               descriptionSrOnly
                 ? "sr-only"
-                : "text-xs text-muted-foreground"
+                : "text-2xs text-muted-foreground"
             }
           >
             {description}

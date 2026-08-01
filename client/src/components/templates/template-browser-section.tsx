@@ -32,13 +32,15 @@ export function TemplateBrowserSection({
     <div className="flex flex-col gap-3">
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h2 className="text-base font-semibold text-foreground">{t(`${translationPrefix}.title`)}</h2>
+          <h2 className="font-heading text-base font-medium text-foreground">
+            {t(`${translationPrefix}.title`)}
+          </h2>
           <p className="text-sm text-muted-foreground">{t(`${translationPrefix}.description`)}</p>
         </div>
         <button
           type="button"
           onClick={() => navigate(browseAllTo)}
-          className="flex shrink-0 items-center gap-1 text-sm font-medium text-primary hover:underline cursor-pointer"
+          className="flex shrink-0 cursor-pointer items-center gap-1 text-sm font-medium text-primary hover:underline"
         >
           {t(`${translationPrefix}.browseAll`)}
           <ArrowRight className="size-4" />

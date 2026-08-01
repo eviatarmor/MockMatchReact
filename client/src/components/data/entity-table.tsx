@@ -32,15 +32,15 @@ export function EntityTable({
   return (
     <div
       className={cn(
-        "w-full overflow-x-auto rounded-xl border bg-card shadow-sm",
+        "w-full overflow-x-auto rounded-xl border border-border/60 bg-card shadow-sm ring-1 ring-foreground/5",
         className
       )}
     >
       <table className="w-full border-collapse text-left">
         <thead>
-          <tr className="border-b border-border bg-muted/5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground select-none">
+          <tr className="border-b border-border/60 bg-muted/5 text-2xs font-medium text-muted-foreground select-none">
             {columns.map((column) => (
-              <th key={column.key} className={cn("py-3 px-4 font-bold", column.className)}>
+              <th key={column.key} className={cn("px-4 py-3 font-semibold", column.className)}>
                 {column.label}
               </th>
             ))}
@@ -49,7 +49,7 @@ export function EntityTable({
         <tbody className="entity-table-body divide-y divide-border/40">
           {isEmpty ? (
             <tr>
-              <td colSpan={columns.length} className="py-8 text-center text-sm text-muted-foreground">
+              <td colSpan={columns.length} className="px-4 py-8 text-center text-sm text-muted-foreground">
                 {emptyMessage}
               </td>
             </tr>

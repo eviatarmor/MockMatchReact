@@ -22,11 +22,11 @@ const KIND_ICON: Record<NotificationKind, LucideIcon> = {
 }
 
 const KIND_WELL: Record<NotificationKind, string> = {
-  info: "bg-sky-500/12 text-sky-600 dark:text-sky-400",
+  info: "bg-primary/12 text-primary",
   success: "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400",
   warning: "bg-amber-500/12 text-amber-600 dark:text-amber-400",
   product: "bg-primary/12 text-primary",
-  credits: "bg-violet-500/12 text-violet-600 dark:text-violet-400",
+  credits: "bg-primary/12 text-primary",
 }
 
 /** Trusted HTML from i18n / API — styles for rich notification bodies. */
@@ -97,14 +97,14 @@ export function NotificationItem({
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       className={cn(
-        "group flex w-full cursor-pointer gap-3 rounded-xl px-2.5 py-2.5 text-left transition-colors",
-        "hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+        "group flex w-full cursor-pointer gap-3 rounded-lg px-2.5 py-2.5 text-left transition-colors",
+        "hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
         unread && "bg-primary/[0.04]"
       )}
     >
       <span
         className={cn(
-          "flex size-9 shrink-0 items-center justify-center rounded-xl ring-1 ring-inset ring-black/5 dark:ring-white/10",
+          "flex size-9 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset ring-foreground/10",
           KIND_WELL[notification.kind]
         )}
       >
@@ -121,7 +121,7 @@ export function NotificationItem({
             )}
             dangerouslySetInnerHTML={{ __html: titleHtml }}
           />
-          <span className="shrink-0 pt-0.5 text-[11px] tabular-nums text-muted-foreground">
+          <span className="shrink-0 pt-0.5 text-2xs tabular-nums text-muted-foreground">
             {time}
           </span>
         </div>

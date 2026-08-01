@@ -28,7 +28,7 @@ function DataActionCard({
   pending,
 }: DataActionCardProps) {
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardContent className="flex items-start gap-3">
         <div className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", iconClassName)}>
           {icon}
@@ -79,7 +79,7 @@ export function DataSection() {
       <div className="flex flex-col gap-3">
         <DataActionCard
           icon={<Download className="size-4" />}
-          iconClassName="bg-sky-500/10 text-sky-500"
+          iconClassName="bg-primary/10 text-primary"
           label={t("data.export.label")}
           description={t("data.export.description")}
           buttonLabel={t("data.export.button")}
@@ -88,7 +88,7 @@ export function DataSection() {
         />
         <DataActionCard
           icon={<Ban className="size-4" />}
-          iconClassName="bg-amber-500/10 text-amber-500"
+          iconClassName="bg-destructive/10 text-destructive"
           label={t("data.clearHistory.label")}
           description={t("data.clearHistory.description")}
           buttonLabel={t("data.clearHistory.button")}

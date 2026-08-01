@@ -213,7 +213,7 @@ export function JobDetailsPanel({
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-1.5 cursor-pointer text-muted-foreground"
+                className="gap-1.5 cursor-pointer"
                 disabled={fitDoc.isFitting}
                 title={t("discover.details.fitResumeTitle")}
                 onClick={() => fitDoc.fitResume(job)}
@@ -221,14 +221,14 @@ export function JobDetailsPanel({
                 {fitDoc.isFittingResume ? (
                   <Loader2 className="size-3.5 animate-spin" />
                 ) : (
-                  <Sparkles className="size-3.5" />
+                  <Sparkles className="size-3.5 text-primary" aria-hidden />
                 )}
                 {t("discover.details.fitResume")}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-1.5 cursor-pointer text-muted-foreground"
+                className="gap-1.5 cursor-pointer"
                 disabled={fitDoc.isFitting}
                 title={t("discover.details.fitCoverLetterTitle")}
                 onClick={() => fitDoc.fitCoverLetter(job)}
@@ -236,7 +236,7 @@ export function JobDetailsPanel({
                 {fitDoc.isFittingCoverLetter ? (
                   <Loader2 className="size-3.5 animate-spin" />
                 ) : (
-                  <Sparkles className="size-3.5" />
+                  <Sparkles className="size-3.5 text-primary" aria-hidden />
                 )}
                 {t("discover.details.fitCoverLetter")}
               </Button>
@@ -286,7 +286,7 @@ export function JobDetailsPanel({
       >
         {/* ATS score + progress (resume-editor general analysis pattern) */}
         {(hasMatch || job.scorePending) && (
-          <div className="flex flex-col gap-2 rounded-lg border border-border/60 bg-muted/30 px-2.5 py-2.5">
+          <div className="flex flex-col gap-2 rounded-xl border border-border/60 bg-muted/25 px-3 py-2.5">
             <div className="flex items-center gap-2">
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-foreground">
@@ -350,7 +350,7 @@ export function JobDetailsPanel({
                 key={stat.labelKey}
                 className="flex min-w-0 flex-col gap-0.5 rounded-lg border px-2.5 py-2"
               >
-                <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                <span className="flex items-center gap-1 text-2xs text-muted-foreground">
                   <stat.icon className="size-3 shrink-0" />
                   <span className="truncate">{t(stat.labelKey)}</span>
                 </span>
@@ -364,10 +364,10 @@ export function JobDetailsPanel({
 
         {description && (
           <div className="flex flex-col gap-2">
-            <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+            <h3 className="text-xs font-medium text-muted-foreground">
               {t("discover.details.description")}
-            </span>
-            <p className="text-sm leading-relaxed whitespace-pre-wrap text-muted-foreground">
+            </h3>
+            <p className="text-sm leading-relaxed whitespace-pre-wrap text-foreground/80">
               {description}
             </p>
           </div>
@@ -375,9 +375,9 @@ export function JobDetailsPanel({
 
         {job.skills && job.skills.length > 0 && (
           <div className="flex flex-col gap-2">
-            <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+            <h3 className="text-xs font-medium text-muted-foreground">
               {t("discover.details.skillsRequired")}
-            </span>
+            </h3>
             <div className="flex flex-wrap gap-1.5">
               {job.skills.map((skill) => (
                 <Badge key={skill.label} variant="secondary">

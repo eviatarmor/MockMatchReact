@@ -60,14 +60,15 @@ interface DiscoverFilterBarProps {
 
 const SORT_OPTIONS: DiscoverSortOption[] = ["bestMatch", "newest", "salary"]
 
-function salaryLabel(value: number): string {
-  return value === 0 ? "Any" : `$${value / 1000}K+`
+type Translate = (key: string, options?: Record<string, unknown>) => string
+
+function salaryLabel(value: number, t: Translate): string {
+  return value === 0
+    ? t("discover.filters.salaryAny")
+    : t("discover.filters.salaryMin", { amount: value / 1000 })
 }
 
-function postedLabel(
-  value: PostedWithinDays,
-  t: (key: string) => string
-): string {
+function postedLabel(value: PostedWithinDays, t: Translate): string {
   if (value === 0) return t("discover.filters.postedAny")
   return t(`discover.filters.posted${value}d`)
 }
@@ -207,7 +208,9 @@ export function DiscoverFilterBar({
               }
             >
               <DollarSign className="size-3.5" />
-              {minSalary > 0 ? salaryLabel(minSalary) : t("discover.filters.salary")}
+              {minSalary > 0
+                ? salaryLabel(minSalary, t)
+                : t("discover.filters.salary")}
               <ChevronDown className="size-3.5 opacity-70" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="min-w-32">
@@ -221,7 +224,7 @@ export function DiscoverFilterBar({
                     value={String(value)}
                     className="cursor-pointer"
                   >
-                    {salaryLabel(value)}
+                    {salaryLabel(value, t)}
                   </DropdownMenuRadioItem>
                 ))}
               </DropdownMenuRadioGroup>
@@ -262,16 +265,22 @@ export function DiscoverFilterBar({
           <span className="hidden text-sm text-muted-foreground sm:inline">
             {t("discover.sort.label")}
           </span>
-          <div className="flex items-center rounded-lg border bg-muted/30 p-0.5">
+          <div
+            role="group"
+            aria-label={t("discover.sort.label")}
+            className="flex items-center rounded-lg border border-border/60 bg-muted/30 p-0.5"
+          >
             {SORT_OPTIONS.map((option) => (
               <button
                 key={option}
                 type="button"
                 onClick={() => onSortChange(option)}
+                aria-pressed={sort === option}
                 className={cn(
                   "rounded-md px-3 py-1 text-sm font-medium transition-colors cursor-pointer",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
                   sort === option
-                    ? "bg-background text-foreground shadow-sm"
+                    ? "bg-card text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >

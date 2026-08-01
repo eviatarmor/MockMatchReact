@@ -37,7 +37,7 @@ export function NotificationPanel({
             {t("notifications.title")}
           </h2>
           {unreadCount > 0 ? (
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-2xs text-muted-foreground">
               {t("notifications.unreadCount", { count: unreadCount })}
             </p>
           ) : null}
@@ -57,7 +57,7 @@ export function NotificationPanel({
 
       {empty ? (
         <div className="flex flex-col items-center gap-2 px-4 py-10 text-center">
-          <span className="flex size-11 items-center justify-center rounded-2xl bg-muted/80 text-muted-foreground ring-1 ring-border/60">
+          <span className="flex size-11 items-center justify-center rounded-xl bg-muted/80 text-muted-foreground ring-1 ring-border/60">
             <BellOff className="size-5" aria-hidden />
           </span>
           <div className="space-y-1">

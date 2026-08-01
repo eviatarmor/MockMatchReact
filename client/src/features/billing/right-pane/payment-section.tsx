@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next"
 import { Button } from "@mockmatch/ui/button"
 import { Card, CardContent } from "@mockmatch/ui/card"
 import { Separator } from "@mockmatch/ui/separator"
+import { Skeleton } from "@mockmatch/ui/skeleton"
 import { PaymentCardVisual } from "@mockmatch/ui/shadcn-space/credit-card/credit-card"
 import { SectionShell } from "@/components/layout/section-shell"
 import {
@@ -66,7 +67,7 @@ function PaymentBody({ summary }: { readonly summary: BillingSummary }) {
 
       <Card>
         <CardContent className="flex flex-col gap-3">
-          <span className="text-xs uppercase tracking-wide text-muted-foreground">
+          <span className="text-xs font-medium text-muted-foreground">
             {t("payment.detailsHeading")}
           </span>
           <DetailRow label={t("payment.name")} value={details.name || "—"} />
@@ -128,7 +129,12 @@ export function PaymentSection() {
     <SectionShell heading={t("payment.heading")} description={t("payment.description")}>
       {summaryQuery.isLoading ? (
         <Card>
-          <CardContent className="h-40 animate-pulse rounded-lg bg-muted/40" />
+          <CardContent className="space-y-3 py-6" aria-hidden>
+            <Skeleton className="h-4 w-36" />
+            <Skeleton className="h-8 w-28" />
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-9 w-40" />
+          </CardContent>
         </Card>
       ) : summaryQuery.data ? (
         <PaymentBody summary={summaryQuery.data} />

@@ -9,14 +9,12 @@ export function NotFoundPageContent() {
   return (
     <div className="flex min-h-screen w-full">
       <AuthHeroPanel
-        eyebrowIcon={MapPin}
-        eyebrowKey="not-found:hero.eyebrow"
         titleKey="not-found:hero.title"
         descriptionKey="not-found:hero.description"
-        middleSlot={<></>}
+        middleSlot={null}
         bottomSlot={
-          <p className="flex items-center gap-1.5 text-sm text-white/70">
-            <MapPin className="size-4 shrink-0" />
+          <p className="flex items-center gap-1.5 text-sm text-primary-foreground/70">
+            <MapPin className="size-4 shrink-0" aria-hidden />
             {t("footerMessage")}
           </p>
         }

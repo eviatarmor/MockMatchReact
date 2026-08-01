@@ -99,7 +99,7 @@ export function SimulationTracksPageContent() {
           <button
             type="button"
             onClick={() => navigate("/simulations")}
-            className="flex w-fit items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground cursor-pointer"
+            className="flex w-fit cursor-pointer items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="size-4" />
             {t("simulations.tracksBrowser.browseBackLink")}

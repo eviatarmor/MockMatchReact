@@ -216,7 +216,7 @@ function FreeformAutocomplete({
   }, [allowCustom, value, exactMatch, customOptionLabel, filtered])
 
   const inline =
-    "pan-ignore w-full bg-transparent p-0 outline-none transition-colors placeholder:text-neutral-300 rounded-[3px] -mx-0.5 px-0.5 hover:bg-blue-500/[0.04] focus:bg-blue-500/[0.06] border-0 shadow-none focus-visible:ring-0 focus-visible:border-transparent h-auto min-h-0 text-inherit md:text-inherit dark:bg-transparent"
+    "pan-ignore w-full bg-transparent p-0 outline-none transition-colors placeholder:text-muted-foreground/50 rounded-[3px] -mx-0.5 px-0.5 hover:bg-primary/[0.06] focus:bg-primary/[0.08] border-0 shadow-none focus-visible:ring-0 focus-visible:border-transparent h-auto min-h-0 text-inherit md:text-inherit dark:bg-transparent"
 
   return (
     <div className={cn("relative w-full min-w-0", className)}>

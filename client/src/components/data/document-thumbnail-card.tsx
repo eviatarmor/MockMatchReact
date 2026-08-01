@@ -33,12 +33,6 @@ interface DocumentThumbnailCardProps {
   readonly className?: string
 }
 
-const SCORE_TEXT: Record<ScoreBand, string> = {
-  strong: "text-emerald-700",
-  ok: "text-amber-800",
-  weak: "text-rose-700",
-}
-
 /**
  * Static overlay pills — plain spans, no Badge/hover/transition so colour
  * never shifts under the card hover scrim.
@@ -56,7 +50,7 @@ function OverlayPill({
     <span
       title={title}
       className={cn(
-        "inline-flex h-5 shrink-0 items-center justify-center rounded-full border px-2 text-xs font-medium tabular-nums",
+        "inline-flex h-5 shrink-0 items-center justify-center rounded-full border px-2 text-2xs font-medium tabular-nums",
         className
       )}
     >
@@ -66,19 +60,34 @@ function OverlayPill({
 }
 
 function OverlayScorePill({ score }: { readonly score: number | null }) {
+  const { t } = useTranslation("common")
+
   if (score === null) {
     return (
-      <OverlayPill className="border-white/25 bg-white/15 text-white" title="Not scored yet">
+      <OverlayPill
+        className="border-white/25 bg-white/15 text-white"
+        title={t("documentScore.notScored")}
+      >
         —
       </OverlayPill>
     )
   }
 
   const band = scoreBand(score)
+  // White chip on dark scrim — use light-mode score ink (dark: variants would wash out).
+  const scoreInk: Record<ScoreBand, string> = {
+    strong: "text-emerald-700",
+    ok: "text-amber-800",
+    weak: "text-rose-700",
+  }
+
   return (
     <OverlayPill
-      className={cn("border-black/10 bg-white shadow-sm", SCORE_TEXT[band])}
-      title={`${band} · ${score}`}
+      className={cn("border-black/10 bg-white shadow-sm", scoreInk[band])}
+      title={t("documentScore.bandTitle", {
+        band: t(`documentScore.bands.${band}`),
+        score,
+      })}
     >
       {score}
     </OverlayPill>
@@ -133,7 +142,7 @@ export function DocumentThumbnailCard({
 }: DocumentThumbnailCardProps) {
   return (
     <StaggerItem index={index} direction="up" className={cn("w-full", className)}>
-      <div className="group relative w-full overflow-hidden rounded-xl">
+      <div className="group relative w-full overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm">
         <button
           type="button"
           onClick={onOpen}
@@ -166,7 +175,7 @@ export function DocumentThumbnailCard({
                   status={status}
                   translationPrefix={statusTranslationPrefix}
                 />
-                <span className="text-[11px] text-white/75 drop-shadow-sm">
+                <span className="text-2xs text-white/75 drop-shadow-sm">
                   {formatRelativeTime(updatedAt)}
                 </span>
               </div>

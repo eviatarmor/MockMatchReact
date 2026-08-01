@@ -220,7 +220,7 @@ export function ResumeDocumentView({
     >
       <DocumentHeader document={document} template={template} style={style} handlers={handlers} />
 
-      <div className={cn("mt-6 text-[15px]", style.bodyLeading)}>
+      <div className={cn("mt-6 text-document", style.bodyLeading)}>
         {handlers ? (
           <SectionedBody
             blocks={Array.isArray(document.sections) ? document.sections : []}

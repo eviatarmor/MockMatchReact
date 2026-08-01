@@ -25,14 +25,14 @@ export function RecorderSettings() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3 rounded-xl border bg-card p-5 shadow-sm">
-        <h2 className="text-base font-semibold">{t("recorder.settings.platforms.title")}</h2>
-        <div className="flex flex-col divide-y divide-border/50">
+      <div className="flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-5 shadow-sm ring-1 ring-foreground/5">
+        <h2 className="font-heading text-base font-medium text-foreground">{t("recorder.settings.platforms.title")}</h2>
+        <div className="flex flex-col divide-y divide-border/40">
           {PLATFORMS.map((p) => (
             <div key={p} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
               <div className="flex items-center gap-2.5">
                 <Video className="size-4 text-muted-foreground" />
-                <span className="text-sm font-medium">{p}</span>
+                <span className="text-sm font-medium text-foreground">{p}</span>
               </div>
               <Switch
                 checked={platforms[p] ?? false}
@@ -43,9 +43,9 @@ export function RecorderSettings() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 rounded-xl border bg-card p-5 shadow-sm">
-        <h2 className="text-base font-semibold">{t("recorder.settings.capture.title")}</h2>
-        <div className="flex flex-col divide-y divide-border/50">
+      <div className="flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-5 shadow-sm ring-1 ring-foreground/5">
+        <h2 className="font-heading text-base font-medium text-foreground">{t("recorder.settings.capture.title")}</h2>
+        <div className="flex flex-col divide-y divide-border/40">
           {[
             { key: "autoJoin",         value: autoJoin,         setter: setAutoJoin,         titleKey: "recorder.settings.capture.autoJoin",    descKey: "recorder.settings.capture.autoJoinDesc" },
             { key: "liveTranscription",value: liveTranscription,setter: setLiveTranscription,titleKey: "recorder.settings.capture.transcription", descKey: "recorder.settings.capture.transcriptionDesc" },
@@ -53,7 +53,7 @@ export function RecorderSettings() {
           ].map((s) => (
             <div key={s.key} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
               <div className="flex flex-col gap-0.5">
-                <span className="text-sm font-medium">{t(s.titleKey)}</span>
+                <span className="text-sm font-medium text-foreground">{t(s.titleKey)}</span>
                 <span className="text-xs text-muted-foreground">{t(s.descKey)}</span>
               </div>
               <Switch checked={s.value} onCheckedChange={s.setter} />
@@ -62,7 +62,7 @@ export function RecorderSettings() {
 
           <div className="flex items-center justify-between gap-3 pt-3">
             <div className="flex flex-col gap-0.5">
-              <span className="text-sm font-medium">{t("recorder.settings.capture.retention")}</span>
+              <span className="text-sm font-medium text-foreground">{t("recorder.settings.capture.retention")}</span>
               <span className="text-xs text-muted-foreground">{t("recorder.settings.capture.retentionDesc")}</span>
             </div>
             <Select

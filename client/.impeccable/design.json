@@ -1,0 +1,641 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-01T00:00:00.000Z",
+  "title": "Design System: MockMatch",
+  "extensions": {
+    "colorMeta": {
+      "primary": {
+        "role": "primary",
+        "displayName": "Prep Ultramarine",
+        "canonical": "oklch(0.52 0.21 262)",
+        "tonalRamp": [
+          "oklch(0.25 0.12 262)",
+          "oklch(0.35 0.16 262)",
+          "oklch(0.45 0.19 262)",
+          "oklch(0.52 0.21 262)",
+          "oklch(0.62 0.18 262)",
+          "oklch(0.72 0.12 262)",
+          "oklch(0.85 0.06 262)",
+          "oklch(0.95 0.02 262)"
+        ]
+      },
+      "primary-dark": {
+        "role": "primary",
+        "displayName": "Prep Ultramarine (Dark)",
+        "canonical": "oklch(0.62 0.21 262)",
+        "tonalRamp": [
+          "oklch(0.30 0.14 262)",
+          "oklch(0.40 0.17 262)",
+          "oklch(0.50 0.20 262)",
+          "oklch(0.62 0.21 262)",
+          "oklch(0.70 0.16 262)",
+          "oklch(0.78 0.10 262)",
+          "oklch(0.88 0.05 262)",
+          "oklch(0.96 0.02 262)"
+        ]
+      },
+      "primary-foreground": {
+        "role": "neutral",
+        "displayName": "On Accent",
+        "canonical": "oklch(0.985 0 0)",
+        "tonalRamp": [
+          "oklch(0.20 0 0)",
+          "oklch(0.35 0 0)",
+          "oklch(0.50 0 0)",
+          "oklch(0.65 0 0)",
+          "oklch(0.78 0 0)",
+          "oklch(0.88 0 0)",
+          "oklch(0.95 0 0)",
+          "oklch(0.985 0 0)"
+        ]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(0.145 0 0)",
+        "tonalRamp": [
+          "oklch(0.145 0 0)",
+          "oklch(0.25 0 0)",
+          "oklch(0.35 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.55 0 0)",
+          "oklch(0.70 0 0)",
+          "oklch(0.85 0 0)",
+          "oklch(0.97 0 0)"
+        ]
+      },
+      "foreground-inverse": {
+        "role": "neutral",
+        "displayName": "Inverse Ink",
+        "canonical": "oklch(0.985 0 0)",
+        "tonalRamp": [
+          "oklch(0.20 0 0)",
+          "oklch(0.35 0 0)",
+          "oklch(0.50 0 0)",
+          "oklch(0.65 0 0)",
+          "oklch(0.78 0 0)",
+          "oklch(0.88 0 0)",
+          "oklch(0.95 0 0)",
+          "oklch(0.985 0 0)"
+        ]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Studio Canvas",
+        "canonical": "oklch(0.97 0 0)",
+        "tonalRamp": [
+          "oklch(0.25 0 0)",
+          "oklch(0.40 0 0)",
+          "oklch(0.55 0 0)",
+          "oklch(0.70 0 0)",
+          "oklch(0.82 0 0)",
+          "oklch(0.90 0 0)",
+          "oklch(0.95 0 0)",
+          "oklch(0.97 0 0)"
+        ]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Paper White",
+        "canonical": "oklch(1 0 0)",
+        "tonalRamp": [
+          "oklch(0.30 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.60 0 0)",
+          "oklch(0.75 0 0)",
+          "oklch(0.88 0 0)",
+          "oklch(0.94 0 0)",
+          "oklch(0.98 0 0)",
+          "oklch(1 0 0)"
+        ]
+      },
+      "card-dark": {
+        "role": "neutral",
+        "displayName": "Raised Dark",
+        "canonical": "oklch(0.205 0 0)",
+        "tonalRamp": [
+          "oklch(0.12 0 0)",
+          "oklch(0.16 0 0)",
+          "oklch(0.205 0 0)",
+          "oklch(0.28 0 0)",
+          "oklch(0.40 0 0)",
+          "oklch(0.55 0 0)",
+          "oklch(0.75 0 0)",
+          "oklch(0.92 0 0)"
+        ]
+      },
+      "background-dark": {
+        "role": "neutral",
+        "displayName": "Night Canvas",
+        "canonical": "oklch(0.145 0 0)",
+        "tonalRamp": [
+          "oklch(0.10 0 0)",
+          "oklch(0.145 0 0)",
+          "oklch(0.20 0 0)",
+          "oklch(0.30 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.60 0 0)",
+          "oklch(0.80 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Soft Mist",
+        "canonical": "oklch(0.97 0 0)",
+        "tonalRamp": [
+          "oklch(0.25 0 0)",
+          "oklch(0.40 0 0)",
+          "oklch(0.55 0 0)",
+          "oklch(0.70 0 0)",
+          "oklch(0.82 0 0)",
+          "oklch(0.90 0 0)",
+          "oklch(0.95 0 0)",
+          "oklch(0.97 0 0)"
+        ]
+      },
+      "muted-foreground": {
+        "role": "neutral",
+        "displayName": "Quiet Gray",
+        "canonical": "oklch(0.556 0 0)",
+        "tonalRamp": [
+          "oklch(0.25 0 0)",
+          "oklch(0.35 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.556 0 0)",
+          "oklch(0.65 0 0)",
+          "oklch(0.75 0 0)",
+          "oklch(0.85 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "muted-dark": {
+        "role": "neutral",
+        "displayName": "Soft Mist Dark",
+        "canonical": "oklch(0.269 0 0)",
+        "tonalRamp": [
+          "oklch(0.15 0 0)",
+          "oklch(0.20 0 0)",
+          "oklch(0.269 0 0)",
+          "oklch(0.35 0 0)",
+          "oklch(0.50 0 0)",
+          "oklch(0.65 0 0)",
+          "oklch(0.80 0 0)",
+          "oklch(0.94 0 0)"
+        ]
+      },
+      "muted-foreground-dark": {
+        "role": "neutral",
+        "displayName": "Quiet Gray Dark",
+        "canonical": "oklch(0.708 0 0)",
+        "tonalRamp": [
+          "oklch(0.30 0 0)",
+          "oklch(0.40 0 0)",
+          "oklch(0.50 0 0)",
+          "oklch(0.60 0 0)",
+          "oklch(0.708 0 0)",
+          "oklch(0.80 0 0)",
+          "oklch(0.90 0 0)",
+          "oklch(0.97 0 0)"
+        ]
+      },
+      "secondary": {
+        "role": "secondary",
+        "displayName": "Soft Mist",
+        "canonical": "oklch(0.97 0 0)",
+        "tonalRamp": [
+          "oklch(0.25 0 0)",
+          "oklch(0.40 0 0)",
+          "oklch(0.55 0 0)",
+          "oklch(0.70 0 0)",
+          "oklch(0.82 0 0)",
+          "oklch(0.90 0 0)",
+          "oklch(0.95 0 0)",
+          "oklch(0.97 0 0)"
+        ]
+      },
+      "secondary-foreground": {
+        "role": "neutral",
+        "displayName": "Secondary Ink",
+        "canonical": "oklch(0.205 0 0)",
+        "tonalRamp": [
+          "oklch(0.145 0 0)",
+          "oklch(0.205 0 0)",
+          "oklch(0.30 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.60 0 0)",
+          "oklch(0.75 0 0)",
+          "oklch(0.88 0 0)",
+          "oklch(0.97 0 0)"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "oklch(0.922 0 0)",
+        "tonalRamp": [
+          "oklch(0.30 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.60 0 0)",
+          "oklch(0.75 0 0)",
+          "oklch(0.85 0 0)",
+          "oklch(0.90 0 0)",
+          "oklch(0.922 0 0)",
+          "oklch(0.97 0 0)"
+        ]
+      },
+      "border-dark": {
+        "role": "neutral",
+        "displayName": "Hairline Dark",
+        "canonical": "oklch(1 0 0 / 10%)",
+        "tonalRamp": [
+          "oklch(1 0 0 / 4%)",
+          "oklch(1 0 0 / 8%)",
+          "oklch(1 0 0 / 10%)",
+          "oklch(1 0 0 / 15%)",
+          "oklch(1 0 0 / 20%)",
+          "oklch(1 0 0 / 30%)",
+          "oklch(1 0 0 / 50%)",
+          "oklch(1 0 0 / 80%)"
+        ]
+      },
+      "input": {
+        "role": "neutral",
+        "displayName": "Input Stroke",
+        "canonical": "oklch(0.922 0 0)",
+        "tonalRamp": [
+          "oklch(0.30 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.60 0 0)",
+          "oklch(0.75 0 0)",
+          "oklch(0.85 0 0)",
+          "oklch(0.90 0 0)",
+          "oklch(0.922 0 0)",
+          "oklch(0.97 0 0)"
+        ]
+      },
+      "destructive": {
+        "role": "tertiary",
+        "displayName": "Alert Coral",
+        "canonical": "oklch(0.577 0.245 27.325)",
+        "tonalRamp": [
+          "oklch(0.30 0.14 27)",
+          "oklch(0.40 0.18 27)",
+          "oklch(0.50 0.22 27)",
+          "oklch(0.577 0.245 27.325)",
+          "oklch(0.65 0.20 27)",
+          "oklch(0.75 0.14 27)",
+          "oklch(0.88 0.07 27)",
+          "oklch(0.96 0.02 27)"
+        ]
+      },
+      "destructive-dark": {
+        "role": "tertiary",
+        "displayName": "Alert Coral (Dark)",
+        "canonical": "oklch(0.704 0.191 22.216)",
+        "tonalRamp": [
+          "oklch(0.35 0.12 22)",
+          "oklch(0.45 0.15 22)",
+          "oklch(0.55 0.17 22)",
+          "oklch(0.704 0.191 22.216)",
+          "oklch(0.78 0.14 22)",
+          "oklch(0.85 0.09 22)",
+          "oklch(0.92 0.04 22)",
+          "oklch(0.97 0.02 22)"
+        ]
+      },
+      "ring": {
+        "role": "primary",
+        "displayName": "Focus Ring",
+        "canonical": "oklch(0.52 0.21 262)",
+        "tonalRamp": [
+          "oklch(0.25 0.12 262)",
+          "oklch(0.35 0.16 262)",
+          "oklch(0.45 0.19 262)",
+          "oklch(0.52 0.21 262)",
+          "oklch(0.62 0.18 262)",
+          "oklch(0.72 0.12 262)",
+          "oklch(0.85 0.06 262)",
+          "oklch(0.95 0.02 262)"
+        ]
+      },
+      "sidebar": {
+        "role": "neutral",
+        "displayName": "Enterprise Rail",
+        "canonical": "oklch(0.185 0 0)",
+        "tonalRamp": [
+          "oklch(0.10 0 0)",
+          "oklch(0.145 0 0)",
+          "oklch(0.185 0 0)",
+          "oklch(0.25 0 0)",
+          "oklch(0.40 0 0)",
+          "oklch(0.60 0 0)",
+          "oklch(0.80 0 0)",
+          "oklch(0.97 0 0)"
+        ]
+      },
+      "sidebar-dark": {
+        "role": "neutral",
+        "displayName": "Enterprise Rail (Dark)",
+        "canonical": "oklch(0.155 0 0)",
+        "tonalRamp": [
+          "oklch(0.08 0 0)",
+          "oklch(0.12 0 0)",
+          "oklch(0.155 0 0)",
+          "oklch(0.22 0 0)",
+          "oklch(0.35 0 0)",
+          "oklch(0.55 0 0)",
+          "oklch(0.75 0 0)",
+          "oklch(0.95 0 0)"
+        ]
+      },
+      "sidebar-foreground": {
+        "role": "neutral",
+        "displayName": "Rail Type",
+        "canonical": "oklch(0.97 0 0)",
+        "tonalRamp": [
+          "oklch(0.30 0 0)",
+          "oklch(0.45 0 0)",
+          "oklch(0.60 0 0)",
+          "oklch(0.75 0 0)",
+          "oklch(0.85 0 0)",
+          "oklch(0.92 0 0)",
+          "oklch(0.97 0 0)",
+          "oklch(1 0 0)"
+        ]
+      },
+      "sidebar-accent": {
+        "role": "neutral",
+        "displayName": "Rail Active Wash",
+        "canonical": "oklch(1 0 0 / 10%)",
+        "tonalRamp": [
+          "oklch(1 0 0 / 4%)",
+          "oklch(1 0 0 / 6%)",
+          "oklch(1 0 0 / 8%)",
+          "oklch(1 0 0 / 10%)",
+          "oklch(1 0 0 / 14%)",
+          "oklch(1 0 0 / 20%)",
+          "oklch(1 0 0 / 30%)",
+          "oklch(1 0 0 / 50%)"
+        ]
+      },
+      "content-stage": {
+        "role": "neutral",
+        "displayName": "Content Stage",
+        "canonical": "#fafafa",
+        "tonalRamp": [
+          "#0a0a0a",
+          "#171717",
+          "#404040",
+          "#737373",
+          "#a3a3a3",
+          "#d4d4d4",
+          "#f5f5f5",
+          "#fafafa"
+        ]
+      },
+      "content-stage-dark": {
+        "role": "neutral",
+        "displayName": "Content Stage Dark",
+        "canonical": "#0a0a0a",
+        "tonalRamp": [
+          "#0a0a0a",
+          "#171717",
+          "#262626",
+          "#404040",
+          "#737373",
+          "#a3a3a3",
+          "#e5e5e5",
+          "#fafafa"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Auth hero and rare marketing-scale titles."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page and form titles."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Card and section headers."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default operational UI copy."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Badges, eyebrows, meta chips."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Code, IDE, technical metadata."
+      }
+    },
+    "shadows": [
+      {
+        "name": "stage-lift",
+        "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+        "purpose": "Content stage and resting data cards (shadow-sm)."
+      },
+      {
+        "name": "transient-float",
+        "value": "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
+        "purpose": "Popovers and notification menus (shadow-xl)."
+      },
+      {
+        "name": "focus-ring",
+        "value": "0 0 0 3px oklch(0.52 0.21 262 / 50%)",
+        "purpose": "Keyboard focus ring on controls."
+      }
+    ],
+    "motion": [
+      {
+        "name": "stagger-ease",
+        "value": "cubic-bezier(0.25, 0.1, 0.25, 1)",
+        "purpose": "List/table entrance cascade (STAGGER)."
+      },
+      {
+        "name": "stagger-duration",
+        "value": "0.22s",
+        "purpose": "Per-item entrance duration; delay 0.04s × index (first 12)."
+      },
+      {
+        "name": "ask-push",
+        "value": "360ms cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Content stage margin when Ask panel opens."
+      },
+      {
+        "name": "theme-view-transition",
+        "value": "400ms",
+        "purpose": "Theme toggle view-transition duration."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" },
+      { "name": "2xl", "value": "1536px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Default CTA — Prep Ultramarine, compact soft-approachable control.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\">Continue</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; height: 2rem; padding: 0 0.625rem; border: none; border-radius: 0.625rem; background: oklch(0.52 0.21 262); color: oklch(0.985 0 0); font-family: Geist, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: background 0.15s ease; } .ds-btn-primary:hover { background: oklch(0.52 0.21 262 / 80%); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 3px oklch(0.52 0.21 262 / 50%); } .ds-btn-primary:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary action on the content stage.",
+      "html": "<button class=\"ds-btn-outline\" type=\"button\">Import</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; justify-content: center; height: 2rem; padding: 0 0.625rem; border: 1px solid oklch(0.922 0 0); border-radius: 0.625rem; background: oklch(1 0 0); color: oklch(0.145 0 0); font-family: Geist, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: background 0.15s ease; } .ds-btn-outline:hover { background: oklch(0.97 0 0); } .ds-btn-outline:focus-visible { outline: none; border-color: oklch(0.52 0.21 262); box-shadow: 0 0 0 3px oklch(0.52 0.21 262 / 50%); }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Toolbar and quiet chrome actions.",
+      "html": "<button class=\"ds-btn-ghost\" type=\"button\">Cancel</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; height: 2rem; padding: 0 0.625rem; border: none; border-radius: 0.625rem; background: transparent; color: oklch(0.145 0 0); font-family: Geist, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; cursor: pointer; transition: background 0.15s ease; } .ds-btn-ghost:hover { background: oklch(0.97 0 0); } .ds-btn-ghost:focus-visible { outline: none; box-shadow: 0 0 0 3px oklch(0.52 0.21 262 / 50%); }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input-default",
+      "description": "Default form input — compact, hairline border, ultramarine focus.",
+      "html": "<input class=\"ds-input\" type=\"email\" placeholder=\"you@example.com\" />",
+      "css": ".ds-input { box-sizing: border-box; width: 100%; height: 2rem; padding: 0.25rem 0.625rem; border: 1px solid oklch(0.922 0 0); border-radius: 0.625rem; background: transparent; color: oklch(0.145 0 0); font-family: Geist, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; transition: border-color 0.15s ease, box-shadow 0.15s ease; } .ds-input::placeholder { color: oklch(0.556 0 0); } .ds-input:focus-visible { outline: none; border-color: oklch(0.52 0.21 262); box-shadow: 0 0 0 3px oklch(0.52 0.21 262 / 50%); } .ds-input:disabled { opacity: 0.5; background: oklch(0.922 0 0 / 50%); cursor: not-allowed; }"
+    },
+    {
+      "name": "Badge",
+      "kind": "chip",
+      "refersTo": "badge-default",
+      "description": "Pill meta chip for status and labels.",
+      "html": "<span class=\"ds-badge\">For you</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; height: 1.25rem; padding: 0.125rem 0.5rem; border-radius: 9999px; background: oklch(0.52 0.21 262); color: oklch(0.985 0 0); font-family: Geist, ui-sans-serif, system-ui, sans-serif; font-size: 0.75rem; font-weight: 500; white-space: nowrap; }"
+    },
+    {
+      "name": "Card Surface",
+      "kind": "card",
+      "refersTo": "card-surface",
+      "description": "Resting product card inside the content stage.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-card-title\">Resume health</div><div class=\"ds-card-body\">Score updates as you edit sections.</div></div>",
+      "css": ".ds-card { display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem; border: 1px solid oklch(0.922 0 0); border-radius: 0.875rem; background: oklch(1 0 0); box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); color: oklch(0.145 0 0); font-family: Geist, ui-sans-serif, system-ui, sans-serif; } .ds-card-title { font-size: 1rem; font-weight: 500; line-height: 1.375; } .ds-card-body { font-size: 0.875rem; color: oklch(0.556 0 0); line-height: 1.5; }"
+    },
+    {
+      "name": "Content Stage",
+      "kind": "custom",
+      "refersTo": "content-stage",
+      "description": "Signed-in main work surface — soft stage on dark chrome.",
+      "html": "<div class=\"ds-stage\"><header class=\"ds-stage-bar\">Resume Lab</header><div class=\"ds-stage-body\">Page content</div></div>",
+      "css": ".ds-stage { display: flex; flex-direction: column; min-height: 240px; border: 1px solid oklch(0.922 0 0 / 60%); border-radius: 0.875rem; background: #fafafa; box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05); overflow: hidden; font-family: Geist, ui-sans-serif, system-ui, sans-serif; color: oklch(0.145 0 0); } .ds-stage-bar { padding: 0.75rem 1.5rem; border-bottom: 1px solid oklch(0.922 0 0); font-size: 0.875rem; font-weight: 500; background: oklch(1 0 0); } .ds-stage-body { padding: 1.5rem; font-size: 0.875rem; }"
+    },
+    {
+      "name": "Icon Rail Item",
+      "kind": "nav",
+      "refersTo": null,
+      "description": "Dark enterprise icon-rail control; active uses translucent wash.",
+      "html": "<nav class=\"ds-rail\"><button class=\"ds-rail-item\" type=\"button\" aria-label=\"Applications\"><svg class=\"ds-rail-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><rect x=\"3\" y=\"3\" width=\"7\" height=\"7\" rx=\"1\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\" rx=\"1\"/><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\" rx=\"1\"/><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\" rx=\"1\"/></svg></button><button class=\"ds-rail-item ds-rail-item-active\" type=\"button\" aria-label=\"Practice\"><svg class=\"ds-rail-icon\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"M6 4v16\"/><path d=\"M18 4v16\"/><path d=\"M6 12h12\"/></svg></button></nav>",
+      "css": ".ds-rail { display: flex; flex-direction: column; gap: 0.25rem; width: 3.5rem; padding: 0.75rem 0; background: oklch(0.185 0 0); color: oklch(0.97 0 0); align-items: center; } .ds-rail-item { display: inline-flex; align-items: center; justify-content: center; width: 2.25rem; height: 2.25rem; border: none; border-radius: 0.625rem; background: transparent; color: inherit; cursor: pointer; transition: background 0.15s ease; } .ds-rail-item:hover { background: oklch(1 0 0 / 10%); } .ds-rail-item:focus-visible { outline: none; box-shadow: 0 0 0 3px oklch(1 0 0 / 30%); } .ds-rail-item-active { background: oklch(1 0 0 / 10%); } .ds-rail-icon { width: 1.125rem; height: 1.125rem; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Focused Prep Studio",
+    "overview": "MockMatch is a soft product-SaaS workspace for serious interview prep. The brand stage is a dark enterprise shell (near-black icon rail + section nav) with a softly lifted content card as the work surface — a quiet studio floor, not a marketing landing page. Inside that card, density stays productive: compact controls, clear hierarchy, friendly weight without playful noise.\n\nPersonality is approachable and calm: Geist type, rounded-soft geometry, Prep Ultramarine as a confident but sparse accent. Auth heroes may go full primary fields for persuasion; the signed-in app keeps accent for primary actions, focus rings, and readiness/score signals — not wallpaper.\n\nVisual rejections confirmed with the product: no neon gamification, no rainbow chrome as product UI grammar (rainbow/shine/marquee tokens may exist for isolated demos only). Avoid hustle-bro energy and chaotic ornament; the robot mascot is brand presence for waits and empty states, not a carnival of motion.",
+    "keyCharacteristics": [
+      "Dark chrome shell + soft light content stage (card-in-frame)",
+      "Single Prep Ultramarine accent family (light/dark tuned)",
+      "Geist / Geist Mono only for UI chrome",
+      "Compact, soft-approachable controls (default height 2rem / 32px)",
+      "Soft card lift (shadow-sm + hairline borders) on muted canvas",
+      "Quiet list/table entrance stagger; reduced-motion respected",
+      "Robot mascot for content-area loading; skeletons for shaped lists; tiny spinners for chrome"
+    ],
+    "rules": [
+      {
+        "name": "The One Accent Rule",
+        "body": "Prep Ultramarine is the only chromatic brand voice in product chrome. Keep it on primary CTAs, focus, links, and intentional status — not large decorative fills inside the dashboard stage.",
+        "section": "colors"
+      },
+      {
+        "name": "The Dark Chrome Rule",
+        "body": "Icon rail and section nav stay near-black with light type in both light and dark app themes. Do not lighten the rail to match the content card.",
+        "section": "colors"
+      },
+      {
+        "name": "The Soft Stage Rule",
+        "body": "Signed-in work lives on a rounded content card over the dark shell; body canvas remains muted, not pure white full-bleed.",
+        "section": "colors"
+      },
+      {
+        "name": "The One Family Rule",
+        "body": "Do not introduce a serif or alternate UI face for chrome. Document content may use template fonts inside the resume/cover-letter canvas; app chrome stays Geist.",
+        "section": "typography"
+      },
+      {
+        "name": "The Compact Type Rule",
+        "body": "Prefer text-sm for operational UI; reserve large display sizes for auth/marketing heroes, not every dashboard header.",
+        "section": "typography"
+      },
+      {
+        "name": "The Stage Padding Rule",
+        "body": "Standard dashboard pages use 1.5rem stage padding; full-bleed only for document/IDE canvases.",
+        "section": "layout"
+      },
+      {
+        "name": "The Rail Geometry Rule",
+        "body": "Icon rail footprint stays stable (logo slot size-9); collapse morphs affordances without shifting section icons.",
+        "section": "layout"
+      },
+      {
+        "name": "The Soft Lift Rule",
+        "body": "Prefer shadow-sm + border for resting product cards; reserve dramatic shadows for temporary layers.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Flat Rail Rule",
+        "body": "Sidebar chrome is flat tonal — no soft white cards floating inside the dark rail.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Soft Corner Rule",
+        "body": "Prefer lg for controls and xl for containers; avoid square industrial edges in app chrome.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Pill Meta Rule",
+        "body": "Status chips and badges stay fully rounded; do not square-off score/meta pills.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do place signed-in work on the soft content stage over dark chrome.",
+      "Do use Prep Ultramarine for primary actions, focus rings, and intentional signals.",
+      "Do default interactive controls to ~2rem height with rounded-lg corners.",
+      "Do use Geist for UI type and Geist Mono for code.",
+      "Do prefer tonal borders + soft shadow-sm over heavy multi-layer shadows.",
+      "Do use RobotLoader for empty/content waits; Skeleton for list silhouettes; Spinner for chrome.",
+      "Do cascade list/table entrances with the shared STAGGER values.",
+      "Do keep sidebar chrome near-black in light and dark themes."
+    ],
+    "donts": [
+      "Don't use rainbow, shine, or marquee effects as product navigation or dashboard decoration.",
+      "Don't flood large dashboard regions with primary fill (auth hero is the exception).",
+      "Don't lighten the icon rail/section nav into a light gray “second app.”",
+      "Don't introduce a second UI display typeface or hard-square industrial chrome.",
+      "Don't put the robot mascot inside buttons or tiny toolbars.",
+      "Don't re-implement per-feature list stagger timings that diverge from STAGGER.",
+      "Don't invent testimonials, customer logos-as-endorsement, or neon gamified scoreboard aesthetics."
+    ]
+  }
+}

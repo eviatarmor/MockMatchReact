@@ -128,8 +128,8 @@ export function NotificationsPageContent() {
         ) : null}
 
         {!isLoading && !isError && items.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 rounded-xl border bg-card px-4 py-14 text-center">
-            <span className="flex size-12 items-center justify-center rounded-2xl bg-muted/80 text-muted-foreground ring-1 ring-border/60">
+          <div className="flex flex-col items-center gap-2 rounded-xl border border-border/60 bg-card px-4 py-14 text-center shadow-sm ring-1 ring-foreground/5">
+            <span className="flex size-12 items-center justify-center rounded-xl bg-muted/80 text-muted-foreground ring-1 ring-border/60">
               <BellOff className="size-5" aria-hidden />
             </span>
             <p className="text-sm font-medium text-foreground">
@@ -160,7 +160,7 @@ export function NotificationsPageContent() {
                     <DaySectionHeader dayKey={group.dayKey} />
                   </div>
 
-                  <ul className="flex flex-col gap-0.5 rounded-2xl border border-border/60 bg-card p-1.5 shadow-sm ring-1 ring-foreground/5">
+                  <ul className="flex flex-col gap-0.5 rounded-xl border border-border/60 bg-card p-1.5 shadow-sm ring-1 ring-foreground/5">
                     {group.items.map((notification) => {
                       const index = staggerIndex
                       staggerIndex += 1

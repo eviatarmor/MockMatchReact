@@ -37,11 +37,11 @@ export function SessionTableRow({
 
   return (
     <tr className="group border-b border-border/40 transition-colors hover:bg-muted/5">
-      <td className="py-3 px-4">
+      <td className="px-4 py-3">
         <button
           type="button"
           onClick={openSession}
-          className="flex w-full items-center gap-3 text-left cursor-pointer"
+          className="flex w-full cursor-pointer items-center gap-3 text-left"
         >
           <div
             className={`flex size-10 shrink-0 items-center justify-center rounded-xl text-sm font-semibold select-none ${avatarClass}`}

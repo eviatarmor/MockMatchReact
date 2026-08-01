@@ -146,9 +146,9 @@ export function RegionSection({ form }: RegionSectionProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
+          <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/30 p-3">
             <Badge variant="secondary">{t("region.previewLabel")}</Badge>
-            <span className="text-sm text-foreground">
+            <span className="text-sm tabular-nums text-foreground">
               {formatDate(now, dateFormat)} · {formatTime(now, timeFormat)}
             </span>
             <span className="ml-auto text-xs text-muted-foreground">

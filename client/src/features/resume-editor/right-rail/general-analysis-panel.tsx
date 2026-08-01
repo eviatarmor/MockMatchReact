@@ -32,21 +32,21 @@ const SEVERITY_CARD: Record<AnalysisSeverity, string> = {
   medium:
     "border-amber-200/80 bg-amber-50/80 dark:border-amber-900/45 dark:bg-amber-950/30",
   low:
-    "border-sky-200/80 bg-sky-50/80 dark:border-sky-900/45 dark:bg-sky-950/30",
+    "border-primary/20 bg-primary/8 dark:border-primary/30 dark:bg-primary/15",
 }
 
 const SEVERITY_DOT: Record<AnalysisSeverity, string> = {
   critical: "bg-rose-500",
   high: "bg-orange-500",
   medium: "bg-amber-500",
-  low: "bg-sky-500",
+  low: "bg-primary",
 }
 
 const SEVERITY_LABEL: Record<AnalysisSeverity, string> = {
   critical: "text-rose-700 dark:text-rose-300",
   high: "text-orange-700 dark:text-orange-300",
   medium: "text-amber-800 dark:text-amber-300",
-  low: "text-sky-700 dark:text-sky-300",
+  low: "text-primary",
 }
 
 function scoreTone(score: number): string {
@@ -176,7 +176,7 @@ export function GeneralAnalysisPanel({ document }: GeneralAnalysisPanelProps) {
                 <span
                   key={sev}
                   className={cn(
-                    "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-medium",
+                    "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-2xs font-medium",
                     SEVERITY_CARD[sev],
                     SEVERITY_LABEL[sev]
                   )}

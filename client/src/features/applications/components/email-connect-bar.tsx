@@ -61,8 +61,7 @@ export function EmailConnectBar({
       layout
       transition={pillTransition}
       className={cn(
-        "inline-flex h-9 items-center gap-1 rounded-full border border-border/60 bg-muted/40 p-1 shadow-sm backdrop-blur-sm",
-        "supports-[backdrop-filter]:bg-muted/30"
+        "inline-flex h-8 items-center gap-1 rounded-full border border-border/60 bg-muted/40 p-0.5 shadow-sm"
       )}
       role="group"
       aria-label={t("applications.email.syncLabel")}
@@ -82,7 +81,7 @@ export function EmailConnectBar({
         </motion.span>
       </AnimatePresence>
 
-      <div className="flex h-7 items-center gap-0.5">
+      <div className="flex h-6 items-center gap-0.5">
         <AnimatePresence mode="popLayout" initial={false}>
           {visibleProviders.map((provider) => {
             const Icon = PROVIDER_ICONS[provider.id]
@@ -105,7 +104,7 @@ export function EmailConnectBar({
                   transition: { duration: 0.16, ease: [0.4, 0, 0.2, 1] },
                 }}
                 transition={itemTransition}
-                className="relative size-7 shrink-0"
+                className="relative size-6 shrink-0"
               >
                 <Tooltip>
                   <TooltipTrigger
@@ -113,7 +112,7 @@ export function EmailConnectBar({
                       <button
                         type="button"
                         className={cn(
-                          "relative flex size-7 items-center justify-center rounded-full",
+                          "relative flex size-6 items-center justify-center rounded-full",
                           "text-foreground outline-none transition-colors",
                           "hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/50",
                           "cursor-pointer select-none",

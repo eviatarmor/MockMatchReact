@@ -18,7 +18,7 @@ export function SearchBar({ placeholder = "Search...", value, onChange, classNam
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
-        className="h-8 w-full bg-muted/30 pl-9 pr-4 focus:bg-background transition-colors"
+        className="h-8 w-full bg-muted/30 pr-4 pl-9 transition-colors focus:bg-card"
       />
     </div>
   )

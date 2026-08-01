@@ -3,6 +3,7 @@ import { Download } from "lucide-react"
 import { Badge } from "@mockmatch/ui/badge"
 import { Button } from "@mockmatch/ui/button"
 import { Card, CardContent } from "@mockmatch/ui/card"
+import { Skeleton } from "@mockmatch/ui/skeleton"
 import {
   Table,
   TableBody,
@@ -27,7 +28,12 @@ export function BillingHistorySection() {
       <Card>
         <CardContent>
           {invoicesQuery.isLoading ? (
-            <div className="h-32 animate-pulse rounded-lg bg-muted/40" />
+            <div className="flex flex-col gap-3 py-2" aria-hidden>
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+              <Skeleton className="h-4 w-4/5" />
+              <Skeleton className="h-4 w-full" />
+            </div>
           ) : invoices.length === 0 ? (
             <p className="py-6 text-center text-sm text-muted-foreground">
               {t("history.empty")}
@@ -46,7 +52,7 @@ export function BillingHistorySection() {
               <TableBody>
                 {invoices.map((invoice) => (
                   <TableRow key={invoice.id}>
-                    <TableCell className="font-medium text-foreground">{invoice.id}</TableCell>
+                    <TableCell className="font-mono text-sm font-medium text-foreground">{invoice.id}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatInvoiceDate(invoice.date, dateFormat)}
                     </TableCell>

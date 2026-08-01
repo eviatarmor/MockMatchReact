@@ -9,8 +9,8 @@ export {
 
 /** Status color dots — shared by kanban header + table status select. */
 export const STATUS_DOT_CLASS: Record<TrackingStatus, string> = {
-  saved: "bg-neutral-400",
-  applied: "bg-blue-500",
+  saved: "bg-muted-foreground/50",
+  applied: "bg-primary",
   interviewing: "bg-amber-500",
   offer: "bg-emerald-500",
   declined: "bg-rose-500",

@@ -61,13 +61,14 @@ export function DiscoverJobListItem({
           onSelect(job)
         }
       }}
-      className="flex items-start gap-3 p-3"
+      className="flex items-start gap-3 p-3.5"
     >
       <div
         className={cn(
           "flex size-9 shrink-0 items-center justify-center rounded-lg text-xs font-semibold select-none",
           job.avatarColorClass
         )}
+        aria-hidden
       >
         {job.avatarText}
       </div>
@@ -78,17 +79,17 @@ export function DiscoverJobListItem({
             {job.title}
           </span>
           {job.isNew && (
-            <Badge variant="default" className="h-4 px-1.5 text-[10px]">
+            <Badge variant="default" className="h-4 px-1.5 text-2xs">
               {t("discover.filters.new")}
             </Badge>
           )}
           {job.remoteType === "remote" && (
-            <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">
+            <Badge variant="secondary" className="h-4 px-1.5 text-2xs">
               {t("discover.filters.remote")}
             </Badge>
           )}
           {job.remoteType === "hybrid" && (
-            <Badge variant="outline" className="h-4 px-1.5 text-[10px]">
+            <Badge variant="outline" className="h-4 px-1.5 text-2xs">
               {t("discover.remoteTypes.hybrid")}
             </Badge>
           )}
@@ -101,8 +102,8 @@ export function DiscoverJobListItem({
         {meta.length > 0 && (
           <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
             {meta.map((item) => (
-              <span key={item.key} className="flex items-center gap-1">
-                <item.icon className="size-3 shrink-0" />
+              <span key={item.key} className="flex min-w-0 items-center gap-1">
+                <item.icon className="size-3 shrink-0" aria-hidden />
                 <span className="truncate">{item.label}</span>
               </span>
             ))}

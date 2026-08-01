@@ -5,6 +5,7 @@ import { Button } from "@mockmatch/ui/button"
 import { Card, CardContent } from "@mockmatch/ui/card"
 import { Progress } from "@mockmatch/ui/progress"
 import { Separator } from "@mockmatch/ui/separator"
+import { Skeleton } from "@mockmatch/ui/skeleton"
 import { SectionShell } from "@/components/layout/section-shell"
 import { BREAKDOWN_LABEL_KEYS } from "@/features/billing/constants"
 import {
@@ -20,12 +21,20 @@ import {
 
 function UsageSkeleton() {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4" aria-hidden>
       <Card>
-        <CardContent className="h-24 animate-pulse rounded-lg bg-muted/40" />
+        <CardContent className="space-y-3 py-6">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-8 w-24" />
+          <Skeleton className="h-2 w-full" />
+        </CardContent>
       </Card>
       <Card>
-        <CardContent className="h-40 animate-pulse rounded-lg bg-muted/40" />
+        <CardContent className="space-y-3 py-6">
+          <Skeleton className="h-4 w-40" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-9 w-full" />
+        </CardContent>
       </Card>
     </div>
   )
@@ -56,12 +65,15 @@ function PackList({ packs, stripeConfigured, pending, onTopUp }: PackListProps) 
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-xs uppercase tracking-wide text-muted-foreground">
+      <span className="text-xs font-medium text-muted-foreground">
         {t("usage.packsHeading")}
       </span>
       {available.map((pack) => (
-        <div key={pack.id} className="flex items-center justify-between gap-4">
-          <div className="flex flex-col">
+        <div
+          key={pack.id}
+          className="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-muted/30 px-3 py-2.5"
+        >
+          <div className="flex min-w-0 flex-col">
             <span className="text-sm font-medium text-foreground">
               {t("usage.packCredits", { count: pack.credits })}
             </span>
@@ -71,7 +83,7 @@ function PackList({ packs, stripeConfigured, pending, onTopUp }: PackListProps) 
           </div>
           <Button
             size="sm"
-            className="cursor-pointer"
+            className="shrink-0 cursor-pointer"
             disabled={pending}
             onClick={() => onTopUp(pack.id)}
           >
@@ -109,7 +121,7 @@ function UsageBody({
       <Card>
         <CardContent className="flex items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <span className="text-xs uppercase tracking-wide text-muted-foreground">
+            <span className="text-xs font-medium text-muted-foreground">
               {t("usage.currentPlan")}
             </span>
             <div className="flex items-center gap-2">
@@ -127,7 +139,7 @@ function UsageBody({
         <CardContent className="flex flex-col gap-4">
           <div className="flex items-end justify-between gap-4">
             <div className="flex flex-col">
-              <span className="text-xs uppercase tracking-wide text-muted-foreground">
+              <span className="text-xs font-medium text-muted-foreground">
                 {t("usage.credits.heading")}
               </span>
               <span className="text-2xl font-semibold text-foreground tabular-nums">
@@ -147,7 +159,7 @@ function UsageBody({
           <Separator />
 
           <div className="flex flex-col gap-2">
-            <span className="text-xs uppercase tracking-wide text-muted-foreground">
+            <span className="text-xs font-medium text-muted-foreground">
               {t("usage.credits.breakdownHeading")}
             </span>
             {breakdownRows.map((item, index) => (

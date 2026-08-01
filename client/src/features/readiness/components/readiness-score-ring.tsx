@@ -11,7 +11,7 @@ export function ReadinessScoreRing({ score, delta }: ReadinessScoreRingProps) {
   const { t } = useTranslation("common")
 
   return (
-    <div className="flex items-center gap-4 rounded-xl border bg-card p-5 shadow-sm">
+    <div className="flex items-center gap-4 rounded-xl border border-border/60 bg-card p-5 shadow-sm">
       <ProgressRing
         value={score}
         box={100}
@@ -22,19 +22,19 @@ export function ReadinessScoreRing({ score, delta }: ReadinessScoreRingProps) {
         progressClass="text-primary duration-700"
       >
         <span className="text-2xl font-bold leading-none">{score}</span>
-        <span className="text-[10px] text-muted-foreground">/ 100</span>
+        <span className="text-2xs text-muted-foreground">/ 100</span>
       </ProgressRing>
 
       <div className="flex flex-col gap-2">
-        <p className="text-sm font-semibold text-muted-foreground">{t("readiness.overallLabel")}</p>
+        <p className="text-sm font-medium text-muted-foreground">{t("readiness.overallLabel")}</p>
         <Badge variant="secondary">
           {t("readiness.almostReady")}
         </Badge>
         <p className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
-          <span>↗</span>
+          <span aria-hidden>↗</span>
           <span>+{delta} {t("readiness.thisMonth")}</span>
         </p>
-        <p className="text-xs text-muted-foreground max-w-[18ch]">
+        <p className="max-w-[18ch] text-xs text-muted-foreground">
           {t("readiness.improveTip")}
         </p>
       </div>

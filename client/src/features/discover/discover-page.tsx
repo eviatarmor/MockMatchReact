@@ -19,12 +19,12 @@ export function DiscoverPageContent() {
           description={t("discover.description")}
           actions={
             <Badge
-              variant="secondary"
-              className="h-9 gap-1.5 px-3 font-medium"
+              variant="outline"
+              className="h-7 gap-1.5 px-2.5 font-normal text-muted-foreground"
               title={t("discover.searchingIn", { country: countryName })}
             >
-              <Globe className="size-3.5" />
-              <span className="text-xs sm:text-sm">
+              <Globe className="size-3.5 shrink-0" aria-hidden />
+              <span className="text-xs">
                 {t("discover.searchingIn", { country: countryName })}
               </span>
             </Badge>

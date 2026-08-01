@@ -20,24 +20,24 @@ export function AutofillExtensionBanner() {
   const { t } = useTranslation("common")
 
   return (
-    <div className="flex flex-col gap-0 rounded-xl border bg-card shadow-sm overflow-hidden">
+    <div className="flex flex-col gap-0 overflow-hidden rounded-xl border border-border/60 bg-card shadow-sm ring-1 ring-foreground/5">
       <div className="flex items-start justify-between gap-4 p-5">
         <div className="flex items-start gap-4">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15">
             <Zap className="size-6" />
           </div>
           <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-base font-semibold">{t("autofill.extension.name")}</span>
-              <Badge variant="default">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-base font-medium text-foreground">{t("autofill.extension.name")}</span>
+              <Badge variant="secondary">
                 {t("autofill.extension.status")}
               </Badge>
               <span className="text-xs text-muted-foreground">v2.4.1</span>
             </div>
-            <p className="text-sm text-muted-foreground max-w-md">{t("autofill.extension.description")}</p>
+            <p className="max-w-md text-sm text-muted-foreground">{t("autofill.extension.description")}</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {BROWSERS.map((b) => (
-                <Badge key={b.id} variant={b.active ? "default" : "outline"}>
+                <Badge key={b.id} variant={b.active ? "secondary" : "outline"}>
                   {b.active && <Check className="size-3" />}
                   {t(b.labelKey)}
                 </Badge>
@@ -57,14 +57,14 @@ export function AutofillExtensionBanner() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 divide-y border-t bg-muted/20 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+      <div className="grid grid-cols-1 divide-y border-t border-border/60 bg-muted/30 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         {STEPS.map((step) => (
           <div key={step.n} className="flex items-start gap-3 px-5 py-3">
-            <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground mt-0.5">
+            <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-2xs font-semibold text-primary-foreground">
               {step.n}
             </span>
             <div className="flex flex-col">
-              <span className="text-sm font-medium">{t(step.titleKey)}</span>
+              <span className="text-sm font-medium text-foreground">{t(step.titleKey)}</span>
               <span className="text-xs text-muted-foreground">{t(step.descKey)}</span>
             </div>
           </div>

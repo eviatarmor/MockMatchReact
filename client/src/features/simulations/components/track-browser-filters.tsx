@@ -55,11 +55,13 @@ export function TrackBrowserFilters({
   const { t } = useTranslation("common")
 
   return (
-    <div className="flex flex-col gap-5">
-      <span className="text-sm font-semibold">{t("simulations.tracksBrowser.filters.title")}</span>
+    <div className="flex flex-col gap-5 rounded-xl border border-border/60 bg-card/40 p-3 shadow-sm">
+      <span className="text-sm font-semibold text-foreground">
+        {t("simulations.tracksBrowser.filters.title")}
+      </span>
 
       <section className="flex flex-col gap-2">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        <p className="text-2xs font-medium uppercase tracking-wide text-muted-foreground">
           {t("simulations.tracksBrowser.filters.roleFamily")}
         </p>
         {TRACK_ROLE_FAMILIES.map((family) => (
@@ -71,13 +73,15 @@ export function TrackBrowserFilters({
               />
               <span className="text-sm">{t(`simulations.roleFamily.${family}`)}</span>
             </div>
-            <span className="text-xs text-muted-foreground">{countByRoleFamily(family)}</span>
+            <span className="text-2xs tabular-nums text-muted-foreground">
+              {countByRoleFamily(family)}
+            </span>
           </label>
         ))}
       </section>
 
       <section className="flex flex-col gap-2">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        <p className="text-2xs font-medium uppercase tracking-wide text-muted-foreground">
           {t("simulations.tracksBrowser.filters.difficulty")}
         </p>
         {TRACK_DIFFICULTIES.map((d) => (
@@ -89,13 +93,15 @@ export function TrackBrowserFilters({
               />
               <span className="text-sm">{t(`simulations.difficulty.${d}`)}</span>
             </div>
-            <span className="text-xs text-muted-foreground">{countByDifficulty(d)}</span>
+            <span className="text-2xs tabular-nums text-muted-foreground">
+              {countByDifficulty(d)}
+            </span>
           </label>
         ))}
       </section>
 
       <section className="flex flex-col gap-2">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        <p className="text-2xs font-medium uppercase tracking-wide text-muted-foreground">
           {t("simulations.tracksBrowser.filters.duration")}
         </p>
         {TRACK_DURATION_BUCKETS.map((bucket) => (
@@ -107,25 +113,29 @@ export function TrackBrowserFilters({
               />
               <span className="text-sm">{t(`simulations.durationBucket.${bucket}`)}</span>
             </div>
-            <span className="text-xs text-muted-foreground">{countByDuration(bucket)}</span>
+            <span className="text-2xs tabular-nums text-muted-foreground">
+              {countByDuration(bucket)}
+            </span>
           </label>
         ))}
       </section>
 
       <section className="flex flex-col gap-2">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        <p className="text-2xs font-medium uppercase tracking-wide text-muted-foreground">
           {t("simulations.tracksBrowser.filters.format")}
         </p>
         {TRACK_FORMATS.map((format) => (
           <label key={format} className="flex cursor-pointer items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex min-w-0 items-center gap-2">
               <Checkbox
                 checked={selectedFormats.has(format)}
                 onCheckedChange={() => onFormatToggle(format)}
               />
               <span className="text-sm leading-snug">{t(`simulations.format.${format}`)}</span>
             </div>
-            <span className="text-xs text-muted-foreground shrink-0">{countByFormat(format)}</span>
+            <span className="shrink-0 text-2xs tabular-nums text-muted-foreground">
+              {countByFormat(format)}
+            </span>
           </label>
         ))}
       </section>

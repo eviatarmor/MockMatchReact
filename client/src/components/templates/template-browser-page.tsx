@@ -1,11 +1,13 @@
 import { useMemo, useState } from "react"
-import { ArrowLeft, Search } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { Input } from "@mockmatch/ui/input"
 import { Button } from "@mockmatch/ui/button"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
+import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
+import { TableToolbar } from "@/components/dashboard/table-toolbar"
 import { StaggerItem } from "@mockmatch/ui/stagger"
+import { cn } from "@/lib/utils"
 import { TemplateCard } from "./template-card"
 import type { TemplateItem } from "./types"
 
@@ -48,57 +50,59 @@ export function TemplateBrowserPage({
 
   return (
     <DashboardPageShell title={t(`${translationPrefix}.browseTitle`)}>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-1">
           <button
             type="button"
             onClick={() => navigate(backTo)}
-            className="flex w-fit items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground cursor-pointer"
+            className="flex w-fit cursor-pointer items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="size-4" />
             {t(`${translationPrefix}.browseBackLink`)}
           </button>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            {t(`${translationPrefix}.browseTitle`)}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {t(`${translationPrefix}.browseDescription`, { count: items.length })}
-          </p>
+          <DashboardPageHeader
+            title={t(`${translationPrefix}.browseTitle`)}
+            description={t(`${translationPrefix}.browseDescription`, { count: items.length })}
+          />
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
-          <div className="relative w-full sm:w-72 sm:shrink-0">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={t(`${translationPrefix}.searchPlaceholder`)}
-              className="pl-9"
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-            <Button
-              variant={activeCategory === "all" ? "default" : "outline"}
-              size="sm"
-              className="cursor-pointer"
-              onClick={() => setActiveCategory("all")}
-            >
-              {t(`${translationPrefix}.categories.all`)}
-            </Button>
-            {categories.map((category) => (
+        <TableToolbar
+          searchPlaceholder={t(`${translationPrefix}.searchPlaceholder`)}
+          search={query}
+          onSearchChange={setQuery}
+          searchClassName="max-w-full sm:max-w-xs"
+          filters={
+            <div className="flex flex-wrap items-center gap-1.5">
               <Button
-                key={category}
-                variant={activeCategory === category ? "default" : "outline"}
+                variant="outline"
                 size="sm"
-                className="cursor-pointer"
-                onClick={() => setActiveCategory(category)}
+                className={cn(
+                  "h-8 cursor-pointer",
+                  activeCategory === "all" &&
+                    "border-primary/30 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
+                )}
+                onClick={() => setActiveCategory("all")}
               >
-                {t(`${translationPrefix}.categories.${category}`)}
+                {t(`${translationPrefix}.categories.all`)}
               </Button>
-            ))}
-          </div>
-        </div>
+              {categories.map((category) => (
+                <Button
+                  key={category}
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    "h-8 cursor-pointer",
+                    activeCategory === category &&
+                      "border-primary/30 bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
+                  )}
+                  onClick={() => setActiveCategory(category)}
+                >
+                  {t(`${translationPrefix}.categories.${category}`)}
+                </Button>
+              ))}
+            </div>
+          }
+        />
 
         {filteredTemplates.length > 0 ? (
           <div
@@ -117,7 +121,7 @@ export function TemplateBrowserPage({
             ))}
           </div>
         ) : (
-          <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
+          <div className="flex h-48 items-center justify-center rounded-xl border border-dashed border-border/70 bg-card/40 text-sm text-muted-foreground">
             {t(`${translationPrefix}.noResults`)}
           </div>
         )}

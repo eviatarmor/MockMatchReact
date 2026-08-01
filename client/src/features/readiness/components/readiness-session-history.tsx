@@ -10,16 +10,16 @@ export function ReadinessSessionHistory({ rows }: ReadinessSessionHistoryProps) 
   const { t } = useTranslation("common")
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border bg-card p-5 shadow-sm">
+    <div className="flex flex-col gap-4 rounded-xl border border-border/60 bg-card p-5 shadow-sm">
       <div className="flex flex-col gap-0.5">
-        <h2 className="text-base font-semibold">{t("readiness.history.title")}</h2>
+        <h2 className="font-heading text-base font-semibold text-foreground">{t("readiness.history.title")}</h2>
         <p className="text-sm text-muted-foreground">{t("readiness.history.description")}</p>
       </div>
 
       <ScrollArea className="w-full">
         <table className="w-full border-collapse text-left">
           <thead>
-            <tr className="border-b border-border text-xs text-primary select-none">
+            <tr className="border-b border-border text-xs text-muted-foreground select-none">
               <th className="py-2 pr-4 font-medium">{t("readiness.history.columns.date")}</th>
               <th className="py-2 pr-4 font-medium">{t("readiness.history.columns.role")}</th>
               <th className="py-2 pr-4 font-medium">{t("readiness.history.columns.track")}</th>
@@ -27,18 +27,20 @@ export function ReadinessSessionHistory({ rows }: ReadinessSessionHistoryProps) 
               <th className="py-2 font-medium">{t("readiness.history.columns.delta")}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border/40">
+          <tbody className="entity-table-body divide-y divide-border/40">
             {rows.map((row) => (
               <tr key={row.id} className="group hover:bg-muted/5 transition-colors">
-                <td className="py-3 pr-4 text-sm text-primary">{row.date}</td>
-                <td className="py-3 pr-4 text-sm font-semibold group-hover:text-primary transition-colors">{row.role}</td>
+                <td className="py-3 pr-4 text-sm text-muted-foreground">{row.date}</td>
+                <td className="py-3 pr-4 text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{row.role}</td>
                 <td className="py-3 pr-4 text-sm text-muted-foreground">{row.track}</td>
-                <td className="py-3 pr-4 text-sm font-medium">{row.score}</td>
-                <td className="py-3 text-sm font-medium">
+                <td className="py-3 pr-4 text-sm font-medium tabular-nums">{row.score}</td>
+                <td className="py-3 text-sm font-medium tabular-nums">
                   {row.delta > 0 ? (
                     <span className="text-emerald-600 dark:text-emerald-400">↗ +{row.delta}</span>
+                  ) : row.delta < 0 ? (
+                    <span className="text-rose-600 dark:text-rose-400">↘ {row.delta}</span>
                   ) : (
-                    <span className="text-red-500 dark:text-red-400">↘ {row.delta}</span>
+                    <span className="text-muted-foreground">—</span>
                   )}
                 </td>
               </tr>

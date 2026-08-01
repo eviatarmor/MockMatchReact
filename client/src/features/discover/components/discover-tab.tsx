@@ -6,6 +6,7 @@ import { useDetailPanel } from "@/hooks/use-detail-panel"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { EntityEmptyState } from "@/components/data/entity-empty-state"
 import { Card } from "@mockmatch/ui/card"
+import { Skeleton } from "@mockmatch/ui/skeleton"
 import { StaggerItem } from "@mockmatch/ui/stagger"
 import { cn } from "@/lib/utils"
 import { DiscoverFilterBar } from "./discover-filter-bar"
@@ -189,9 +190,8 @@ export function DiscoverTab({ state }: DiscoverTabProps) {
           {/* Right: sticky detail card — stays while page scrolls */}
           <Card
             className={cn(
-              "sticky top-2 hidden min-h-0 flex-col overflow-hidden py-0 ring-foreground/10 lg:flex",
-              "h-[calc(100svh-5.5rem)] self-start",
-              "hover:ring-foreground/10"
+              "sticky top-2 hidden min-h-0 flex-col overflow-hidden py-0 shadow-sm ring-foreground/10 lg:flex",
+              "h-[calc(100svh-5.5rem)] self-start"
             )}
           >
             {selectedJob ? (
@@ -199,21 +199,24 @@ export function DiscoverTab({ state }: DiscoverTabProps) {
                 <JobDetailsPanel job={selectedJob} variant="pane" />
               </div>
             ) : state.isLoading ? (
-              <div className="flex h-full flex-col gap-4 p-6">
+              <div className="flex h-full flex-col gap-4 p-6" aria-hidden>
                 <div className="flex items-start gap-3">
-                  <div className="size-10 animate-pulse rounded-xl bg-muted" />
+                  <Skeleton className="size-10 shrink-0 rounded-xl" />
                   <div className="flex flex-1 flex-col gap-2">
-                    <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
-                    <div className="h-3 w-1/3 animate-pulse rounded bg-muted" />
+                    <Skeleton className="h-4 w-2/3 max-w-56" />
+                    <Skeleton className="h-3 w-1/3 max-w-32" />
                   </div>
                 </div>
-                <div className="h-24 animate-pulse rounded-xl bg-muted" />
-                <div className="h-40 animate-pulse rounded-xl bg-muted" />
+                <Skeleton className="h-20 w-full rounded-xl" />
+                <Skeleton className="h-10 w-full rounded-lg" />
+                <Skeleton className="min-h-32 flex-1 w-full rounded-xl" />
               </div>
             ) : (
-              <div className="flex h-full flex-col items-center justify-center gap-2 p-8 text-center">
-                <Briefcase className="size-8 text-muted-foreground/50" />
-                <p className="text-sm font-medium text-muted-foreground">
+              <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
+                <span className="flex size-12 items-center justify-center rounded-xl bg-muted">
+                  <Briefcase className="size-5 text-muted-foreground" aria-hidden />
+                </span>
+                <p className="text-sm text-muted-foreground">
                   {t("discover.selectJob")}
                 </p>
               </div>

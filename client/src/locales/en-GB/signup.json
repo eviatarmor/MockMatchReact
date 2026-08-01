@@ -33,8 +33,7 @@
   "sendingCodeLabel": "Sending code…",
   "signInPrompt": "Already have an account?",
   "signInLabel": "Sign in",
-  "socialProofPrefix": "Join",
-  "socialProofSuffix": "candidates prepping smarter.",
+  "trustMessage": "Free to start — build resumes, practice interviews, and track applications in one place.",
   "codeStep": {
     "title": "Check your email",
     "description": "We sent a 6-digit code to <strong>{{email}}</strong>. Enter it below to confirm your account.",

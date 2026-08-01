@@ -23,7 +23,7 @@ function ThemePreview({ mode }: { readonly mode: ThemeMode }) {
   const accent = "bg-primary"
 
   return (
-    <div className={cn("aspect-[16/10] w-full overflow-hidden rounded-md p-2", base)}>
+    <div className={cn("aspect-[16/10] w-full overflow-hidden rounded-lg p-2 ring-1 ring-foreground/10", base)}>
       <div className="flex h-full gap-1.5">
         <div className="flex w-1/3 flex-col gap-1">
           <div className={cn("h-1.5 w-full rounded-full", accent)} />
@@ -32,7 +32,7 @@ function ThemePreview({ mode }: { readonly mode: ThemeMode }) {
         </div>
         <div className="flex flex-1 flex-col gap-1">
           <div className={cn("h-2 w-1/2 rounded-full", bar)} />
-          <div className={cn("flex-1 rounded", bar, "opacity-60")} />
+          <div className={cn("flex-1 rounded-md", bar, "opacity-60")} />
         </div>
       </div>
     </div>

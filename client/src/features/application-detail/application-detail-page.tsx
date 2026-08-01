@@ -2,6 +2,7 @@ import { useMemo } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
+import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
 import { Button } from "@mockmatch/ui/button"
 import { MOCK_TRACKED_JOBS } from "@/features/discover/constants"
 import { useTrackedJobs } from "@/features/applications/hooks/use-tracked-jobs"
@@ -64,7 +65,7 @@ export function ApplicationDetailPageContent() {
       <DashboardPageShell title={t("applicationDetail.title")}>
         <div className="flex flex-col items-center gap-3 py-16 text-center">
           <p className="text-sm text-muted-foreground">{t("applicationDetail.notFound")}</p>
-          <Button variant="outline" className="cursor-pointer" onClick={() => navigate("/applications")}>
+          <Button variant="outline" className="h-8 cursor-pointer" onClick={() => navigate("/applications")}>
             {t("applicationDetail.backLink")}
           </Button>
         </div>
@@ -77,10 +78,10 @@ export function ApplicationDetailPageContent() {
       <div className="flex flex-col gap-4">
         <ApplicationDetailHeader currentJob={job} />
 
-        <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">{t("applicationDetail.title")}</h1>
-          <p className="text-sm text-muted-foreground">{t("applicationDetail.description")}</p>
-        </div>
+        <DashboardPageHeader
+          title={t("applicationDetail.title")}
+          description={t("applicationDetail.description")}
+        />
 
         <ApplicationSummaryCard
           job={job}

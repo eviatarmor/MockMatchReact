@@ -44,7 +44,7 @@ export function SectionNav({ section, collapsed, onToggle }: SectionNavProps) {
           <div className="flex flex-col gap-5 px-3 pb-4">
             {NAV_SECTIONS.map((group) => (
               <div key={group.id} className="flex flex-col gap-1">
-                <span className="px-3 pb-1 text-[11px] font-medium uppercase tracking-wider text-sidebar-foreground/45">
+                <span className="px-3 pb-1 text-2xs font-medium uppercase tracking-wider text-sidebar-foreground/45">
                   {t(group.labelKey)}
                 </span>
                 {group.items.map((item) => {

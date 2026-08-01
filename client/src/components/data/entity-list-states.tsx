@@ -26,7 +26,7 @@ export function EntityListStates({
 }: EntityListStatesProps) {
   if (isError) {
     return (
-      <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-6 text-center text-sm text-destructive">
+      <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-6 text-center text-sm text-destructive shadow-sm">
         {errorMessage}
       </p>
     )
@@ -34,7 +34,7 @@ export function EntityListStates({
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 rounded-xl border bg-card px-4 py-10 text-center text-sm text-muted-foreground">
+      <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-10 text-center text-sm text-muted-foreground shadow-sm">
         <RobotLoader size="md" label={loadingMessage} />
         <p>{loadingMessage}</p>
       </div>

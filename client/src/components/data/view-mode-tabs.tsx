@@ -26,7 +26,7 @@ export function ViewModeTabs({ value, onValueChange, className }: ViewModeTabsPr
       }}
       className={cn("w-fit", className)}
     >
-      <TabsList className="h-8">
+      <TabsList className="h-8 bg-muted/40">
         <TabsTrigger
           value="table"
           className="h-full cursor-pointer px-2.5"

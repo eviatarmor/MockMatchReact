@@ -59,7 +59,7 @@ export function NotificationBell() {
         side="bottom"
         sideOffset={8}
         className={cn(
-          "w-[22rem] gap-0 overflow-hidden rounded-2xl p-3 sm:w-96",
+          "w-[22rem] gap-0 overflow-hidden rounded-xl p-3 sm:w-96",
           "border-0 bg-popover/95 shadow-xl shadow-black/10 ring-1 ring-foreground/10",
           "backdrop-blur-xl dark:shadow-black/40"
         )}

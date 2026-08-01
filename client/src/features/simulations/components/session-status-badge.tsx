@@ -15,7 +15,7 @@ export function SessionStatusBadge({ status, className }: SessionStatusBadgeProp
   return (
     <Badge
       variant={status === "in_progress" ? "default" : "outline"}
-      className={cn(className)}
+      className={cn("text-2xs font-medium", className)}
     >
       {t(`simulations.recentSessions.statusLabels.${status}`)}
     </Badge>

@@ -102,7 +102,7 @@ export function TrackingKanban({
                 >
                   <div className="flex flex-1 flex-col gap-2">
                     {items.length === 0 ? (
-                      <div className="flex h-20 items-center justify-center rounded-lg border border-dashed text-xs text-muted-foreground">
+                      <div className="flex h-20 items-center justify-center rounded-xl border border-dashed border-border/60 text-xs text-muted-foreground">
                         {t("applications.kanban.empty")}
                       </div>
                     ) : (

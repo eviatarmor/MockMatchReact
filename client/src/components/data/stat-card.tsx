@@ -20,16 +20,27 @@ export function StatCard({ iconName, label, value, subValue, delta }: StatCardPr
   const Icon = resolveIcon(iconName)
 
   return (
-    <div className="flex items-start justify-between rounded-xl border bg-card p-5 shadow-sm">
+    <div className="flex items-start justify-between rounded-xl border border-border/60 bg-card p-5 shadow-sm ring-1 ring-foreground/5">
       <div className="flex flex-col gap-1">
         <p className="text-sm text-muted-foreground">{label}</p>
-        <p className="text-2xl font-bold leading-tight">
+        <p className="text-2xl font-semibold leading-tight tabular-nums text-foreground">
           {value}
-          {subValue && <> <span className="text-sm font-normal text-muted-foreground">{subValue}</span></>}
+          {subValue && (
+            <>
+              {" "}
+              <span className="text-sm font-normal text-muted-foreground">{subValue}</span>
+            </>
+          )}
         </p>
         {delta && (
-          <p className={`flex items-center gap-1 text-xs ${delta.positive ? "text-emerald-600 dark:text-emerald-400" : "text-red-500"}`}>
-            <span>{delta.positive ? "↗" : "↘"}</span>
+          <p
+            className={
+              delta.positive
+                ? "flex items-center gap-1 text-2xs text-emerald-600 dark:text-emerald-400"
+                : "flex items-center gap-1 text-2xs text-rose-600 dark:text-rose-400"
+            }
+          >
+            <span aria-hidden>{delta.positive ? "↗" : "↘"}</span>
             {delta.label}
           </p>
         )}

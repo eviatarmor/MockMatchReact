@@ -18,7 +18,7 @@ export function PrepStepNav({ steps, activeStepId, onSelectStep }: PrepStepNavPr
   const activeIndex = steps.findIndex((step) => step.id === activeStepId)
 
   return (
-    <div className="flex items-center gap-2 rounded-xl border bg-card p-2">
+    <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-card p-2 shadow-sm">
       <ScrollArea className="flex-1">
         <div ref={scrollRef} className="flex items-center gap-2 px-1 py-1">
           {steps.map((step, index) => {
@@ -27,14 +27,18 @@ export function PrepStepNav({ steps, activeStepId, onSelectStep }: PrepStepNavPr
 
             return (
               <div key={step.id} className="flex items-center gap-2">
-                {index > 0 && <span className="text-muted-foreground">—</span>}
+                {index > 0 && (
+                  <span className="text-muted-foreground" aria-hidden>
+                    —
+                  </span>
+                )}
                 <button
                   type="button"
                   onClick={() => onSelectStep(step.id)}
                   className={cn(
-                    "flex shrink-0 items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors cursor-pointer",
+                    "flex h-8 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-medium whitespace-nowrap transition-colors cursor-pointer",
                     isActive && "bg-primary text-primary-foreground",
-                    isCompleted && !isActive && "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400",
+                    isCompleted && !isActive && "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
                     !isActive && !isCompleted && "bg-muted text-muted-foreground hover:text-foreground"
                   )}
                 >
@@ -57,7 +61,7 @@ export function PrepStepNav({ steps, activeStepId, onSelectStep }: PrepStepNavPr
       <Button
         variant="ghost"
         size="icon"
-        className="shrink-0 cursor-pointer"
+        className="h-8 w-8 shrink-0 cursor-pointer"
         onClick={() => scrollRef.current?.scrollBy({ left: 200, behavior: "smooth" })}
       >
         <ChevronRight className="size-4" />

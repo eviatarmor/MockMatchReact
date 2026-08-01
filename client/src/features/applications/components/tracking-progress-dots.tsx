@@ -22,11 +22,12 @@ export function TrackingProgressDots({
           <span
             key={index}
             className={cn(
-              "flex size-4 items-center justify-center rounded-full border text-[10px]",
-              isCompleted && "border-emerald-500 bg-emerald-500 text-white",
-              isActive && !isCompleted && "border-amber-500 bg-amber-500 text-white",
-              !isCompleted && !isActive && "border-muted bg-muted"
+              "flex size-4 items-center justify-center rounded-full border text-2xs",
+              isCompleted && "border-emerald-500 bg-emerald-500 text-primary-foreground",
+              isActive && !isCompleted && "border-amber-500 bg-amber-500 text-primary-foreground",
+              !isCompleted && !isActive && "border-border bg-muted text-muted-foreground"
             )}
+            aria-hidden
           >
             {isCompleted && <Check className="size-2.5" />}
           </span>

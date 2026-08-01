@@ -115,8 +115,8 @@ function SelectCard({
         "transition-[border-color,box-shadow] duration-300 ease-out",
         "focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40",
         selected
-          ? "border-primary shadow-md"
-          : "border-foreground/10 hover:border-primary hover:shadow-md",
+          ? "border-primary shadow-sm"
+          : "border-foreground/10 hover:border-primary/70 hover:shadow-sm",
         className
       )}
       {...props}

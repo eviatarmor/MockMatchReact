@@ -28,20 +28,23 @@ export function QuestionBankTable({ questions }: QuestionBankTableProps) {
       emptyMessage={t("questionBank.noResults")}
     >
       {questions.map((q) => (
-        <tr key={q.id} className="group hover:bg-muted/5 transition-colors">
-          <td className="py-3 px-4 text-sm font-medium group-hover:text-primary transition-colors">
+        <tr
+          key={q.id}
+          className="group border-b border-border/40 transition-colors hover:bg-muted/5"
+        >
+          <td className="px-4 py-3 text-sm font-medium transition-colors group-hover:text-primary">
             {q.title}
           </td>
-          <td className="py-3 px-4 text-sm text-primary">
+          <td className="px-4 py-3 text-sm text-muted-foreground">
             {t(`questionBank.domains.${q.domain}`)}
           </td>
-          <td className="py-3 px-4">
+          <td className="px-4 py-3">
             <DifficultyBadge difficulty={q.difficulty} translationPrefix="questionBank.difficulty" />
           </td>
-          <td className="py-3 px-4">
+          <td className="px-4 py-3">
             <QuestionStatusBadge status={q.status} />
           </td>
-          <td className="py-3 px-4">
+          <td className="px-4 py-3">
             <div className="flex items-center justify-end gap-2">
               <Button
                 variant="ghost"
@@ -51,7 +54,7 @@ export function QuestionBankTable({ questions }: QuestionBankTableProps) {
               >
                 <Plus className="size-3.5" />
               </Button>
-              <Button variant="ghost" className="h-7 gap-1.5 px-2 text-xs cursor-pointer">
+              <Button variant="ghost" className="h-7 cursor-pointer gap-1.5 px-2 text-xs">
                 <Play className="size-3" />
                 {t("questionBank.actions.practice")}
               </Button>

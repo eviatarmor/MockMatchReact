@@ -7,9 +7,9 @@ import { TopUpCreditsDialog } from "@/features/billing/components/top-up-credits
 import { useBillingSummary } from "@/features/billing/hooks/use-billing"
 
 /**
- * Rainbow top-up control in the dashboard navbar.
+ * Rainbow credits / top-up control in the dashboard navbar.
+ * Colorful on purpose: marks AI/credits commerce (not general product chrome).
  * remaining > 0 → sparkles + NumberTicker balance; remaining === 0 → Get credits CTA.
- * Both open the top-up dialog.
  */
 export function NavbarGetCreditsButton() {
   const { t } = useTranslation("common")

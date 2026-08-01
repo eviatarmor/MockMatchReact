@@ -2,8 +2,8 @@ export interface PerformanceStat {
   readonly id: string
   readonly labelKey: string
   readonly value: string
-  readonly subValue: string
-  readonly delta: string
+  readonly subValueKey: string
+  readonly deltaKey: string
   readonly deltaPositive: boolean
   readonly iconName: string
 }
@@ -23,12 +23,12 @@ export interface DomainScore {
 
 export interface StrengthItem {
   readonly id: string
-  readonly title: string
-  readonly subtitle: string
+  readonly titleKey: string
+  readonly subtitleKey: string
 }
 
 export interface FocusAreaItem {
   readonly id: string
-  readonly title: string
-  readonly subtitle: string
+  readonly titleKey: string
+  readonly subtitleKey: string
 }

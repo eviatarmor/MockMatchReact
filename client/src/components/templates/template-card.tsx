@@ -1,8 +1,9 @@
 import { useState } from "react"
-import { Loader2, Plus } from "lucide-react"
+import { Plus } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Button } from "@mockmatch/ui/button"
 import { Badge } from "@mockmatch/ui/badge"
+import { Spinner } from "@mockmatch/ui/spinner"
 import type { TemplateItem } from "./types"
 
 interface TemplateCardProps {
@@ -14,12 +15,12 @@ interface TemplateCardProps {
 }
 
 const AVATAR_COLORS = [
-  "bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400",
-  "bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400",
+  "bg-primary/12 text-primary",
+  "bg-muted text-muted-foreground",
+  "bg-secondary text-secondary-foreground",
   "bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300",
-  "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400",
-  "bg-purple-50 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400",
-  "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+  "bg-primary/20 text-primary",
+  "bg-foreground/10 text-foreground",
 ]
 
 function avatarColor(id: string) {
@@ -64,28 +65,28 @@ export function TemplateCard({
   const { t } = useTranslation("common")
 
   return (
-    <div className="flex flex-col gap-4 rounded-xl border bg-card p-4 shadow-sm">
+    <div className="flex flex-col gap-4 rounded-xl border border-border/60 bg-card p-4 shadow-sm">
       <div className="flex items-start justify-between gap-2">
         <TemplateAvatar template={template} />
-        <Badge variant="outline">
+        <Badge variant="outline" className="text-2xs font-medium">
           {t(`${translationPrefix}.categories.${template.category}`)}
         </Badge>
       </div>
 
       <div className="flex flex-col gap-1">
         <span className="text-sm font-semibold text-foreground">{template.title}</span>
-        <span className="text-sm text-primary">{template.company}</span>
-        <span className="text-xs text-muted-foreground line-clamp-3">{template.description}</span>
+        <span className="text-sm font-medium text-primary">{template.company}</span>
+        <span className="line-clamp-3 text-xs text-muted-foreground">{template.description}</span>
       </div>
 
       <div className="mt-auto flex items-center gap-2">
         <Button
-          className="h-8 w-full gap-1.5 cursor-pointer"
+          className="h-8 w-full cursor-pointer gap-1.5"
           disabled={isUsing || !onUse}
           onClick={() => onUse?.(template)}
           aria-busy={isUsing}
         >
-          {isUsing ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+          {isUsing ? <Spinner className="size-3.5" /> : <Plus className="size-4" />}
           {t(`${translationPrefix}.useTemplate`)}
         </Button>
       </div>

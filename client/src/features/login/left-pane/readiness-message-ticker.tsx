@@ -18,7 +18,10 @@ export function ReadinessMessageTicker({ updates, index }: ReadinessMessageTicke
         style={{ transform: `translateY(-${index * ROW_HEIGHT_PX}px)` }}
       >
         {updates.map((update) => (
-          <p key={update.id} className="flex h-5 items-center text-sm text-white/90">
+          <p
+            key={update.id}
+            className="flex h-5 items-center text-sm text-primary-foreground/90"
+          >
             {t(update.messageKey)}
           </p>
         ))}

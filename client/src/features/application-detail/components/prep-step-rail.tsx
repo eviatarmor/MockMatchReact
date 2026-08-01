@@ -23,15 +23,16 @@ export function PrepStepRail({ steps, activeStepId, onSelectStep }: PrepStepRail
               type="button"
               onClick={() => onSelectStep(step.id)}
               className={cn(
-                "flex size-9 shrink-0 items-center justify-center rounded-full border transition-colors cursor-pointer",
+                "flex size-8 shrink-0 items-center justify-center rounded-full border transition-colors cursor-pointer",
                 isActive && "border-primary bg-primary text-primary-foreground",
-                isCompleted && !isActive && "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-400",
-                !isActive && !isCompleted && "border-border bg-background text-muted-foreground"
+                isCompleted && !isActive && "border-emerald-500/30 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
+                !isActive && !isCompleted && "border-border bg-background text-muted-foreground hover:text-foreground"
               )}
+              aria-current={isActive ? "step" : undefined}
             >
               <Icon className="size-4" />
             </button>
-            {index < steps.length - 1 && <div className="h-16 w-px bg-border" />}
+            {index < steps.length - 1 && <div className="h-16 w-px bg-border/60" aria-hidden />}
           </div>
         )
       })}

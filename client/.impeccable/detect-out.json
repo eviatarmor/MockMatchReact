@@ -1,0 +1,450 @@
+﻿[
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\components\\dashboard\\notifications\\notification-item.tsx",
+    "line": 124,
+    "snippet": "text-[ÔÇª] class: 11px is off the DESIGN.md type ramp",
+    "ignoreValue": "11px",
+    "importedBy": [
+      "notification-panel.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\components\\dashboard\\notifications\\notification-panel.tsx",
+    "line": 40,
+    "snippet": "text-[ÔÇª] class: 11px is off the DESIGN.md type ramp",
+    "ignoreValue": "11px",
+    "importedBy": [
+      "notification-bell.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\components\\dashboard\\section-nav.tsx",
+    "line": 47,
+    "snippet": "text-[ÔÇª] class: 11px is off the DESIGN.md type ramp",
+    "ignoreValue": "11px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\components\\data\\document-thumbnail-card.tsx",
+    "line": 169,
+    "snippet": "text-[ÔÇª] class: 11px is off the DESIGN.md type ramp",
+    "ignoreValue": "11px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\components\\data\\entity-table.tsx",
+    "line": 41,
+    "snippet": "text-[ÔÇª] class: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px"
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\application-detail\\components\\application-detail-header.tsx",
+    "line": 52,
+    "snippet": "text-[ÔÇª] class: 11px is off the DESIGN.md type ramp",
+    "ignoreValue": "11px",
+    "importedBy": [
+      "application-detail-page.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\application-detail\\components\\timeline-progress-ring.tsx",
+    "line": 13,
+    "snippet": "text-[ÔÇª] class: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "application-summary-card.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\applications\\components\\tracking-progress-dots.tsx",
+    "line": 25,
+    "snippet": "text-[ÔÇª] class: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "kanban-job-card.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\autofill\\components\\autofill-extension-banner.tsx",
+    "line": 63,
+    "snippet": "text-[ÔÇª] class: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "autofill-page.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\cover-letter-editor\\canvas\\letter-document.tsx",
+    "line": 173,
+    "snippet": "text-[ÔÇª] class: 15px is off the DESIGN.md type ramp",
+    "ignoreValue": "15px",
+    "importedBy": [
+      "editor-canvas.tsx",
+      "cover-letter-document-preview.tsx",
+      "cover-letter-editor-page.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\cover-letter-editor\\canvas\\letter-document.tsx",
+    "line": 337,
+    "snippet": "text-[ÔÇª] class: 15px is off the DESIGN.md type ramp",
+    "ignoreValue": "15px",
+    "importedBy": [
+      "editor-canvas.tsx",
+      "cover-letter-document-preview.tsx",
+      "cover-letter-editor-page.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\cover-letter-editor\\right-rail\\general-analysis-panel.tsx",
+    "line": 177,
+    "snippet": "text-[ÔÇª] class: 11px is off the DESIGN.md type ramp",
+    "ignoreValue": "11px",
+    "importedBy": [
+      "mobile-customize-sheet.tsx",
+      "editor-rail.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\discover\\components\\discover-job-list-item.tsx",
+    "line": 81,
+    "snippet": "text-[ÔÇª] class: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "discover-tab.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\discover\\components\\discover-job-list-item.tsx",
+    "line": 86,
+    "snippet": "text-[ÔÇª] class: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "discover-tab.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\discover\\components\\discover-job-list-item.tsx",
+    "line": 91,
+    "snippet": "text-[ÔÇª] class: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "discover-tab.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\discover\\components\\job-details-panel.tsx",
+    "line": 353,
+    "snippet": "text-[ÔÇª] class: 11px is off the DESIGN.md type ramp",
+    "ignoreValue": "11px",
+    "importedBy": [
+      "discover-tab.tsx",
+      "job-detail-page.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\job-workflow\\components\\recorder-banner.tsx",
+    "line": 63,
+    "snippet": "text-[ÔÇª] class: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "job-workflow-page.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\performance\\components\\performance-score-trend.tsx",
+    "line": 65,
+    "snippet": "Undocumented color #3b82f6 is outside DESIGN.md colors",
+    "ignoreValue": "#3b82f6",
+    "importedBy": [
+      "performance-page.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-color",
+    "name": "Color outside DESIGN.md",
+    "description": "A literal color is outside the DESIGN.md palette and sidecar tonal ramps. This may be legitimate, but it should be an intentional design-system addition rather than drift.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\performance\\components\\performance-score-trend.tsx",
+    "line": 73,
+    "snippet": "Undocumented color #3b82f6 is outside DESIGN.md colors",
+    "ignoreValue": "#3b82f6",
+    "importedBy": [
+      "performance-page.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\question-bank\\components\\question-bank-filters.tsx",
+    "line": 40,
+    "snippet": "text-[ÔÇª] class: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "question-bank-page.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\question-bank\\components\\question-bank-filters.tsx",
+    "line": 55,
+    "snippet": "text-[ÔÇª] class: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "question-bank-page.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\question-bank\\components\\question-bank-filters.tsx",
+    "line": 70,
+    "snippet": "text-[ÔÇª] class: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "question-bank-page.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\readiness\\components\\readiness-score-ring.tsx",
+    "line": 25,
+    "snippet": "text-[ÔÇª] class: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "readiness-page.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\resume-editor\\canvas\\resume-document.tsx",
+    "line": 223,
+    "snippet": "text-[ÔÇª] class: 15px is off the DESIGN.md type ramp",
+    "ignoreValue": "15px",
+    "importedBy": [
+      "editor-canvas.tsx",
+      "resume-document-preview.tsx",
+      "resume-editor-page.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\resume-editor\\right-rail\\general-analysis-panel.tsx",
+    "line": 179,
+    "snippet": "text-[ÔÇª] class: 11px is off the DESIGN.md type ramp",
+    "ignoreValue": "11px",
+    "importedBy": [
+      "mobile-customize-sheet.tsx",
+      "editor-rail.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\simulations\\components\\simulation-track-card.tsx",
+    "line": 35,
+    "snippet": "text-[ÔÇª] class: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "track-browser-section.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\simulations\\components\\simulation-track-card.tsx",
+    "line": 53,
+    "snippet": "text-[ÔÇª] class: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "track-browser-section.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\simulations\\components\\track-browser-filters.tsx",
+    "line": 62,
+    "snippet": "text-[ÔÇª] class: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "simulation-tracks-page.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\simulations\\components\\track-browser-filters.tsx",
+    "line": 80,
+    "snippet": "text-[ÔÇª] class: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "simulation-tracks-page.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\simulations\\components\\track-browser-filters.tsx",
+    "line": 98,
+    "snippet": "text-[ÔÇª] class: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "simulation-tracks-page.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\simulations\\components\\track-browser-filters.tsx",
+    "line": 116,
+    "snippet": "text-[ÔÇª] class: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "simulation-tracks-page.tsx"
+    ]
+  },
+  {
+    "antipattern": "design-system-font-size",
+    "name": "Font size outside DESIGN.md",
+    "description": "A literal font-size is off the type ramp documented in DESIGN.md typography. Use a documented size step or update the design system if the new step is intentional.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "C:\\Users\\Eviatar\\Documents\\MockMatch\\client\\src\\features\\simulations\\components\\track-browser-table.tsx",
+    "line": 69,
+    "snippet": "text-[ÔÇª] class: 10px is off the DESIGN.md type ramp",
+    "ignoreValue": "10px",
+    "importedBy": [
+      "simulation-tracks-page.tsx"
+    ]
+  }
+]

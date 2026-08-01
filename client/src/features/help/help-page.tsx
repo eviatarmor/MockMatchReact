@@ -36,7 +36,10 @@ export function HelpPageContent() {
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
         <DashboardPageHeader title={t("title")} description={t("description")} />
 
-        <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+        <form
+          className="flex flex-col gap-6 rounded-xl border border-border/60 bg-card p-5 shadow-sm ring-1 ring-foreground/5"
+          onSubmit={handleSubmit}
+        >
           <div className="flex flex-col gap-2">
             <Label id="help-topic-label">{t("fields.topic")}</Label>
             <RadioGroup
@@ -56,7 +59,7 @@ export function HelpPageContent() {
                       <span
                         className={
                           selected
-                            ? "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground"
+                            ? "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary ring-1 ring-primary/15"
                             : "mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground"
                         }
                       >

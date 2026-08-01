@@ -23,7 +23,7 @@ export function EntityTablePagination({
 
   return (
     <div className="flex items-center justify-between gap-3 px-1 py-2">
-      <p className="text-xs text-muted-foreground">
+      <p className="text-2xs text-muted-foreground">
         {t("dashboard.pagination.summary", { page, totalPages, total })}
       </p>
       <div className="flex items-center gap-1">

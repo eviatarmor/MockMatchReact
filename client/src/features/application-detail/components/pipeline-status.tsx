@@ -41,9 +41,9 @@ export function PipelineStatus({ status }: PipelineStatusProps) {
             <span
               className={cn(
                 "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium",
-                isActive && "bg-foreground text-background",
+                isActive && "bg-primary text-primary-foreground",
                 isCompleted &&
-                  "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400",
+                  "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
                 !isActive && !isCompleted && "bg-muted text-muted-foreground",
                 isDeclined && "opacity-50"
               )}
@@ -57,8 +57,10 @@ export function PipelineStatus({ status }: PipelineStatusProps) {
 
       {isDeclined ? (
         <>
-          <span className="text-muted-foreground">—</span>
-          <span className="flex items-center gap-1.5 rounded-full bg-rose-500 px-3 py-1.5 text-sm font-medium text-white">
+          <span className="text-muted-foreground" aria-hidden>
+            —
+          </span>
+          <span className="flex items-center gap-1.5 rounded-full bg-rose-500/15 px-3 py-1.5 text-sm font-medium text-rose-700 dark:text-rose-400">
             <XCircle className="size-3.5" />
             {t("applications.statusLabels.declined")}
           </span>

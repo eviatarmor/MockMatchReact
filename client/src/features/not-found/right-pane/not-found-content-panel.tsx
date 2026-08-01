@@ -34,12 +34,12 @@ export function NotFoundContentPanel() {
         </div>
 
         <div className="flex flex-col gap-2 text-center">
-          <p className="text-sm font-medium tracking-widest text-muted-foreground uppercase">
-            {t("not-found:code")}
-          </p>
           <h2 className="text-2xl font-bold tracking-tight text-foreground">
             {t("not-found:title")}
           </h2>
+          <p className="text-xs font-medium tabular-nums text-muted-foreground">
+            {t("not-found:code")}
+          </p>
           <p className="text-sm text-muted-foreground">
             {t("not-found:description")}
           </p>

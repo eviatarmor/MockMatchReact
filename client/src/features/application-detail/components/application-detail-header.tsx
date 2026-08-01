@@ -34,7 +34,7 @@ export function ApplicationDetailHeader({ currentJob }: ApplicationDetailHeaderP
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
-            <Button variant="outline" className="gap-1.5 cursor-pointer" />
+            <Button variant="outline" className="h-8 gap-1.5 cursor-pointer" />
           }
         >
           {t("applicationDetail.switchJob")}
@@ -49,7 +49,7 @@ export function ApplicationDetailHeader({ currentJob }: ApplicationDetailHeaderP
             >
               <div
                 className={cn(
-                  "flex size-6 shrink-0 items-center justify-center rounded-md text-[11px] font-semibold select-none",
+                  "flex size-6 shrink-0 items-center justify-center rounded-md text-2xs font-semibold select-none",
                   job.avatarColorClass
                 )}
               >

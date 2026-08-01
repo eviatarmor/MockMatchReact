@@ -54,6 +54,15 @@
     "table": "Table view",
     "grid": "Grid view"
   },
+  "documentScore": {
+    "notScored": "Not scored yet",
+    "bandTitle": "{{band}} · {{score}}",
+    "bands": {
+      "strong": "Strong",
+      "ok": "Good",
+      "weak": "Needs work"
+    }
+  },
   "dashboard": {
     "search": {
       "resumes": "Search resumes...",
@@ -394,7 +403,9 @@
       "postedAny": "Any time",
       "posted1d": "Last 24h",
       "posted7d": "Last 7 days",
-      "posted30d": "Last 30 days"
+      "posted30d": "Last 30 days",
+      "salaryAny": "Any",
+      "salaryMin": "${{amount}}K+"
     },
     "remoteTypes": {
       "hybrid": "Hybrid",
@@ -671,8 +682,8 @@
     "tasksCount": "{{completed}} of {{total}} tasks",
     "stepLabel": "Step {{n}}: {{title}}",
     "stepBadge": "Step {{n}}",
-    "nextUp": "NEXT UP",
-    "pipeline": "PIPELINE",
+    "nextUp": "Next up",
+    "pipeline": "Pipeline",
     "notFound": "We couldn't find that application.",
     "stepStatus": {
       "done": "Done",
@@ -777,19 +788,28 @@
       "manage": "Manage"
     },
     "steps": {
-      "join":    { "title": "Joins your call",        "desc": "Auto-detects interviews from your calendar." },
-      "consent": { "title": "Records with consent",   "desc": "Announces itself and asks everyone first." },
-      "insights":{ "title": "Delivers insights",      "desc": "Transcript, metrics & moments after the call." }
+      "join": {
+        "title": "Joins your call",
+        "desc": "Auto-detects interviews from your calendar."
+      },
+      "consent": {
+        "title": "Records with consent",
+        "desc": "Announces itself and asks everyone first."
+      },
+      "insights": {
+        "title": "Delivers insights",
+        "desc": "Transcript, metrics & moments after the call."
+      }
     },
     "consent": {
       "title": "Recording consent is built in",
       "description": "Recording laws vary by region. The Recorder announces its presence and requests consent from all participants at the start of every call. You control retention below."
     },
     "stats": {
-      "captured":  "Interviews captured",
-      "hours":     "Hours analyzed",
+      "captured": "Interviews captured",
+      "hours": "Hours analyzed",
       "talkRatio": "Avg talk ratio",
-      "filler":    "Filler words / min"
+      "filler": "Filler words / min"
     },
     "latest": {
       "title": "Latest interview",
@@ -809,7 +829,9 @@
       "drillWeakSpots": "Drill the weak spots"
     },
     "settings": {
-      "platforms": { "title": "Connected platforms" },
+      "platforms": {
+        "title": "Connected platforms"
+      },
       "capture": {
         "title": "Capture settings",
         "autoJoin": "Auto-join scheduled interviews",
@@ -865,14 +887,23 @@
       "manage": "Manage"
     },
     "steps": {
-      "open":   { "title": "Open a job posting",  "desc": "On any supported site, the icon lights up." },
-      "click":  { "title": "Click to autofill",   "desc": "Your profile maps into every field." },
-      "review": { "title": "Review & submit",      "desc": "Confirm, then it submits for you." }
+      "open": {
+        "title": "Open a job posting",
+        "desc": "On any supported site, the icon lights up."
+      },
+      "click": {
+        "title": "Click to autofill",
+        "desc": "Your profile maps into every field."
+      },
+      "review": {
+        "title": "Review & submit",
+        "desc": "Confirm, then it submits for you."
+      }
     },
     "stats": {
-      "filled":  "Auto-filled this week",
-      "time":    "Time saved",
-      "fields":  "Fields mapped",
+      "filled": "Auto-filled this week",
+      "time": "Time saved",
+      "fields": "Fields mapped",
       "success": "Submit success"
     },
     "activity": {
@@ -924,8 +955,11 @@
     "nextUp": {
       "title": "Next up",
       "description": "Recommended to lift your weakest areas.",
+      "n1Title": "Coding: Two-pointer drills",
       "n1Sub": "20 min · raises Coding",
+      "n2Title": "Behavioral mock: Leadership",
       "n2Sub": "AI Interviewer · 25 min",
+      "n3Title": "Fix 2 ATS keywords",
       "n3Sub": "Resume Lab · +6 pts"
     },
     "history": {
@@ -954,9 +988,17 @@
     },
     "stats": {
       "avgScore": "Avg score",
+      "avgScoreSub": "/ 100",
+      "avgScoreDelta": "+6 vs last quarter",
       "sessions": "Sessions",
+      "sessionsSub": "this quarter",
+      "sessionsDelta": "+11 vs last quarter",
       "time": "Time practiced",
-      "percentile": "Percentile"
+      "timeSub": "21h all-time",
+      "timeDelta": "+9 vs last quarter",
+      "percentile": "Percentile",
+      "percentileSub": "vs all users",
+      "percentileDelta": "+4 vs last quarter"
     },
     "scoreTrend": {
       "title": "Score trend",
@@ -975,10 +1017,18 @@
       "financeQuant": "Finance / quant"
     },
     "strengths": {
-      "title": "Strengths"
+      "title": "Strengths",
+      "s1Title": "STAR structure",
+      "s1Sub": "Consistently clear setup → result",
+      "s2Title": "Communication clarity",
+      "s2Sub": "Top 12% on pacing and filler words"
     },
     "focusAreas": {
-      "title": "Focus areas"
+      "title": "Focus areas",
+      "f1Title": "System design depth",
+      "f1Sub": "Scope tradeoffs before diagramming",
+      "f2Title": "Quant speed",
+      "f2Sub": "Mental-math drills, aim < 30s"
     }
   },
   "questionBank": {

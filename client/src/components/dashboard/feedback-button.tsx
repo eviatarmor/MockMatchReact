@@ -68,7 +68,11 @@ export function FeedbackButton() {
         <span className="hidden sm:inline">{t("navbar.feedback")}</span>
       </PopoverTrigger>
 
-      <PopoverContent align="end" side="bottom" className="w-80 gap-3 p-3 sm:w-96">
+      <PopoverContent
+        align="end"
+        side="bottom"
+        className="w-80 gap-3 rounded-xl p-3 shadow-xl shadow-black/10 ring-1 ring-foreground/10 sm:w-96 dark:shadow-black/40"
+      >
         <PopoverHeader>
           <PopoverTitle>{t("feedback.title")}</PopoverTitle>
         </PopoverHeader>

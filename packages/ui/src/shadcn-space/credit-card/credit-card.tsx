@@ -80,11 +80,11 @@ export function PaymentCardVisual({
         >
           {/* ── FRONT ── */}
           <Card
-            className="absolute inset-0 rounded-2xl overflow-hidden shadow-2xl border-0 bg-transparent p-6"
+            className="absolute inset-0 rounded-2xl overflow-hidden border-0 bg-transparent p-6 shadow-xl shadow-black/20"
             style={{ backfaceVisibility: "hidden" }}
           >
-            <div className="absolute inset-0 bg-linear-to-br from-blue-500 via-sky-400 to-teal-400" />
-            <div className="absolute inset-0 bg-black/30" />
+            <div className="absolute inset-0 bg-linear-to-br from-primary via-primary/85 to-primary/65" />
+            <div className="absolute inset-0 bg-black/25" />
             <div className="absolute -top-16 -right-16 w-52 h-52 rounded-full bg-white/10 blur-md" />
             <div className="absolute -bottom-20 -left-14 w-64 h-64 rounded-full bg-white/5 blur-md" />
 
@@ -146,11 +146,11 @@ export function PaymentCardVisual({
 
           {/* ── BACK ── */}
           <Card
-            className="absolute inset-0 rounded-2xl overflow-hidden shadow-2xl border-0 bg-transparent p-0 py-4"
+            className="absolute inset-0 rounded-2xl overflow-hidden border-0 bg-transparent p-0 py-4 shadow-xl shadow-black/20"
             style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
           >
-            <div className="absolute inset-0 bg-linear-to-br from-blue-500 via-sky-400 to-teal-400" />
-            <div className="absolute inset-0 bg-black/30" />
+            <div className="absolute inset-0 bg-linear-to-br from-primary via-primary/85 to-primary/65" />
+            <div className="absolute inset-0 bg-black/25" />
 
             <div className="relative z-10 flex flex-col gap-4 h-full">
               <div className="w-full h-11 bg-black/80" />

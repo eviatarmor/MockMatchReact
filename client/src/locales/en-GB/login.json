@@ -14,6 +14,9 @@
   "termsLabel": "Terms",
   "privacyLabel": "Privacy Policy",
   "trustMessage": "Trusted by candidates prepping across software, consulting, and healthcare.",
+  "readinessCard": {
+    "label": "Your readiness"
+  },
   "codeStep": {
     "title": "Check your email",
     "description": "We sent a 6-digit code to <strong>{{email}}</strong>. Enter it below to sign in.",

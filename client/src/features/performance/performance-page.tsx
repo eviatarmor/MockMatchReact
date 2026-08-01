@@ -62,8 +62,8 @@ export function PerformancePageContent() {
               iconName={stat.iconName}
               label={t(stat.labelKey)}
               value={stat.value}
-              subValue={stat.subValue}
-              delta={{ label: stat.delta, positive: stat.deltaPositive }}
+              subValue={t(stat.subValueKey)}
+              delta={{ label: t(stat.deltaKey), positive: stat.deltaPositive }}
             />
           ))}
         </div>

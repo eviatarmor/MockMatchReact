@@ -21,9 +21,12 @@ export function FeatureHighlightList({ features }: FeatureHighlightListProps) {
         const FeatureIcon = FEATURE_ICONS[feature.icon]
 
         return (
-          <li key={feature.id} className="flex items-center gap-3 text-sm text-white">
+          <li
+            key={feature.id}
+            className="flex items-center gap-3 text-sm text-primary-foreground"
+          >
             <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-white/15">
-              <FeatureIcon className="size-3.5" />
+              <FeatureIcon className="size-3.5" aria-hidden />
             </span>
             {t(feature.labelKey)}
           </li>

@@ -17,7 +17,7 @@ interface PrepStepCardProps {
 }
 
 const STATUS_BADGE_CLASS: Record<PrepStepStatus, string> = {
-  completed: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400",
+  completed: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
   active: "bg-primary/10 text-primary",
   upcoming: "bg-muted text-muted-foreground",
 }
@@ -36,13 +36,13 @@ export function PrepStepCard({ step, stepNumber, status, completedTasks, totalTa
     <div
       ref={cardRef}
       className={cn(
-        "flex flex-col gap-3 rounded-2xl border bg-card p-4",
+        "flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-4 shadow-sm",
         status === "active" && "border-primary"
       )}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+          <span className="text-xs font-medium text-muted-foreground">
             {t("applicationDetail.stepBadge", { n: stepNumber })}
           </span>
           <span className="font-heading text-base font-semibold text-foreground">{t(step.titleKey)}</span>
@@ -50,7 +50,7 @@ export function PrepStepCard({ step, stepNumber, status, completedTasks, totalTa
             {t(STATUS_LABEL_KEY[status])}
           </span>
         </div>
-        <span className="text-sm text-muted-foreground">
+        <span className="text-sm tabular-nums text-muted-foreground">
           {completedTasks}/{totalTasks}
         </span>
       </div>
@@ -64,7 +64,7 @@ export function PrepStepCard({ step, stepNumber, status, completedTasks, totalTa
       </div>
 
       <div className="flex justify-end">
-        <Button variant="outline" className="gap-1.5 cursor-pointer">
+        <Button variant="outline" className="h-8 gap-1.5 cursor-pointer">
           <FooterIcon className="size-4" />
           {t(step.footerActionLabelKey)}
         </Button>

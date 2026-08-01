@@ -10,7 +10,7 @@ export function TimelineProgressRing({ percent, className }: TimelineProgressRin
     <ProgressRing value={percent} className={`size-16 ${className ?? ""}`} progressClass="stroke-primary">
       <span className="text-sm font-bold text-primary">
         {percent}
-        <span className="text-[10px] font-medium">%</span>
+        <span className="text-2xs font-medium">%</span>
       </span>
     </ProgressRing>
   )

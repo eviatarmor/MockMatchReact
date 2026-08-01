@@ -33,7 +33,7 @@ export function EntityEmptyState({
   const ActionIcon = action?.icon
 
   return (
-    <div className="flex w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed px-6 py-12 text-center">
+    <div className="flex w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/70 bg-card/40 px-6 py-12 text-center">
       <Icon className="size-8 text-muted-foreground" aria-hidden />
       <div className="flex max-w-md flex-col gap-1">
         <p className="text-sm font-medium text-foreground">{title}</p>

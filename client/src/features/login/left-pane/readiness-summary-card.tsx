@@ -23,7 +23,7 @@ export function ReadinessSummaryCard({ summary }: ReadinessSummaryCardProps) {
   }, [updates.length])
 
   return (
-    <div className="rounded-xl bg-white/10 p-5 text-white backdrop-blur-sm">
+    <div className="rounded-xl bg-white/10 p-5 text-primary-foreground ring-1 ring-white/15">
       <ReadinessProgressBar score={updates[index].score} maxScore={maxScore} />
       <ReadinessMessageTicker updates={updates} index={index} />
     </div>
