@@ -57,8 +57,7 @@ export function VoiceSection({ form }: VoiceSectionProps) {
               const name = t(option.nameKey)
               return (
                 <SelectCard key={option.value} asChild selected={selected}>
-                  <label className="flex items-center gap-3 p-3">
-                    <RadioGroupItem value={option.value} className="shrink-0" />
+                  <label className="relative flex items-center gap-3 p-3">
                     <Equalizer active={selected} />
                     <div className="flex min-w-0 flex-1 flex-col">
                       <span className="text-sm font-medium text-foreground">{name}</span>
@@ -80,6 +79,10 @@ export function VoiceSection({ form }: VoiceSectionProps) {
                       <Play className="size-3.5" />
                       {t("voice.preview")}
                     </Button>
+                    <RadioGroupItem
+                      value={option.value}
+                      className="absolute size-px overflow-hidden border-0 p-0 opacity-0 after:hidden"
+                    />
                   </label>
                 </SelectCard>
               )

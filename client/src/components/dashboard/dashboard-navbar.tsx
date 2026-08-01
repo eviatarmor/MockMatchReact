@@ -59,7 +59,7 @@ export function DashboardNavbar({ rounded = false }: DashboardNavbarProps) {
       <Breadcrumb className="hidden md:flex">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink render={<Link to="/" />}>{t("appName")}</BreadcrumbLink>
+            <span className="text-muted-foreground">{t("appName")}</span>
           </BreadcrumbItem>
           {currentItem?.title && (
             <>

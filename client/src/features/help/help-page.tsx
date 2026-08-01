@@ -54,8 +54,7 @@ export function HelpPageContent() {
                 const selected = values.topic === topic.id
                 return (
                   <SelectCard key={topic.id} asChild selected={selected}>
-                    <label className="flex items-start gap-3 p-3">
-                      <RadioGroupItem value={topic.id} className="mt-0.5 shrink-0" />
+                    <label className="relative flex items-start gap-3 p-3">
                       <span
                         className={
                           selected
@@ -73,6 +72,10 @@ export function HelpPageContent() {
                           {t(topic.descriptionKey)}
                         </span>
                       </span>
+                      <RadioGroupItem
+                        value={topic.id}
+                        className="absolute size-px overflow-hidden border-0 p-0 opacity-0 after:hidden"
+                      />
                     </label>
                   </SelectCard>
                 )

@@ -84,7 +84,10 @@ export function AppearanceSection() {
                   </div>
                   {selected && <Check className="size-4 shrink-0 text-primary" />}
                 </div>
-                <RadioGroupItem value={option.value} className="sr-only" />
+                <RadioGroupItem
+                  value={option.value}
+                  className="absolute size-px overflow-hidden border-0 p-0 opacity-0 after:hidden"
+                />
               </label>
             </SelectCard>
           )
