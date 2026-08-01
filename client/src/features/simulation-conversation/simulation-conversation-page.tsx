@@ -98,11 +98,10 @@ function ConversationSession({ trackId }: { readonly trackId: ConversationTrackI
     setConfig(next)
     setSetupOpen(false)
     setInputKey((k) => k + 1)
-    setPreferLive(false)
-    const started = await liveVoice.start(trackId, next)
-    if (started) {
-      setPreferLive(true)
-    }
+    // Prefer live immediately so mock script never fakes a "session"
+    // (text-only transcript) while WebRTC is connecting or after a live error.
+    setPreferLive(true)
+    await liveVoice.start(trackId, next)
   }
 
   const handleRestart = () => {

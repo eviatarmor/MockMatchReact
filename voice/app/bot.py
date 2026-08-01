@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import inspect
 import logging
 import os
 from typing import Any
@@ -32,6 +34,43 @@ from app.voices import deepgram_voice
 from app.worker_registry import registry
 
 logger = logging.getLogger(__name__)
+
+
+async def _send_app_message(connection: Any, payload: dict[str, Any]) -> None:
+    if hasattr(connection, "send_app_message"):
+        result = connection.send_app_message(payload)
+    elif hasattr(connection, "send_message"):
+        result = connection.send_message(payload)
+    else:
+        return
+
+    # Pipecat 1.6 SmallWebRTC is synchronous; retain compatibility with
+    # transports that expose an async sender.
+    if inspect.isawaitable(result):
+        await result
+
+
+async def _queue_greeting_when_ready(
+    *,
+    task: Any,
+    hub: SessionEventHub,
+    greeting: str,
+    client_connected: asyncio.Event,
+    pipeline_started: asyncio.Event,
+    session_ended: asyncio.Event,
+) -> bool:
+    """Queue the greeting only after media and the full pipeline are ready."""
+    await client_connected.wait()
+    await pipeline_started.wait()
+    if session_ended.is_set():
+        return False
+
+    logger.info("Live session ready session=%s — greeting", hub.session_id)
+    await hub.agent_state("speaking")
+    # Text immediately so the UI is not silent if audio is still attaching.
+    await hub.transcript("agent", greeting, final=True)
+    await task.queue_frame(TTSSpeakFrame(greeting))
+    return True
 
 
 def _default_system_prompt(meta: dict[str, Any]) -> str:
@@ -98,10 +137,7 @@ async def run_bot(
     # Forward events over WebRTC data channel when available
     async def emit_dc(payload: dict[str, Any]) -> None:
         try:
-            if hasattr(webrtc_connection, "send_app_message"):
-                await webrtc_connection.send_app_message(payload)
-            elif hasattr(webrtc_connection, "send_message"):
-                await webrtc_connection.send_message(payload)
+            await _send_app_message(webrtc_connection, payload)
         except Exception:
             logger.debug("Datachannel send failed", exc_info=True)
 
@@ -162,9 +198,19 @@ async def run_bot(
     )
 
     # Early observer: user transcripts + VAD states from STT path
-    user_events = SessionEventObserver(hub, label="user-events")
+    user_events = SessionEventObserver(
+        hub,
+        label="user-events",
+        observe_user=True,
+        observe_agent=False,
+    )
     # Late observer: TTS / bot speaking + agent transcript text
-    agent_events = SessionEventObserver(hub, label="agent-events")
+    agent_events = SessionEventObserver(
+        hub,
+        label="agent-events",
+        observe_user=False,
+        observe_agent=True,
+    )
 
     pipeline = Pipeline(
         [
@@ -192,25 +238,36 @@ async def run_bot(
     )
 
     greeting = "Hi — I'm your MockMatch interviewer. Ready when you are."
-    greeted = {"done": False}
+    client_connected = asyncio.Event()
+    pipeline_started = asyncio.Event()
+    session_ended = asyncio.Event()
+
+    greeting_task = asyncio.create_task(
+        _queue_greeting_when_ready(
+            task=task,
+            hub=hub,
+            greeting=greeting,
+            client_connected=client_connected,
+            pipeline_started=pipeline_started,
+            session_ended=session_ended,
+        )
+    )
 
     @transport.event_handler("on_client_connected")
     async def on_client_connected(_transport, _conn):
-        if greeted["done"]:
-            return
-        greeted["done"] = True
-        logger.info("Client connected session=%s — greeting", session_id)
-        await hub.agent_state("speaking")
-        await hub.transcript("agent", greeting, final=True)
-        # Brief yield so audio out track is attached before TTS frames
-        import asyncio
+        logger.info("Client connected session=%s", session_id)
+        client_connected.set()
 
-        await asyncio.sleep(0.15)
-        await task.queue_frames([TTSSpeakFrame(greeting)])
+    @task.event_handler("on_pipeline_started")
+    async def on_pipeline_started(_task, _frame):
+        pipeline_started.set()
+        await hub.publish({"type": "session_status", "status": "live"})
+        await hub.agent_state("idle")
 
     @transport.event_handler("on_client_disconnected")
     async def on_client_disconnected(_transport, _conn):
         logger.info("Client disconnected session=%s", session_id)
+        session_ended.set()
         await task.queue_frame(EndFrame())
 
     try:
@@ -222,5 +279,12 @@ async def run_bot(
         await hub.flush_final("error")
         raise
     finally:
+        session_ended.set()
+        if not greeting_task.done():
+            greeting_task.cancel()
+            try:
+                await greeting_task
+            except asyncio.CancelledError:
+                pass
         registry.dec_sessions()
         await hub.close()

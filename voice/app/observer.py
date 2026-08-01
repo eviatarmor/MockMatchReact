@@ -17,6 +17,7 @@ from pipecat.frames.frames import (
     TTSStartedFrame,
     TTSStoppedFrame,
     TTSTextFrame,
+    TextFrame,
     UserStartedSpeakingFrame,
     UserStoppedSpeakingFrame,
     VADUserStartedSpeakingFrame,
@@ -38,36 +39,43 @@ class SessionEventObserver(FrameProcessor):
     (after TTS) for agent speaking — or both (same hub; state is idempotent).
     """
 
-    def __init__(self, hub: SessionEventHub, *, label: str = "events"):
+    def __init__(
+        self,
+        hub: SessionEventHub,
+        *,
+        label: str = "events",
+        observe_user: bool = True,
+        observe_agent: bool = True,
+    ):
         super().__init__(name=label)
         self._hub = hub
         self._assistant_buf: list[str] = []
         self._label = label
+        self._observe_user = observe_user
+        self._observe_agent = observe_agent
 
     async def process_frame(self, frame: Frame, direction: FrameDirection):
         await super().process_frame(frame, direction)
 
         try:
-            name = type(frame).__name__
-
             # --- User speaking (VAD / aggregator) ---
-            if isinstance(
+            if self._observe_user and isinstance(
                 frame,
                 (UserStartedSpeakingFrame, VADUserStartedSpeakingFrame),
             ):
                 await self._hub.agent_state("listening")
-            elif isinstance(
+            elif self._observe_user and isinstance(
                 frame,
                 (UserStoppedSpeakingFrame, VADUserStoppedSpeakingFrame),
             ):
                 await self._hub.agent_state("thinking")
 
             # --- User transcript ---
-            elif isinstance(frame, TranscriptionFrame):
+            elif self._observe_user and isinstance(frame, TranscriptionFrame):
                 text = (getattr(frame, "text", None) or "").strip()
                 if text:
                     await self._hub.transcript("user", text, final=True)
-            elif isinstance(frame, InterimTranscriptionFrame):
+            elif self._observe_user and isinstance(frame, InterimTranscriptionFrame):
                 text = (getattr(frame, "text", None) or "").strip()
                 if text:
                     await self._hub.publish(
@@ -81,27 +89,29 @@ class SessionEventObserver(FrameProcessor):
                     )
 
             # --- LLM / agent speech ---
-            elif isinstance(frame, LLMFullResponseStartFrame):
+            elif self._observe_agent and isinstance(frame, LLMFullResponseStartFrame):
                 self._assistant_buf = []
                 await self._hub.agent_state("thinking")
-            elif isinstance(frame, (TTSStartedFrame, BotStartedSpeakingFrame)):
+            elif self._observe_agent and isinstance(
+                frame, (TTSStartedFrame, BotStartedSpeakingFrame)
+            ):
                 await self._hub.agent_state("speaking")
-            elif isinstance(frame, (TTSStoppedFrame, BotStoppedSpeakingFrame)):
+            elif self._observe_agent and isinstance(
+                frame, (TTSStoppedFrame, BotStoppedSpeakingFrame)
+            ):
                 await self._hub.agent_state("idle")
                 if self._assistant_buf:
                     full = "".join(self._assistant_buf).strip()
                     self._assistant_buf = []
                     if full:
                         await self._hub.transcript("agent", full, final=True)
-            elif isinstance(frame, LLMFullResponseEndFrame):
+            elif self._observe_agent and isinstance(frame, LLMFullResponseEndFrame):
                 # Prefer flushing on TTS stop so text lines up with audio;
                 # if buffer still present and no TTS, flush on end.
                 pass
-            elif isinstance(frame, (LLMTextFrame, TTSTextFrame, TextFrame)):
-                text = getattr(frame, "text", None)
-                if text:
-                    self._assistant_buf.append(str(text))
-            elif name in ("TextFrame", "LLMTextFrame", "TTSTextFrame"):
+            elif self._observe_agent and isinstance(
+                frame, (LLMTextFrame, TTSTextFrame, TextFrame)
+            ):
                 text = getattr(frame, "text", None)
                 if text:
                     self._assistant_buf.append(str(text))

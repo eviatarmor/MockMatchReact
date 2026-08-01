@@ -23,6 +23,9 @@ export async function connectVoiceSession(opts: {
   iceServers?: IceServerConfig[]
   /** Called whenever a remote audio track is attached (retry play). */
   onRemoteTrack?: (stream: MediaStream) => void
+  /** Called as soon as the browser data channel exists, before it can open. */
+  onDataChannel?: (channel: RTCDataChannel) => void
+  onConnectionStateChange?: (state: RTCPeerConnectionState) => void
 }): Promise<VoiceOfferResult> {
   const iceServers =
     opts.iceServers && opts.iceServers.length > 0
@@ -30,6 +33,10 @@ export async function connectVoiceSession(opts: {
       : [{ urls: "stun:stun.l.google.com:19302" }]
 
   const pc = new RTCPeerConnection({ iceServers })
+  const notifyConnectionState = () => {
+    opts.onConnectionStateChange?.(pc.connectionState)
+  }
+  pc.addEventListener("connectionstatechange", notifyConnectionState)
 
   const audioTransceiver = pc.addTransceiver("audio", {
     direction: "sendrecv",
@@ -59,6 +66,7 @@ export async function connectVoiceSession(opts: {
   let dataChannel: RTCDataChannel | null = null
   try {
     dataChannel = pc.createDataChannel("chat", { ordered: true })
+    opts.onDataChannel?.(dataChannel)
     // Keepalive so server is_connected() stays healthy
     dataChannel.addEventListener("open", () => {
       const id = window.setInterval(() => {
@@ -110,6 +118,13 @@ export async function connectVoiceSession(opts: {
     type: answer.type,
   })
 
+  try {
+    await waitForPeerConnection(pc)
+  } catch (error) {
+    pc.close()
+    throw error
+  }
+
   if (micTrack && audioTransceiver.sender.track !== micTrack) {
     await audioTransceiver.sender.replaceTrack(micTrack)
   }
@@ -118,6 +133,36 @@ export async function connectVoiceSession(opts: {
   void AUDIO_TRANSCEIVER_INDEX
 
   return { pc, remoteStream, micTrack, dataChannel }
+}
+
+function waitForPeerConnection(pc: RTCPeerConnection, timeoutMs = 12_000) {
+  if (pc.connectionState === "connected") return Promise.resolve()
+  return new Promise<void>((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      finish()
+      reject(new Error("Voice connection timed out. Please try again."))
+    }, timeoutMs)
+
+    const finish = () => {
+      window.clearTimeout(timeout)
+      pc.removeEventListener("connectionstatechange", onChange)
+    }
+    const onChange = () => {
+      if (pc.connectionState === "connected") {
+        finish()
+        resolve()
+      } else if (
+        pc.connectionState === "failed" ||
+        pc.connectionState === "closed"
+      ) {
+        finish()
+        reject(new Error("Voice connection failed. Please try again."))
+      }
+    }
+
+    pc.addEventListener("connectionstatechange", onChange)
+    onChange()
+  })
 }
 
 function waitForIceGathering(pc: RTCPeerConnection, timeoutMs = 4000) {

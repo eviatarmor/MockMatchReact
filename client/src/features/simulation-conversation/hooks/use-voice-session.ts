@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { trpc } from "@/lib/trpc"
 import { connectVoiceSession } from "../lib/webrtc-offer"
 import { textToSegments } from "../lib/transcript-segments"
+import { parseSseBlock, parseVoiceEvent } from "../lib/voice-events"
 import type {
   AgentPresenceState,
   ConversationSessionConfig,
@@ -15,27 +16,6 @@ export type VoiceConnectionStatus =
   | "live"
   | "error"
   | "ended"
-
-export type VoiceUiEvent =
-  | { type: "agent_state"; state: AgentPresenceState }
-  | {
-      type: "transcript"
-      role: "user" | "agent" | "system"
-      text: string
-      final: boolean
-      id?: string
-    }
-  | { type: "session_status"; status: string }
-
-function isAgentState(s: string): s is AgentPresenceState {
-  return (
-    s === "asleep" ||
-    s === "idle" ||
-    s === "listening" ||
-    s === "thinking" ||
-    s === "speaking"
-  )
-}
 
 function turnFromEvent(
   role: TranscriptTurn["role"],
@@ -53,35 +33,36 @@ function turnFromEvent(
   }
 }
 
-function parseVoiceEvent(raw: unknown): VoiceUiEvent | null {
-  if (!raw || typeof raw !== "object") return null
-  const o = raw as Record<string, unknown>
-  if (o.type === "agent_state" && typeof o.state === "string") {
-    if (isAgentState(o.state)) {
-      return { type: "agent_state", state: o.state }
-    }
-    if (o.state === "ready" || o.state === "speakingMuted") {
-      return { type: "agent_state", state: "idle" }
-    }
-    return { type: "agent_state", state: "idle" }
+function creationErrorMessage(result: {
+  message?: unknown
+  code?: unknown
+}): string {
+  if (result.message) return String(result.message)
+  if (result.code) return String(result.code)
+  return "Failed to create voice session"
+}
+
+async function getVoiceStream(
+  microphoneId: string | undefined
+): Promise<MediaStream> {
+  const audio: MediaTrackConstraints = microphoneId
+    ? {
+        deviceId: { ideal: microphoneId },
+        echoCancellation: { ideal: true },
+        noiseSuppression: { ideal: true },
+        autoGainControl: { ideal: true },
+      }
+    : {
+        echoCancellation: { ideal: true },
+        noiseSuppression: { ideal: true },
+        autoGainControl: { ideal: true },
+      }
+
+  try {
+    return await navigator.mediaDevices.getUserMedia({ audio, video: false })
+  } catch {
+    return navigator.mediaDevices.getUserMedia({ audio: true, video: false })
   }
-  if (o.type === "transcript" && typeof o.text === "string") {
-    const role =
-      o.role === "user" || o.role === "agent" || o.role === "system"
-        ? o.role
-        : "system"
-    return {
-      type: "transcript",
-      role,
-      text: o.text,
-      final: o.final !== false,
-      id: typeof o.id === "string" ? o.id : undefined,
-    }
-  }
-  if (o.type === "session_status" && typeof o.status === "string") {
-    return { type: "session_status", status: o.status }
-  }
-  return null
 }
 
 /**
@@ -105,6 +86,9 @@ export function useVoiceSession() {
   const audioElRef = useRef<HTMLAudioElement | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const dcRef = useRef<RTCDataChannel | null>(null)
+  const endingRef = useRef(false)
+  const attemptRef = useRef(0)
+  const sessionIdRef = useRef<string | null>(null)
   const [micMuted, setMicMuted] = useState(false)
 
   const applyEvent = useCallback((raw: unknown) => {
@@ -116,9 +100,15 @@ export function useVoiceSession() {
       return
     }
     if (ev.type === "session_status") {
+      if (ev.status === "live") {
+        setStatus("live")
+        setAgentState((current) => (current === "asleep" ? "idle" : current))
+        return
+      }
       if (ev.status === "ended" || ev.status === "error") {
         setStatus(ev.status === "error" ? "error" : "ended")
         setAgentState("asleep")
+        sessionIdRef.current = null
       }
       return
     }
@@ -160,10 +150,21 @@ export function useVoiceSession() {
   }, [])
 
   const startEventStream = useCallback(
-    (eventsUrl: string) => {
+    async (eventsUrl: string): Promise<boolean> => {
       stopEventStream()
       const ac = new AbortController()
       abortRef.current = ac
+
+      let settleReady: (ready: boolean) => void = () => {}
+      let readySettled = false
+      const ready = new Promise<boolean>((resolve) => {
+        settleReady = (value) => {
+          if (readySettled) return
+          readySettled = true
+          resolve(value)
+        }
+      })
+      const readyTimeout = window.setTimeout(() => settleReady(false), 2_000)
 
       void (async () => {
         try {
@@ -174,6 +175,7 @@ export function useVoiceSession() {
           })
           if (!res.ok || !res.body) {
             console.warn("[voice] SSE failed", res.status, eventsUrl)
+            settleReady(false)
             return
           }
           const reader = res.body.getReader()
@@ -186,27 +188,22 @@ export function useVoiceSession() {
             const parts = buf.split("\n\n")
             buf = parts.pop() ?? ""
             for (const block of parts) {
-              // Skip ping events
-              if (block.includes("event: ping")) continue
-              const dataLine = block
-                .split("\n")
-                .find((l) => l.startsWith("data:"))
-              if (!dataLine) continue
-              const raw = dataLine.slice(5).trim()
-              if (!raw || raw === "{}") continue
-              try {
-                applyEvent(JSON.parse(raw))
-              } catch {
-                /* ignore */
-              }
+              const payload = parseSseBlock(block)
+              if (payload === null) continue
+              applyEvent(payload)
+              settleReady(true)
             }
           }
         } catch (e) {
+          settleReady(false)
           if (!ac.signal.aborted) {
             console.warn("[voice] SSE stream error", e)
           }
+        } finally {
+          window.clearTimeout(readyTimeout)
         }
       })()
+      return ready
     },
     [applyEvent, stopEventStream]
   )
@@ -250,10 +247,39 @@ export function useVoiceSession() {
     }
   }, [stopEventStream])
 
+  const endSessionRecord = useCallback(
+    async (id: string) => {
+      try {
+        await endMut.mutateAsync({ sessionId: id })
+      } catch {
+        /* The peer is already closed; final worker flush is best effort. */
+      }
+    },
+    [endMut]
+  )
+
+  const handleConnectionState = useCallback(
+    (connectionState: RTCPeerConnectionState) => {
+      if (connectionState !== "failed" || endingRef.current) return
+      setStatus("error")
+      setAgentState("asleep")
+      setError(
+        "The voice connection was lost. Start a new session to reconnect."
+      )
+    },
+    []
+  )
+
   useEffect(() => () => cleanup(), [cleanup])
 
   const start = useCallback(
     async (trackId: string, config: ConversationSessionConfig) => {
+      const attempt = ++attemptRef.current
+      const cancelled = () =>
+        attemptRef.current !== attempt || endingRef.current
+      let createdSessionId: string | null = null
+
+      endingRef.current = false
       setError(null)
       setStatus("creating")
       setTurns([])
@@ -261,6 +287,40 @@ export function useVoiceSession() {
       cleanup()
 
       try {
+        // Mic + audio unlock MUST run near the Start click. After createSession /
+        // SSE awaits, the browser often treats play() as autoplay and blocks
+        // remote agent audio even though the WebRTC track is fine.
+        const audio = ensureAudioElement()
+        let localStream: MediaStream
+        try {
+          localStream = await getVoiceStream(config.microphoneId)
+        } catch {
+          setStatus("error")
+          setError(
+            "Microphone permission is required for a live voice session."
+          )
+          return null
+        }
+        if (cancelled()) {
+          localStream.getTracks().forEach((track) => track.stop())
+          return null
+        }
+        localRef.current = localStream
+        for (const t of localStream.getAudioTracks()) {
+          t.enabled = true
+        }
+
+        // Unlock <audio> by playing the mic stream muted (still user-gesture
+        // adjacent). Remote track replaces srcObject later with muted=false.
+        try {
+          audio.srcObject = localStream
+          audio.muted = true
+          audio.volume = 1
+          await audio.play()
+        } catch {
+          /* retry when remote track arrives */
+        }
+
         const result = await createMut.mutateAsync({
           trackId,
           sessionKind: config.sessionKind,
@@ -269,60 +329,27 @@ export function useVoiceSession() {
           analyzePosture: config.analyzePosture,
         })
 
-        if (!result.ok) {
-          setStatus("error")
-          const msg =
-            "message" in result && result.message
-              ? String(result.message)
-              : "code" in result
-                ? String(result.code)
-                : "Failed to create voice session"
-          setError(msg)
+        if (cancelled()) {
+          if (result.ok) {
+            await endSessionRecord(result.session.id)
+          }
           return null
         }
 
+        if (!result.ok) {
+          setStatus("error")
+          setError(creationErrorMessage(result))
+          return null
+        }
+
+        createdSessionId = result.session.id
+        sessionIdRef.current = createdSessionId
         setSessionId(result.session.id)
         setStatus("connecting")
-        startEventStream(result.eventsUrl)
-
-        const audioConstraints: MediaTrackConstraints = config.microphoneId
-          ? {
-              deviceId: { ideal: config.microphoneId },
-              echoCancellation: { ideal: true },
-              noiseSuppression: { ideal: true },
-              autoGainControl: { ideal: true },
-            }
-          : {
-              echoCancellation: { ideal: true },
-              noiseSuppression: { ideal: true },
-              autoGainControl: { ideal: true },
-            }
-
-        let localStream: MediaStream
-        try {
-          localStream = await navigator.mediaDevices.getUserMedia({
-            audio: audioConstraints,
-            video: false,
-          })
-        } catch {
-          localStream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-            video: false,
-          })
-        }
-        localRef.current = localStream
-        for (const t of localStream.getAudioTracks()) {
-          t.enabled = true
-        }
-
-        // Unlock playback as early as possible (still within start click chain).
-        const audio = ensureAudioElement()
-        try {
-          // Silent unlock — some browsers require a play() in the gesture chain.
-          await audio.play()
-        } catch {
-          /* will retry when remote track arrives */
-        }
+        // Redis pub/sub has no replay. Wait until the SSE subscription sends
+        // its initial status before allowing the worker to publish live events.
+        await startEventStream(result.eventsUrl)
+        if (cancelled()) return null
 
         const iceServers = (result.iceServers ?? []) as unknown as RTCIceServer[]
         const attachRemote = (stream: MediaStream) => {
@@ -337,20 +364,25 @@ export function useVoiceSession() {
           })
         }
 
-        const { pc, remoteStream, micTrack, dataChannel } =
-          await connectVoiceSession({
-            offerUrl: result.offerUrl,
-            ticket: result.ticket,
-            sessionId: result.session.id,
-            localStream,
-            iceServers,
-            onRemoteTrack: attachRemote,
-          })
+        const { pc, remoteStream, micTrack } = await connectVoiceSession({
+          offerUrl: result.offerUrl,
+          ticket: result.ticket,
+          sessionId: result.session.id,
+          localStream,
+          iceServers,
+          onRemoteTrack: attachRemote,
+          onDataChannel: wireDataChannel,
+          onConnectionStateChange: handleConnectionState,
+        })
+        if (cancelled()) {
+          pc.close()
+          localStream.getTracks().forEach((track) => track.stop())
+          return null
+        }
         pcRef.current = pc
         micTrackRef.current = micTrack
         setMicMuted(false)
 
-        if (dataChannel) wireDataChannel(dataChannel)
         pc.ondatachannel = (ev) => wireDataChannel(ev.channel)
 
         attachRemote(remoteStream)
@@ -360,6 +392,13 @@ export function useVoiceSession() {
         return result.session
       } catch (e) {
         cleanup()
+        if (createdSessionId) {
+          if (sessionIdRef.current === createdSessionId) {
+            sessionIdRef.current = null
+          }
+          await endSessionRecord(createdSessionId)
+        }
+        if (cancelled()) return null
         setStatus("error")
         setError(
           e instanceof Error ? e.message : "Failed to start voice session"
@@ -367,22 +406,28 @@ export function useVoiceSession() {
         return null
       }
     },
-    [applyEvent, cleanup, createMut, startEventStream, wireDataChannel]
+    [
+      cleanup,
+      createMut,
+      endSessionRecord,
+      handleConnectionState,
+      startEventStream,
+      wireDataChannel,
+    ]
   )
 
   const end = useCallback(async () => {
-    const id = sessionId
+    endingRef.current = true
+    attemptRef.current += 1
+    const id = sessionIdRef.current
+    sessionIdRef.current = null
     cleanup()
     setStatus("ended")
     setAgentState("asleep")
     if (id) {
-      try {
-        await endMut.mutateAsync({ sessionId: id })
-      } catch {
-        /* ignore */
-      }
+      await endSessionRecord(id)
     }
-  }, [cleanup, endMut, sessionId])
+  }, [cleanup, endSessionRecord])
 
   const setMuted = useCallback((muted: boolean) => {
     const track = micTrackRef.current
@@ -403,8 +448,11 @@ export function useVoiceSession() {
       audio = document.createElement("audio")
       audio.autoplay = true
       audio.setAttribute("playsinline", "true")
-      // Keep in DOM — detached Audio() is flaky for WebRTC on some browsers
-      audio.style.display = "none"
+      audio.setAttribute("webkit-playsinline", "true")
+      // Keep in DOM — detached Audio() is flaky for WebRTC. Avoid display:none
+      // (some engines skip media elements that are fully hidden).
+      audio.style.cssText =
+        "position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-9999px;bottom:0"
       document.body.appendChild(audio)
       audioElRef.current = audio
     }

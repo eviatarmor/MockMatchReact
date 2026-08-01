@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from contextlib import asynccontextmanager
@@ -11,7 +12,7 @@ from typing import Any
 os.environ.setdefault("NLTK_DISABLE_IMPORT_SECURITY", "1")
 
 import uvicorn
-from fastapi import BackgroundTasks, FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -105,7 +106,7 @@ async def ready() -> dict[str, Any]:
 
 
 @app.post("/api/offer", response_model=OfferResponse)
-async def offer(body: OfferRequest, background_tasks: BackgroundTasks) -> OfferResponse:
+async def offer(body: OfferRequest) -> OfferResponse:
     """
     WebRTC offer/answer signaling for SmallWebRTC.
     Client must supply the API-minted voice ticket.
@@ -161,13 +162,16 @@ async def offer(body: OfferRequest, background_tasks: BackgroundTasks) -> OfferR
     if not answer:
         raise HTTPException(status_code=500, detail="Failed to create WebRTC answer")
 
+    # Start the pipeline immediately (not FastAPI BackgroundTasks after the
+    # response is fully sent). BackgroundTasks delayed connect() until after the
+    # client already finished ICE — greeting/TTS then only drained on End.
     async def _run() -> None:
         try:
             await run_bot(connection, meta)
         except Exception:
             logger.exception("Pipeline failed session=%s", session_id)
 
-    background_tasks.add_task(_run)
+    asyncio.create_task(_run(), name=f"voice-session-{session_id}")
 
     return OfferResponse(
         sdp=answer["sdp"],

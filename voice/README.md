@@ -27,6 +27,13 @@ uvicorn app.main:app --reload --port 7860
 
 From monorepo root: `npm run dev:voice` (after venv + install).
 
+Run the voice regression tests with:
+
+```bash
+cd voice
+python -P -m unittest discover -s tests -v
+```
+
 Also run API + client:
 
 ```bash
