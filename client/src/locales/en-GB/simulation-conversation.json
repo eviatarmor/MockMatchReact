@@ -1,0 +1,96 @@
+{
+  "documentTitle": "Live agent — MockMatch",
+  "header": {
+    "back": "Back to Simulations",
+    "mockBadge": "UI mock · no live AI yet"
+  },
+  "agent": {
+    "name": "Interview agent",
+    "label": "Interview agent, {{state}}"
+  },
+  "status": {
+    "setup": "Set up session",
+    "joining": "Joining…",
+    "asleep": "Asleep",
+    "idle": "Ready",
+    "listening": "Listening",
+    "thinking": "Thinking",
+    "speaking": "Speaking",
+    "speakingMuted": "Speaking (muted)",
+    "ended": "Session ended"
+  },
+  "menubar": {
+    "session": "Session",
+    "voice": "Voice",
+    "audio": "Audio"
+  },
+  "controls": {
+    "mute": "Mute",
+    "unmute": "Unmute",
+    "mutedBadge": "Muted",
+    "voice": "Voice",
+    "endSession": "End",
+    "restart": "Practice again",
+    "backToSimulations": "Back to Simulations"
+  },
+  "setup": {
+    "title": "Start live agent session",
+    "description": "Configure “{{track}}” before you begin. Analysis options are stored for this session (UI mock — camera analysis not wired yet).",
+    "sessionKind": "Session type",
+    "kinds": {
+      "practice": {
+        "label": "Guided practice",
+        "description": "Coach-style prompts with room to iterate."
+      },
+      "fullInterview": {
+        "label": "Full mock interview",
+        "description": "Interview pace — fewer interruptions."
+      },
+      "freeform": {
+        "label": "Freeform chat",
+        "description": "Open conversation without a strict agenda."
+      }
+    },
+    "analyzeHeading": "What to analyse",
+    "analyzeHint": "When camera analysis ships, these flags enable scoring. Safe to toggle now.",
+    "analyzeFace": "Facial expressions",
+    "analyzeFaceHint": "Track engagement, confidence cues, and affect.",
+    "analyzePosture": "Posture & presence",
+    "analyzePostureHint": "Track posture, head position, and on-camera presence.",
+    "voice": "Agent voice",
+    "voiceDialogTitle": "Choose agent voice",
+    "voiceSearchPlaceholder": "Search voices…",
+    "voiceEmpty": "No voices match.",
+    "voiceGroup": "Interviewer voices",
+    "microphone": "Microphone",
+    "micSearchPlaceholder": "Search microphones…",
+    "micEmpty": "No microphone found.",
+    "micHint": "Opening the list may request browser mic permission so device names can load.",
+    "cancel": "Cancel",
+    "start": "Start session",
+    "waitingHint": "Finish session setup to begin talking with the agent.",
+    "openAgain": "Open setup"
+  },
+  "chat": {
+    "title": "Conversation",
+    "empty": "The agent will greet you shortly. Then type or use the mic to reply.",
+    "role": {
+      "agent": "Agent",
+      "user": "You",
+      "system": "System"
+    }
+  },
+  "input": {
+    "placeholder": "Message the interviewer…",
+    "placeholderListening": "Listening…",
+    "send": "Send message",
+    "stop": "Stop",
+    "startListening": "Start voice input",
+    "stopListening": "Stop voice input"
+  },
+  "hint": "Chat or talk — messages stay visible. Drag the handle to resize the agent and chat panels.",
+  "errors": {
+    "unknownTrack": "That conversation track was not found.",
+    "backToTracks": "Browse tracks"
+  }
+}

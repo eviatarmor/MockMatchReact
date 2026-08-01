@@ -8,10 +8,45 @@ import type {
 } from "./types"
 
 /**
- * Live practice surfaces only — no placeholder conversation tracks.
- * `id` matches IdeFormatSlug / exercise catalog slug.
+ * Live practice surfaces.
+ * IDE ids match IdeFormatSlug / exercise catalog slug.
+ * Conversation ids route to `/simulations/conversation/:trackId`.
  */
 export const INTERVIEW_TRACKS: readonly InterviewTrack[] = [
+  {
+    id: "behavioral-core",
+    iconName: "MessageSquare",
+    difficulty: "medium",
+    taskCount: 5,
+    format: "conversation",
+    durationMin: 20,
+    roleFamilies: ["general", "product", "engineering", "design", "consulting"],
+    titleKey: "simulations.tracks.behavioralCore.title",
+    descriptionKey: "simulations.tracks.behavioralCore.description",
+  },
+  {
+    id: "product-sense",
+    iconName: "Lightbulb",
+    difficulty: "medium",
+    taskCount: 5,
+    format: "conversation",
+    durationMin: 25,
+    roleFamilies: ["product", "general"],
+    titleKey: "simulations.tracks.productSense.title",
+    descriptionKey: "simulations.tracks.productSense.description",
+  },
+  {
+    id: "system-design-talk",
+    iconName: "Network",
+    difficulty: "hard",
+    taskCount: 5,
+    format: "conversation",
+    durationMin: 30,
+    roleFamilies: ["engineering"],
+    titleKey: "simulations.tracks.systemDesignTalk.title",
+    descriptionKey: "simulations.tracks.systemDesignTalk.description",
+  },
+
   {
     id: "js-sum",
     iconName: "Code2",
@@ -155,6 +190,7 @@ export const TRACK_DIFFICULTIES: readonly DifficultyLevel[] = [
 
 /** Practice environment formats currently available. */
 export const TRACK_FORMATS: readonly TrackFormat[] = [
+  "conversation",
   "codeRun",
   "workspace",
   "terminal",
@@ -186,6 +222,16 @@ function daysAgoIso(days: number): string {
 
 export const MOCK_RECENT_SESSIONS: readonly RecentSession[] = [
   {
+    id: "s0",
+    title: "Behavioral · Core stories",
+    track: "Conversation",
+    trackId: "behavioral-core",
+    updatedAt: daysAgoIso(0),
+    durationMin: 12,
+    score: null,
+    status: "in_progress",
+  },
+  {
     id: "s1",
     title: "JavaScript · Sum lines",
     track: "Code run",
@@ -195,6 +241,7 @@ export const MOCK_RECENT_SESSIONS: readonly RecentSession[] = [
     score: 91,
     status: "completed",
   },
+
   {
     id: "s2",
     title: "Python · Sum lines",

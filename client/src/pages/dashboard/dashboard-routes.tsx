@@ -21,6 +21,7 @@ import { HelpPage } from "@/pages/dashboard/help-page"
 import { SimulationsPage } from "@/pages/dashboard/simulations-page"
 import { SimulationTracksPage } from "@/pages/dashboard/simulation-tracks-page"
 import { SimulationIdePage } from "@/pages/dashboard/simulation-ide-page"
+import { SimulationConversationPage } from "@/pages/dashboard/simulation-conversation-page"
 import { QuestionBankPage } from "@/pages/dashboard/question-bank-page"
 import { ReadinessPage } from "@/pages/dashboard/readiness-page"
 import { PerformancePage } from "@/pages/dashboard/performance-page"
@@ -72,6 +73,10 @@ export function dashboardRoutes() {
         <Route
           path="simulations/terminal-lab"
           element={<SimulationIdePage />}
+        />
+        <Route
+          path="simulations/conversation/:trackId"
+          element={<SimulationConversationPage />}
         />
         <Route path="resumes/:resumeId" element={<ResumeEditorPage />} />
         <Route path="notifications" element={<NotificationsPage />} />

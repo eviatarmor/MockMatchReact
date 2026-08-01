@@ -32,6 +32,7 @@ import {
   isMonacoTarget,
   matchIdeKeybinding,
 } from "./ide-keybindings"
+import { IdeChromeBar } from "./ide-chrome-bar"
 import { IdeMenubar } from "./ide-menubar"
 import { IdeTerminalPanel } from "./ide-terminal-panel"
 import { TreeResizeHandle } from "./tree-resize-handle"
@@ -783,12 +784,7 @@ export function IdeShell({
       onContextMenuCapture={onContextMenuCapture}
     >
       {menubarNode ? (
-        <div
-          className="flex shrink-0 items-center gap-2 border-b border-border px-2 py-1"
-          data-slot="ide-shell-menubar-row"
-        >
-          {menubarNode}
-        </div>
+        <IdeChromeBar density="shell" start={menubarNode} />
       ) : null}
 
       <div className="relative flex min-h-0 flex-1 overflow-hidden">

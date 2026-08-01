@@ -26,7 +26,8 @@ function DashboardShell() {
       matchPath("/resumes/:resumeId", pathname) ||
       matchPath("/simulations/code-run/:format", pathname) ||
       matchPath("/simulations/workspace", pathname) ||
-      matchPath("/simulations/terminal-lab", pathname)
+      matchPath("/simulations/terminal-lab", pathname) ||
+      matchPath("/simulations/conversation/:trackId", pathname)
   )
 
   return (

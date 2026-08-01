@@ -96,7 +96,7 @@ function ChatPanel() {
 
 ### AI elements (deep imports)
 
-`@mockmatch/ai-chat/ai-elements/*` — Message, Reasoning, SpeechInput, Attachments, Confirmation, Suggestion, Conversation, Shimmer, Transcription.
+`@mockmatch/ai-chat/ai-elements/*` — Message, Reasoning, SpeechInput, Attachments, Confirmation, Suggestion, Conversation, Shimmer, Transcription, MicSelector, VoiceSelector.
 
 ## Host responsibilities
 

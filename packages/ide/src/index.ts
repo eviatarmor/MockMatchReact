@@ -13,6 +13,11 @@ export {
   disposeMonacoModel,
 } from "./monaco-models"
 export { IdeMenubar, type IdeMenubarProps } from "./ide-menubar"
+export {
+  IdeChromeBar,
+  type IdeChromeBarProps,
+  type IdeChromeBarDensity,
+} from "./ide-chrome-bar"
 export { IdeTabs, type IdeTabsProps } from "./ide-tabs"
 export { IdeTerminal, type IdeTerminalProps } from "./ide-terminal"
 export {

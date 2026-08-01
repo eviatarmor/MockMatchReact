@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next"
 import { FlaskConical, Loader2, Play, Share2 } from "lucide-react"
 import { RobotLoader } from "@mockmatch/ui/robot-loader"
 import {
+  IdeChromeBar,
   IdeMenubar,
   IdeShell,
   IdeTerminalPanel,
@@ -440,120 +441,127 @@ function EditorCollabSession({
       roomError={session.collab.roomError}
     >
       <div ref={pageRef} className="flex h-full min-h-0 flex-col bg-background">
-        <div className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-1.5">
-          <h1 className="shrink-0 text-sm font-medium text-foreground">
-            {session.title || t(preset.titleKey)}
-          </h1>
-          <Badge variant="secondary" className="shrink-0 text-xs font-normal">
-            {t(preset.badgeKey)}
-          </Badge>
-          <IdeMenubar
-            className="shrink-0"
-            settings={settings}
-            onPatchSettings={patchSettings}
-            showTree={treeEnabled ? session.showTree : undefined}
-            treeToggleable={treeEnabled}
-            onToggleTree={
-              treeEnabled
-                ? () => session.setShowTree(!session.showTree)
-                : undefined
-            }
-            showTerminal={showTerminal}
-            onToggleTerminal={() => setShowTerminal((v) => !v)}
-            showAi={showAi}
-            onToggleAi={() => setShowAi((v) => !v)}
-            fullscreen={fullscreen}
-            onToggleFullscreen={() => void toggleFullscreen()}
-            onCreateFile={
-              treeEnabled ? () => session.requestCreate("file") : undefined
-            }
-            onCreateFolder={
-              treeEnabled ? () => session.requestCreate("folder") : undefined
-            }
-            hideRunMenu
-            labels={labels}
-          />
-
-          {/* Center: Run / Run tests (react, workspace, code-run) */}
-          <TooltipProvider delay={300}>
-            <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="default"
-                      className="h-8 cursor-pointer gap-1.5 px-3"
-                      disabled={run.runBusy || run.runTestsBusy}
-                      onClick={run.onRun}
-                      aria-label={t("actions.run")}
-                    />
-                  }
-                >
-                  {run.runBusy ? (
-                    <Loader2 className="size-3.5 animate-spin" />
-                  ) : (
-                    <Play className="size-3.5 fill-current" />
-                  )}
-                  <span>{t("actions.run")}</span>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  {t("actions.run")}
-                  <span className="ml-1.5 opacity-70">F5</span>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      className="h-8 cursor-pointer gap-1.5 px-3"
-                      disabled={run.runBusy || run.runTestsBusy}
-                      onClick={run.onRunTests}
-                      aria-label={t("actions.runTests")}
-                    />
-                  }
-                >
-                  {run.runTestsBusy ? (
-                    <Loader2 className="size-3.5 animate-spin" />
-                  ) : (
-                    <FlaskConical className="size-3.5" />
-                  )}
-                  <span className="hidden sm:inline">
-                    {t("actions.runTests")}
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  {t("actions.runTests")}
-                  <span className="ml-1.5 opacity-70">Ctrl+Shift+Enter</span>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </TooltipProvider>
-
-          <div className="flex shrink-0 items-center gap-2">
-            <SaveStatusBadge status={session.saveStatus} labels={saveLabels} />
-            <PresenceAvatarStack
-              peers={session.collab.peers}
-              self={session.collab.self}
+        <IdeChromeBar
+          title={
+            <h1 className="shrink-0 text-sm font-medium text-foreground">
+              {session.title || t(preset.titleKey)}
+            </h1>
+          }
+          badge={
+            <Badge variant="secondary" className="shrink-0 text-xs font-normal">
+              {t(preset.badgeKey)}
+            </Badge>
+          }
+          start={
+            <IdeMenubar
+              className="shrink-0"
+              settings={settings}
+              onPatchSettings={patchSettings}
+              showTree={treeEnabled ? session.showTree : undefined}
+              treeToggleable={treeEnabled}
+              onToggleTree={
+                treeEnabled
+                  ? () => session.setShowTree(!session.showTree)
+                  : undefined
+              }
+              showTerminal={showTerminal}
+              onToggleTerminal={() => setShowTerminal((v) => !v)}
+              showAi={showAi}
+              onToggleAi={() => setShowAi((v) => !v)}
+              fullscreen={fullscreen}
+              onToggleFullscreen={() => void toggleFullscreen()}
+              onCreateFile={
+                treeEnabled ? () => session.requestCreate("file") : undefined
+              }
+              onCreateFolder={
+                treeEnabled ? () => session.requestCreate("folder") : undefined
+              }
+              hideRunMenu
+              labels={labels}
             />
-            {isOwner && (
-              <Button
-                type="button"
-                size="sm"
-                variant="secondary"
-                className="h-8 cursor-pointer gap-1.5"
-                onClick={() => setShareOpen(true)}
-              >
-                <Share2 className="size-3.5" />
-                <span className="hidden sm:inline">{t("collab.share")}</span>
-              </Button>
-            )}
-          </div>
-        </div>
+          }
+          center={
+            <TooltipProvider delay={300}>
+              <div className="flex w-full min-w-0 items-center justify-center gap-1.5">
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="default"
+                        className="h-8 cursor-pointer gap-1.5 px-3"
+                        disabled={run.runBusy || run.runTestsBusy}
+                        onClick={run.onRun}
+                        aria-label={t("actions.run")}
+                      />
+                    }
+                  >
+                    {run.runBusy ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <Play className="size-3.5 fill-current" />
+                    )}
+                    <span>{t("actions.run")}</span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    {t("actions.run")}
+                    <span className="ml-1.5 opacity-70">F5</span>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        className="h-8 cursor-pointer gap-1.5 px-3"
+                        disabled={run.runBusy || run.runTestsBusy}
+                        onClick={run.onRunTests}
+                        aria-label={t("actions.runTests")}
+                      />
+                    }
+                  >
+                    {run.runTestsBusy ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <FlaskConical className="size-3.5" />
+                    )}
+                    <span className="hidden sm:inline">
+                      {t("actions.runTests")}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    {t("actions.runTests")}
+                    <span className="ml-1.5 opacity-70">Ctrl+Shift+Enter</span>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
+          }
+          end={
+            <>
+              <SaveStatusBadge status={session.saveStatus} labels={saveLabels} />
+              <PresenceAvatarStack
+                peers={session.collab.peers}
+                self={session.collab.self}
+              />
+              {isOwner && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="h-8 cursor-pointer gap-1.5"
+                  onClick={() => setShareOpen(true)}
+                >
+                  <Share2 className="size-3.5" />
+                  <span className="hidden sm:inline">{t("collab.share")}</span>
+                </Button>
+              )}
+            </>
+          }
+        />
         <div className="min-h-0 flex-1">
           <IdeShell
             className="h-full min-h-0"
@@ -705,49 +713,57 @@ function ShellCollabSession({
       roomError={session.collab.roomError}
     >
       <div ref={pageRef} className="flex h-full min-h-0 flex-col bg-background">
-        <div className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-1.5">
-          <h1 className="shrink-0 text-sm font-medium text-foreground">
-            {session.title ||
-              exerciseQuery.data?.title ||
-              t(preset.titleKey)}
-          </h1>
-          <Badge variant="secondary" className="shrink-0 text-xs font-normal">
-            {t(preset.badgeKey)}
-          </Badge>
-          <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-            {exerciseQuery.data?.description || t(preset.descriptionKey)}
-          </p>
-          <div className="flex shrink-0 items-center gap-2">
-            <SaveStatusBadge status={session.saveStatus} labels={saveLabels} />
-            <PresenceAvatarStack
-              peers={session.collab.peers}
-              self={session.collab.self}
-            />
-            {isOwner && (
+        <IdeChromeBar
+          title={
+            <h1 className="shrink-0 text-sm font-medium text-foreground">
+              {session.title ||
+                exerciseQuery.data?.title ||
+                t(preset.titleKey)}
+            </h1>
+          }
+          badge={
+            <Badge variant="secondary" className="shrink-0 text-xs font-normal">
+              {t(preset.badgeKey)}
+            </Badge>
+          }
+          center={
+            <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
+              {exerciseQuery.data?.description || t(preset.descriptionKey)}
+            </p>
+          }
+          end={
+            <>
+              <SaveStatusBadge status={session.saveStatus} labels={saveLabels} />
+              <PresenceAvatarStack
+                peers={session.collab.peers}
+                self={session.collab.self}
+              />
+              {isOwner && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  className="h-8 cursor-pointer gap-1.5"
+                  onClick={() => setShareOpen(true)}
+                >
+                  <Share2 className="size-3.5" />
+                  <span className="hidden sm:inline">{t("collab.share")}</span>
+                </Button>
+              )}
               <Button
                 type="button"
                 size="sm"
                 variant="secondary"
-                className="h-8 cursor-pointer gap-1.5"
-                onClick={() => setShareOpen(true)}
+                className="h-8 shrink-0 cursor-pointer"
+                onClick={() => void toggleFullscreen()}
               >
-                <Share2 className="size-3.5" />
-                <span className="hidden sm:inline">{t("collab.share")}</span>
+                {fullscreen
+                  ? t("actions.exitFullscreen")
+                  : t("actions.fullscreen")}
               </Button>
-            )}
-            <Button
-              type="button"
-              size="sm"
-              variant="secondary"
-              className="h-8 shrink-0 cursor-pointer"
-              onClick={() => void toggleFullscreen()}
-            >
-              {fullscreen
-                ? t("actions.exitFullscreen")
-                : t("actions.fullscreen")}
-            </Button>
-          </div>
-        </div>
+            </>
+          }
+        />
         <div className="min-h-0 flex-1 bg-background p-0">
           <IdeTerminalPanel
             layout="fill"

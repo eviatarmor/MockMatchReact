@@ -59,7 +59,7 @@ application tracking, practice, and readiness insights.
      - **js-fizzbuzz / js-reverse / py-factorial / ts-palindrome / py-vowels** — more code-run labs with tests.
      - **cpp-sort** — C++ sort via client-side clang++ (Runno); **Run** / **Run tests**.
      - **react** · **shell** · **workspace** — multi-file / terminal / freeform.
-     - Interview tracks list only these live exercises (no placeholder conversation tracks).
+   - **Conversation** (\`/simulations/conversation/:trackId\`) — live agent interview chat (MockMatch robot + message transcript). On entry a **setup dialog** chooses session type, face/posture analysis flags, **agent voice** (VoiceSelector), and **microphone** (MicSelector). Session then runs agent stage + chat (type or talk). Frontend mock only for now (no real LLM/camera analysis). Catalog tracks: **behavioral-core**, **product-sense**, **system-design-talk**.
    - **Terminal lab** (\`/simulations/terminal-lab\`) — shell-only multi-tab terminal (add/remove tabs like editor); collab presence + share.
    - **Dev workspace** (\`/simulations/workspace\`) — freeform multi-file collab IDE.
    - Share URLs include \`id\` + \`share\` query params (owner must stay in room).
@@ -114,7 +114,7 @@ application tracking, practice, and readiness insights.
 ### Collaboration
 - Resume, cover letter, and **dev workspace** IDE support **share links** that stay active only while the owner is in the document; when the owner leaves, the link expires and collaborators are dropped from the session (reopen does not revive the old link — owner must create a new one). Removing someone from the share dialog kicks them out of the live session immediately.
 - Roles: view | edit (owner full access). Only the owner sees the Share button.
-- Code-run: \`/simulations/code-run/<format>\`. Terminal lab: \`/simulations/terminal-lab\`. Freeform IDE: \`/simulations/workspace\`. Share uses \`id\` + \`share\`.
+- Code-run: \`/simulations/code-run/<format>\`. Terminal lab: \`/simulations/terminal-lab\`. Freeform IDE: \`/simulations/workspace\`. Conversation agent: \`/simulations/conversation/<trackId>\`. Share uses \`id\` + \`share\` (IDE collab only).
 - May require credits depending on plan/grant.
 
 ### Auth

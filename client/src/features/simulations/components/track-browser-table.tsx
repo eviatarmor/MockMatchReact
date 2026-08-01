@@ -5,7 +5,7 @@ import { Button } from "@mockmatch/ui/button"
 import { Badge } from "@mockmatch/ui/badge"
 import { EntityTable, type EntityTableColumn } from "@/components/data/entity-table"
 import { resolveIcon } from "@/lib/icon-map"
-import { idePathForTrackId } from "@/features/simulation-ide/constants"
+import { practicePathForTrackId } from "../lib/practice-path"
 import type { DifficultyLevel, InterviewTrack } from "../types"
 
 function difficultyVariant(level: DifficultyLevel): "outline" | "secondary" {
@@ -50,7 +50,7 @@ export function TrackBrowserTable({ tracks, recommendedTrackIds }: TrackBrowserT
       {tracks.map((track) => {
         const Icon = resolveIcon(track.iconName, AlignJustify)
         const isRecommended = recommendedTrackIds?.has(track.id) ?? false
-        const idePath = idePathForTrackId(track.id)
+        const practicePath = practicePathForTrackId(track.id)
         return (
           <tr
             key={track.id}
@@ -108,9 +108,9 @@ export function TrackBrowserTable({ tracks, recommendedTrackIds }: TrackBrowserT
                 <Button
                   variant="ghost"
                   className="h-7 cursor-pointer gap-1.5 px-2 text-xs"
-                  disabled={!idePath}
+                  disabled={!practicePath}
                   onClick={() => {
-                    if (idePath) navigate(idePath)
+                    if (practicePath) navigate(practicePath)
                   }}
                 >
                   <Play className="size-3" />

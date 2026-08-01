@@ -1225,6 +1225,18 @@
       "workspace": {
         "title": "Dev workspace",
         "description": "Freeform multiplayer IDE for multi-file practice."
+      },
+      "behavioralCore": {
+        "title": "Behavioral · Core stories",
+        "description": "Live agent mock for STAR-style behavioural answers. Hold mic to practice."
+      },
+      "productSense": {
+        "title": "Product sense · Framework talk",
+        "description": "Talk through users, metrics, and hypotheses with a live interviewer agent."
+      },
+      "systemDesignTalk": {
+        "title": "System design · Talk track",
+        "description": "Architecture discussion only — no code. Voice-first agent stage."
       }
     }
   }

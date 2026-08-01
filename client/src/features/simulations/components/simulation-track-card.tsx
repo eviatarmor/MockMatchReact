@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom"
 import { Button } from "@mockmatch/ui/button"
 import { Badge } from "@mockmatch/ui/badge"
 import { resolveIcon } from "@/lib/icon-map"
-import { idePathForTrackId } from "@/features/simulation-ide/constants"
+import { practicePathForTrackId } from "../lib/practice-path"
 import type { InterviewTrack, DifficultyLevel } from "../types"
 
 function difficultyVariant(level: DifficultyLevel): "outline" | "secondary" {
@@ -20,7 +20,7 @@ export function SimulationTrackCard({ track, recommended = false }: SimulationTr
   const { t } = useTranslation("common")
   const navigate = useNavigate()
   const Icon = resolveIcon(track.iconName, AlignJustify)
-  const idePath = idePathForTrackId(track.id)
+  const practicePath = practicePathForTrackId(track.id)
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-border/60 bg-card p-4 shadow-sm">
@@ -66,9 +66,9 @@ export function SimulationTrackCard({ track, recommended = false }: SimulationTr
       <Button
         variant="default"
         className="h-8 w-full cursor-pointer gap-2"
-        disabled={!idePath}
+        disabled={!practicePath}
         onClick={() => {
-          if (idePath) navigate(idePath)
+          if (practicePath) navigate(practicePath)
         }}
       >
         {t("simulations.startPractice")}

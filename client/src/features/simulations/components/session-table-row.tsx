@@ -4,7 +4,7 @@ import { DocumentScoreBadge } from "@/components/data/document-score-badge"
 import { EntityRowActions } from "@/components/data/entity-row-actions"
 import { formatRelativeTime } from "@/lib/format-relative-time"
 import { avatarClassFor, titleToAvatarText } from "@/lib/title-avatar"
-import { idePathForTrackId } from "@/features/simulation-ide/constants"
+import { practicePathForTrackId } from "../lib/practice-path"
 import { SessionStatusBadge } from "./session-status-badge"
 import type { RecentSession } from "../types"
 
@@ -26,7 +26,7 @@ export function SessionTableRow({
 
   const openSession = () => {
     if (session.trackId) {
-      const path = idePathForTrackId(session.trackId)
+      const path = practicePathForTrackId(session.trackId)
       if (path) {
         navigate(path)
         return

@@ -1,0 +1,302 @@
+import { useMemo, useState } from "react"
+import { useNavigate, useParams } from "react-router-dom"
+import { useTranslation } from "react-i18next"
+import { RobotAgent } from "@mockmatch/ui/robot-agent"
+import { Button } from "@mockmatch/ui/button"
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@mockmatch/ui/resizable"
+import { INTERVIEW_TRACKS } from "@/features/simulations/constants"
+import {
+  DEFAULT_AGENT_VOICE,
+  isConversationTrackId,
+  type ConversationTrackId,
+} from "./constants"
+import { useMockConversationSession } from "./hooks/use-mock-conversation-session"
+import { ConversationSessionBar } from "./components/conversation-session-bar"
+import { AgentControls } from "./components/agent-controls"
+import { ChatPanel } from "./components/chat-panel"
+import { SessionSetupDialog } from "./components/session-setup-dialog"
+import type { AgentVoiceId, ConversationSessionConfig } from "./types"
+
+const AGENT_PANEL_DEFAULT = "34"
+const CHAT_PANEL_DEFAULT = "66"
+const AGENT_PANEL_MIN = "22"
+const CHAT_PANEL_MIN = "40"
+
+function ConversationSession({ trackId }: { readonly trackId: ConversationTrackId }) {
+  const navigate = useNavigate()
+  const { t } = useTranslation(["simulation-conversation", "common"])
+  const [config, setConfig] = useState<ConversationSessionConfig | null>(null)
+  const [setupOpen, setSetupOpen] = useState(true)
+  const [inputKey, setInputKey] = useState(0)
+
+  const ready = config !== null && !setupOpen
+  const session = useMockConversationSession(trackId, ready)
+  const voice = config?.voice ?? DEFAULT_AGENT_VOICE
+
+  const track = useMemo(
+    () => INTERVIEW_TRACKS.find((item) => item.id === trackId),
+    [trackId]
+  )
+
+  const title = track ? t(track.titleKey, { ns: "common" }) : trackId
+  const statusLabel = t(`simulation-conversation:status.${session.statusKey}`)
+
+  const goSimulations = () => navigate("/simulations")
+
+  const handleStart = (next: ConversationSessionConfig) => {
+    setConfig(next)
+    setSetupOpen(false)
+    setInputKey((k) => k + 1)
+  }
+
+  const handleRestart = () => {
+    // Re-open setup for a fresh config pass
+    setConfig(null)
+    setSetupOpen(true)
+    session.restart()
+    setInputKey((k) => k + 1)
+  }
+
+  /** Voice stays editable after setup via bar → Voice menu. */
+  const handleVoiceChange = (next: AgentVoiceId) => {
+    setConfig((prev) => (prev ? { ...prev, voice: next } : prev))
+  }
+
+  return (
+    <div className="flex h-full min-h-0 flex-col bg-background">
+      <SessionSetupDialog
+        open={setupOpen}
+        trackTitle={title}
+        onCancel={goSimulations}
+        onStart={handleStart}
+      />
+
+      <ConversationSessionBar
+        title={title}
+        phase={session.phase}
+        muted={session.muted}
+        voice={voice}
+        onMuteToggle={session.toggleMute}
+        onVoiceChange={handleVoiceChange}
+        onEnd={session.endSession}
+        onRestart={handleRestart}
+        onBack={goSimulations}
+      />
+
+      {/* Desktop: agent rail + always-on chat */}
+      <div className="hidden min-h-0 flex-1 lg:flex">
+        <ResizablePanelGroup
+          orientation="horizontal"
+          className="h-full w-full"
+          id="conversation-chat"
+        >
+          <ResizablePanel
+            id="agent"
+            defaultSize={AGENT_PANEL_DEFAULT}
+            minSize={AGENT_PANEL_MIN}
+            className="min-h-0 min-w-0"
+          >
+            <AgentStage
+              agentState={session.agentState}
+              statusLabel={statusLabel}
+              phase={session.phase}
+              muted={session.muted}
+              phaseEnded={session.phase === "ended"}
+              onMuteToggle={session.toggleMute}
+              onEnd={session.endSession}
+              onRestart={handleRestart}
+              onBack={goSimulations}
+              onOpenSetup={() => setSetupOpen(true)}
+            />
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel
+            id="chat"
+            defaultSize={CHAT_PANEL_DEFAULT}
+            minSize={CHAT_PANEL_MIN}
+            className="min-h-0 min-w-0 border-l border-border"
+          >
+            <ChatPanel
+              turns={session.turns}
+              liveTurnId={session.liveTurnId}
+              playbackTime={session.playbackTime}
+              canSend={session.canSend}
+              isBusy={session.busy}
+              phaseEnded={session.phase === "ended" || session.phase === "setup"}
+              inputResetKey={`${trackId}-${inputKey}`}
+              onSend={session.sendMessage}
+              onListeningChange={session.setListening}
+              className="h-full border-0"
+            />
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
+
+      {/* Mobile: compact agent strip + chat */}
+      <div className="flex min-h-0 flex-1 flex-col lg:hidden">
+        <div className="flex shrink-0 flex-col gap-2 border-b border-border bg-muted/20 px-3 py-2">
+          <div className="flex items-center gap-3">
+            <RobotAgent
+              state={session.agentState}
+              size="sm"
+              label={t("simulation-conversation:agent.label", {
+                state: statusLabel,
+              })}
+            />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium leading-tight">
+                {t("simulation-conversation:agent.name")}
+              </p>
+              <p
+                className="text-2xs text-muted-foreground"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                {statusLabel}
+              </p>
+            </div>
+          </div>
+          <AgentControls
+            phase={session.phase}
+            muted={session.muted}
+            onMuteToggle={session.toggleMute}
+            onEnd={session.endSession}
+          />
+        </div>
+        <ChatPanel
+          turns={session.turns}
+          liveTurnId={session.liveTurnId}
+          playbackTime={session.playbackTime}
+          canSend={session.canSend}
+          isBusy={session.busy}
+          phaseEnded={session.phase === "ended" || session.phase === "setup"}
+          inputResetKey={`${trackId}-${inputKey}`}
+          onSend={session.sendMessage}
+          onListeningChange={session.setListening}
+          className="min-h-0 flex-1 border-0"
+        />
+        {session.phase === "ended" ? (
+          <div className="flex shrink-0 flex-wrap justify-center gap-2 border-t border-border p-3">
+            <Button variant="default" className="h-8 cursor-pointer" onClick={handleRestart}>
+              {t("simulation-conversation:controls.restart")}
+            </Button>
+            <Button
+              variant="secondary"
+              className="h-8 cursor-pointer"
+              onClick={goSimulations}
+            >
+              {t("simulation-conversation:controls.backToSimulations")}
+            </Button>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+function AgentStage({
+  agentState,
+  statusLabel,
+  phase,
+  muted,
+  phaseEnded,
+  onMuteToggle,
+  onEnd,
+  onRestart,
+  onBack,
+  onOpenSetup,
+}: {
+  readonly agentState: ReturnType<typeof useMockConversationSession>["agentState"]
+  readonly statusLabel: string
+  readonly phase: ReturnType<typeof useMockConversationSession>["phase"]
+  readonly muted: boolean
+  readonly phaseEnded: boolean
+  readonly onMuteToggle: () => void
+  readonly onEnd: () => void
+  readonly onRestart: () => void
+  readonly onBack: () => void
+  readonly onOpenSetup: () => void
+}) {
+  const { t } = useTranslation("simulation-conversation")
+
+  return (
+    <div className="flex h-full min-h-0 flex-col items-center justify-center gap-5 bg-muted/20 px-4 py-8">
+      <div className="flex flex-col items-center gap-3">
+        <RobotAgent
+          state={agentState}
+          size="xl"
+          label={t("agent.label", { state: statusLabel })}
+        />
+        <div className="text-center">
+          <p className="text-sm font-medium">{t("agent.name")}</p>
+          <p
+            className="text-sm text-muted-foreground"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            {statusLabel}
+          </p>
+        </div>
+      </div>
+
+      {phase === "setup" ? (
+        <div className="flex flex-col items-center gap-2">
+          <p className="max-w-[16rem] text-center text-xs text-muted-foreground">
+            {t("setup.waitingHint")}
+          </p>
+          <Button variant="default" className="h-8 cursor-pointer" onClick={onOpenSetup}>
+            {t("setup.openAgain")}
+          </Button>
+        </div>
+      ) : phaseEnded ? (
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <Button variant="default" className="h-8 cursor-pointer" onClick={onRestart}>
+            {t("controls.restart")}
+          </Button>
+          <Button variant="secondary" className="h-8 cursor-pointer" onClick={onBack}>
+            {t("controls.backToSimulations")}
+          </Button>
+        </div>
+      ) : (
+        <>
+          <AgentControls
+            phase={phase}
+            muted={muted}
+            onMuteToggle={onMuteToggle}
+            onEnd={onEnd}
+          />
+          <p className="max-w-[16rem] text-center text-xs text-muted-foreground">
+            {t("hint")}
+          </p>
+        </>
+      )}
+    </div>
+  )
+}
+
+export function SimulationConversationPageContent() {
+  const { trackId: trackParam } = useParams<{ trackId: string }>()
+  const navigate = useNavigate()
+  const { t } = useTranslation("simulation-conversation")
+
+  if (!isConversationTrackId(trackParam)) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 bg-background p-6">
+        <p className="text-sm text-muted-foreground">{t("errors.unknownTrack")}</p>
+        <Button
+          variant="secondary"
+          className="h-8 cursor-pointer"
+          onClick={() => navigate("/simulations/tracks")}
+        >
+          {t("errors.backToTracks")}
+        </Button>
+      </div>
+    )
+  }
+
+  return <ConversationSession trackId={trackParam} />
+}
