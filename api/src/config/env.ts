@@ -135,6 +135,30 @@ const envSchema = z
       .nonnegative()
       .default(4),
     /**
+     * Pipecat voice worker (browser signals WebRTC here).
+     * Empty → voice session create returns not-configured.
+     */
+    VOICE_SERVICE_URL: z.string().default(""),
+    /** Public base the browser uses for WebRTC offer (fallback if no worker registry). */
+    VOICE_PUBLIC_URL: z.string().default(""),
+    /** Shared secret for voice worker → API internal transcript flush. */
+    VOICE_WORKER_SECRET: z.string().default("dev-voice-worker-secret-change-me"),
+    /** Credits charged per live agent session start (bucket: mockInterviews). 0 = free. */
+    VOICE_SESSION_CREDIT_COST: z.coerce.number().int().nonnegative().default(1),
+    /** Comma-separated STUN URLs for WebRTC. */
+    VOICE_ICE_STUN_URLS: z
+      .string()
+      .default("stun:stun.l.google.com:19302"),
+    /** Comma-separated TURN URLs (optional; needs username/credential). */
+    VOICE_ICE_TURN_URLS: z.string().default(""),
+    VOICE_ICE_TURN_USERNAME: z.string().default(""),
+    VOICE_ICE_TURN_CREDENTIAL: z.string().default(""),
+    /** OpenRouter model the voice worker uses (cheap/free for testing). */
+    PIPECAT_LLM_MODEL: z
+      .string()
+      .min(1)
+      .default("google/gemma-4-26b-a4b-it:free"),
+    /**
      * Jira (optional). Empty → support mutations accept + log stub ticket keys.
      * Wire REST in modules/support/jira-client.ts when ready.
      */

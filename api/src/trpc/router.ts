@@ -10,6 +10,7 @@ import { practiceExercisesRouter } from "../modules/practice-exercises/router.js
 import { questionsRouter } from "../modules/questions/router.js"
 import { resumesRouter } from "../modules/resumes/router.js"
 import { supportRouter } from "../modules/support/router.js"
+import { voiceRouter } from "../modules/voice/router.js"
 import { router } from "./trpc.js"
 
 export const appRouter = router({
@@ -25,6 +26,7 @@ export const appRouter = router({
   practiceExercises: practiceExercisesRouter,
   jobs: jobsRouter,
   support: supportRouter,
+  voice: voiceRouter,
 })
 
 export type AppRouter = typeof appRouter

@@ -7,11 +7,12 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -n client,api,ws,worker,studio -c cyan,magenta,green,blue,yellow \"npm:dev --workspace=client\" \"npm:dev --workspace=@mockmatch/api\" \"npm:dev:ws --workspace=@mockmatch/api\" \"npm:dev:worker --workspace=@mockmatch/api\" \"npm:db:studio --workspace=@mockmatch/api\"",
+    "dev": "concurrently -n client,api,ws,worker,studio,voice -c cyan,magenta,green,blue,yellow,white \"npm:dev --workspace=client\" \"npm:dev --workspace=@mockmatch/api\" \"npm:dev:ws --workspace=@mockmatch/api\" \"npm:dev:worker --workspace=@mockmatch/api\" \"npm:db:studio --workspace=@mockmatch/api\" \"npm:dev:voice\"",
     "dev:client": "npm run dev --workspace=client",
     "dev:api": "npm run dev --workspace=@mockmatch/api",
     "dev:ws": "npm run dev:ws --workspace=@mockmatch/api",
     "dev:worker": "npm run dev:worker --workspace=@mockmatch/api",
+    "dev:voice": "cd voice && set NLTK_DISABLE_IMPORT_SECURITY=1&& .venv\\Scripts\\uvicorn.exe app.main:app --reload --host 0.0.0.0 --port 7860",
     "dev:studio": "npm run db:studio --workspace=@mockmatch/api",
     "infra:up": "docker compose -f infra/docker-compose.yml up -d",
     "infra:down": "docker compose -f infra/docker-compose.yml down",

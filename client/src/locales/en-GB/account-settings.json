@@ -68,12 +68,12 @@
     "description": "The voice your AI interviewer uses in the Mock Arena. Preview a sample before you commit.",
     "preview": "Preview",
     "voices": {
-      "buttery": { "name": "Sloane", "locale": "Australian English", "gender": "Woman", "description": "Calm, low-tempo and buttery smooth." },
-      "resonant": { "name": "Lachlan", "locale": "Australian English", "gender": "Man", "description": "Grounded, steady and resonant delivery." },
-      "mellow": { "name": "Aria", "locale": "American English", "gender": "Woman", "description": "Warm, measured and mellow resonance." },
-      "airy": { "name": "Kai", "locale": "American English", "gender": "Man", "description": "Direct, upbeat and airy delivery." },
-      "polished": { "name": "Eliza", "locale": "United Kingdom English", "gender": "Woman", "description": "Composed, precise and polished cadence." },
-      "rounded": { "name": "Rowan", "locale": "United Kingdom English", "gender": "Man", "description": "Crisp, analytical and rounded presence." }
+      "buttery": { "name": "Athena", "locale": "American English", "gender": "Woman", "description": "Deepgram Aura-2 — calm, smooth, professional interviewer." },
+      "resonant": { "name": "Orion", "locale": "American English", "gender": "Man", "description": "Deepgram Aura-2 — approachable, calm, informative." },
+      "mellow": { "name": "Helena", "locale": "American English", "gender": "Woman", "description": "Deepgram Aura-2 — caring, natural, friendly (default)." },
+      "airy": { "name": "Arcas", "locale": "American English", "gender": "Man", "description": "Deepgram Aura-2 — natural, smooth, clear." },
+      "polished": { "name": "Pandora", "locale": "British English", "gender": "Woman", "description": "Deepgram Aura-2 — smooth, calm British cadence." },
+      "rounded": { "name": "Draco", "locale": "British English", "gender": "Man", "description": "Deepgram Aura-2 — warm, trustworthy British baritone." }
     }
   },
   "region": {

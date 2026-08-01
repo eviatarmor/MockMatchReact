@@ -15,11 +15,18 @@ import {
   type ConversationTrackId,
 } from "./constants"
 import { useMockConversationSession } from "./hooks/use-mock-conversation-session"
+import { useVoiceSession } from "./hooks/use-voice-session"
 import { ConversationSessionBar } from "./components/conversation-session-bar"
 import { AgentControls } from "./components/agent-controls"
 import { ChatPanel } from "./components/chat-panel"
 import { SessionSetupDialog } from "./components/session-setup-dialog"
-import type { AgentVoiceId, ConversationSessionConfig } from "./types"
+import type {
+  AgentPresenceState,
+  AgentVoiceId,
+  ConversationSessionConfig,
+  SessionPhase,
+  TranscriptTurn,
+} from "./types"
 
 const AGENT_PANEL_DEFAULT = "34"
 const CHAT_PANEL_DEFAULT = "66"
@@ -32,39 +39,91 @@ function ConversationSession({ trackId }: { readonly trackId: ConversationTrackI
   const [config, setConfig] = useState<ConversationSessionConfig | null>(null)
   const [setupOpen, setSetupOpen] = useState(true)
   const [inputKey, setInputKey] = useState(0)
+  /** Once live voice connects, keep mock pipeline disabled for this run. */
+  const [preferLive, setPreferLive] = useState(false)
 
   const ready = config !== null && !setupOpen
-  const session = useMockConversationSession(trackId, ready)
+  const liveVoice = useVoiceSession()
+  const liveActive =
+    preferLive ||
+    liveVoice.isLive ||
+    liveVoice.status === "connecting" ||
+    liveVoice.status === "creating"
+
+  const session = useMockConversationSession(trackId, ready, !liveActive)
   const voice = config?.voice ?? DEFAULT_AGENT_VOICE
 
   const track = useMemo(
     () => INTERVIEW_TRACKS.find((item) => item.id === trackId),
     [trackId]
   )
-
   const title = track ? t(track.titleKey, { ns: "common" }) : trackId
-  const statusLabel = t(`simulation-conversation:status.${session.statusKey}`)
+
+  const agentState: AgentPresenceState = liveActive
+    ? liveVoice.agentState
+    : session.agentState
+
+  const turns: readonly TranscriptTurn[] = liveActive
+    ? liveVoice.turns
+    : session.turns
+  const liveTurnId = liveActive ? liveVoice.liveTurnId : session.liveTurnId
+  const playbackTime = liveActive ? liveVoice.playbackTime : session.playbackTime
+
+  const phase: SessionPhase =
+    liveVoice.status === "ended"
+      ? "ended"
+      : session.phase === "setup"
+        ? "setup"
+        : liveVoice.status === "error"
+          ? session.phase
+          : session.phase
+
+  const statusLabel =
+    liveVoice.status === "error" && liveVoice.error
+      ? liveVoice.error
+      : liveVoice.status === "connecting" || liveVoice.status === "creating"
+        ? t("simulation-conversation:status.joining")
+        : liveActive
+          ? t(`simulation-conversation:status.${agentState}`)
+          : t(`simulation-conversation:status.${session.statusKey}`)
 
   const goSimulations = () => navigate("/simulations")
 
-  const handleStart = (next: ConversationSessionConfig) => {
+  const handleEnd = () => {
+    void liveVoice.end()
+    session.endSession()
+  }
+
+  const handleStart = async (next: ConversationSessionConfig) => {
     setConfig(next)
     setSetupOpen(false)
     setInputKey((k) => k + 1)
+    setPreferLive(false)
+    const started = await liveVoice.start(trackId, next)
+    if (started) {
+      setPreferLive(true)
+    }
   }
 
   const handleRestart = () => {
-    // Re-open setup for a fresh config pass
+    void liveVoice.end()
+    setPreferLive(false)
     setConfig(null)
     setSetupOpen(true)
     session.restart()
     setInputKey((k) => k + 1)
   }
 
-  /** Voice stays editable after setup via bar → Voice menu. */
   const handleVoiceChange = (next: AgentVoiceId) => {
     setConfig((prev) => (prev ? { ...prev, voice: next } : prev))
   }
+
+  const canSend = liveActive ? false : session.canSend
+  const isBusy = liveActive ? liveVoice.isBusy : session.busy
+  const phaseEnded =
+    phase === "ended" ||
+    phase === "setup" ||
+    liveVoice.status === "ended"
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-background">
@@ -77,17 +136,18 @@ function ConversationSession({ trackId }: { readonly trackId: ConversationTrackI
 
       <ConversationSessionBar
         title={title}
-        phase={session.phase}
-        muted={session.muted}
+        phase={phase}
+        muted={liveActive ? liveVoice.muted : session.muted}
         voice={voice}
-        onMuteToggle={session.toggleMute}
+        onMuteToggle={
+          liveActive ? liveVoice.toggleMute : session.toggleMute
+        }
         onVoiceChange={handleVoiceChange}
-        onEnd={session.endSession}
+        onEnd={handleEnd}
         onRestart={handleRestart}
         onBack={goSimulations}
       />
 
-      {/* Desktop: agent rail + always-on chat */}
       <div className="hidden min-h-0 flex-1 lg:flex">
         <ResizablePanelGroup
           orientation="horizontal"
@@ -101,13 +161,15 @@ function ConversationSession({ trackId }: { readonly trackId: ConversationTrackI
             className="min-h-0 min-w-0"
           >
             <AgentStage
-              agentState={session.agentState}
+              agentState={agentState}
               statusLabel={statusLabel}
-              phase={session.phase}
-              muted={session.muted}
-              phaseEnded={session.phase === "ended"}
-              onMuteToggle={session.toggleMute}
-              onEnd={session.endSession}
+              phase={phase}
+              muted={liveActive ? liveVoice.muted : session.muted}
+              phaseEnded={phaseEnded}
+              onMuteToggle={
+                liveActive ? liveVoice.toggleMute : session.toggleMute
+              }
+              onEnd={handleEnd}
               onRestart={handleRestart}
               onBack={goSimulations}
               onOpenSetup={() => setSetupOpen(true)}
@@ -121,12 +183,12 @@ function ConversationSession({ trackId }: { readonly trackId: ConversationTrackI
             className="min-h-0 min-w-0 border-l border-border"
           >
             <ChatPanel
-              turns={session.turns}
-              liveTurnId={session.liveTurnId}
-              playbackTime={session.playbackTime}
-              canSend={session.canSend}
-              isBusy={session.busy}
-              phaseEnded={session.phase === "ended" || session.phase === "setup"}
+              turns={turns}
+              liveTurnId={liveTurnId}
+              playbackTime={playbackTime}
+              canSend={canSend}
+              isBusy={isBusy}
+              phaseEnded={phaseEnded}
               inputResetKey={`${trackId}-${inputKey}`}
               onSend={session.sendMessage}
               onListeningChange={session.setListening}
@@ -136,12 +198,11 @@ function ConversationSession({ trackId }: { readonly trackId: ConversationTrackI
         </ResizablePanelGroup>
       </div>
 
-      {/* Mobile: compact agent strip + chat */}
       <div className="flex min-h-0 flex-1 flex-col lg:hidden">
         <div className="flex shrink-0 flex-col gap-2 border-b border-border bg-muted/20 px-3 py-2">
           <div className="flex items-center gap-3">
             <RobotAgent
-              state={session.agentState}
+              state={agentState}
               size="sm"
               label={t("simulation-conversation:agent.label", {
                 state: statusLabel,
@@ -161,27 +222,33 @@ function ConversationSession({ trackId }: { readonly trackId: ConversationTrackI
             </div>
           </div>
           <AgentControls
-            phase={session.phase}
-            muted={session.muted}
-            onMuteToggle={session.toggleMute}
-            onEnd={session.endSession}
+            phase={phase}
+            muted={liveActive ? liveVoice.muted : session.muted}
+            onMuteToggle={
+              liveActive ? liveVoice.toggleMute : session.toggleMute
+            }
+            onEnd={handleEnd}
           />
         </div>
         <ChatPanel
-          turns={session.turns}
-          liveTurnId={session.liveTurnId}
-          playbackTime={session.playbackTime}
-          canSend={session.canSend}
-          isBusy={session.busy}
-          phaseEnded={session.phase === "ended" || session.phase === "setup"}
+          turns={turns}
+          liveTurnId={liveTurnId}
+          playbackTime={playbackTime}
+          canSend={canSend}
+          isBusy={isBusy}
+          phaseEnded={phaseEnded}
           inputResetKey={`${trackId}-${inputKey}`}
           onSend={session.sendMessage}
           onListeningChange={session.setListening}
           className="min-h-0 flex-1 border-0"
         />
-        {session.phase === "ended" ? (
+        {phaseEnded && phase !== "setup" ? (
           <div className="flex shrink-0 flex-wrap justify-center gap-2 border-t border-border p-3">
-            <Button variant="default" className="h-8 cursor-pointer" onClick={handleRestart}>
+            <Button
+              variant="default"
+              className="h-8 cursor-pointer"
+              onClick={handleRestart}
+            >
               {t("simulation-conversation:controls.restart")}
             </Button>
             <Button
@@ -210,9 +277,9 @@ function AgentStage({
   onBack,
   onOpenSetup,
 }: {
-  readonly agentState: ReturnType<typeof useMockConversationSession>["agentState"]
+  readonly agentState: AgentPresenceState
   readonly statusLabel: string
-  readonly phase: ReturnType<typeof useMockConversationSession>["phase"]
+  readonly phase: SessionPhase
   readonly muted: boolean
   readonly phaseEnded: boolean
   readonly onMuteToggle: () => void
@@ -248,16 +315,28 @@ function AgentStage({
           <p className="max-w-[16rem] text-center text-xs text-muted-foreground">
             {t("setup.waitingHint")}
           </p>
-          <Button variant="default" className="h-8 cursor-pointer" onClick={onOpenSetup}>
+          <Button
+            variant="default"
+            className="h-8 cursor-pointer"
+            onClick={onOpenSetup}
+          >
             {t("setup.openAgain")}
           </Button>
         </div>
       ) : phaseEnded ? (
         <div className="flex flex-wrap items-center justify-center gap-2">
-          <Button variant="default" className="h-8 cursor-pointer" onClick={onRestart}>
+          <Button
+            variant="default"
+            className="h-8 cursor-pointer"
+            onClick={onRestart}
+          >
             {t("controls.restart")}
           </Button>
-          <Button variant="secondary" className="h-8 cursor-pointer" onClick={onBack}>
+          <Button
+            variant="secondary"
+            className="h-8 cursor-pointer"
+            onClick={onBack}
+          >
             {t("controls.backToSimulations")}
           </Button>
         </div>
@@ -286,7 +365,9 @@ export function SimulationConversationPageContent() {
   if (!isConversationTrackId(trackParam)) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 bg-background p-6">
-        <p className="text-sm text-muted-foreground">{t("errors.unknownTrack")}</p>
+        <p className="text-sm text-muted-foreground">
+          {t("errors.unknownTrack")}
+        </p>
         <Button
           variant="secondary"
           className="h-8 cursor-pointer"

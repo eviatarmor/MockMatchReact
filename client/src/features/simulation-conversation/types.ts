@@ -51,6 +51,8 @@ export interface ConversationSessionConfig {
 
 export interface VoiceCatalogEntry {
   readonly id: AgentVoiceId
+  /** Deepgram Aura-2 TTS model id (e.g. aura-2-helena-en). */
+  readonly deepgramModel: string
   readonly gender: "male" | "female"
   readonly accent: "american" | "british" | "australian"
 }

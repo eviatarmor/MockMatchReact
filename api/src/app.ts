@@ -9,6 +9,8 @@ import { documentAiRoutes } from "./modules/document-ai/routes.js"
 import { billingWebhookRoutes } from "./modules/billing/webhook-routes.js"
 import { exportRoutes } from "./modules/export/routes.js"
 import { avatarRoutes } from "./modules/account/avatar-routes.js"
+import { voiceInternalRoutes } from "./modules/voice/internal-routes.js"
+import { voiceEventRoutes } from "./modules/voice/event-routes.js"
 import { createContext } from "./trpc/context.js"
 import { appRouter } from "./trpc/router.js"
 
@@ -38,6 +40,10 @@ export function createApp() {
   app.route("/ask", askRoutes)
   // Resume / cover-letter editor AI assistant (AI SDK UI message stream).
   app.route("/document-ai", documentAiRoutes)
+  // Pipecat worker → API (shared secret).
+  app.route("/voice", voiceInternalRoutes)
+  // Browser SSE for agent_state + transcript (JWT).
+  app.route("/voice", voiceEventRoutes)
 
   app.use(
     "/trpc/*",

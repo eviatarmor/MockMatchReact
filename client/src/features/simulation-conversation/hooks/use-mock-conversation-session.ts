@@ -25,13 +25,13 @@ const FALLBACK_AGENT_LINES = [
 ] as const
 
 /**
- * Client-only conversation: greeting, then wait for user text/voice turns.
- * Streams agent replies with word-level segments. No backend.
- * Pass `ready=true` after the setup dialog so the session can join.
+ * Client-side conversation when Pipecat is unavailable / offline demo.
+ * Pass `enabled=false` when live voice owns transcript + agent state.
  */
 export function useMockConversationSession(
   trackId: ConversationTrackId,
-  ready: boolean
+  ready: boolean,
+  enabled = true
 ) {
   const script = MOCK_SCRIPTS[trackId]
   const [phase, setPhase] = useState<SessionPhase>("setup")
@@ -158,7 +158,6 @@ export function useMockConversationSession(
     return line
   }, [script])
 
-  // Wait for setup dialog, then join → greeting → idle
   useEffect(() => {
     clearTimers()
     stopPlayback()
@@ -171,6 +170,13 @@ export function useMockConversationSession(
 
     if (!ready) {
       setPhase("setup")
+      return clearTimers
+    }
+
+    // Live Pipecat owns the conversation — keep UI idle shell only.
+    if (!enabled) {
+      setPhase("active")
+      setAgentState("idle")
       return clearTimers
     }
 
@@ -198,6 +204,7 @@ export function useMockConversationSession(
     trackId,
     sessionKey,
     ready,
+    enabled,
     script,
     clearTimers,
     schedule,
@@ -206,18 +213,19 @@ export function useMockConversationSession(
   ])
 
   const setListening = useCallback((listening: boolean) => {
+    if (!enabled) return
     if (phaseRef.current !== "active" || busyRef.current) return
     setAgentState(listening ? "listening" : "idle")
-  }, [])
+  }, [enabled])
 
   const sendMessage = useCallback(
     (raw: string) => {
+      if (!enabled) return false
       const text = raw.trim()
       if (!text || phaseRef.current !== "active" || busyRef.current) return false
 
       setBusy(true)
       busyRef.current = true
-      // User message appears fully (chat send); agent streams next.
       pushInstantTurn("user", text)
       setAgentState("thinking")
 
@@ -235,7 +243,7 @@ export function useMockConversationSession(
 
       return true
     },
-    [pushInstantTurn, schedule, playTurn, nextAgentLine]
+    [enabled, pushInstantTurn, schedule, playTurn, nextAgentLine]
   )
 
   const restart = useCallback(() => {
@@ -249,8 +257,10 @@ export function useMockConversationSession(
     setAgentState("asleep")
     setBusy(false)
     busyRef.current = false
-    pushInstantTurn("system", "Session ended.")
-  }, [clearTimers, stopPlayback, pushInstantTurn])
+    if (enabled) {
+      pushInstantTurn("system", "Session ended.")
+    }
+  }, [clearTimers, stopPlayback, pushInstantTurn, enabled])
 
   const toggleMute = useCallback(() => {
     setMuted((m) => !m)
@@ -276,7 +286,7 @@ export function useMockConversationSession(
     statusKey,
     muted,
     busy,
-    canSend: phase === "active" && !busy,
+    canSend: enabled && phase === "active" && !busy,
     toggleMute,
     setListening,
     sendMessage,
