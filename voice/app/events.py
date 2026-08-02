@@ -25,6 +25,8 @@ class SessionEventHub:
         self.turns: list[dict[str, Any]] = []
         self._emit_local: list[EmitFn] = []
         self._redis: redis.Redis | None = None
+        # True while transport is actually playing bot audio (for UI + VAD mute).
+        self.bot_speaking: bool = False
 
     def on_local(self, fn: EmitFn) -> None:
         self._emit_local.append(fn)
@@ -58,6 +60,13 @@ class SessionEventHub:
                 logger.exception("Local emit failed")
 
     async def agent_state(self, state: str) -> None:
+        if state == "speaking":
+            self.bot_speaking = True
+        elif state in ("idle", "asleep", "listening", "thinking"):
+            # Only clear when we leave speaking via idle/asleep; listening while
+            # bot talks is suppressed by callers that check bot_speaking.
+            if state in ("idle", "asleep"):
+                self.bot_speaking = False
         await self.publish({"type": "agent_state", "state": state})
 
     async def transcript(

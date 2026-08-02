@@ -26,14 +26,13 @@ export interface RobotAgentProps extends Omit<ComponentProps<"svg">, "children">
   readonly label?: string
 }
 
-/** Pose settle before secondary loops start (matches CSS transition). */
-const POSE_MS = 480
+/** Pose settle duration — keep in sync with CSS transitions below. */
+const POSE_MS = 420
 
 /**
  * Brand mascot as a live-agent presence (not a content loader).
- * Pose uses CSS transitions on the body only; face features stay in
- * user-space coords (no fill-box) so eyes/mouth never drift.
- * Prefer {@link RobotLoader} for content-area waits.
+ * Pose uses CSS transitions; loops stay on so state changes blend instead of
+ * freezing mid-keyframe. Prefer {@link RobotLoader} for content-area waits.
  */
 function RobotAgent({
   state = "idle",
@@ -55,24 +54,28 @@ function RobotAgent({
   const beam = `${uid}-beam`
   const antenna = `${uid}-antenna`
   const ring = `${uid}-ring`
+  const zzz = `${uid}-zzz`
 
-  // Hold pose transition first; enable loop animations after settle.
-  const [pose, setPose] = useState(state)
-  const [loopOn, setLoopOn] = useState(false)
+  // Soft cross-fade marker when state changes (does not kill loops).
+  const [pulseKey, setPulseKey] = useState(0)
+  const [reduceMotion, setReduceMotion] = useState(false)
 
   useEffect(() => {
-    setLoopOn(false)
-    setPose(state)
-    const prefersReduce =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    if (prefersReduce) {
-      setLoopOn(true)
-      return
-    }
-    const id = window.setTimeout(() => setLoopOn(true), POSE_MS)
-    return () => window.clearTimeout(id)
+    const mq =
+      typeof window !== "undefined"
+        ? window.matchMedia("(prefers-reduced-motion: reduce)")
+        : null
+    const apply = () => setReduceMotion(Boolean(mq?.matches))
+    apply()
+    mq?.addEventListener("change", apply)
+    return () => mq?.removeEventListener("change", apply)
+  }, [])
+
+  useEffect(() => {
+    setPulseKey((k) => k + 1)
   }, [state])
+
+  const loopOn = !reduceMotion
 
   return (
     <svg
@@ -81,8 +84,9 @@ function RobotAgent({
       role="img"
       aria-label={label}
       data-slot="robot-agent"
-      data-state={pose}
+      data-state={state}
       data-loop={loopOn ? "true" : "false"}
+      data-pulse={pulseKey}
       className={cn("shrink-0", SIZE_CLASS[size], className)}
       {...props}
     >
@@ -130,27 +134,42 @@ function RobotAgent({
             }
             .${beam} {
               opacity: 0;
-              transition: opacity 0.3s ease;
+              transition: opacity 0.28s ease;
             }
             .${ring} {
               opacity: 0;
               transform-origin: 128px 128px;
               transition: opacity 0.35s ease, transform ${POSE_MS}ms ease;
             }
+            .${zzz} {
+              opacity: 0;
+              transform-origin: 188px 72px;
+              transition: opacity 0.4s ease;
+              font-family: ui-rounded, "Segoe UI", system-ui, sans-serif;
+              font-size: 18px;
+              font-weight: 700;
+              fill: #5B5FFB;
+            }
+
+            /* Blend when CSS animation replaces a transitioning transform */
+            .${bot}, .${antenna}, .${eyes}, .${mouth}, .${ring} {
+              animation-fill-mode: both;
+            }
 
             @media (prefers-reduced-motion: reduce) {
-              .${root}, .${bot}, .${antenna}, .${face}, .${eyes}, .${mouth}, .${beam}, .${ring} {
+              .${root}, .${bot}, .${antenna}, .${face}, .${eyes}, .${mouth}, .${beam}, .${ring}, .${zzz} {
                 transition: none !important;
                 animation: none !important;
               }
             }
 
-            /* ── Poses (transform only on body; face stays planted) ── */
-            [data-state="asleep"] .${root} { opacity: 0.78; }
-            [data-state="asleep"] .${bot} { transform: translateY(6px); }
-            [data-state="asleep"] .${antenna} { transform: rotate(-10deg); }
-            [data-state="asleep"] .${eyes} { transform: scaleY(0.22); opacity: 0.85; }
-            [data-state="asleep"] .${mouth} { transform: scaleY(0.75); opacity: 0.45; }
+            /* ── Poses (static baseline; loops ride on top) ── */
+            [data-state="asleep"] .${root} { opacity: 0.82; }
+            [data-state="asleep"] .${bot} { transform: translateY(8px); }
+            [data-state="asleep"] .${antenna} { transform: rotate(-12deg); }
+            [data-state="asleep"] .${eyes} { transform: scaleY(0.18); opacity: 0.8; }
+            [data-state="asleep"] .${mouth} { transform: scaleY(0.7); opacity: 0.4; }
+            [data-state="asleep"] .${zzz} { opacity: 0.85; }
 
             [data-state="idle"] .${root} { opacity: 1; }
             [data-state="idle"] .${bot} { transform: translateY(0); }
@@ -178,7 +197,20 @@ function RobotAgent({
             [data-state="speaking"] .${mouth} { transform: scaleY(1); opacity: 1; }
             [data-state="speaking"] .${beam} { opacity: 0.75; }
 
-            /* ── Loops only after pose settles (data-loop=true) ── */
+            /* ── Loops stay on across pose changes (no mid-frame freeze) ── */
+            [data-loop="true"][data-state="asleep"] .${bot} {
+              animation: ${uid}-sleep-breathe 3.6s ease-in-out infinite;
+            }
+            [data-loop="true"][data-state="asleep"] .${antenna} {
+              animation: ${uid}-sleep-ant 3.6s ease-in-out infinite;
+            }
+            [data-loop="true"][data-state="asleep"] .${eyes} {
+              animation: ${uid}-sleep-eyes 3.6s ease-in-out infinite;
+            }
+            [data-loop="true"][data-state="asleep"] .${zzz} {
+              animation: ${uid}-zzz 2.4s ease-in-out infinite;
+            }
+
             [data-loop="true"][data-state="idle"] .${bot} {
               animation: ${uid}-breathe 3.2s ease-in-out infinite;
             }
@@ -206,28 +238,49 @@ function RobotAgent({
               animation: ${uid}-beam-pulse 1.1s ease-out infinite;
             }
 
+            /* Speaking mouth starts immediately — no pose-gate delay */
             [data-loop="true"][data-state="speaking"] .${mouth} {
-              animation: ${uid}-talk 0.5s ease-in-out infinite;
+              animation: ${uid}-talk 0.42s ease-in-out infinite;
             }
             [data-loop="true"][data-state="speaking"] .${bot} {
-              animation: ${uid}-speak-bob 1.25s ease-in-out infinite;
+              animation: ${uid}-speak-bob 1.15s ease-in-out infinite;
             }
             [data-loop="true"][data-state="speaking"] .${beam} {
-              animation: ${uid}-beam-pulse 0.9s ease-out infinite;
+              animation: ${uid}-beam-pulse 0.85s ease-out infinite;
+            }
+            [data-loop="true"][data-state="speaking"] .${eyes} {
+              animation: ${uid}-speak-eyes 2.8s ease-in-out infinite;
             }
 
-            /* Loops include the settled pose so they don't snap on start */
+            /* Keyframes start/end at pose rest so loops don't snap */
+            @keyframes ${uid}-sleep-breathe {
+              0%, 100% { transform: translateY(8px); }
+              50% { transform: translateY(11px); }
+            }
+            @keyframes ${uid}-sleep-ant {
+              0%, 100% { transform: rotate(-12deg); }
+              50% { transform: rotate(-16deg); }
+            }
+            @keyframes ${uid}-sleep-eyes {
+              0%, 100% { transform: scaleY(0.18); opacity: 0.8; }
+              50% { transform: scaleY(0.12); opacity: 0.7; }
+            }
+            @keyframes ${uid}-zzz {
+              0% { opacity: 0.15; transform: translate(0, 4px) scale(0.85); }
+              40% { opacity: 0.9; transform: translate(4px, -6px) scale(1); }
+              100% { opacity: 0; transform: translate(10px, -16px) scale(1.1); }
+            }
             @keyframes ${uid}-breathe {
               0%, 100% { transform: translateY(0); }
               50% { transform: translateY(-3px); }
             }
             @keyframes ${uid}-blink {
-              0%, 90%, 100% { transform: scaleY(1); }
-              93% { transform: scaleY(0.12); }
+              0%, 88%, 100% { transform: scaleY(1); }
+              92% { transform: scaleY(0.12); }
             }
             @keyframes ${uid}-listen-bob {
               0%, 100% { transform: translateY(-3px); }
-              50% { transform: translateY(-5px); }
+              50% { transform: translateY(-6px); }
             }
             @keyframes ${uid}-ant-nudge {
               0%, 100% { transform: rotate(4deg); }
@@ -251,12 +304,18 @@ function RobotAgent({
               100% { opacity: 0; }
             }
             @keyframes ${uid}-talk {
-              0%, 100% { transform: scaleY(1); }
-              50% { transform: scaleY(0.55); }
+              0%, 100% { transform: scaleY(1.05); }
+              25% { transform: scaleY(0.45); }
+              50% { transform: scaleY(0.85); }
+              75% { transform: scaleY(0.5); }
             }
             @keyframes ${uid}-speak-bob {
               0%, 100% { transform: translateY(-2px); }
-              50% { transform: translateY(-4px); }
+              50% { transform: translateY(-5px); }
+            }
+            @keyframes ${uid}-speak-eyes {
+              0%, 100% { transform: scaleY(1); }
+              50% { transform: scaleY(0.96); }
             }
           `}
         </style>
@@ -298,6 +357,19 @@ function RobotAgent({
               style={{ animationDelay: "0.15s" }}
             />
           </g>
+
+          <text className={zzz} x="176" y="78" aria-hidden="true">
+            z
+          </text>
+          <text
+            className={zzz}
+            x="192"
+            y="62"
+            aria-hidden="true"
+            style={{ animationDelay: "0.4s", fontSize: "14px" }}
+          >
+            z
+          </text>
 
           <rect x="28" y="92" width="34" height="72" rx="18" fill={`url(#${robotBlue})`} />
           <rect x="194" y="92" width="34" height="72" rx="18" fill={`url(#${robotBlue})`} />

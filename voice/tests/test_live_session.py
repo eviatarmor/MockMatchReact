@@ -5,6 +5,9 @@ import unittest
 from unittest.mock import AsyncMock, Mock, patch
 
 from pipecat.frames.frames import (
+    BotStartedSpeakingFrame,
+    BotStoppedSpeakingFrame,
+    TTSStartedFrame,
     TTSStoppedFrame,
     TextFrame,
     UserStartedSpeakingFrame,
@@ -22,8 +25,13 @@ class FakeHub:
         self.states: list[str] = []
         self.transcripts: list[tuple[str, str, bool]] = []
         self.published: list[dict[str, object]] = []
+        self.bot_speaking = False
 
     async def agent_state(self, state: str) -> None:
+        if state == "speaking":
+            self.bot_speaking = True
+        elif state in ("idle", "asleep"):
+            self.bot_speaking = False
         self.states.append(state)
 
     async def transcript(self, role: str, text: str, *, final: bool = True) -> None:
@@ -132,7 +140,9 @@ class SessionEventObserverTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(hub.states, ["listening", "thinking"])
         self.assertEqual(hub.transcripts, [])
 
-    async def test_agent_observer_flushes_text_on_tts_stop(self) -> None:
+    async def test_agent_observer_flushes_text_on_tts_stop_without_bot_frames(
+        self,
+    ) -> None:
         hub = FakeHub()
         observer = SessionEventObserver(
             hub,
@@ -142,13 +152,51 @@ class SessionEventObserverTests(unittest.IsolatedAsyncioTestCase):
         )
 
         await self._process(observer, TextFrame("Hello from the interviewer."))
+        await self._process(observer, TTSStartedFrame())
         await self._process(observer, TTSStoppedFrame())
 
-        self.assertEqual(hub.states, ["idle"])
+        self.assertEqual(hub.states, ["speaking", "idle"])
         self.assertEqual(
             hub.transcripts,
             [("agent", "Hello from the interviewer.", True)],
         )
+
+    async def test_agent_keeps_speaking_until_bot_playback_stops(self) -> None:
+        hub = FakeHub()
+        observer = SessionEventObserver(
+            hub,
+            label="agent-test",
+            observe_user=False,
+            observe_agent=True,
+        )
+
+        await self._process(observer, TextFrame("Still talking."))
+        await self._process(observer, TTSStartedFrame())
+        await self._process(observer, BotStartedSpeakingFrame())
+        await self._process(observer, TTSStoppedFrame())
+        # TTS finished generating but transport still playing.
+        self.assertEqual(hub.states, ["speaking", "speaking"])
+        self.assertTrue(hub.bot_speaking)
+        self.assertEqual(hub.transcripts, [("agent", "Still talking.", True)])
+
+        await self._process(observer, BotStoppedSpeakingFrame())
+        self.assertEqual(hub.states[-1], "idle")
+        self.assertFalse(hub.bot_speaking)
+
+    async def test_user_vad_ignored_while_bot_speaking(self) -> None:
+        hub = FakeHub()
+        hub.bot_speaking = True
+        observer = SessionEventObserver(
+            hub,
+            label="user-test",
+            observe_user=True,
+            observe_agent=False,
+        )
+
+        await self._process(observer, UserStartedSpeakingFrame())
+        await self._process(observer, UserStoppedSpeakingFrame())
+
+        self.assertEqual(hub.states, [])
 
 
 if __name__ == "__main__":

@@ -37,6 +37,11 @@ class SessionEventObserver(FrameProcessor):
 
     Place **early** (after STT) for user speech/transcripts and **late**
     (after TTS) for agent speaking — or both (same hub; state is idempotent).
+
+    Speaking is held until transport *playback* ends (BotStoppedSpeaking), not
+    merely until TTS finishes generating (TTSStopped). That gap is what made the
+    mouth freeze while audio still played. User VAD is ignored while the bot is
+    speaking (echo / AEC bleed).
     """
 
     def __init__(
@@ -53,24 +58,27 @@ class SessionEventObserver(FrameProcessor):
         self._label = label
         self._observe_user = observe_user
         self._observe_agent = observe_agent
+        # True once transport reports real playback for the current utterance.
+        self._saw_bot_playback = False
 
     async def process_frame(self, frame: Frame, direction: FrameDirection):
         await super().process_frame(frame, direction)
 
         try:
             # --- User speaking (VAD / aggregator) ---
-            if self._observe_user and isinstance(
+            # Skip presence flips while bot audio is out — mic often hears TTS.
+            if self._observe_user and not self._hub.bot_speaking and isinstance(
                 frame,
                 (UserStartedSpeakingFrame, VADUserStartedSpeakingFrame),
             ):
                 await self._hub.agent_state("listening")
-            elif self._observe_user and isinstance(
+            elif self._observe_user and not self._hub.bot_speaking and isinstance(
                 frame,
                 (UserStoppedSpeakingFrame, VADUserStoppedSpeakingFrame),
             ):
                 await self._hub.agent_state("thinking")
 
-            # --- User transcript ---
+            # --- User transcript (always; useful even during barge-in) ---
             elif self._observe_user and isinstance(frame, TranscriptionFrame):
                 text = (getattr(frame, "text", None) or "").strip()
                 if text:
@@ -91,23 +99,26 @@ class SessionEventObserver(FrameProcessor):
             # --- LLM / agent speech ---
             elif self._observe_agent and isinstance(frame, LLMFullResponseStartFrame):
                 self._assistant_buf = []
-                await self._hub.agent_state("thinking")
-            elif self._observe_agent and isinstance(
-                frame, (TTSStartedFrame, BotStartedSpeakingFrame)
-            ):
+                if not self._hub.bot_speaking:
+                    await self._hub.agent_state("thinking")
+            elif self._observe_agent and isinstance(frame, BotStartedSpeakingFrame):
+                self._saw_bot_playback = True
                 await self._hub.agent_state("speaking")
-            elif self._observe_agent and isinstance(
-                frame, (TTSStoppedFrame, BotStoppedSpeakingFrame)
-            ):
+            elif self._observe_agent and isinstance(frame, TTSStartedFrame):
+                # Lipsync early (generation start) even before first PCM out.
+                await self._hub.agent_state("speaking")
+            elif self._observe_agent and isinstance(frame, BotStoppedSpeakingFrame):
+                self._saw_bot_playback = False
                 await self._hub.agent_state("idle")
-                if self._assistant_buf:
-                    full = "".join(self._assistant_buf).strip()
-                    self._assistant_buf = []
-                    if full:
-                        await self._hub.transcript("agent", full, final=True)
+                await self._flush_assistant_buf()
+            elif self._observe_agent and isinstance(frame, TTSStoppedFrame):
+                # Generation done. If transport never emitted Bot* frames, fall
+                # back to idle here; otherwise keep speaking until BotStopped so
+                # the mouth matches the audio the user still hears.
+                await self._flush_assistant_buf()
+                if not self._saw_bot_playback:
+                    await self._hub.agent_state("idle")
             elif self._observe_agent and isinstance(frame, LLMFullResponseEndFrame):
-                # Prefer flushing on TTS stop so text lines up with audio;
-                # if buffer still present and no TTS, flush on end.
                 pass
             elif self._observe_agent and isinstance(
                 frame, (LLMTextFrame, TTSTextFrame, TextFrame)
@@ -122,3 +133,11 @@ class SessionEventObserver(FrameProcessor):
             )
 
         await self.push_frame(frame, direction)
+
+    async def _flush_assistant_buf(self) -> None:
+        if not self._assistant_buf:
+            return
+        full = "".join(self._assistant_buf).strip()
+        self._assistant_buf = []
+        if full:
+            await self._hub.transcript("agent", full, final=True)

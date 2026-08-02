@@ -89,24 +89,71 @@ export function useVoiceSession() {
   const endingRef = useRef(false)
   const attemptRef = useRef(0)
   const sessionIdRef = useRef<string | null>(null)
+  /** Sticky speaking: bridge TTS chunk gaps + ignore VAD-while-talking. */
+  const agentStateRef = useRef<AgentPresenceState>("asleep")
+  const speakHoldTimerRef = useRef<number | null>(null)
   const [micMuted, setMicMuted] = useState(false)
 
-  const applyEvent = useCallback((raw: unknown) => {
+  const clearSpeakHold = useCallback(() => {
+    if (speakHoldTimerRef.current != null) {
+      window.clearTimeout(speakHoldTimerRef.current)
+      speakHoldTimerRef.current = null
+    }
+  }, [])
+
+  const applyAgentPresence = useCallback(
+    (next: AgentPresenceState) => {
+      const current = agentStateRef.current
+
+      // Keep mouth moving while audio is still out — drop listening/thinking
+      // (often echo from the speaker into the mic).
+      if (
+        current === "speaking" &&
+        (next === "listening" || next === "thinking")
+      ) {
+        return
+      }
+
+      // Debounce speaking → idle so brief TTSStopped gaps don't freeze the face.
+      if (current === "speaking" && next === "idle") {
+        clearSpeakHold()
+        speakHoldTimerRef.current = window.setTimeout(() => {
+          speakHoldTimerRef.current = null
+          if (agentStateRef.current !== "speaking") return
+          agentStateRef.current = "idle"
+          setAgentState("idle")
+        }, 450)
+        return
+      }
+
+      clearSpeakHold()
+      agentStateRef.current = next
+      setAgentState(next)
+    },
+    [clearSpeakHold]
+  )
+
+  const applyEvent = useCallback(
+    (raw: unknown) => {
     const ev = parseVoiceEvent(raw)
     if (!ev) return
 
     if (ev.type === "agent_state") {
-      setAgentState(ev.state)
+      applyAgentPresence(ev.state)
       return
     }
     if (ev.type === "session_status") {
       if (ev.status === "live") {
         setStatus("live")
-        setAgentState((current) => (current === "asleep" ? "idle" : current))
+        applyAgentPresence(
+          agentStateRef.current === "asleep" ? "idle" : agentStateRef.current
+        )
         return
       }
       if (ev.status === "ended" || ev.status === "error") {
         setStatus(ev.status === "error" ? "error" : "ended")
+        clearSpeakHold()
+        agentStateRef.current = "asleep"
         setAgentState("asleep")
         sessionIdRef.current = null
       }
@@ -142,7 +189,9 @@ export function useVoiceSession() {
       setLiveTurnId(null)
       setPlaybackTime(turn.durationSec)
     }
-  }, [])
+  },
+  [applyAgentPresence, clearSpeakHold]
+  )
 
   const stopEventStream = useCallback(() => {
     abortRef.current?.abort()
@@ -229,6 +278,7 @@ export function useVoiceSession() {
 
   const cleanup = useCallback(() => {
     stopEventStream()
+    clearSpeakHold()
     try {
       dcRef.current?.close()
     } catch {
@@ -245,7 +295,7 @@ export function useVoiceSession() {
       audioElRef.current.srcObject = null
       audioElRef.current.pause()
     }
-  }, [stopEventStream])
+  }, [clearSpeakHold, stopEventStream])
 
   const endSessionRecord = useCallback(
     async (id: string) => {
@@ -262,12 +312,14 @@ export function useVoiceSession() {
     (connectionState: RTCPeerConnectionState) => {
       if (connectionState !== "failed" || endingRef.current) return
       setStatus("error")
+      clearSpeakHold()
+      agentStateRef.current = "asleep"
       setAgentState("asleep")
       setError(
         "The voice connection was lost. Start a new session to reconnect."
       )
     },
-    []
+    [clearSpeakHold]
   )
 
   useEffect(() => () => cleanup(), [cleanup])
@@ -283,6 +335,7 @@ export function useVoiceSession() {
       setError(null)
       setStatus("creating")
       setTurns([])
+      agentStateRef.current = "asleep"
       setAgentState("asleep")
       cleanup()
 
@@ -388,6 +441,7 @@ export function useVoiceSession() {
         attachRemote(remoteStream)
 
         setStatus("live")
+        agentStateRef.current = "idle"
         setAgentState("idle")
         return result.session
       } catch (e) {
@@ -423,6 +477,7 @@ export function useVoiceSession() {
     sessionIdRef.current = null
     cleanup()
     setStatus("ended")
+    agentStateRef.current = "asleep"
     setAgentState("asleep")
     if (id) {
       await endSessionRecord(id)
