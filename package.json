@@ -4,11 +4,15 @@
   "workspaces": [
     "client",
     "api",
+    "docs",
+    "extension",
     "packages/*"
   ],
   "scripts": {
     "dev": "concurrently -n client,api,ws,worker,studio,voice -c cyan,magenta,green,blue,yellow,white \"npm:dev --workspace=client\" \"npm:dev --workspace=@mockmatch/api\" \"npm:dev:ws --workspace=@mockmatch/api\" \"npm:dev:worker --workspace=@mockmatch/api\" \"npm:db:studio --workspace=@mockmatch/api\" \"npm:dev:voice\"",
     "dev:client": "npm run dev --workspace=client",
+    "dev:docs": "npm run dev --workspace=@mockmatch/docs",
+    "dev:extension": "npm run dev --workspace=@mockmatch/extension",
     "dev:api": "npm run dev --workspace=@mockmatch/api",
     "dev:ws": "npm run dev:ws --workspace=@mockmatch/api",
     "dev:worker": "npm run dev:worker --workspace=@mockmatch/api",
@@ -17,9 +21,9 @@
     "infra:up": "docker compose -f infra/docker-compose.yml up -d",
     "infra:down": "docker compose -f infra/docker-compose.yml down",
     "db:schema:mermaid": "npm run db:schema:mermaid --workspace=@mockmatch/api",
-    "typecheck": "npm run typecheck --workspace=@mockmatch/api && npm run typecheck --workspace=client",
+    "typecheck": "npm run typecheck --workspace=@mockmatch/api && npm run typecheck --workspace=client && npm run typecheck --workspace=@mockmatch/docs",
     "lint": "npm run lint --workspace=client",
-    "build": "npm run build --workspace=client",
+    "build": "npm run build --workspace=client && npm run build --workspace=@mockmatch/docs",
     "fallow": "fallow dead-code && fallow dupes && fallow health --report-only",
     "fallow:audit": "fallow audit",
     "ci": "npm run typecheck && npm run lint && npm run build && npm run fallow:audit"

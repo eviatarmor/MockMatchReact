@@ -10,6 +10,8 @@
       "types": "./src/index.ts",
       "default": "./src/index.ts"
     },
+    "./theme.css": "./src/styles/theme.css",
+    "./styles/*": "./src/styles/*",
     "./utils": {
       "types": "./src/lib/utils.ts",
       "default": "./src/lib/utils.ts"

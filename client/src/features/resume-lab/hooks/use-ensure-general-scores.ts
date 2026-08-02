@@ -32,7 +32,6 @@ export function useEnsureGeneralScores(items: readonly ResumeItem[]) {
     const missing = missingKey.split("|").filter(Boolean)
     let cancelled = false
     let idleId: number | undefined
-    let timeoutId: number | undefined
 
     const run = () => {
       void (async () => {
@@ -70,7 +69,7 @@ export function useEnsureGeneralScores(items: readonly ResumeItem[]) {
     }
 
     // First wait past stagger entrance, then start on idle if available
-    timeoutId = window.setTimeout(() => {
+    const timeoutId = window.setTimeout(() => {
       if (cancelled) return
       if (typeof requestIdleCallback === "function") {
         idleId = requestIdleCallback(run, { timeout: 3000 })
@@ -81,7 +80,7 @@ export function useEnsureGeneralScores(items: readonly ResumeItem[]) {
 
     return () => {
       cancelled = true
-      if (timeoutId != null) window.clearTimeout(timeoutId)
+      window.clearTimeout(timeoutId)
       if (idleId != null && typeof cancelIdleCallback === "function") {
         cancelIdleCallback(idleId)
       }

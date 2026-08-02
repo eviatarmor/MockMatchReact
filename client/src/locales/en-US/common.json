@@ -953,7 +953,7 @@
       },
       "review": {
         "title": "Review & submit",
-        "desc": "Confirm, then it submits for you."
+        "desc": "Confirm the filled fields, then you submit on the site."
       }
     },
     "stats": {

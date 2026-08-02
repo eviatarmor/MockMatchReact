@@ -146,17 +146,17 @@ export function EditorRail({
   const toggle = (id: EditorPanelId) =>
     setActivePanel((current) => (current === id ? null : id))
 
-  if (visibleItems.length === 0) {
-    return <div className="flex h-full min-h-0 w-full">{children}</div>
-  }
-
-  const panelOpen =
-    activePanel != null && railItemAllowed(activePanel, permissions)
-  // Keep last panel content mounted during exit slide
+  // Keep last panel content mounted during exit slide (must run before any early return)
   const lastPanelRef = useRef(activePanel)
   if (activePanel) lastPanelRef.current = activePanel
   const displayPanel = activePanel ?? lastPanelRef.current
   const isAiPanel = displayPanel === "ai"
+  const panelOpen =
+    activePanel != null && railItemAllowed(activePanel, permissions)
+
+  if (visibleItems.length === 0) {
+    return <div className="flex h-full min-h-0 w-full">{children}</div>
+  }
 
   return (
     <TooltipProvider delay={300}>

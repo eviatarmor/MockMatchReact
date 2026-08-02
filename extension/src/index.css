@@ -1,0 +1,45 @@
+@import "tailwindcss";
+/* Shared MockMatch tokens (colors, radius, fonts) — same source as client + docs */
+@import "@mockmatch/ui/theme.css";
+
+@source "../../packages/ui/src/**/*.{ts,tsx}";
+@source "./**/*.{ts,tsx}";
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html,
+  body,
+  #root {
+    @apply h-full;
+  }
+  body {
+    @apply m-0 bg-muted text-foreground font-sans antialiased;
+  }
+}
+
+/* Theme toggle view transition — same as client index.css */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-group(root) {
+  animation-duration: var(--magicui-theme-toggle-vt-duration, 400ms);
+}
+
+html[data-magicui-theme-vt="active"]::view-transition-new(root) {
+  clip-path: var(--magicui-theme-vt-clip-from);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
