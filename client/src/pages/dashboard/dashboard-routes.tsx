@@ -67,6 +67,10 @@ export function dashboardRoutes() {
           element={<SimulationIdePage />}
         />
         <Route
+          path="simulations/practice/:questionId"
+          element={<SimulationIdePage />}
+        />
+        <Route
           path="simulations/workspace"
           element={<SimulationIdePage />}
         />

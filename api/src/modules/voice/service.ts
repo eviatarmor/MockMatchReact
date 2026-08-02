@@ -1,5 +1,6 @@
-import { eq } from "drizzle-orm"
+import { and, desc, eq, sql } from "drizzle-orm"
 import { db } from "../../db/client.js"
+import { questions } from "../../db/schema/questions.js"
 import { voiceSessions } from "../../db/schema/voice-sessions.js"
 import { env } from "../../config/env.js"
 import { signVoiceTicket } from "../../lib/jwt.js"
@@ -28,6 +29,8 @@ export type CreateVoiceSessionInput = {
   voiceId: string
   analyzeFace: boolean
   analyzePosture: boolean
+  /** Optional global bank question — seeds interviewer system prompt. */
+  questionId?: string
 }
 
 function buildIceServers(): Array<Record<string, unknown>> {
@@ -83,9 +86,44 @@ export async function createVoiceSession(input: CreateVoiceSessionInput) {
     }
   }
 
+  let questionPrompt = ""
+  let resolvedQuestionId: string | null = null
+  if (input.questionId) {
+    const [q] = await db
+      .select({
+        id: questions.id,
+        title: questions.title,
+        body: questions.body,
+        payload: questions.payload,
+        format: questions.format,
+      })
+      .from(questions)
+      .where(eq(questions.id, input.questionId))
+      .limit(1)
+    if (q && q.format === "conversation") {
+      resolvedQuestionId = q.id
+      const payload = q.payload as {
+        interviewerPrompt?: string
+        followUps?: string[]
+        rubric?: string
+      }
+      questionPrompt = [
+        `Focus question: ${q.title}.`,
+        payload.interviewerPrompt || q.body || "",
+        payload.followUps?.length
+          ? `Suggested follow-ups: ${payload.followUps.join(" | ")}`
+          : "",
+        payload.rubric ? `Rubric notes: ${payload.rubric}` : "",
+      ]
+        .filter(Boolean)
+        .join(" ")
+    }
+  }
+
   const systemPrompt = [
     KIND_PROMPTS[input.sessionKind] ?? KIND_PROMPTS.practice,
     `Track id: ${input.trackId}.`,
+    questionPrompt,
     "Keep spoken replies short (2–4 sentences).",
     input.analyzeFace
       ? "Note: facial analysis is enabled on the client (UI flag only for now)."
@@ -102,6 +140,7 @@ export async function createVoiceSession(input: CreateVoiceSessionInput) {
     .values({
       userId: input.userId,
       trackId: input.trackId,
+      questionId: resolvedQuestionId,
       sessionKind: input.sessionKind,
       voiceId: input.voiceId,
       analyzeFace: input.analyzeFace,
@@ -206,4 +245,62 @@ export async function getVoiceSession(input: {
     return null
   }
   return row
+}
+
+export type ListVoiceSessionsInput = {
+  userId: string
+  page?: number
+  pageSize?: number
+  search?: string
+}
+
+export async function listVoiceSessions(input: ListVoiceSessionsInput) {
+  const page = input.page ?? 1
+  const pageSize = input.pageSize ?? 10
+  const offset = (page - 1) * pageSize
+
+  const filters = [eq(voiceSessions.userId, input.userId)]
+  if (input.search?.trim()) {
+    const q = `%${input.search.trim().toLowerCase()}%`
+    filters.push(
+      sql`(lower(${voiceSessions.trackId}) like ${q} or lower(${voiceSessions.status}) like ${q})`
+    )
+  }
+  const where = and(...filters)
+
+  const rows = await db
+    .select()
+    .from(voiceSessions)
+    .where(where)
+    .orderBy(desc(voiceSessions.updatedAt))
+    .limit(pageSize)
+    .offset(offset)
+
+  const [{ count }] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(voiceSessions)
+    .where(where)
+
+  return {
+    items: rows,
+    total: count ?? 0,
+    page,
+    pageSize,
+  }
+}
+
+export async function deleteVoiceSession(input: {
+  userId: string
+  sessionId: string
+}) {
+  const deleted = await db
+    .delete(voiceSessions)
+    .where(
+      and(
+        eq(voiceSessions.id, input.sessionId),
+        eq(voiceSessions.userId, input.userId)
+      )
+    )
+    .returning({ id: voiceSessions.id })
+  return deleted.length > 0
 }

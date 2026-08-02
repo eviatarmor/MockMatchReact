@@ -7,9 +7,11 @@ import { documentVersionsRouter } from "../modules/document-versions/router.js"
 import { ideWorkspacesRouter } from "../modules/ide-workspaces/router.js"
 import { jobsRouter } from "../modules/jobs/router.js"
 import { practiceExercisesRouter } from "../modules/practice-exercises/router.js"
+import { practiceSessionsRouter } from "../modules/practice-sessions/router.js"
 import { questionsRouter } from "../modules/questions/router.js"
 import { resumesRouter } from "../modules/resumes/router.js"
 import { supportRouter } from "../modules/support/router.js"
+import { trackedJobsRouter } from "../modules/tracked-jobs/router.js"
 import { voiceRouter } from "../modules/voice/router.js"
 import { router } from "./trpc.js"
 
@@ -24,8 +26,10 @@ export const appRouter = router({
   coverLetters: coverLettersRouter,
   ideWorkspaces: ideWorkspacesRouter,
   practiceExercises: practiceExercisesRouter,
+  practiceSessions: practiceSessionsRouter,
   jobs: jobsRouter,
   support: supportRouter,
+  trackedJobs: trackedJobsRouter,
   voice: voiceRouter,
 })
 

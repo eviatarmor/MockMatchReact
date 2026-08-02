@@ -6,7 +6,7 @@
 # from repo root
 npm run infra:up                    # Postgres + Redis + S3Proxy → infra/volumes/
 cp api/.env.example api/.env        # includes local S3Proxy endpoint :9090
-cd api && npm run db:migrate        # through user_avatar (0013)
+cd api && npm run db:migrate        # through practice_sessions (0016)
 cd api && npm run db:seed:exercises # catalog + upload files to S3Proxy
 npm run dev                         # client + api + ws + worker + studio
 # or split:

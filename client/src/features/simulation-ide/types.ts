@@ -97,6 +97,18 @@ export function isCodeRunFormatSlug(
   )
 }
 
+/**
+ * Any practice slug allowed on `/simulations/code-run/:format`
+ * (seed catalog + generated gen-* exercises).
+ */
+export function isPracticeExerciseSlug(value: string | undefined): boolean {
+  if (!value || value === "shell" || value === "workspace") return false
+  if (isCodeRunFormatSlug(value)) return true
+  if (value.startsWith("gen-")) return true
+  // slug-like: lowercase, numbers, hyphens
+  return /^[a-z0-9][a-z0-9-]{0,63}$/.test(value)
+}
+
 /** Default entry + language for client-side runner (when set). */
 export type FormatRuntimeHint = {
   readonly language: RuntimeLanguage

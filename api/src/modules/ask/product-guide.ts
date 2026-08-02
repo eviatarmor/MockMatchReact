@@ -47,11 +47,13 @@ application tracking, practice, and readiness insights.
 
 4. **Applications** (\`/applications\`)
    - Table and kanban views for jobs the user is pursuing (stages such as saved → applied → interviewing → offer → declined).
-   - **Import Job** pastes a job description into Saved.
+   - Jobs are **persisted server-side** (\`tracked_jobs\` via tRPC \`trackedJobs.*\`); Discover track/untrack and Import Job write to the API (one-time localStorage import if legacy data exists).
+   - **Import Job** pastes a job description into Saved and **auto-generates** interview questions into the global bank (once per job; semantic dedupe).
+   - Discover **mark applied** also auto-generates questions once per job.
    - Application detail drill-down for a single tracked job.
 
 ### Practice area
-5. **Simulations** (\`/simulations\`) — recent practice **sessions** (searchable list) plus a featured **interview tracks** strip; **Browse all** opens \`/simulations/tracks\`. Sidebar filters: **format** (practice environment), role family, difficulty, duration. **Formats** (catalog; runners rolling out): **Code run** (client-side browser runner for supported languages; more languages/WASM next), **Dev workspace** (live multiplayer IDE + terminal), **Terminal lab** (shell-only ops/DevOps tasks), **Conversation** (AI interviewer dialogue). Tracks matching the user's resume role can sort first and show a "For you" badge (not a filter).
+5. **Simulations** (\`/simulations\`) — recent practice **sessions** merge **voice** + **IDE** attempts (\`voice.listSessions\` + \`practiceSessions.list\`; each retake is its own row). Opening an unfinished IDE exercise offers **Continue** vs **Start new**. Featured **interview tracks** strip; **Browse all** opens \`/simulations/tracks\`. Sidebar filters: **format** (practice environment), role family, difficulty, duration. **Formats**: **Code run**, **Dev workspace**, **Terminal lab**, **Conversation**.
    - **Code run** (\`/simulations/code-run/:format\`) — exercise rooms with **live collab** (Yjs, presence, share):
      - **react** — multi-file IDE exercise (tree + Monaco). Counter lab. Web-app run (Node/React) not wired yet.
      - **cpp-sort** — **single-file** Monaco only (no tree); **tabs cannot be closed**. C++ browser runtime planned (WASI/clang).
@@ -64,7 +66,7 @@ application tracking, practice, and readiness insights.
    - **Dev workspace** (\`/simulations/workspace\`) — freeform multi-file collab IDE.
    - Share URLs include \`id\` + \`share\` query params (owner must stay in room).
    - **Exercise catalog** is Postgres \`practice_exercises\` (slug, domain, difficulty, prompt, tags, embedding-ready). Starter **files** live under S3 prefix \`exercises/<slug>/<version>/\` (dev mirror in \`content_cache\`). Seed: \`npm run db:seed:exercises\` in \`api/\`.
-6. **Question Bank** (\`/question-bank\`) — practice question library by domain/difficulty.
+6. **Question Bank** (\`/question-bank\`) — **shared global content bank** (\`questions\` only): format + payload + \`content_cache\` / \`content_prefix\` for files. Auto-filled on apply/import. Kimi K3 + vector dedupe. Conversation → voice; code_run/workspace/terminal → \`/simulations/practice/:questionId\` (IDE loads bank row, not practice_exercises). Seeds stay in \`practice_exercises\`.
 
 ### Insights area
 7. **Readiness** (\`/readiness\`) — readiness metrics / progress toward interview readiness.

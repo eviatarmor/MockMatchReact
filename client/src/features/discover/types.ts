@@ -64,7 +64,13 @@ export type TrackingStatus =
   | "declined"
 
 export interface TrackedJob {
+  /** Server UUID (or temporary local key before persist). */
   readonly id: string
+  /**
+   * Discover / import stable key (`adzuna:…`, `import-…`).
+   * Used for isTracked(discoverJob.id) matching.
+   */
+  readonly sourceKey: string
   readonly title: string
   readonly company: string
   readonly location: string

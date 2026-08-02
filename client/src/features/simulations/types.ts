@@ -49,9 +49,15 @@ export interface RecentSession {
   readonly track: string
   /** Optional catalog track id for resume navigation. */
   readonly trackId?: string
+  /** IDE workspace id when opening an IDE attempt. */
+  readonly workspaceId?: string | null
   /** ISO timestamp for relative “Updated” column. */
   readonly updatedAt: string
   readonly durationMin: number
   readonly score: number | null
   readonly status: SessionStatus
+  /** Internal: voice | ide (set by list hook). */
+  readonly _source?: "voice" | "ide"
+  readonly _sourceId?: string
+  readonly _workspaceId?: string | null
 }

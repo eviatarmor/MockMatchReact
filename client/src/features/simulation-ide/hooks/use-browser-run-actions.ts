@@ -10,11 +10,19 @@ import type { IdeFormatPreset, IoTestCase } from "../types"
 
 export type TerminalFeed = { seq: number; chunk: string }
 
+type RuntimeOverride = {
+  language?: RuntimeLanguage
+  entryPath?: string
+  tests?: readonly IoTestCase[]
+}
+
 type UseBrowserRunActionsArgs = {
   preset: IdeFormatPreset
   activeTabId: string | undefined
   getFilesSnapshot: () => Record<string, string>
   setShowTerminal: (open: boolean | ((v: boolean) => boolean)) => void
+  /** Bank / catalog override when preset has no runtime (e.g. generated Qs). */
+  runtimeOverride?: RuntimeOverride | null
 }
 
 /**
@@ -26,6 +34,7 @@ export function useBrowserRunActions({
   activeTabId,
   getFilesSnapshot,
   setShowTerminal,
+  runtimeOverride,
 }: UseBrowserRunActionsArgs) {
   const [runBusy, setRunBusy] = useState(false)
   const [runTestsBusy, setRunTestsBusy] = useState(false)
@@ -74,9 +83,29 @@ export function useBrowserRunActions({
     const paths = Object.keys(files)
     if (paths.length === 0) return null
 
-    if (preset.runtime) {
-      let language = preset.runtime.language
-      const entryPath = preset.runtime.entryPath
+    const runtime = preset.runtime
+      ? {
+          language: preset.runtime.language as RuntimeLanguage,
+          entryPath: preset.runtime.entryPath,
+          tests: preset.runtime.tests,
+        }
+      : runtimeOverride?.language || runtimeOverride?.entryPath
+        ? {
+            language: (runtimeOverride.language ??
+              "javascript") as RuntimeLanguage,
+            entryPath:
+              runtimeOverride.entryPath ??
+              paths[0]!,
+            tests: runtimeOverride.tests,
+          }
+        : null
+
+    if (runtime) {
+      let language = runtime.language
+      const entryPath =
+        runtime.entryPath in files
+          ? runtime.entryPath
+          : (paths[0] ?? runtime.entryPath)
       if (
         (language === "typescript" || language === "javascript") &&
         looksLikeWebAppEntry(entryPath, files)
@@ -87,7 +116,7 @@ export function useBrowserRunActions({
         language,
         entryPath,
         files,
-        tests: preset.runtime.tests,
+        tests: runtime.tests,
       }
     }
 
@@ -104,7 +133,7 @@ export function useBrowserRunActions({
       language = "nodejs"
     }
     return { language, entryPath, files }
-  }, [activeTabId, getFilesSnapshot, preset.runtime])
+  }, [activeTabId, getFilesSnapshot, preset.runtime, runtimeOverride])
 
   const execute = useCallback(
     (mode: "run" | "tests") => {

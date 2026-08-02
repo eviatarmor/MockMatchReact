@@ -1,11 +1,17 @@
-import { useCallback } from "react"
+import { useCallback, useEffect, useMemo, useRef } from "react"
 import { useLocalStorage } from "@uidotdev/usehooks"
+import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
+import { trpc } from "@/lib/trpc"
 import type { DiscoverJob, TrackedJob, TrackingStatus } from "@/features/discover/types"
 import {
   discoverJobToTracked,
   parseJobDescriptionToTracked,
 } from "../lib/map-tracked-job"
-
+import {
+  mapApiTrackedJob,
+  trackedJobToUpsertInput,
+} from "../lib/map-api-tracked-job"
 import type { EmailProvider } from "../types"
 
 const STORAGE_KEY = "mm.trackedJobs"
@@ -13,6 +19,7 @@ const STORAGE_KEY = "mm.trackedJobs"
 const GMAIL_KEY = "mm.gmailConnected"
 const EMAIL_PROVIDER_KEY = "mm.emailProvider"
 const GMAIL_LISTEN_KEY = "mm.gmailListenJobIds"
+const LOCAL_IMPORT_DONE_KEY = "mm.trackedJobs.importDone"
 
 const EMAIL_PROVIDERS: readonly EmailProvider[] = [
   "google",
@@ -22,173 +29,333 @@ const EMAIL_PROVIDERS: readonly EmailProvider[] = [
 ]
 
 function isEmailProvider(value: unknown): value is EmailProvider {
-  return typeof value === "string" && (EMAIL_PROVIDERS as readonly string[]).includes(value)
+  return (
+    typeof value === "string" &&
+    (EMAIL_PROVIDERS as readonly string[]).includes(value)
+  )
 }
 
-function statusFields(status: TrackingStatus): Pick<
-  TrackedJob,
-  "status" | "progressCompleted" | "activeStepIndex" | "statusUpdatedAt" | "nextStep"
-> {
-  const progressCompleted =
-    status === "saved" || status === "declined"
-      ? 0
-      : status === "applied"
-        ? 1
-        : status === "interviewing"
-          ? 2
-          : 3
-
-  return {
-    status,
-    progressCompleted,
-    activeStepIndex:
-      status === "saved" || status === "declined" ? null : Math.min(progressCompleted, 3),
-    statusUpdatedAt:
-      status === "saved"
-        ? "Saved just now"
-        : status === "applied"
-          ? "Applied just now"
-          : status === "interviewing"
-            ? "Interviewing"
-            : status === "declined"
-              ? "Declined"
-              : "Offer",
-    nextStep:
-      status === "saved"
-        ? "Tailor resume & apply"
-        : status === "applied"
-          ? "Follow up with recruiter"
-          : status === "interviewing"
-            ? "Prep for next round"
-            : status === "declined"
-              ? "Learn from feedback"
-              : "Review offer details",
+function readLocalJobs(): TrackedJob[] {
+  if (typeof window === "undefined") return []
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw) as unknown
+    if (!Array.isArray(parsed)) return []
+    return parsed as TrackedJob[]
+  } catch {
+    return []
   }
+}
+
+function clearLocalJobs() {
+  if (typeof window === "undefined") return
+  window.localStorage.removeItem(STORAGE_KEY)
+  window.localStorage.setItem(LOCAL_IMPORT_DONE_KEY, "1")
 }
 
 /**
  * Cross-route tracked-job store (Discover toggle → Applications Saved).
- * localStorage-backed until a tracking API lands.
+ * Server-backed via tRPC; one-time localStorage import on first empty list.
  */
+function notifyQuestionGen(
+  status: string | undefined,
+  t: (key: string, opts?: Record<string, unknown>) => string
+) {
+  if (status === "started") {
+    toast.message(
+      t("applications.questionGen.started", {
+        defaultValue: "Generating interview questions for this job…",
+      }),
+      {
+        description: t("applications.questionGen.startedDescription", {
+          defaultValue:
+            "They will appear in Question Bank shortly. Duplicates are skipped.",
+        }),
+      }
+    )
+    return
+  }
+  if (status === "skipped_already") {
+    // Silent — already generated for this job
+    return
+  }
+  if (status === "skipped_no_key") {
+    toast.message(
+      t("applications.questionGen.noKey", {
+        defaultValue: "Job saved. Question generation needs OPENROUTER_API_KEY.",
+      })
+    )
+  }
+}
+
 export function useTrackedJobs() {
-  const [jobs, setJobs] = useLocalStorage<TrackedJob[]>(STORAGE_KEY, [])
-  const list = jobs ?? []
+  const { t } = useTranslation("common")
+  const utils = trpc.useUtils()
+  const listQuery = trpc.trackedJobs.list.useQuery(undefined, {
+    staleTime: 30_000,
+  })
+  const importDoneRef = useRef(false)
 
-  const isTracked = useCallback((id: string) => list.some((job) => job.id === id), [list])
+  const upsertMut = trpc.trackedJobs.upsert.useMutation({
+    onSuccess: (result) => {
+      void utils.trackedJobs.list.invalidate()
+      notifyQuestionGen(result.questionGen, t)
+      if (result.questionGen === "started") {
+        // Refresh bank after models finish (best-effort)
+        window.setTimeout(() => {
+          void utils.questions.list.invalidate()
+        }, 45_000)
+      }
+    },
+  })
+  const updateStatusMut = trpc.trackedJobs.updateStatus.useMutation({
+    onSuccess: () => {
+      void utils.trackedJobs.list.invalidate()
+    },
+  })
+  const replaceStatusesMut = trpc.trackedJobs.replaceStatuses.useMutation({
+    onSuccess: () => {
+      void utils.trackedJobs.list.invalidate()
+    },
+  })
+  const removeMut = trpc.trackedJobs.remove.useMutation({
+    onSuccess: () => {
+      void utils.trackedJobs.list.invalidate()
+    },
+  })
+  const removeBySourceKeyMut = trpc.trackedJobs.removeBySourceKey.useMutation({
+    onSuccess: () => {
+      void utils.trackedJobs.list.invalidate()
+    },
+  })
+  const importLocalMut = trpc.trackedJobs.importLocal.useMutation({
+    onSuccess: () => {
+      void utils.trackedJobs.list.invalidate()
+    },
+  })
 
-  /** Applied / interviewing / offer — past Saved (or never tracked → false). */
+  const jobs: TrackedJob[] = useMemo(
+    () => (listQuery.data ?? []).map(mapApiTrackedJob),
+    [listQuery.data]
+  )
+
+  // One-shot migrate localStorage → server when list is empty
+  useEffect(() => {
+    if (importDoneRef.current) return
+    if (listQuery.isLoading || listQuery.isError) return
+    if (typeof window === "undefined") return
+    if (window.localStorage.getItem(LOCAL_IMPORT_DONE_KEY) === "1") {
+      importDoneRef.current = true
+      return
+    }
+    if ((listQuery.data?.length ?? 0) > 0) {
+      clearLocalJobs()
+      importDoneRef.current = true
+      return
+    }
+
+    const local = readLocalJobs()
+    if (local.length === 0) {
+      clearLocalJobs()
+      importDoneRef.current = true
+      return
+    }
+
+    importDoneRef.current = true
+    const payload = local.map((job) =>
+      trackedJobToUpsertInput({
+        sourceKey: job.sourceKey || job.id,
+        provider: job.provider,
+        title: job.title,
+        company: job.company,
+        location: job.location,
+        description: job.description,
+        applyUrl: job.applyUrl,
+        status: job.status,
+        salaryRange: job.salaryRange,
+        seniority: job.seniority,
+        matchScore: job.matchScore,
+        matchTier: job.matchTier,
+        avatarText: job.avatarText,
+        avatarColorClass: job.avatarColorClass,
+        postedAt: job.postedAt,
+        nextStepDate: job.nextStepDate,
+      })
+    )
+
+    importLocalMut.mutate(
+      { jobs: payload },
+      {
+        onSettled: () => {
+          clearLocalJobs()
+        },
+      }
+    )
+  }, [listQuery.isLoading, listQuery.isError, listQuery.data, importLocalMut])
+
+  const isTracked = useCallback(
+    (discoverOrSourceKey: string) =>
+      jobs.some(
+        (job) =>
+          job.sourceKey === discoverOrSourceKey || job.id === discoverOrSourceKey
+      ),
+    [jobs]
+  )
+
   const hasApplied = useCallback(
-    (id: string) => {
-      const job = list.find((item) => item.id === id)
+    (discoverOrSourceKey: string) => {
+      const job = jobs.find(
+        (item) =>
+          item.sourceKey === discoverOrSourceKey || item.id === discoverOrSourceKey
+      )
       return job != null && job.status !== "saved"
     },
-    [list]
+    [jobs]
   )
 
   const trackDiscoverJob = useCallback(
     (job: DiscoverJob) => {
-      setJobs((current) => {
-        const prev = current ?? []
-        if (prev.some((tracked) => tracked.id === job.id)) return prev
-        return [discoverJobToTracked(job), ...prev]
-      })
+      if (isTracked(job.id)) return
+      const tracked = discoverJobToTracked(job)
+      upsertMut.mutate(
+        trackedJobToUpsertInput({
+          sourceKey: tracked.sourceKey,
+          provider: tracked.provider,
+          title: tracked.title,
+          company: tracked.company,
+          location: tracked.location,
+          description: tracked.description,
+          applyUrl: tracked.applyUrl,
+          status: "saved",
+          salaryRange: tracked.salaryRange,
+          seniority: tracked.seniority,
+          matchScore: tracked.matchScore,
+          matchTier: tracked.matchTier,
+          avatarText: tracked.avatarText,
+          avatarColorClass: tracked.avatarColorClass,
+          postedAt: tracked.postedAt,
+          nextStepDate: tracked.nextStepDate,
+        })
+      )
     },
-    [setJobs]
+    [isTracked, upsertMut]
   )
 
   const untrack = useCallback(
-    (id: string) => {
-      setJobs((current) => (current ?? []).filter((job) => job.id !== id))
+    (idOrSourceKey: string) => {
+      const byId = jobs.find((j) => j.id === idOrSourceKey)
+      if (byId) {
+        removeMut.mutate({ id: byId.id })
+        return
+      }
+      removeBySourceKeyMut.mutate({ sourceKey: idOrSourceKey })
     },
-    [setJobs]
+    [jobs, removeMut, removeBySourceKeyMut]
   )
 
   const toggleDiscoverJob = useCallback(
     (job: DiscoverJob) => {
-      let tracked = false
-      setJobs((current) => {
-        const prev = current ?? []
-        if (prev.some((item) => item.id === job.id)) {
-          tracked = false
-          return prev.filter((item) => item.id !== job.id)
-        }
-        tracked = true
-        return [discoverJobToTracked(job), ...prev]
-      })
-      return tracked
+      if (isTracked(job.id)) {
+        untrack(job.id)
+        return false
+      }
+      trackDiscoverJob(job)
+      return true
     },
-    [setJobs]
+    [isTracked, trackDiscoverJob, untrack]
   )
 
   const addFromPaste = useCallback(
     (description: string) => {
       const trackedJob = parseJobDescriptionToTracked(description)
-      setJobs((current) => [trackedJob, ...(current ?? [])])
+      upsertMut.mutate(
+        trackedJobToUpsertInput({
+          sourceKey: trackedJob.sourceKey,
+          provider: trackedJob.provider ?? "import",
+          title: trackedJob.title,
+          company: trackedJob.company,
+          location: trackedJob.location,
+          description: trackedJob.description,
+          applyUrl: trackedJob.applyUrl,
+          status: "saved",
+          salaryRange: trackedJob.salaryRange,
+          seniority: trackedJob.seniority,
+          matchScore: trackedJob.matchScore,
+          matchTier: trackedJob.matchTier,
+          avatarText: trackedJob.avatarText,
+          avatarColorClass: trackedJob.avatarColorClass,
+          postedAt: trackedJob.postedAt,
+          nextStepDate: trackedJob.nextStepDate,
+          generateQuestions: true,
+        })
+      )
       return trackedJob
     },
-    [setJobs]
+    [upsertMut]
   )
 
   const updateStatus = useCallback(
     (id: string, status: TrackingStatus) => {
-      setJobs((current) =>
-        (current ?? []).map((job) => {
-          if (job.id !== id || job.status === status) return job
-          return { ...job, ...statusFields(status) }
-        })
-      )
+      const job = jobs.find((j) => j.id === id || j.sourceKey === id)
+      if (!job) return
+      updateStatusMut.mutate({ id: job.id, status })
     },
-    [setJobs]
+    [jobs, updateStatusMut]
   )
 
   const replaceStatuses = useCallback(
     (updates: ReadonlyArray<{ id: string; status: TrackingStatus }>) => {
-      const byId = new Map(updates.map((u) => [u.id, u.status]))
-      setJobs((current) => {
-        const prev = current ?? []
-        let changed = false
-        const next = prev.map((job) => {
-          const status = byId.get(job.id)
-          if (!status || status === job.status) return job
-          changed = true
-          return { ...job, ...statusFields(status) }
+      const mapped = updates
+        .map((u) => {
+          const job = jobs.find((j) => j.id === u.id || j.sourceKey === u.id)
+          if (!job) return null
+          return { id: job.id, status: u.status }
         })
-        return changed ? next : prev
-      })
+        .filter((u): u is { id: string; status: TrackingStatus } => u != null)
+      if (mapped.length === 0) return
+      replaceStatusesMut.mutate({ updates: mapped })
     },
-    [setJobs]
+    [jobs, replaceStatusesMut]
   )
 
-  /**
-   * Discover “I applied” — upsert job and move to Applied (or leave later stages alone).
-   * Returns true when status was newly set/advanced to applied.
-   */
   const markAppliedFromDiscover = useCallback(
     (job: DiscoverJob) => {
-      const existing = list.find((item) => item.id === job.id)
+      const existing = jobs.find((item) => item.sourceKey === job.id)
       if (existing && existing.status !== "saved") return false
 
-      setJobs((current) => {
-        const prev = current ?? []
-        const row = prev.find((item) => item.id === job.id)
-        if (row) {
-          if (row.status !== "saved") return prev
-          return prev.map((item) =>
-            item.id === job.id ? { ...item, ...statusFields("applied") } : item
-          )
-        }
-        return [
-          { ...discoverJobToTracked(job), ...statusFields("applied") },
-          ...prev,
-        ]
-      })
+      const tracked = discoverJobToTracked(job)
+      upsertMut.mutate(
+        trackedJobToUpsertInput({
+          sourceKey: tracked.sourceKey,
+          provider: tracked.provider,
+          title: tracked.title,
+          company: tracked.company,
+          location: tracked.location,
+          description: tracked.description,
+          applyUrl: tracked.applyUrl,
+          status: "applied",
+          salaryRange: tracked.salaryRange,
+          seniority: tracked.seniority,
+          matchScore: tracked.matchScore,
+          matchTier: tracked.matchTier,
+          avatarText: tracked.avatarText,
+          avatarColorClass: tracked.avatarColorClass,
+          postedAt: tracked.postedAt,
+          nextStepDate: tracked.nextStepDate,
+          generateQuestions: true,
+        })
+      )
       return true
     },
-    [list, setJobs]
+    [jobs, upsertMut]
   )
 
   return {
-    jobs: list,
+    jobs,
+    isLoading: listQuery.isLoading,
+    isFetching: listQuery.isFetching,
+    isError: listQuery.isError,
     isTracked,
     hasApplied,
     trackDiscoverJob,
@@ -245,7 +412,10 @@ export function useEmailConnect() {
     EMAIL_PROVIDER_KEY,
     null
   )
-  const [listenJobIds, setListenJobIds] = useLocalStorage<string[]>(GMAIL_LISTEN_KEY, [])
+  const [listenJobIds, setListenJobIds] = useLocalStorage<string[]>(
+    GMAIL_LISTEN_KEY,
+    []
+  )
 
   const connectedProvider = isEmailProvider(provider) ? provider : null
   const connected = connectedProvider != null
@@ -265,7 +435,9 @@ export function useEmailConnect() {
     (jobId: string) => {
       setListenJobIds((prev) => {
         const list = prev ?? []
-        return list.includes(jobId) ? list.filter((id) => id !== jobId) : [...list, jobId]
+        return list.includes(jobId)
+          ? list.filter((id) => id !== jobId)
+          : [...list, jobId]
       })
     },
     [setListenJobIds]
@@ -281,3 +453,4 @@ export function useEmailConnect() {
     toggleListen,
   }
 }
+

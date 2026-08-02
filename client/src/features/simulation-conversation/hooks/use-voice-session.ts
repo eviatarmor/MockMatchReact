@@ -325,7 +325,11 @@ export function useVoiceSession() {
   useEffect(() => () => cleanup(), [cleanup])
 
   const start = useCallback(
-    async (trackId: string, config: ConversationSessionConfig) => {
+    async (
+      trackId: string,
+      config: ConversationSessionConfig,
+      options?: { questionId?: string }
+    ) => {
       const attempt = ++attemptRef.current
       const cancelled = () =>
         attemptRef.current !== attempt || endingRef.current
@@ -380,8 +384,8 @@ export function useVoiceSession() {
           voiceId: config.voice,
           analyzeFace: config.analyzeFace,
           analyzePosture: config.analyzePosture,
+          questionId: options?.questionId,
         })
-
         if (cancelled()) {
           if (result.ok) {
             await endSessionRecord(result.session.id)

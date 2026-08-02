@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
 import { Button } from "@mockmatch/ui/button"
-import { MOCK_TRACKED_JOBS } from "@/features/discover/constants"
 import { useTrackedJobs } from "@/features/applications/hooks/use-tracked-jobs"
 import { PREP_STEPS } from "./constants"
 import { useStepScrollspy } from "./hooks/use-step-scrollspy"
@@ -24,8 +23,9 @@ export function ApplicationDetailPageContent() {
   const { jobs: trackedJobs } = useTrackedJobs()
   const job = useMemo(
     () =>
-      trackedJobs.find((tracked) => tracked.id === jobId) ??
-      MOCK_TRACKED_JOBS.find((tracked) => tracked.id === jobId),
+      trackedJobs.find(
+        (tracked) => tracked.id === jobId || tracked.sourceKey === jobId
+      ),
     [trackedJobs, jobId]
   )
 

@@ -559,6 +559,11 @@
     "documentTitle": "Applications — MockMatch",
     "title": "Applications",
     "description": "Track every application from saved to offer — or mark ones that were declined.",
+    "questionGen": {
+      "started": "Generating interview questions for this job…",
+      "startedDescription": "They will appear in Question Bank shortly. Duplicates are skipped.",
+      "noKey": "Job saved. Question generation needs OPENROUTER_API_KEY."
+    },
     "summary": {
       "saved": "Saved",
       "applied": "Applied",
@@ -1085,7 +1090,7 @@
   "questionBank": {
     "documentTitle": "Question Bank — MockMatch",
     "title": "Question bank",
-    "description": "Every individual practice question, in one searchable pool. Filter, drill a question, or add it to a custom set.",
+    "description": "Shared practice bank filled automatically when you apply or import a job. Conversation, coding, and more — deduped so you don’t get the same question twice.",
     "searchPlaceholder": "Search questions...",
     "questionsCount": "questions",
     "noResults": "No questions found",
@@ -1128,7 +1133,12 @@
       "newPracticeSet": "New practice set",
       "save": "Save to set",
       "practice": "Practice"
-    }
+    },
+    "emptyTitle": "No questions yet",
+    "emptyDescription": "Apply to a job in Discover or import a job in Applications — questions generate automatically into this bank.",
+    "emptySearchDescription": "Try different filters or search terms.",
+    "loading": "Loading questions…",
+    "loadError": "Could not load questions."
   },
   "simulations": {
     "documentTitle": "Simulations — MockMatch",

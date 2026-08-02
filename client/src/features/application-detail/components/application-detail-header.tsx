@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@mockmatch/ui/dropdown-menu"
-import { MOCK_TRACKED_JOBS } from "@/features/discover/constants"
+import { useTrackedJobs } from "@/features/applications/hooks/use-tracked-jobs"
 import type { TrackedJob } from "@/features/discover/types"
 
 interface ApplicationDetailHeaderProps {
@@ -19,6 +19,7 @@ interface ApplicationDetailHeaderProps {
 export function ApplicationDetailHeader({ currentJob }: ApplicationDetailHeaderProps) {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
+  const { jobs: trackedJobs } = useTrackedJobs()
 
   return (
     <div className="flex items-center justify-between gap-4">
@@ -41,7 +42,7 @@ export function ApplicationDetailHeader({ currentJob }: ApplicationDetailHeaderP
           <ChevronDown className="size-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-56">
-          {MOCK_TRACKED_JOBS.map((job) => (
+          {trackedJobs.map((job) => (
             <DropdownMenuItem
               key={job.id}
               className={cn("cursor-pointer", job.id === currentJob.id && "bg-accent")}
