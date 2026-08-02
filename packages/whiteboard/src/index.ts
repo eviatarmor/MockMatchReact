@@ -13,6 +13,7 @@ export type {
   PathStrokeKind,
   ShapeElement,
   ShapeKind,
+  ShapeLabelEditorLabels,
   StickyElement,
   TextElement,
   ToolRailLabels,

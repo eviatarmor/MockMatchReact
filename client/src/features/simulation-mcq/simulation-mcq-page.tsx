@@ -42,10 +42,8 @@ import { trpc } from "@/lib/trpc"
 import { DifficultyBadge } from "@/components/data/difficulty-badge"
 import { practicePathForBankQuestion } from "@/features/simulations/lib/practice-path"
 import type { McqVariant, QuestionMcqDetail } from "@mockmatch/schemas"
-import {
-  McqOrderList,
-  shuffleIndices,
-} from "./components/mcq-order-list"
+import { McqOrderList } from "./components/mcq-order-list"
+import { shuffleIndices } from "./lib/shuffle-indices"
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i

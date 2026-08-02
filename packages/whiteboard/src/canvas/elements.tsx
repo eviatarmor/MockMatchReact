@@ -1,9 +1,17 @@
-import type { PointerEvent as ReactPointerEvent, ReactNode } from "react"
+import {
+  useEffect,
+  useRef,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+  type RefObject,
+} from "react"
+import { RichTextField, type RichTextToolbarLabels } from "@mockmatch/document-editor"
 import type {
   ConnectorAnchor,
   ConnectorElement,
   PathElement,
   ShapeElement,
+  ShapeLabelEditorLabels,
   StickyElement,
   TextElement,
   WhiteboardDocument,
@@ -16,6 +24,7 @@ import {
   resizeHandlePoints,
   type ResizeHandle,
 } from "../lib/flowchart"
+import { isBlankHtml } from "../lib/html"
 import { cn } from "@mockmatch/ui/utils"
 
 export type ElementViewProps = {
@@ -31,6 +40,16 @@ export type ElementViewProps = {
   ) => void
   /** Show N/S/E/W ports (connector tool or selected architecture nodes). */
   readonly showPorts?: boolean
+  /**
+   * When true (pen / eraser / lasso), skip element hit-targets so strokes
+   * reach the board surface. Ports stay hidden via showPorts.
+   */
+  readonly passThrough?: boolean
+  /** Shape currently in label-edit mode (double-click). */
+  readonly editingLabelId?: string | null
+  readonly onStartLabelEdit?: (id: string) => void
+  readonly onEndLabelEdit?: () => void
+  readonly shapeLabelLabels?: ShapeLabelEditorLabels
   readonly onPortPointerDown?: (
     elementId: string,
     anchor: ConnectorAnchor,
@@ -42,6 +61,22 @@ export type ElementViewProps = {
     e: ReactPointerEvent
   ) => void
 }
+
+function toRichLabels(labels: ShapeLabelEditorLabels): RichTextToolbarLabels {
+  return {
+    bold: labels.bold,
+    italic: labels.italic,
+    underline: labels.underline,
+    list: labels.list,
+    link: labels.link,
+    clear: labels.clear,
+    linkPrompt: labels.linkPrompt,
+  }
+}
+
+/** Lexical theme classes for non-editing HTML preview. */
+const LABEL_HTML_CLASS =
+  "[&_p]:m-0 [&_strong]:font-semibold [&_b]:font-semibold [&_em]:italic [&_i]:italic [&_u]:underline [&_s]:line-through [&_a]:text-blue-600 [&_a]:underline"
 
 function SelectionRing({
   w,
@@ -87,10 +122,11 @@ function BoxChrome({
           key={p.anchor}
           type="button"
           aria-label={`Connect ${p.anchor}`}
-          className="pan-ignore absolute z-20 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-blue-500 bg-white shadow-sm hover:scale-125"
+          className="pan-ignore absolute z-20 size-3.5 -translate-x-1/2 -translate-y-1/2 cursor-crosshair rounded-full border-2 border-blue-500 bg-white shadow-sm hover:scale-125"
           style={{ left: p.x - el.x, top: p.y - el.y }}
           onPointerDown={(e) => {
             e.stopPropagation()
+            e.preventDefault()
             onPortPointerDown?.(el.id, p.anchor, e)
           }}
         />
@@ -126,6 +162,7 @@ export function StickyView({
   onTextChange,
   onPointerDownElement,
   showPorts,
+  passThrough,
   onPortPointerDown,
   onResizePointerDown,
 }: {
@@ -136,6 +173,7 @@ export function StickyView({
   readonly onTextChange?: (id: string, text: string) => void
   readonly onPointerDownElement?: (id: string, e: ReactPointerEvent) => void
   readonly showPorts?: boolean
+  readonly passThrough?: boolean
   readonly onPortPointerDown?: ElementViewProps["onPortPointerDown"]
   readonly onResizePointerDown?: ElementViewProps["onResizePointerDown"]
 }) {
@@ -144,7 +182,8 @@ export function StickyView({
       data-el-id={el.id}
       className={cn(
         "pan-ignore absolute rounded-sm shadow-md",
-        "border border-black/10"
+        "border border-black/10",
+        passThrough && "pointer-events-none"
       )}
       style={{
         left: el.x,
@@ -155,6 +194,7 @@ export function StickyView({
         backgroundColor: el.color,
       }}
       onPointerDown={(e) => {
+        if (passThrough) return
         e.stopPropagation()
         onSelect(el.id)
         onPointerDownElement?.(el.id, e)
@@ -188,6 +228,7 @@ export function TextView({
   onSelect,
   onTextChange,
   onPointerDownElement,
+  passThrough,
 }: {
   readonly el: TextElement
   readonly selected: boolean
@@ -195,11 +236,12 @@ export function TextView({
   readonly onSelect: (id: string) => void
   readonly onTextChange?: (id: string, text: string) => void
   readonly onPointerDownElement?: (id: string, e: ReactPointerEvent) => void
+  readonly passThrough?: boolean
 }) {
   return (
     <div
       data-el-id={el.id}
-      className="pan-ignore absolute"
+      className={cn("pan-ignore absolute", passThrough && "pointer-events-none")}
       style={{
         left: el.x,
         top: el.y,
@@ -208,6 +250,7 @@ export function TextView({
         zIndex: el.z,
       }}
       onPointerDown={(e) => {
+        if (passThrough) return
         e.stopPropagation()
         onSelect(el.id)
         onPointerDownElement?.(el.id, e)
@@ -360,6 +403,12 @@ export function ShapeView({
   onSelect,
   onPointerDownElement,
   showPorts,
+  passThrough,
+  editing,
+  onStartLabelEdit,
+  onEndLabelEdit,
+  onLabelChange,
+  shapeLabelLabels,
   onPortPointerDown,
   onResizePointerDown,
 }: {
@@ -369,13 +418,41 @@ export function ShapeView({
   readonly onSelect: (id: string) => void
   readonly onPointerDownElement?: (id: string, e: ReactPointerEvent) => void
   readonly showPorts?: boolean
+  readonly passThrough?: boolean
+  readonly editing?: boolean
+  readonly onStartLabelEdit?: (id: string) => void
+  readonly onEndLabelEdit?: () => void
+  readonly onLabelChange?: (id: string, html: string) => void
+  readonly shapeLabelLabels?: ShapeLabelEditorLabels
   readonly onPortPointerDown?: ElementViewProps["onPortPointerDown"]
   readonly onResizePointerDown?: ElementViewProps["onResizePointerDown"]
 }) {
+  const labelShellRef = useRef<HTMLDivElement>(null)
+  const isLineLike =
+    el.shape === "line" ||
+    el.shape === "arrow" ||
+    el.shape === "elbowArrow" ||
+    el.shape === "divider"
+
+  // Focus Lexical contenteditable when entering edit mode
+  useEffect(() => {
+    if (!editing) return
+    const t = window.setTimeout(() => {
+      const root = labelShellRef.current?.querySelector(
+        '[contenteditable="true"]'
+      ) as HTMLElement | null
+      root?.focus()
+    }, 0)
+    return () => window.clearTimeout(t)
+  }, [editing])
+
   return (
     <div
       data-el-id={el.id}
-      className="pan-ignore absolute flex items-center justify-center"
+      className={cn(
+        "pan-ignore absolute flex items-center justify-center",
+        passThrough && "pointer-events-none"
+      )}
       style={{
         left: el.x,
         top: el.y,
@@ -384,30 +461,96 @@ export function ShapeView({
         zIndex: el.z,
       }}
       onPointerDown={(e) => {
+        if (passThrough) return
+        // Editing label: let RTE handle; don't start move
+        if (editing && (e.target as HTMLElement).closest("[data-shape-label-editor]")) {
+          e.stopPropagation()
+          return
+        }
+        // Double-click → label edit (skip drag)
+        if (e.detail >= 2 && canEdit && !isLineLike) {
+          e.stopPropagation()
+          e.preventDefault()
+          onSelect(el.id)
+          onStartLabelEdit?.(el.id)
+          return
+        }
         e.stopPropagation()
         onSelect(el.id)
         onPointerDownElement?.(el.id, e)
       }}
+      onDoubleClick={(e) => {
+        if (passThrough || !canEdit || isLineLike) return
+        e.stopPropagation()
+        e.preventDefault()
+        onSelect(el.id)
+        onStartLabelEdit?.(el.id)
+      }}
     >
-      <SelectionRing w={el.w} h={el.h} selected={selected} />
-      <svg width={el.w} height={el.h} className="absolute inset-0 overflow-visible">
+      <SelectionRing w={el.w} h={el.h} selected={selected || Boolean(editing)} />
+      <svg
+        width={el.w}
+        height={el.h}
+        className="pointer-events-none absolute inset-0 overflow-visible"
+      >
         {shapeSvgInner(el)}
       </svg>
-      {el.label ? (
-        <span
+
+      {!isLineLike ? (
+        <div
+          ref={labelShellRef}
+          data-shape-label-editor={editing ? "" : undefined}
           className={cn(
-            "relative z-[1] px-2 text-center text-sm font-medium text-neutral-800",
-            !canEdit && "pointer-events-none"
+            "relative z-[1] flex max-h-full max-w-full items-center justify-center overflow-hidden px-2",
+            editing ? "min-h-[1.5em] w-[min(100%,12rem)]" : "pointer-events-none"
           )}
+          onPointerDown={(e) => {
+            if (editing) e.stopPropagation()
+          }}
         >
-          {el.label}
-        </span>
+          {editing && canEdit && shapeLabelLabels ? (
+            <RichTextField
+              value={el.label ?? ""}
+              onChange={(html) => onLabelChange?.(el.id, html)}
+              labels={toRichLabels(shapeLabelLabels)}
+              placeholder={shapeLabelLabels.placeholder}
+              ariaLabel={shapeLabelLabels.placeholder}
+              grammar={false}
+              className={cn(
+                "w-full text-center text-sm font-medium text-neutral-800 outline-none",
+                LABEL_HTML_CLASS
+              )}
+            />
+          ) : !isBlankHtml(el.label) ? (
+            <div
+              className={cn(
+                "text-center text-sm font-medium text-neutral-800",
+                LABEL_HTML_CLASS
+              )}
+              // Label HTML is authored on this board via Lexical only.
+              dangerouslySetInnerHTML={{ __html: el.label ?? "" }}
+            />
+          ) : selected && canEdit ? (
+            <span className="select-none text-center text-xs text-neutral-400">
+              {shapeLabelLabels?.placeholder ?? "Double-click to type"}
+            </span>
+          ) : null}
+        </div>
       ) : null}
+
+      {/* End edit when focus leaves the shape label (toolbar clicks excluded by RTE). */}
+      {editing ? (
+        <ShapeLabelBlurGuard
+          shellRef={labelShellRef}
+          onEnd={() => onEndLabelEdit?.()}
+        />
+      ) : null}
+
       <BoxChrome
         el={el}
-        selected={selected}
+        selected={selected || Boolean(editing)}
         showPorts={showPorts || selected}
-        canEdit={canEdit}
+        canEdit={canEdit && !editing}
         onPortPointerDown={onPortPointerDown}
         onResizePointerDown={onResizePointerDown}
       />
@@ -415,16 +558,42 @@ export function ShapeView({
   )
 }
 
+/** Blur / outside pointer → leave label edit (toolbar uses data-rte-toolbar). */
+function ShapeLabelBlurGuard({
+  shellRef,
+  onEnd,
+}: {
+  readonly shellRef: RefObject<HTMLDivElement | null>
+  readonly onEnd: () => void
+}) {
+  useEffect(() => {
+    const onPointerDown = (event: PointerEvent) => {
+      const shell = shellRef.current
+      const target = event.target as Node | null
+      if (!shell || !target) return
+      if (shell.contains(target)) return
+      if (target instanceof Element && target.closest("[data-rte-toolbar]")) return
+      onEnd()
+    }
+    // Capture so we run before board deselect/move
+    document.addEventListener("pointerdown", onPointerDown, true)
+    return () => document.removeEventListener("pointerdown", onPointerDown, true)
+  }, [shellRef, onEnd])
+  return null
+}
+
 export function PathView({
   el,
   selected,
   onSelect,
   onPointerDownElement,
+  passThrough,
 }: {
   readonly el: PathElement
   readonly selected: boolean
   readonly onSelect: (id: string) => void
   readonly onPointerDownElement?: (id: string, e: ReactPointerEvent) => void
+  readonly passThrough?: boolean
 }) {
   if (el.points.length < 2) return null
   const d = el.points
@@ -449,10 +618,11 @@ export function PathView({
         opacity={opacity}
         className="pointer-events-stroke"
         style={{
-          pointerEvents: "stroke",
+          pointerEvents: passThrough ? "none" : "stroke",
           mixBlendMode: isHighlighter ? "multiply" : "normal",
         }}
         onPointerDown={(e) => {
+          if (passThrough) return
           e.stopPropagation()
           onSelect(el.id)
           onPointerDownElement?.(el.id, e)
@@ -481,12 +651,14 @@ export function ConnectorView({
   selected,
   onSelect,
   onPointerDownElement,
+  passThrough,
 }: {
   readonly el: ConnectorElement
   readonly doc: WhiteboardDocument
   readonly selected: boolean
   readonly onSelect: (id: string) => void
   readonly onPointerDownElement?: (id: string, e: ReactPointerEvent) => void
+  readonly passThrough?: boolean
 }) {
   const a = resolveConnectorPoint(el.from, doc)
   const b = resolveConnectorPoint(el.to, doc)
@@ -513,8 +685,9 @@ export function ConnectorView({
         strokeWidth={el.strokeWidth + (selected ? 1 : 0)}
         strokeLinecap="round"
         strokeLinejoin="round"
-        style={{ pointerEvents: "stroke" }}
+        style={{ pointerEvents: passThrough ? "none" : "stroke" }}
         onPointerDown={(e) => {
+          if (passThrough) return
           e.stopPropagation()
           onSelect(el.id)
           onPointerDownElement?.(el.id, e)
@@ -536,6 +709,7 @@ export function ElementView(props: ElementViewProps) {
         onTextChange={props.onTextChange}
         onPointerDownElement={props.onPointerDownElement}
         showPorts={props.showPorts}
+        passThrough={props.passThrough}
         onPortPointerDown={props.onPortPointerDown}
         onResizePointerDown={props.onResizePointerDown}
       />
@@ -550,6 +724,7 @@ export function ElementView(props: ElementViewProps) {
         onSelect={props.onSelect}
         onTextChange={props.onTextChange}
         onPointerDownElement={props.onPointerDownElement}
+        passThrough={props.passThrough}
       />
     )
   }
@@ -562,6 +737,12 @@ export function ElementView(props: ElementViewProps) {
         onSelect={props.onSelect}
         onPointerDownElement={props.onPointerDownElement}
         showPorts={props.showPorts}
+        passThrough={props.passThrough}
+        editing={props.editingLabelId === el.id}
+        onStartLabelEdit={props.onStartLabelEdit}
+        onEndLabelEdit={props.onEndLabelEdit}
+        onLabelChange={props.onTextChange}
+        shapeLabelLabels={props.shapeLabelLabels}
         onPortPointerDown={props.onPortPointerDown}
         onResizePointerDown={props.onResizePointerDown}
       />
@@ -574,6 +755,7 @@ export function ElementView(props: ElementViewProps) {
         selected={props.selected}
         onSelect={props.onSelect}
         onPointerDownElement={props.onPointerDownElement}
+        passThrough={props.passThrough}
       />
     )
   }
@@ -584,6 +766,7 @@ export function ElementView(props: ElementViewProps) {
       selected={props.selected}
       onSelect={props.onSelect}
       onPointerDownElement={props.onPointerDownElement}
+      passThrough={props.passThrough}
     />
   )
 }

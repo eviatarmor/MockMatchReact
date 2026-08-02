@@ -240,6 +240,13 @@ export function SimulationWhiteboardPageContent() {
         return
       }
       if (!e.metaKey && !e.ctrlKey && !e.altKey) {
+        // Escape → deselect (shape label edit ends via board blur)
+        if (e.key === "Escape") {
+          e.preventDefault()
+          setSelectedIds([])
+          setTool("select")
+          return
+        }
         // Shape shortcuts when shape tool active (R/O/L)
         if (tool === "shape") {
           const sk = shapeKindFromHotkey(e.key)
@@ -286,6 +293,20 @@ export function SimulationWhiteboardPageContent() {
     () => ({
       color: t("drawStyle.color"),
       thickness: t("drawStyle.thickness"),
+    }),
+    [t]
+  )
+
+  const shapeLabelLabels = useMemo(
+    () => ({
+      placeholder: t("shapeLabel.placeholder"),
+      bold: t("richText.bold"),
+      italic: t("richText.italic"),
+      underline: t("richText.underline"),
+      list: t("richText.list"),
+      link: t("richText.link"),
+      clear: t("richText.clear"),
+      linkPrompt: t("richText.linkPrompt"),
     }),
     [t]
   )
@@ -549,6 +570,7 @@ export function SimulationWhiteboardPageContent() {
             highlighterStyle={highlighterStyle}
             smartStyle={smartStyle}
             stickyColor={stickyColor}
+            shapeLabelLabels={shapeLabelLabels}
           />
         </WhiteboardShell>
       </WhiteboardRail>

@@ -54,6 +54,18 @@
     "divider": "Divider"
   },
   "stickyColor": "Sticky colour",
+  "shapeLabel": {
+    "placeholder": "Double-click to type"
+  },
+  "richText": {
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "list": "Bullet list",
+    "link": "Link",
+    "clear": "Clear formatting",
+    "linkPrompt": "Enter a URL"
+  },
   "drawStyle": {
     "color": "Colour",
     "thickness": "Thickness"

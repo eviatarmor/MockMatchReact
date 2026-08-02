@@ -19,14 +19,8 @@ import {
   StickyNote,
   Triangle,
   Type,
-  ChevronDown,
 } from "lucide-react"
 import { Button } from "@mockmatch/ui/button"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@mockmatch/ui/popover"
 import {
   Tooltip,
   TooltipContent,
@@ -50,6 +44,8 @@ import {
   type ToolRailLabels,
   type WhiteboardTool,
 } from "./types"
+
+type SecondaryRail = "draw" | "shape" | "sticky" | null
 
 const PRIMARY_TOOLS: readonly {
   id: WhiteboardTool | "draw"
@@ -164,10 +160,29 @@ function RailButton({
   )
 }
 
+function SecondaryShell({
+  ariaLabel,
+  children,
+}: {
+  ariaLabel: string
+  children: ReactNode
+}) {
+  return (
+    <div
+      className="flex flex-col gap-1 rounded-xl border border-border bg-card/95 p-1.5 shadow-md backdrop-blur"
+      role="toolbar"
+      aria-label={ariaLabel}
+    >
+      {children}
+    </div>
+  )
+}
+
 /**
- * Primary tool rail + secondary draw rail (Miro-style).
- * Draw tools (pen / highlighter / smart / erasers / lasso) only appear
- * in the secondary panel when draw mode is active.
+ * Primary tool rail + secondary rails (Miro-style).
+ * - Draw: pen / highlighter / smart / erasers / lasso + stroke style
+ * - Shape: shape kind picker
+ * - Sticky: note color presets
  */
 export function WhiteboardToolRail({
   tool,
@@ -187,11 +202,18 @@ export function WhiteboardToolRail({
   disabled,
   className,
 }: WhiteboardToolRailProps) {
-  const [drawOpen, setDrawOpen] = useState(() => isDrawTool(tool))
-  const [shapeOpen, setShapeOpen] = useState(false)
+  const initialRail = (): SecondaryRail => {
+    if (isDrawTool(tool)) return "draw"
+    if (tool === "shape") return "shape"
+    if (tool === "sticky") return "sticky"
+    return null
+  }
+  const [secondary, setSecondary] = useState<SecondaryRail>(initialRail)
 
   const drawActive = isDrawTool(tool)
-  const showDrawRail = drawOpen || drawActive
+  const showDrawRail = secondary === "draw" || drawActive
+  const showShapeRail = secondary === "shape" || tool === "shape"
+  const showStickyRail = secondary === "sticky" || tool === "sticky"
 
   const activeStrokeStyle: DrawStrokeStyle =
     tool === "highlighter"
@@ -207,8 +229,19 @@ export function WhiteboardToolRail({
         : onPenStyleChange
 
   const openDraw = (next: DrawTool = "pen") => {
-    setDrawOpen(true)
+    setSecondary("draw")
     onToolChange(next)
+  }
+
+  const openShape = (kind?: ShapeKind) => {
+    setSecondary("shape")
+    if (kind) onShapeKindChange(kind)
+    onToolChange("shape")
+  }
+
+  const openSticky = () => {
+    setSecondary("sticky")
+    onToolChange("sticky")
   }
 
   const onPrimary = (id: WhiteboardTool | "draw") => {
@@ -216,8 +249,15 @@ export function WhiteboardToolRail({
       openDraw(isDrawTool(tool) ? (tool as DrawTool) : "pen")
       return
     }
-    if (id !== "shape") setShapeOpen(false)
-    if (!isDrawTool(id)) setDrawOpen(false)
+    if (id === "shape") {
+      openShape()
+      return
+    }
+    if (id === "sticky") {
+      openSticky()
+      return
+    }
+    setSecondary(null)
     onToolChange(id)
   }
 
@@ -237,86 +277,12 @@ export function WhiteboardToolRail({
                 : labels[labelKey as keyof ToolRailLabels]
             const active =
               id === "draw"
-                ? drawActive || drawOpen
+                ? drawActive || secondary === "draw"
                 : id === "shape"
-                  ? tool === "shape"
-                  : tool === id
-
-            if (id === "shape") {
-              return (
-                <Popover
-                  key={id}
-                  open={shapeOpen}
-                  onOpenChange={(o) => {
-                    setShapeOpen(o)
-                    if (o) {
-                      setDrawOpen(false)
-                      onToolChange("shape")
-                    }
-                  }}
-                >
-                  <PopoverTrigger
-                    render={
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant={active ? "default" : "ghost"}
-                        disabled={disabled}
-                        aria-label={label}
-                        aria-pressed={active}
-                        title={label}
-                        className="relative size-9 shrink-0"
-                      />
-                    }
-                  >
-                    <Icon className="size-4" />
-                    <ChevronDown className="absolute bottom-0.5 right-0.5 size-2.5 opacity-70" />
-                  </PopoverTrigger>
-                  <PopoverContent
-                    side="right"
-                    align="start"
-                    className="w-52 gap-0 p-1"
-                    sideOffset={10}
-                  >
-                    <p className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-                      {labels.shapesTitle}
-                    </p>
-                    <ul className="flex flex-col">
-                      {SHAPE_MENU_ITEMS.map((item) => {
-                        const SIcon = SHAPE_ICONS[item.kind]
-                        const selected = shapeKind === item.kind
-                        return (
-                          <li key={item.kind}>
-                            <button
-                              type="button"
-                              className={cn(
-                                "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm",
-                                selected
-                                  ? "bg-accent text-accent-foreground"
-                                  : "hover:bg-muted"
-                              )}
-                              onClick={() => {
-                                onShapeKindChange(item.kind)
-                                onToolChange("shape")
-                                setShapeOpen(false)
-                              }}
-                            >
-                              <SIcon className="size-4 shrink-0" />
-                              <span className="flex-1">
-                                {labels.resolveShapeLabel(item.labelKey)}
-                              </span>
-                              {item.hotkey ? (
-                                <Kbd className="ml-auto">{item.hotkey}</Kbd>
-                              ) : null}
-                            </button>
-                          </li>
-                        )
-                      })}
-                    </ul>
-                  </PopoverContent>
-                </Popover>
-              )
-            }
+                  ? tool === "shape" || secondary === "shape"
+                  : id === "sticky"
+                    ? tool === "sticky" || secondary === "sticky"
+                    : tool === id
 
             return (
               <RailButton
@@ -331,42 +297,11 @@ export function WhiteboardToolRail({
               </RailButton>
             )
           })}
-
-          {/* Sticky color strip under primary when sticky tool active */}
-          {tool === "sticky" ? (
-            <div
-              className="mt-1 flex flex-col items-center gap-1 border-t border-border pt-1.5"
-              role="listbox"
-              aria-label={labels.stickyColor}
-            >
-              {STICKY_COLOR_PRESETS.map((color) => {
-                const active = stickyColor.toLowerCase() === color.toLowerCase()
-                return (
-                  <button
-                    key={color}
-                    type="button"
-                    aria-label={color}
-                    aria-selected={active}
-                    onClick={() => onStickyColorChange(color)}
-                    className={cn(
-                      "size-5 rounded-sm border border-black/10 shadow-sm",
-                      active && "ring-2 ring-blue-500 ring-offset-1"
-                    )}
-                    style={{ backgroundColor: color }}
-                  />
-                )
-              })}
-            </div>
-          ) : null}
         </div>
 
-        {/* Secondary draw rail — only when draw mode open */}
+        {/* Secondary draw rail */}
         {showDrawRail ? (
-          <div
-            className="flex flex-col gap-1 rounded-xl border border-border bg-card/95 p-1.5 shadow-md backdrop-blur"
-            role="toolbar"
-            aria-label={labels.draw}
-          >
+          <SecondaryShell ariaLabel={labels.draw}>
             {DRAW_RAIL.map(({ id, icon: Icon, hotkey, labelKey }) => (
               <RailButton
                 key={id}
@@ -456,7 +391,64 @@ export function WhiteboardToolRail({
                 </div>
               </>
             ) : null}
-          </div>
+          </SecondaryShell>
+        ) : null}
+
+        {/* Secondary shape rail — same chrome as draw */}
+        {showShapeRail && !showDrawRail ? (
+          <SecondaryShell ariaLabel={labels.shapesTitle}>
+            {SHAPE_MENU_ITEMS.map((item) => {
+              const SIcon = SHAPE_ICONS[item.kind]
+              const selected = shapeKind === item.kind
+              const label = labels.resolveShapeLabel(item.labelKey)
+              return (
+                <RailButton
+                  key={item.kind}
+                  active={selected && tool === "shape"}
+                  disabled={disabled}
+                  label={label}
+                  hotkey={item.hotkey || undefined}
+                  onClick={() => openShape(item.kind)}
+                >
+                  <SIcon className="size-4" />
+                </RailButton>
+              )
+            })}
+          </SecondaryShell>
+        ) : null}
+
+        {/* Secondary sticky color rail */}
+        {showStickyRail && !showDrawRail && !showShapeRail ? (
+          <SecondaryShell ariaLabel={labels.stickyColor}>
+            <div
+              className="flex flex-col items-center gap-1.5 px-0.5 py-0.5"
+              role="listbox"
+              aria-label={labels.stickyColor}
+            >
+              {STICKY_COLOR_PRESETS.map((color) => {
+                const active =
+                  stickyColor.toLowerCase() === color.toLowerCase()
+                return (
+                  <button
+                    key={color}
+                    type="button"
+                    aria-label={color}
+                    aria-selected={active}
+                    disabled={disabled}
+                    onClick={() => {
+                      onStickyColorChange(color)
+                      openSticky()
+                    }}
+                    className={cn(
+                      "size-6 rounded-sm border border-black/10 shadow-sm",
+                      active && "ring-2 ring-blue-500 ring-offset-1"
+                    )}
+                    style={{ backgroundColor: color }}
+                  />
+                )
+              })}
+            </div>
+          </SecondaryShell>
         ) : null}
       </div>
     </TooltipProvider>

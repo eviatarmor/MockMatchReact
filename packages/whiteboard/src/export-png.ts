@@ -85,15 +85,18 @@ export async function exportBoardPng(
         ctx.strokeRect(el.x + ox, el.y + oy, el.w, el.h)
       }
       if (el.label) {
-        ctx.fillStyle = "#171717"
-        ctx.font = "14px system-ui, sans-serif"
-        ctx.textAlign = "center"
-        ctx.fillText(
-          el.label,
-          el.x + ox + el.w / 2,
-          el.y + oy + el.h / 2 + 5
-        )
-        ctx.textAlign = "start"
+        const plain = el.label.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+        if (plain) {
+          ctx.fillStyle = "#171717"
+          ctx.font = "14px system-ui, sans-serif"
+          ctx.textAlign = "center"
+          ctx.fillText(
+            plain,
+            el.x + ox + el.w / 2,
+            el.y + oy + el.h / 2 + 5
+          )
+          ctx.textAlign = "start"
+        }
       }
     } else if (el.type === "path" && el.points.length > 1) {
       const isHighlighter = el.strokeKind === "highlighter"

@@ -102,7 +102,23 @@ export type ShapeElement = {
   readonly z: number
   readonly fill: string
   readonly stroke: string
+  /**
+   * Shape label as HTML (Lexical / RichTextField).
+   * Plain text is fine; formatting uses <strong>/<em>/<u> etc.
+   */
   readonly label?: string
+}
+
+/** Host i18n for in-shape rich text (bold / italic / underline toolbar). */
+export type ShapeLabelEditorLabels = {
+  readonly placeholder: string
+  readonly bold: string
+  readonly italic: string
+  readonly underline: string
+  readonly list: string
+  readonly link: string
+  readonly clear: string
+  readonly linkPrompt: string
 }
 
 export type PathElement = {

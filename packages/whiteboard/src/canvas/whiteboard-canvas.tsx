@@ -19,8 +19,8 @@ import {
 import { classifySmartStroke } from "../lib/geometry"
 import {
   applyResize,
+  closestPort,
   elementPorts,
-  nearestPort,
   snapToGrid,
   type ResizeHandle,
 } from "../lib/flowchart"
@@ -29,6 +29,7 @@ import type {
   ConnectorAnchor,
   DrawStrokeStyle,
   ShapeKind,
+  ShapeLabelEditorLabels,
   WhiteboardCommand,
   WhiteboardDocument,
   WhiteboardTool,
@@ -38,6 +39,8 @@ import { ElementView } from "./elements"
 
 const GRID_DOT_FALLBACK = 24
 const BOARD_SIZE = 3000
+const SHAPE_MIN_SIZE = 24
+const SHAPE_CLICK_DEFAULT = { w: 140, h: 80 } as const
 
 export type WhiteboardCanvasProps = {
   readonly document: WhiteboardDocument
@@ -56,6 +59,8 @@ export type WhiteboardCanvasProps = {
   readonly eraserRadius?: number
   /** Precision eraser radius (board px). */
   readonly precisionEraserRadius?: number
+  /** Labels for in-shape rich text (bold / italic / …). */
+  readonly shapeLabelLabels?: ShapeLabelEditorLabels
 }
 
 type DragState =
@@ -93,6 +98,16 @@ type DragState =
       handle: ResizeHandle
       start: { x: number; y: number; w: number; h: number }
     }
+  | {
+      kind: "createShape"
+      shape: ShapeKind
+      originX: number
+      originY: number
+      x: number
+      y: number
+      w: number
+      h: number
+    }
   | null
 
 export function WhiteboardCanvas({
@@ -110,6 +125,7 @@ export function WhiteboardCanvas({
   stickyColor = "#fef08a",
   eraserRadius = 14,
   precisionEraserRadius = 6,
+  shapeLabelLabels,
 }: WhiteboardCanvasProps) {
   const { ref, scale, onTransform, bindGridLayer, resetView } = viewport
   const surfaceRef = useRef<HTMLDivElement>(null)
@@ -135,7 +151,20 @@ export function WhiteboardCanvas({
     x2: number
     y2: number
   } | null>(null)
+  const [draftShape, setDraftShape] = useState<{
+    shape: ShapeKind
+    x: number
+    y: number
+    w: number
+    h: number
+  } | null>(null)
+  const [editingLabelId, setEditingLabelId] = useState<string | null>(null)
   const didInitCenter = useRef(false)
+
+  const clearSelection = useCallback(() => {
+    onSelectedIdsChange([])
+    setEditingLabelId(null)
+  }, [onSelectedIdsChange])
 
   const clientToBoard = useCallback(
     (clientX: number, clientY: number) => {
@@ -164,6 +193,29 @@ export function WhiteboardCanvas({
     return () => cancelAnimationFrame(raf)
   }, [ref, bindGridLayer])
 
+  /**
+   * Capture on the board surface + window listeners so move/up stay wired even when
+   * the gesture started on a port/shape (child capture used to swallow events).
+   */
+  const captureBoard = (e: React.PointerEvent) => {
+    surfaceRef.current?.setPointerCapture?.(e.pointerId)
+    const pointerId = e.pointerId
+    const onWinMove = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return
+      onBoardPointerMove(ev as unknown as React.PointerEvent)
+    }
+    const onWinUp = (ev: PointerEvent) => {
+      if (ev.pointerId !== pointerId) return
+      window.removeEventListener("pointermove", onWinMove)
+      window.removeEventListener("pointerup", onWinUp)
+      window.removeEventListener("pointercancel", onWinUp)
+      onBoardPointerUp(ev as unknown as React.PointerEvent)
+    }
+    window.addEventListener("pointermove", onWinMove)
+    window.addEventListener("pointerup", onWinUp)
+    window.addEventListener("pointercancel", onWinUp)
+  }
+
   const startStroke = (
     mode: "pen" | "highlighter" | "smart",
     x: number,
@@ -190,8 +242,17 @@ export function WhiteboardCanvas({
       opacity,
       highlighter: mode === "highlighter",
     })
-    ;(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)
+    captureBoard(e)
   }
+
+  /** Stroke / eraser / lasso draw through existing elements (they stopPropagation otherwise). */
+  const passThroughElements =
+    tool === "pen" ||
+    tool === "highlighter" ||
+    tool === "smart" ||
+    tool === "eraser" ||
+    tool === "precisionEraser" ||
+    tool === "lasso"
 
   const onBoardPointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0) return
@@ -211,6 +272,9 @@ export function WhiteboardCanvas({
             ? [...selectedIds]
             : [hit]
         onSelectedIdsChange(ids)
+        if (editingLabelId && !ids.includes(editingLabelId)) {
+          setEditingLabelId(null)
+        }
         dragRef.current = {
           kind: "move",
           ids,
@@ -219,9 +283,10 @@ export function WhiteboardCanvas({
           accDx: 0,
           accDy: 0,
         }
-        ;(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)
+        captureBoard(e)
       } else {
-        onSelectedIdsChange([])
+        // Click empty board → deselect
+        clearSelection()
       }
       return
     }
@@ -232,7 +297,7 @@ export function WhiteboardCanvas({
     if (tool === "lasso") {
       dragRef.current = { kind: "lasso", points: [{ x, y }] }
       setLassoPoints([{ x, y }])
-      ;(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)
+      captureBoard(e)
       return
     }
 
@@ -242,7 +307,7 @@ export function WhiteboardCanvas({
         precision: tool === "precisionEraser",
       }
       applyEraser(x, y, tool === "precisionEraser")
-      ;(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)
+      captureBoard(e)
       return
     }
 
@@ -279,38 +344,29 @@ export function WhiteboardCanvas({
     }
 
     if (tool === "shape") {
-      const isLineLike =
-        shapeKind === "line" ||
-        shapeKind === "arrow" ||
-        shapeKind === "elbowArrow" ||
-        shapeKind === "divider"
-      const w = isLineLike ? 160 : shapeKind === "blockArrow" ? 160 : 140
-      const h = isLineLike
-        ? shapeKind === "elbowArrow"
-          ? 80
-          : 24
-        : shapeKind === "blockArrow"
-          ? 72
-          : 80
-      const el = createShape({
-        x: x - w / 2,
-        y: y - h / 2,
-        w,
-        h,
+      // Drag-to-size placeholder (like Figma / draw.io)
+      setEditingLabelId(null)
+      onSelectedIdsChange([])
+      dragRef.current = {
+        kind: "createShape",
         shape: shapeKind,
-        fill: isLineLike ? "transparent" : "#ffffff",
-        stroke: "#525252",
-        z: maxZ(docRef.current) + 1,
-      })
-      onCommand({ type: "upsert", element: el })
-      onSelectedIdsChange([el.id])
+        originX: x,
+        originY: y,
+        x,
+        y,
+        w: 0,
+        h: 0,
+      }
+      setDraftShape({ shape: shapeKind, x, y, w: 0, h: 0 })
+      captureBoard(e)
       return
     }
 
     if (tool === "connector") {
       const hit = hitTest(docRef.current, x, y)
       const hitEl = hit ? docRef.current.elements[hit] : null
-      const port = hitEl ? nearestPort(hitEl, x, y, 40) : null
+      // Prefer real N/S/E/W ports; fall back to nearest side of the box
+      const port = hitEl ? closestPort(hitEl, x, y) : null
       dragRef.current = {
         kind: "connector",
         fromId: hit,
@@ -324,7 +380,7 @@ export function WhiteboardCanvas({
         x2: x,
         y2: y,
       })
-      ;(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)
+      captureBoard(e)
     }
   }
 
@@ -424,7 +480,70 @@ export function WhiteboardCanvas({
         x2: x,
         y2: y,
       })
+      return
     }
+
+    if (drag.kind === "createShape") {
+      const x0 = Math.min(drag.originX, x)
+      const y0 = Math.min(drag.originY, y)
+      const w = Math.abs(x - drag.originX)
+      const h = Math.abs(y - drag.originY)
+      dragRef.current = { ...drag, x: x0, y: y0, w, h }
+      setDraftShape({ shape: drag.shape, x: x0, y: y0, w, h })
+    }
+  }
+
+  const commitCreateShape = (
+    drag: Extract<DragState, { kind: "createShape" }>
+  ) => {
+    const isLineLike =
+      drag.shape === "line" ||
+      drag.shape === "arrow" ||
+      drag.shape === "elbowArrow" ||
+      drag.shape === "divider"
+    const travel = Math.hypot(drag.w, drag.h)
+    let x = drag.x
+    let y = drag.y
+    let w = drag.w
+    let h = drag.h
+
+    // Click without drag → default size centered on origin
+    if (travel < 6) {
+      if (isLineLike) {
+        w = 160
+        h = drag.shape === "elbowArrow" ? 80 : 24
+      } else if (drag.shape === "blockArrow") {
+        w = 160
+        h = 72
+      } else {
+        w = SHAPE_CLICK_DEFAULT.w
+        h = SHAPE_CLICK_DEFAULT.h
+      }
+      x = drag.originX - w / 2
+      y = drag.originY - h / 2
+    } else {
+      // Enforce minimums after drag
+      if (isLineLike) {
+        w = Math.max(w, 40)
+        h = Math.max(h, drag.shape === "elbowArrow" ? 40 : 16)
+      } else {
+        w = Math.max(w, SHAPE_MIN_SIZE)
+        h = Math.max(h, SHAPE_MIN_SIZE)
+      }
+    }
+
+    const el = createShape({
+      x,
+      y,
+      w,
+      h,
+      shape: drag.shape,
+      fill: isLineLike ? "transparent" : "#ffffff",
+      stroke: "#525252",
+      z: maxZ(docRef.current) + 1,
+    })
+    onCommand({ type: "upsert", element: el })
+    onSelectedIdsChange([el.id])
   }
 
   const onBoardPointerUp = (e: React.PointerEvent) => {
@@ -434,8 +553,25 @@ export function WhiteboardCanvas({
     setDraftMeta(null)
     setLassoPoints(null)
     setDraftLine(null)
+    setDraftShape(null)
 
     if (!drag) return
+
+    if (drag.kind === "createShape" && canEdit) {
+      const { x, y } = clientToBoard(e.clientX, e.clientY)
+      const x0 = Math.min(drag.originX, x)
+      const y0 = Math.min(drag.originY, y)
+      const w = Math.abs(x - drag.originX)
+      const h = Math.abs(y - drag.originY)
+      commitCreateShape({
+        ...drag,
+        x: x0,
+        y: y0,
+        w,
+        h,
+      })
+      return
+    }
 
     if (drag.kind === "stroke" && canEdit) {
       if (drag.points.length < 2) return
@@ -489,6 +625,22 @@ export function WhiteboardCanvas({
           onSelectedIdsChange([el.id])
           return
         }
+        if (classified.kind === "triangle" && classified.bounds) {
+          const b = classified.bounds
+          const el = createShape({
+            x: b.x,
+            y: b.y,
+            w: b.w,
+            h: b.h,
+            shape: "triangle",
+            stroke: style.color,
+            fill: "transparent",
+            z: maxZ(docRef.current) + 1,
+          })
+          onCommand({ type: "upsert", element: el })
+          onSelectedIdsChange([el.id])
+          return
+        }
         // free: simplified path residue
         const pts = classified.points ?? drag.points
         if (pts.length >= 2) {
@@ -532,8 +684,11 @@ export function WhiteboardCanvas({
 
     const { x, y } = clientToBoard(e.clientX, e.clientY)
     const toHit = hitTest(docRef.current, x, y)
-    const toEl = toHit ? docRef.current.elements[toHit] : null
-    const toPort = toEl ? nearestPort(toEl, x, y, 40) : null
+    // Don't self-link when the release lands on the same node
+    const sameAsFrom = Boolean(drag.fromId && toHit === drag.fromId)
+    const toEl =
+      toHit && !sameAsFrom ? docRef.current.elements[toHit] : null
+    const toPort = toEl ? closestPort(toEl, x, y) : null
     const from =
       drag.fromId && docRef.current.elements[drag.fromId]
         ? {
@@ -543,7 +698,7 @@ export function WhiteboardCanvas({
           }
         : { kind: "point" as const, x: drag.fromX, y: drag.fromY }
     const to =
-      toHit && docRef.current.elements[toHit]
+      toEl && toHit
         ? {
             kind: "element" as const,
             elementId: toHit,
@@ -551,10 +706,20 @@ export function WhiteboardCanvas({
           }
         : { kind: "point" as const, x, y }
 
+    const travel = Math.hypot(x - drag.fromX, y - drag.fromY)
+    if (travel < 8) return
     if (
       from.kind === "point" &&
       to.kind === "point" &&
-      Math.hypot(from.x - to.x, from.y - to.y) < 4
+      Math.hypot(from.x - to.x, from.y - to.y) < 8
+    ) {
+      return
+    }
+    // Same element both ends with no real attach → skip
+    if (
+      from.kind === "element" &&
+      to.kind === "element" &&
+      from.elementId === to.elementId
     ) {
       return
     }
@@ -641,8 +806,24 @@ export function WhiteboardCanvas({
               doc={doc}
               selected={selectedIds.includes(el.id)}
               canEdit={canEdit}
-              showPorts={tool === "connector" || selectedIds.includes(el.id)}
-              onSelect={(id) => onSelectedIdsChange([id])}
+              showPorts={
+                !editingLabelId &&
+                (tool === "connector" || selectedIds.includes(el.id))
+              }
+              passThrough={passThroughElements}
+              editingLabelId={editingLabelId}
+              shapeLabelLabels={shapeLabelLabels}
+              onStartLabelEdit={(id) => {
+                setEditingLabelId(id)
+                onSelectedIdsChange([id])
+              }}
+              onEndLabelEdit={() => setEditingLabelId(null)}
+              onSelect={(id) => {
+                onSelectedIdsChange([id])
+                if (editingLabelId && editingLabelId !== id) {
+                  setEditingLabelId(null)
+                }
+              }}
               onTextChange={(id, text) => {
                 if (!canEdit) return
                 const existing = doc.elements[id]
@@ -653,16 +834,25 @@ export function WhiteboardCanvas({
                     id,
                     patch: { text } as Partial<typeof existing>,
                   })
+                } else if (existing.type === "shape") {
+                  onCommand({
+                    type: "patch",
+                    id,
+                    patch: { label: text } as Partial<typeof existing>,
+                  })
                 }
               }}
               onPointerDownElement={(id, ev) => {
                 if (tool === "pan") return
+                if (passThroughElements) return
+                if (editingLabelId === id) return
                 if (tool === "connector" && canEdit) {
-                  // Start connector from this node
+                  // Start connector from this node — capture on board, not the shape
                   ev.stopPropagation()
+                  ev.preventDefault()
                   const { x, y } = clientToBoard(ev.clientX, ev.clientY)
                   const hitEl = docRef.current.elements[id]
-                  const port = hitEl ? nearestPort(hitEl, x, y, 40) : null
+                  const port = hitEl ? closestPort(hitEl, x, y) : null
                   dragRef.current = {
                     kind: "connector",
                     fromId: id,
@@ -676,9 +866,7 @@ export function WhiteboardCanvas({
                     x2: x,
                     y2: y,
                   })
-                  ;(ev.currentTarget as HTMLElement).setPointerCapture?.(
-                    ev.pointerId
-                  )
+                  captureBoard(ev)
                   return
                 }
                 if (tool !== "select" || !canEdit) return
@@ -693,13 +881,12 @@ export function WhiteboardCanvas({
                   accDy: 0,
                 }
                 if (!selectedIds.includes(id)) onSelectedIdsChange([id])
-                ;(ev.currentTarget as HTMLElement).setPointerCapture?.(
-                  ev.pointerId
-                )
+                captureBoard(ev)
               }}
               onPortPointerDown={(elementId, anchor, ev) => {
                 if (!canEdit) return
                 ev.stopPropagation()
+                ev.preventDefault()
                 const hitEl = docRef.current.elements[elementId]
                 const port = hitEl
                   ? elementPorts(hitEl)?.find((p) => p.anchor === anchor)
@@ -713,9 +900,8 @@ export function WhiteboardCanvas({
                   fromY: p.y,
                 }
                 setDraftLine({ x1: p.x, y1: p.y, x2: p.x, y2: p.y })
-                ;(ev.currentTarget as HTMLElement).setPointerCapture?.(
-                  ev.pointerId
-                )
+                // Capture on board so move/up fire on board handlers
+                captureBoard(ev)
               }}
               onResizePointerDown={(elementId, handle, ev) => {
                 if (!canEdit) return
@@ -738,9 +924,7 @@ export function WhiteboardCanvas({
                     h: hitEl.h,
                   },
                 }
-                ;(ev.currentTarget as HTMLElement).setPointerCapture?.(
-                  ev.pointerId
-                )
+                captureBoard(ev)
               }}
             />
           ))}
@@ -797,6 +981,24 @@ export function WhiteboardCanvas({
                 strokeDasharray="6 4"
               />
             </svg>
+          ) : null}
+
+          {draftShape && draftShape.w + draftShape.h > 0 ? (
+            <div
+              className="pointer-events-none absolute border-2 border-dashed border-blue-400 bg-blue-400/10"
+              style={{
+                left: draftShape.x,
+                top: draftShape.y,
+                width: Math.max(1, draftShape.w),
+                height: Math.max(1, draftShape.h),
+                borderRadius:
+                  draftShape.shape === "ellipse"
+                    ? "50%"
+                    : draftShape.shape === "rect"
+                      ? 6
+                      : 0,
+              }}
+            />
           ) : null}
         </div>
       </TransformComponent>

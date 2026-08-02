@@ -35,7 +35,12 @@ export function elementPorts(el: WhiteboardElement): PortPoint[] | null {
   ]
 }
 
-/** Nearest port to a board point (within maxDist), or null. */
+/**
+ * Nearest N/S/E/W port to a board point.
+ * When maxDist is Infinity (or omitted as Number.POSITIVE_INFINITY), always
+ * returns the closest port if the element has ports — used when hit-testing
+ * already confirmed the pointer is on that node.
+ */
 export function nearestPort(
   el: WhiteboardElement,
   px: number,
@@ -54,6 +59,15 @@ export function nearestPort(
     }
   }
   return best
+}
+
+/** Always pick the closest side port (for connector attach on a known node). */
+export function closestPort(
+  el: WhiteboardElement,
+  px: number,
+  py: number
+): PortPoint | null {
+  return nearestPort(el, px, py, Number.POSITIVE_INFINITY)
 }
 
 /**
