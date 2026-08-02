@@ -85,17 +85,26 @@ export async function exportBoardPng(
         ctx.strokeRect(el.x + ox, el.y + oy, el.w, el.h)
       }
       if (el.label) {
-        ctx.fillStyle = "#171717"
-        ctx.font = "14px system-ui, sans-serif"
-        ctx.textAlign = "center"
-        ctx.fillText(
-          el.label,
-          el.x + ox + el.w / 2,
-          el.y + oy + el.h / 2 + 5
-        )
-        ctx.textAlign = "start"
+        const plain = el.label.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+        if (plain) {
+          ctx.fillStyle = "#171717"
+          ctx.font = "14px system-ui, sans-serif"
+          ctx.textAlign = "center"
+          ctx.fillText(
+            plain,
+            el.x + ox + el.w / 2,
+            el.y + oy + el.h / 2 + 5
+          )
+          ctx.textAlign = "start"
+        }
       }
     } else if (el.type === "path" && el.points.length > 1) {
+      const isHighlighter = el.strokeKind === "highlighter"
+      const opacity =
+        el.opacity ?? (isHighlighter ? 0.35 : 1)
+      ctx.save()
+      ctx.globalAlpha = opacity
+      if (isHighlighter) ctx.globalCompositeOperation = "multiply"
       ctx.strokeStyle = el.stroke
       ctx.lineWidth = el.strokeWidth
       ctx.lineCap = "round"
@@ -106,6 +115,7 @@ export async function exportBoardPng(
         ctx.lineTo(el.points[i]!.x + ox, el.points[i]!.y + oy)
       }
       ctx.stroke()
+      ctx.restore()
     } else if (el.type === "connector") {
       // Free points only in export approximation
       const a =

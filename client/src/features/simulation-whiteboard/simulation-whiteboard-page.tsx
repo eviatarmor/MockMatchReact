@@ -11,6 +11,8 @@ import { useTranslation } from "react-i18next"
 import { ArrowLeft, Download, Share2 } from "lucide-react"
 import { IdeChromeBar } from "@mockmatch/ide"
 import {
+  DEFAULT_HIGHLIGHTER_STYLE,
+  DEFAULT_PEN_STYLE,
   WhiteboardBottomBar,
   WhiteboardCanvas,
   WhiteboardShell,
@@ -20,8 +22,11 @@ import {
   createHistory,
   exportBoardPng,
   isBoardEmpty,
+  shapeKindFromHotkey,
   toolFromHotkey,
   useWhiteboardViewport,
+  type DrawStrokeStyle,
+  type ShapeKind,
   type WhiteboardDocument,
   type WhiteboardTemplate,
   type WhiteboardTemplateId,
@@ -96,6 +101,14 @@ export function SimulationWhiteboardPageContent() {
   const historyRef = useRef(createHistory(createEmptyBoard()))
   const [doc, setDoc] = useState<WhiteboardDocument>(() => createEmptyBoard())
   const [tool, setTool] = useState<WhiteboardTool>("select")
+  const [shapeKind, setShapeKind] = useState<ShapeKind>("rect")
+  const [stickyColor, setStickyColor] = useState("#fef08a")
+  const [penStyle, setPenStyle] = useState<DrawStrokeStyle>(DEFAULT_PEN_STYLE)
+  const [highlighterStyle, setHighlighterStyle] = useState<DrawStrokeStyle>(
+    DEFAULT_HIGHLIGHTER_STYLE
+  )
+  const [smartStyle, setSmartStyle] =
+    useState<DrawStrokeStyle>(DEFAULT_PEN_STYLE)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [activeTemplateId, setActiveTemplateId] =
     useState<WhiteboardTemplateId | null>("blank")
@@ -144,8 +157,32 @@ export function SimulationWhiteboardPageContent() {
       setActiveTemplateId(template.id)
       setSelectedIds([])
       setPendingTemplate(null)
+      // Template content lives near board origin — pan camera there so it is not off-screen
+      requestAnimationFrame(() => {
+        const els = Object.values(nextDoc.elements)
+        if (els.length === 0) {
+          viewport.resetView()
+          return
+        }
+        let minX = Infinity
+        let minY = Infinity
+        let maxX = -Infinity
+        let maxY = -Infinity
+        for (const el of els) {
+          if (el.type === "path" || el.type === "connector") continue
+          minX = Math.min(minX, el.x)
+          minY = Math.min(minY, el.y)
+          maxX = Math.max(maxX, el.x + el.w)
+          maxY = Math.max(maxY, el.y + el.h)
+        }
+        if (!Number.isFinite(minX)) {
+          viewport.resetView()
+          return
+        }
+        viewport.centerOnBoardPoint((minX + maxX) / 2, (minY + maxY) / 2)
+      })
     },
-    [dispatch]
+    [dispatch, viewport]
   )
 
   const onSelectTemplate = useCallback(
@@ -202,25 +239,74 @@ export function SimulationWhiteboardPageContent() {
         setSelectedIds([])
         return
       }
-      const nextTool = toolFromHotkey(e.key)
-      if (nextTool && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        e.preventDefault()
-        setTool(nextTool)
+      if (!e.metaKey && !e.ctrlKey && !e.altKey) {
+        // Escape → deselect (shape label edit ends via board blur)
+        if (e.key === "Escape") {
+          e.preventDefault()
+          setSelectedIds([])
+          setTool("select")
+          return
+        }
+        // Shape shortcuts when shape tool active (R/O/L)
+        if (tool === "shape") {
+          const sk = shapeKindFromHotkey(e.key)
+          if (sk) {
+            e.preventDefault()
+            setShapeKind(sk)
+            return
+          }
+        }
+        const nextTool = toolFromHotkey(e.key, { shiftKey: e.shiftKey })
+        if (nextTool) {
+          e.preventDefault()
+          setTool(nextTool)
+        }
       }
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [dispatch, redo, selectedIds, undo])
+  }, [dispatch, redo, selectedIds, tool, undo])
 
   const toolLabels = useMemo(
     () => ({
       select: t("tools.select"),
       pan: t("tools.pan"),
+      draw: t("tools.draw"),
       pen: t("tools.pen"),
+      highlighter: t("tools.highlighter"),
+      smart: t("tools.smart"),
+      eraser: t("tools.eraser"),
+      precisionEraser: t("tools.precisionEraser"),
+      lasso: t("tools.lasso"),
       sticky: t("tools.sticky"),
       text: t("tools.text"),
       shape: t("tools.shape"),
       connector: t("tools.connector"),
+      shapesTitle: t("shapes.title"),
+      stickyColor: t("stickyColor"),
+      resolveShapeLabel: (key: string) => t(key),
+    }),
+    [t]
+  )
+
+  const drawStyleLabels = useMemo(
+    () => ({
+      color: t("drawStyle.color"),
+      thickness: t("drawStyle.thickness"),
+    }),
+    [t]
+  )
+
+  const shapeLabelLabels = useMemo(
+    () => ({
+      placeholder: t("shapeLabel.placeholder"),
+      bold: t("richText.bold"),
+      italic: t("richText.italic"),
+      underline: t("richText.underline"),
+      list: t("richText.list"),
+      link: t("richText.link"),
+      clear: t("richText.clear"),
+      linkPrompt: t("richText.linkPrompt"),
     }),
     [t]
   )
@@ -432,6 +518,32 @@ export function SimulationWhiteboardPageContent() {
               tool={tool}
               onToolChange={setTool}
               labels={toolLabels}
+              drawStyleLabels={drawStyleLabels}
+              shapeKind={shapeKind}
+              onShapeKindChange={setShapeKind}
+              penStyle={penStyle}
+              highlighterStyle={highlighterStyle}
+              smartStyle={smartStyle}
+              onPenStyleChange={setPenStyle}
+              onHighlighterStyleChange={setHighlighterStyle}
+              onSmartStyleChange={setSmartStyle}
+              stickyColor={stickyColor}
+              onStickyColorChange={(color) => {
+                setStickyColor(color)
+                // Recolor selected sticky notes
+                const stickyIds = selectedIds.filter(
+                  (id) => doc.elements[id]?.type === "sticky"
+                )
+                if (stickyIds.length > 0) {
+                  for (const id of stickyIds) {
+                    dispatch({
+                      type: "patch",
+                      id,
+                      patch: { color } as { color: string },
+                    })
+                  }
+                }
+              }}
             />
           }
           bottomBar={
@@ -453,6 +565,12 @@ export function SimulationWhiteboardPageContent() {
             onSelectedIdsChange={setSelectedIds}
             onCommand={dispatch}
             canEdit
+            shapeKind={shapeKind}
+            penStyle={penStyle}
+            highlighterStyle={highlighterStyle}
+            smartStyle={smartStyle}
+            stickyColor={stickyColor}
+            shapeLabelLabels={shapeLabelLabels}
           />
         </WhiteboardShell>
       </WhiteboardRail>

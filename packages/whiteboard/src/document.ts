@@ -9,6 +9,7 @@ import type {
   WhiteboardDocument,
   WhiteboardElement,
 } from "./types"
+import { distToSegment, pointInPolygon } from "./lib/geometry"
 
 export function createEmptyBoard(): WhiteboardDocument {
   return { version: 1, elements: {} }
@@ -112,6 +113,8 @@ export function createPath(partial: {
   stroke?: string
   strokeWidth?: number
   z?: number
+  strokeKind?: PathElement["strokeKind"]
+  opacity?: number
 }): PathElement {
   return {
     id: newElementId(),
@@ -120,6 +123,8 @@ export function createPath(partial: {
     z: partial.z ?? 1,
     stroke: partial.stroke ?? "#171717",
     strokeWidth: partial.strokeWidth ?? 2,
+    strokeKind: partial.strokeKind ?? "pen",
+    opacity: partial.opacity,
   }
 }
 
@@ -130,6 +135,7 @@ export function createConnector(partial: {
   strokeWidth?: number
   startArrow?: boolean
   endArrow?: boolean
+  routing?: ConnectorElement["routing"]
   z?: number
 }): ConnectorElement {
   return {
@@ -142,6 +148,7 @@ export function createConnector(partial: {
     strokeWidth: partial.strokeWidth ?? 2,
     startArrow: partial.startArrow ?? false,
     endArrow: partial.endArrow ?? true,
+    routing: partial.routing ?? "elbow",
   }
 }
 
@@ -366,25 +373,68 @@ export function resolveConnectorPoint(
   }
 }
 
+/** Select element ids whose center (or path points) lie inside lasso polygon. */
+export function lassoSelectIds(
+  doc: WhiteboardDocument,
+  poly: readonly { x: number; y: number }[]
+): string[] {
+  if (poly.length < 3) return []
+  const ids: string[] = []
+  for (const el of Object.values(doc.elements)) {
+    if (el.type === "path") {
+      if (el.points.some((p) => pointInPolygon(p, poly))) ids.push(el.id)
+      continue
+    }
+    if (el.type === "connector") {
+      const a = resolveConnectorPoint(el.from, doc)
+      const b = resolveConnectorPoint(el.to, doc)
+      if (pointInPolygon(a, poly) || pointInPolygon(b, poly)) ids.push(el.id)
+      continue
+    }
+    const cx = el.x + el.w / 2
+    const cy = el.y + el.h / 2
+    if (pointInPolygon({ x: cx, y: cy }, poly)) ids.push(el.id)
+  }
+  return ids
+}
+
+function pathHitsPoint(
+  el: PathElement,
+  x: number,
+  y: number,
+  pad = 6
+): boolean {
+  const threshold = pad + el.strokeWidth / 2
+  if (el.points.length === 0) return false
+  if (el.points.length === 1) {
+    return distToSegment({ x, y }, el.points[0]!, el.points[0]!) <= threshold
+  }
+  for (let i = 1; i < el.points.length; i++) {
+    if (
+      distToSegment({ x, y }, el.points[i - 1]!, el.points[i]!) <= threshold
+    ) {
+      return true
+    }
+  }
+  return false
+}
+
 export function hitTest(
   doc: WhiteboardDocument,
   x: number,
   y: number
 ): string | null {
   const sorted = listElementsSorted(doc).slice().reverse()
+  const p = { x, y }
   for (const el of sorted) {
     if (el.type === "path") {
-      for (const p of el.points) {
-        const dx = p.x - x
-        const dy = p.y - y
-        if (dx * dx + dy * dy <= 64) return el.id
-      }
+      if (pathHitsPoint(el, x, y)) return el.id
       continue
     }
     if (el.type === "connector") {
       const a = resolveConnectorPoint(el.from, doc)
       const b = resolveConnectorPoint(el.to, doc)
-      if (distToSegment(x, y, a.x, a.y, b.x, b.y) < 8) return el.id
+      if (distToSegment(p, a, b) < 8) return el.id
       continue
     }
     if (x >= el.x && x <= el.x + el.w && y >= el.y && y <= el.y + el.h) {
@@ -392,24 +442,4 @@ export function hitTest(
     }
   }
   return null
-}
-
-function distToSegment(
-  px: number,
-  py: number,
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number
-): number {
-  const dx = x2 - x1
-  const dy = y2 - y1
-  if (dx === 0 && dy === 0) {
-    return Math.hypot(px - x1, py - y1)
-  }
-  const t = Math.max(
-    0,
-    Math.min(1, ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy))
-  )
-  return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy))
 }

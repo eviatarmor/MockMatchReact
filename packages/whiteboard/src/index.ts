@@ -7,9 +7,13 @@ export type {
   ConnectorAnchor,
   ConnectorElement,
   ConnectorEnd,
+  DrawStrokeStyle,
+  DrawStyleBarLabels,
   PathElement,
+  PathStrokeKind,
   ShapeElement,
   ShapeKind,
+  ShapeLabelEditorLabels,
   StickyElement,
   TextElement,
   ToolRailLabels,
@@ -20,6 +24,15 @@ export type {
   WhiteboardTemplate,
   WhiteboardTemplateId,
   WhiteboardTool,
+} from "./types"
+
+export {
+  DEFAULT_HIGHLIGHTER_STYLE,
+  DEFAULT_PEN_STYLE,
+  DRAW_COLOR_PRESETS,
+  DRAW_WIDTH_PRESETS,
+  isEraserTool,
+  isStrokeDrawTool,
 } from "./types"
 
 export {
@@ -34,6 +47,7 @@ export {
   elementBounds,
   hitTest,
   isBoardEmpty,
+  lassoSelectIds,
   listElementsSorted,
   maxZ,
   newElementId,
@@ -68,8 +82,23 @@ export {
 export {
   WhiteboardToolRail,
   toolFromHotkey,
+  shapeKindFromHotkey,
   type WhiteboardToolRailProps,
+  type WhiteboardToolRailLabels,
 } from "./tool-rail"
+
+export {
+  WhiteboardDrawStyleBar,
+  type WhiteboardDrawStyleBarProps,
+} from "./draw-style-bar"
+
+export {
+  DRAW_TOOLS,
+  SHAPE_MENU_ITEMS,
+  STICKY_COLOR_PRESETS,
+  isDrawTool,
+  type DrawTool,
+} from "./types"
 
 export {
   WHITEBOARD_TEMPLATES,
@@ -84,3 +113,28 @@ export {
 } from "./templates/templates-panel"
 
 export { exportBoardPng } from "./export-png"
+
+export {
+  classifySmartStroke,
+  simplifyRdp,
+  pointInPolygon,
+  distToSegment,
+} from "./lib/geometry"
+
+export {
+  eraseWholeStrokesAt,
+  precisionEraseAt,
+  pathHitsBrush,
+  erasePathPoints,
+} from "./lib/erase"
+
+export {
+  FLOW_GRID,
+  snapToGrid,
+  snapPoint,
+  elementPorts,
+  nearestPort,
+  elbowPolyline,
+  applyResize,
+  type ResizeHandle,
+} from "./lib/flowchart"

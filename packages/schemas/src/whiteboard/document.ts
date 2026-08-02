@@ -46,7 +46,17 @@ const textSchema = z.object({
 const shapeSchema = z.object({
   id: z.string(),
   type: z.literal("shape"),
-  shape: z.enum(["rect", "ellipse", "triangle", "diamond"]),
+  shape: z.enum([
+    "rect",
+    "ellipse",
+    "triangle",
+    "diamond",
+    "line",
+    "arrow",
+    "elbowArrow",
+    "blockArrow",
+    "divider",
+  ]),
   x: z.number(),
   y: z.number(),
   w: z.number(),
@@ -64,6 +74,8 @@ const pathSchema = z.object({
   z: z.number(),
   stroke: z.string(),
   strokeWidth: z.number(),
+  strokeKind: z.enum(["pen", "highlighter", "smart"]).optional(),
+  opacity: z.number().min(0).max(1).optional(),
 })
 
 const connectorSchema = z.object({
@@ -76,6 +88,7 @@ const connectorSchema = z.object({
   strokeWidth: z.number(),
   startArrow: z.boolean(),
   endArrow: z.boolean(),
+  routing: z.enum(["straight", "elbow"]).optional(),
 })
 
 export const whiteboardElementSchema = z.union([

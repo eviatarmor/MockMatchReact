@@ -8,7 +8,6 @@ import {
 } from "lucide-react"
 import { CollapsibleSidePanel } from "@mockmatch/ui/collapsible-side-panel"
 import { SidePanelResizeHandle } from "@mockmatch/ui/side-panel-resize-handle"
-import { ScrollArea } from "@mockmatch/ui/scroll-area"
 import { Button } from "@mockmatch/ui/button"
 import {
   Tooltip,
@@ -96,13 +95,13 @@ export function WhiteboardRail({
             className="border-l border-border/60 bg-background text-foreground"
           >
             {displayPanel ? (
-              <>
+              <div className="flex h-full min-h-0 flex-col">
                 <SidePanelResizeHandle
                   onPointerDown={startResize}
                   label={t("rail.resize")}
                 />
 
-                <div className="flex items-start justify-between gap-2 border-b border-border/60 px-4 pb-4 pt-4">
+                <div className="flex shrink-0 items-start justify-between gap-2 border-b border-border/60 px-4 pb-4 pt-4">
                   <div className="min-w-0">
                     <h2 className="text-base font-semibold text-foreground">
                       {t(`${displayPanel}Panel.title`)}
@@ -123,7 +122,7 @@ export function WhiteboardRail({
                   </Button>
                 </div>
 
-                <ScrollArea className="min-h-0 flex-1">
+                <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
                   <div key={displayPanel} className="px-4 py-4">
                     {displayPanel === "prompt" ? (
                       <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
@@ -138,8 +137,8 @@ export function WhiteboardRail({
                       />
                     )}
                   </div>
-                </ScrollArea>
-              </>
+                </div>
+              </div>
             ) : null}
           </CollapsibleSidePanel>
         </div>
