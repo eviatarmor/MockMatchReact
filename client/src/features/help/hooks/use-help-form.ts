@@ -4,7 +4,7 @@ import { toast } from "sonner"
 import {
   encodeSupportPhotos,
   usePhotoAttachments,
-} from "@/components/support/photo-attachments-field"
+} from "@/components/support/use-photo-attachments"
 import {
   DEFAULT_HELP_TOPIC,
   MAX_HELP_MESSAGE_LENGTH,

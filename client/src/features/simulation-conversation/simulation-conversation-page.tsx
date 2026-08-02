@@ -74,9 +74,7 @@ function ConversationSession({ trackId }: { readonly trackId: ConversationTrackI
       ? "ended"
       : session.phase === "setup"
         ? "setup"
-        : liveVoice.status === "error"
-          ? session.phase
-          : session.phase
+        : session.phase
 
   const statusLabel =
     liveVoice.status === "error" && liveVoice.error

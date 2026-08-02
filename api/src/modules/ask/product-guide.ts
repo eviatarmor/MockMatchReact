@@ -71,7 +71,7 @@ application tracking, practice, and readiness insights.
 8. **Performance** (\`/performance\`) — performance trends and practice outcomes.
 
 ### Automation area
-9. **Autofill** (\`/autofill\`) — application form autofill profiles.
+9. **Autofill / Auto Apply** (\`/autofill\`) — dashboard for the MockMatch browser extension (Chrome/Edge/Brave/Firefox): install status, activity log. Extension side panel fills application forms with profile + chosen resume + cover letter (pick or AI tailor); **review only — never auto-submits**. Settings include theme, auto-detect, prepare applications.
 10. **Interview Recorder** (\`/interview-recorder\`) — connect to real interviews for transcription/insights (surface in nav).
 
 ### Account
