@@ -22,7 +22,10 @@ export function isConversationTrackId(
   )
 }
 
-/** Same profiles as account-settings voice section (UI mock ids). */
+/**
+ * Product voice profile ids (shared with account-settings / preferences).
+ * Each maps to a Deepgram Aura-2 English TTS model on the voice worker.
+ */
 export const AGENT_VOICE_IDS: readonly AgentVoiceId[] = [
   "buttery",
   "resonant",
@@ -32,7 +35,7 @@ export const AGENT_VOICE_IDS: readonly AgentVoiceId[] = [
   "rounded",
 ] as const
 
-export const DEFAULT_AGENT_VOICE: AgentVoiceId = "buttery"
+export const DEFAULT_AGENT_VOICE: AgentVoiceId = "mellow"
 
 export const SESSION_KINDS: readonly SessionKind[] = [
   "practice",
@@ -40,15 +43,57 @@ export const SESSION_KINDS: readonly SessionKind[] = [
   "freeform",
 ] as const
 
-/** Metadata for voice dropdown options (product voice ids). */
+/**
+ * Interviewer voices → Deepgram Aura-2 English models.
+ * Labels/copy live in locales; worker maps `id` → `deepgramModel`.
+ */
 export const VOICE_CATALOG: readonly VoiceCatalogEntry[] = [
-  { id: "buttery", gender: "female", accent: "australian" },
-  { id: "resonant", gender: "male", accent: "australian" },
-  { id: "mellow", gender: "female", accent: "american" },
-  { id: "airy", gender: "male", accent: "american" },
-  { id: "polished", gender: "female", accent: "british" },
-  { id: "rounded", gender: "male", accent: "british" },
+  {
+    id: "buttery",
+    deepgramModel: "aura-2-athena-en",
+    gender: "female",
+    accent: "american",
+  },
+  {
+    id: "resonant",
+    deepgramModel: "aura-2-orion-en",
+    gender: "male",
+    accent: "american",
+  },
+  {
+    id: "mellow",
+    deepgramModel: "aura-2-helena-en",
+    gender: "female",
+    accent: "american",
+  },
+  {
+    id: "airy",
+    deepgramModel: "aura-2-arcas-en",
+    gender: "male",
+    accent: "american",
+  },
+  {
+    id: "polished",
+    deepgramModel: "aura-2-pandora-en",
+    gender: "female",
+    accent: "british",
+  },
+  {
+    id: "rounded",
+    deepgramModel: "aura-2-draco-en",
+    gender: "male",
+    accent: "british",
+  },
 ] as const
+
+/** Lookup Deepgram TTS model for a product voice id. */
+export function deepgramModelForVoice(id: AgentVoiceId): string {
+  return (
+    VOICE_CATALOG.find((entry) => entry.id === id)?.deepgramModel ??
+    VOICE_CATALOG.find((entry) => entry.id === DEFAULT_AGENT_VOICE)!
+      .deepgramModel
+  )
+}
 
 /** Mock interviewer scripts — frontend only until voice/LLM backend lands. */
 export const MOCK_SCRIPTS: Record<ConversationTrackId, MockConversationScript> =

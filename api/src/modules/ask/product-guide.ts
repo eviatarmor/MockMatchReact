@@ -59,7 +59,7 @@ application tracking, practice, and readiness insights.
      - **js-fizzbuzz / js-reverse / py-factorial / ts-palindrome / py-vowels** — more code-run labs with tests.
      - **cpp-sort** — C++ sort via client-side clang++ (Runno); **Run** / **Run tests**.
      - **react** · **shell** · **workspace** — multi-file / terminal / freeform.
-   - **Conversation** (\`/simulations/conversation/:trackId\`) — live agent interview chat (MockMatch robot + message transcript). On entry a **setup dialog** chooses session type, face/posture analysis flags, **agent voice** (VoiceSelector), and **microphone** (MicSelector). Session then runs agent stage + chat (type or talk). Frontend mock only for now (no real LLM/camera analysis). Catalog tracks: **behavioral-core**, **product-sense**, **system-design-talk**.
+   - **Conversation** (\`/simulations/conversation/:trackId\`) — live agent interview (robot + chat). Setup dialog → \`voice.createSession\` (credits → \`mockInterviews\`, sticky worker URL, ICE/TURN, SSE events URL + WebRTC ticket). Pipecat \`voice/\` workers: STT → OpenRouter LLM → TTS; publish \`agent_state\` + transcript via Redis; flush turns to Postgres. Client SSE drives robot/chat (mock pipeline only if voice fails). Scale: worker pool, **task per session**. Camera analysis UI-only. Tracks: **behavioral-core**, **product-sense**, **system-design-talk**.
    - **Terminal lab** (\`/simulations/terminal-lab\`) — shell-only multi-tab terminal (add/remove tabs like editor); collab presence + share.
    - **Dev workspace** (\`/simulations/workspace\`) — freeform multi-file collab IDE.
    - Share URLs include \`id\` + \`share\` query params (owner must stay in room).

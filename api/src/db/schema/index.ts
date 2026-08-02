@@ -9,5 +9,6 @@ export * from "./candidate-profile.js"
 export * from "./document-versions.js"
 export * from "./ide-workspaces.js"
 export * from "./practice-exercises.js"
+export * from "./voice-sessions.js"
 
 

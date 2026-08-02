@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --noEmit",
     "preview": "vite preview",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:voice": "node --experimental-strip-types --test src/features/simulation-conversation/lib/voice-events.test.mjs"
   },
   "dependencies": {
     "@ai-sdk/react": "^4.0.40",

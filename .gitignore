@@ -31,3 +31,8 @@ yarn-error.log*
 # editor/local
 .vscode/
 *.tsbuildinfo
+
+# Python (voice worker)
+**/__pycache__/
+**/*.py[cod]
+voice/.venv/

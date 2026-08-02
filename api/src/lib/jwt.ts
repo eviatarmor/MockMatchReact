@@ -10,6 +10,8 @@ const ACCESS_TTL = "15m"
 const PRINT_ACCESS_TTL = "2m"
 /** Short-lived WS collab ticket (not an access cookie). */
 const COLLAB_TICKET_TTL = "2m"
+/** Short-lived voice WebRTC ticket (Pipecat worker validates + Redis). */
+const VOICE_TICKET_TTL = "10m"
 const REFRESH_TTL = "30d"
 
 export interface AccessTokenPayload extends JWTPayload {
@@ -111,6 +113,33 @@ export async function signCollabTicket(input: {
     .setAudience("collab")
     .setIssuedAt()
     .setExpirationTime(COLLAB_TICKET_TTL)
+    .sign(accessSecret)
+}
+
+export interface VoiceTicketPayload extends JWTPayload {
+  sub: string
+  type: "voice_ticket"
+  sid: string
+  jti: string
+  aud: "voice"
+}
+
+export async function signVoiceTicket(input: {
+  userId: string
+  sessionId: string
+  jti: string
+}): Promise<string> {
+  return new SignJWT({
+    type: "voice_ticket",
+    sid: input.sessionId,
+    jti: input.jti,
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setSubject(input.userId)
+    .setAudience("voice")
+    .setJti(input.jti)
+    .setIssuedAt()
+    .setExpirationTime(VOICE_TICKET_TTL)
     .sign(accessSecret)
 }
 
