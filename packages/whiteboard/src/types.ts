@@ -1,15 +1,61 @@
 /** Board-space coordinates (not screen pixels). */
+// whiteboard tool model v2
 
 export type WhiteboardTool =
   | "select"
   | "pan"
   | "pen"
+  | "highlighter"
+  | "smart"
+  | "eraser"
+  | "precisionEraser"
+  | "lasso"
   | "sticky"
   | "text"
   | "shape"
   | "connector"
 
-export type ShapeKind = "rect" | "ellipse" | "triangle" | "diamond"
+export type ShapeKind =
+  | "rect"
+  | "ellipse"
+  | "triangle"
+  | "diamond"
+  | "line"
+  | "arrow"
+  | "elbowArrow"
+  | "blockArrow"
+  | "divider"
+
+/** Drawing tools that live only in the secondary draw rail. */
+export type DrawTool =
+  | "pen"
+  | "highlighter"
+  | "smart"
+  | "eraser"
+  | "precisionEraser"
+  | "lasso"
+
+export const DRAW_TOOLS: readonly DrawTool[] = [
+  "pen",
+  "highlighter",
+  "smart",
+  "eraser",
+  "precisionEraser",
+  "lasso",
+] as const
+
+export const STICKY_COLOR_PRESETS = [
+  "#fef08a",
+  "#bbf7d0",
+  "#bfdbfe",
+  "#fecaca",
+  "#e9d5ff",
+  "#fed7aa",
+  "#f5f5f5",
+  "#fde68a",
+] as const
+
+export type PathStrokeKind = "pen" | "highlighter" | "smart"
 
 export type ConnectorAnchor = "n" | "s" | "e" | "w" | "c"
 
@@ -66,6 +112,10 @@ export type PathElement = {
   readonly z: number
   readonly stroke: string
   readonly strokeWidth: number
+  /** pen | highlighter | smart freehand residue */
+  readonly strokeKind?: PathStrokeKind
+  /** 0–1; highlighter defaults ~0.35 */
+  readonly opacity?: number
 }
 
 export type ConnectorElement = {
@@ -109,6 +159,36 @@ export type WhiteboardCommand =
       readonly dy: number
     }
 
+/** Shared stroke style for pen / highlighter / smart. */
+export type DrawStrokeStyle = {
+  readonly color: string
+  readonly width: number
+}
+
+export const DEFAULT_PEN_STYLE: DrawStrokeStyle = {
+  color: "#171717",
+  width: 2,
+}
+
+export const DEFAULT_HIGHLIGHTER_STYLE: DrawStrokeStyle = {
+  color: "#facc15",
+  width: 16,
+}
+
+export const DRAW_COLOR_PRESETS = [
+  "#171717",
+  "#dc2626",
+  "#2563eb",
+  "#16a34a",
+  "#ca8a04",
+  "#7c3aed",
+  "#facc15",
+  "#f472b6",
+  "#ffffff",
+] as const
+
+export const DRAW_WIDTH_PRESETS = [1, 2, 4, 8, 12, 16, 24] as const
+
 export type WhiteboardTemplateId =
   | "blank"
   | "system-design"
@@ -116,6 +196,11 @@ export type WhiteboardTemplateId =
   | "flowchart"
   | "swot"
   | "user-journey"
+  | "quick-retrospective"
+  | "business-model-canvas"
+  | "kanban"
+  | "empathy-map"
+  | "mind-map"
 
 export type WhiteboardTemplate = {
   readonly id: WhiteboardTemplateId
@@ -128,10 +213,20 @@ export type ToolRailLabels = {
   readonly select: string
   readonly pan: string
   readonly pen: string
+  readonly highlighter: string
+  readonly smart: string
+  readonly eraser: string
+  readonly precisionEraser: string
+  readonly lasso: string
   readonly sticky: string
   readonly text: string
   readonly shape: string
   readonly connector: string
+}
+
+export type DrawStyleBarLabels = {
+  readonly color: string
+  readonly thickness: string
 }
 
 export type WhiteboardChromeLabels = ToolRailLabels & {
@@ -148,3 +243,36 @@ export type WhiteboardChromeLabels = ToolRailLabels & {
   readonly cancel: string
   readonly apply: string
 }
+
+/** Tools that show the color/thickness popover. */
+export function isStrokeDrawTool(
+  tool: WhiteboardTool
+): tool is "pen" | "highlighter" | "smart" {
+  return tool === "pen" || tool === "highlighter" || tool === "smart"
+}
+
+export function isEraserTool(
+  tool: WhiteboardTool
+): tool is "eraser" | "precisionEraser" {
+  return tool === "eraser" || tool === "precisionEraser"
+}
+
+export function isDrawTool(tool: WhiteboardTool): tool is DrawTool {
+  return (DRAW_TOOLS as readonly string[]).includes(tool)
+}
+
+export const SHAPE_MENU_ITEMS: readonly {
+  kind: ShapeKind
+  labelKey: string
+  hotkey: string
+}[] = [
+  { kind: "line", labelKey: "shapes.line", hotkey: "L" },
+  { kind: "arrow", labelKey: "shapes.arrow", hotkey: "" },
+  { kind: "elbowArrow", labelKey: "shapes.elbowArrow", hotkey: "" },
+  { kind: "blockArrow", labelKey: "shapes.blockArrow", hotkey: "" },
+  { kind: "rect", labelKey: "shapes.rect", hotkey: "R" },
+  { kind: "ellipse", labelKey: "shapes.oval", hotkey: "O" },
+  { kind: "diamond", labelKey: "shapes.rhombus", hotkey: "" },
+  { kind: "triangle", labelKey: "shapes.triangle", hotkey: "" },
+  { kind: "divider", labelKey: "shapes.divider", hotkey: "" },
+]

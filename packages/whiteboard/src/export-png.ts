@@ -96,6 +96,12 @@ export async function exportBoardPng(
         ctx.textAlign = "start"
       }
     } else if (el.type === "path" && el.points.length > 1) {
+      const isHighlighter = el.strokeKind === "highlighter"
+      const opacity =
+        el.opacity ?? (isHighlighter ? 0.35 : 1)
+      ctx.save()
+      ctx.globalAlpha = opacity
+      if (isHighlighter) ctx.globalCompositeOperation = "multiply"
       ctx.strokeStyle = el.stroke
       ctx.lineWidth = el.strokeWidth
       ctx.lineCap = "round"
@@ -106,6 +112,7 @@ export async function exportBoardPng(
         ctx.lineTo(el.points[i]!.x + ox, el.points[i]!.y + oy)
       }
       ctx.stroke()
+      ctx.restore()
     } else if (el.type === "connector") {
       // Free points only in export approximation
       const a =

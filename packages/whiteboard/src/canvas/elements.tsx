@@ -1,4 +1,4 @@
-import type { PointerEvent as ReactPointerEvent } from "react"
+import type { PointerEvent as ReactPointerEvent, ReactNode } from "react"
 import type {
   ConnectorElement,
   PathElement,
@@ -145,13 +145,120 @@ export function TextView({
   )
 }
 
-function shapePath(el: ShapeElement): string | null {
-  const { w, h, shape } = el
+function shapeSvgInner(el: ShapeElement): ReactNode {
+  const { w, h, shape, fill, stroke } = el
+  const sw = 2
+  if (shape === "rect") {
+    return (
+      <rect
+        x={1}
+        y={1}
+        width={w - 2}
+        height={h - 2}
+        rx={6}
+        fill={fill === "transparent" ? "none" : fill}
+        stroke={stroke}
+        strokeWidth={sw}
+      />
+    )
+  }
+  if (shape === "ellipse") {
+    return (
+      <ellipse
+        cx={w / 2}
+        cy={h / 2}
+        rx={w / 2 - 1}
+        ry={h / 2 - 1}
+        fill={fill === "transparent" ? "none" : fill}
+        stroke={stroke}
+        strokeWidth={sw}
+      />
+    )
+  }
   if (shape === "triangle") {
-    return `M ${w / 2} 0 L ${w} ${h} L 0 ${h} Z`
+    return (
+      <path
+        d={`M ${w / 2} 0 L ${w} ${h} L 0 ${h} Z`}
+        fill={fill === "transparent" ? "none" : fill}
+        stroke={stroke}
+        strokeWidth={sw}
+        strokeLinejoin="round"
+      />
+    )
   }
   if (shape === "diamond") {
-    return `M ${w / 2} 0 L ${w} ${h / 2} L ${w / 2} ${h} L 0 ${h / 2} Z`
+    return (
+      <path
+        d={`M ${w / 2} 0 L ${w} ${h / 2} L ${w / 2} ${h} L 0 ${h / 2} Z`}
+        fill={fill === "transparent" ? "none" : fill}
+        stroke={stroke}
+        strokeWidth={sw}
+        strokeLinejoin="round"
+      />
+    )
+  }
+  if (shape === "line" || shape === "divider") {
+    const y = h / 2
+    return (
+      <line
+        x1={0}
+        y1={y}
+        x2={w}
+        y2={y}
+        stroke={stroke}
+        strokeWidth={shape === "divider" ? 2 : sw}
+      />
+    )
+  }
+  if (shape === "arrow") {
+    const y = h / 2
+    const head = Math.min(14, w * 0.25)
+    return (
+      <>
+        <line x1={0} y1={y} x2={w - head} y2={y} stroke={stroke} strokeWidth={sw} />
+        <path
+          d={`M ${w - head} ${y - 7} L ${w} ${y} L ${w - head} ${y + 7}`}
+          fill="none"
+          stroke={stroke}
+          strokeWidth={sw}
+          strokeLinejoin="round"
+        />
+      </>
+    )
+  }
+  if (shape === "elbowArrow") {
+    const midX = w * 0.55
+    const head = 10
+    return (
+      <>
+        <path
+          d={`M 0 ${h / 2} L ${midX} ${h / 2} L ${midX} ${h * 0.2} L ${w - head} ${h * 0.2}`}
+          fill="none"
+          stroke={stroke}
+          strokeWidth={sw}
+        />
+        <path
+          d={`M ${w - head} ${h * 0.2 - 6} L ${w} ${h * 0.2} L ${w - head} ${h * 0.2 + 6}`}
+          fill="none"
+          stroke={stroke}
+          strokeWidth={sw}
+        />
+      </>
+    )
+  }
+  if (shape === "blockArrow") {
+    const body = h * 0.35
+    const y0 = (h - body) / 2
+    const mid = w * 0.55
+    return (
+      <path
+        d={`M 0 ${y0} L ${mid} ${y0} L ${mid} 0 L ${w} ${h / 2} L ${mid} ${h} L ${mid} ${y0 + body} L 0 ${y0 + body} Z`}
+        fill={fill === "transparent" ? "none" : fill}
+        stroke={stroke}
+        strokeWidth={sw}
+        strokeLinejoin="round"
+      />
+    )
   }
   return null
 }
@@ -169,7 +276,6 @@ export function ShapeView({
   readonly onSelect: (id: string) => void
   readonly onPointerDownElement?: (id: string, e: ReactPointerEvent) => void
 }) {
-  const path = shapePath(el)
   return (
     <div
       data-el-id={el.id}
@@ -188,37 +294,8 @@ export function ShapeView({
       }}
     >
       <SelectionRing w={el.w} h={el.h} selected={selected} />
-      <svg width={el.w} height={el.h} className="absolute inset-0">
-        {el.shape === "rect" ? (
-          <rect
-            x={1}
-            y={1}
-            width={el.w - 2}
-            height={el.h - 2}
-            rx={6}
-            fill={el.fill}
-            stroke={el.stroke}
-            strokeWidth={2}
-          />
-        ) : el.shape === "ellipse" ? (
-          <ellipse
-            cx={el.w / 2}
-            cy={el.h / 2}
-            rx={el.w / 2 - 1}
-            ry={el.h / 2 - 1}
-            fill={el.fill}
-            stroke={el.stroke}
-            strokeWidth={2}
-          />
-        ) : path ? (
-          <path
-            d={path}
-            fill={el.fill}
-            stroke={el.stroke}
-            strokeWidth={2}
-            strokeLinejoin="round"
-          />
-        ) : null}
+      <svg width={el.w} height={el.h} className="absolute inset-0 overflow-visible">
+        {shapeSvgInner(el)}
       </svg>
       {el.label ? (
         <span
@@ -249,6 +326,9 @@ export function PathView({
   const d = el.points
     .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
     .join(" ")
+  const isHighlighter = el.strokeKind === "highlighter"
+  // Prefer stored opacity; highlighter defaults semi-transparent for multiply blend
+  const opacity = el.opacity ?? (isHighlighter ? 0.35 : 1)
   return (
     <svg
       data-el-id={el.id}
@@ -262,8 +342,12 @@ export function PathView({
         strokeWidth={el.strokeWidth + (selected ? 2 : 0)}
         strokeLinecap="round"
         strokeLinejoin="round"
+        opacity={opacity}
         className="pointer-events-stroke"
-        style={{ pointerEvents: "stroke" }}
+        style={{
+          pointerEvents: "stroke",
+          mixBlendMode: isHighlighter ? "multiply" : "normal",
+        }}
         onPointerDown={(e) => {
           e.stopPropagation()
           onSelect(el.id)

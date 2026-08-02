@@ -29,11 +29,34 @@
   "tools": {
     "select": "Select",
     "pan": "Pan",
+    "draw": "Draw",
     "pen": "Pen",
+    "highlighter": "Highlighter",
+    "smart": "Smart draw",
+    "eraser": "Eraser",
+    "precisionEraser": "Precision eraser",
+    "lasso": "Lasso",
     "sticky": "Sticky note",
     "text": "Text",
     "shape": "Shape",
     "connector": "Connector"
+  },
+  "shapes": {
+    "title": "Shapes",
+    "line": "Line",
+    "arrow": "Arrow",
+    "elbowArrow": "Elbow arrow",
+    "blockArrow": "Block arrow",
+    "rect": "Rectangle",
+    "oval": "Oval",
+    "rhombus": "Rhombus",
+    "triangle": "Triangle",
+    "divider": "Divider"
+  },
+  "stickyColor": "Sticky color",
+  "drawStyle": {
+    "color": "Color",
+    "thickness": "Thickness"
   },
   "templatesCatalog": {
     "blank": {
@@ -59,6 +82,26 @@
     "userJourney": {
       "title": "User journey",
       "description": "Awareness through advocacy stages"
+    },
+    "quickRetrospective": {
+      "title": "Quick retrospective",
+      "description": "Went well · To improve · Actions"
+    },
+    "businessModelCanvas": {
+      "title": "Business model canvas",
+      "description": "Nine building blocks for your model"
+    },
+    "kanban": {
+      "title": "Kanban",
+      "description": "Backlog · Doing · Review · Done"
+    },
+    "empathyMap": {
+      "title": "Empathy map",
+      "description": "Says · Thinks · Does · Feels"
+    },
+    "mindMap": {
+      "title": "Mind map",
+      "description": "Central idea with branches"
     }
   },
   "applyTemplateTitle": "Replace board?",

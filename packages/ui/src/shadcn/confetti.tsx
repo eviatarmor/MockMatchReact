@@ -184,7 +184,7 @@ export function fireCelebrationConfetti(
   if (originOpt?.y != null) origin.y = originOpt.y
 
   try {
-    return confetti({
+    void confetti({
       particleCount: 100,
       spread: 70,
       startVelocity: 35,
@@ -193,6 +193,7 @@ export function fireCelebrationConfetti(
       disableForReducedMotion: true,
       ...rest,
     })
+    return null
   } catch (error) {
     console.error("Celebration confetti error:", error)
     return null

@@ -84,6 +84,20 @@ export function useWhiteboardViewport() {
     api.setTransform(x, y, nextScale, 200)
   }, [])
 
+  /**
+   * Pan so board-space point (bx, by) sits near the viewport center at current scale.
+   */
+  const centerOnBoardPoint = useCallback((bx: number, by: number) => {
+    const api = ref.current
+    if (!api) return
+    const wrapper = api.instance.wrapperComponent
+    if (!wrapper) return
+    const s = transformRef.current.scale || WHITEBOARD_ZOOM.default
+    const x = wrapper.clientWidth / 2 - bx * s
+    const y = wrapper.clientHeight / 2 - by * s
+    api.setTransform(x, y, s, 200)
+  }, [])
+
   // Fixed-step wheel zoom (non-passive) — same as resume canvas
   useEffect(() => {
     let raf = 0
@@ -123,6 +137,7 @@ export function useWhiteboardViewport() {
     zoomIn,
     zoomOut,
     resetView,
+    centerOnBoardPoint,
     canZoomIn: scale < WHITEBOARD_ZOOM.max - 0.001,
     canZoomOut: scale > WHITEBOARD_ZOOM.min + 0.001,
     onTransform,
