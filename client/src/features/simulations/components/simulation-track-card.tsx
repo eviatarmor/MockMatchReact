@@ -1,26 +1,53 @@
-import { AlignJustify, Clock, Sparkles } from "lucide-react"
+import {
+  AlignJustify,
+  Code2,
+  MessageSquare,
+  Monitor,
+  Terminal,
+} from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { Button } from "@mockmatch/ui/button"
 import { Badge } from "@mockmatch/ui/badge"
-import { resolveIcon } from "@/lib/icon-map"
-import { practicePathForTrackId } from "../lib/practice-path"
-import type { InterviewTrack, DifficultyLevel } from "../types"
+import { DifficultyBadge } from "@/components/data/difficulty-badge"
+import type { BankQuestion, QuestionFormat } from "@/features/question-bank/types"
+import { practicePathForBankQuestion } from "../lib/practice-path"
 
-function difficultyVariant(level: DifficultyLevel): "outline" | "secondary" {
-  return level === "adaptive" ? "outline" : "secondary"
+function formatIcon(format: QuestionFormat | undefined) {
+  switch (format) {
+    case "conversation":
+      return MessageSquare
+    case "workspace":
+      return Monitor
+    case "terminal":
+      return Terminal
+    case "code_run":
+      return Code2
+    default:
+      return AlignJustify
+  }
+}
+
+/** Map bank format enum → simulations.format.* i18n key (camelCase). */
+function formatLabelKey(format: QuestionFormat | undefined): string | null {
+  if (!format) return null
+  if (format === "code_run") return "codeRun"
+  if (format === "workspace") return "workspace"
+  if (format === "terminal") return "terminal"
+  if (format === "conversation") return "conversation"
+  return null
 }
 
 interface SimulationTrackCardProps {
-  readonly track: InterviewTrack
-  readonly recommended?: boolean
+  readonly question: BankQuestion
 }
 
-export function SimulationTrackCard({ track, recommended = false }: SimulationTrackCardProps) {
+export function SimulationTrackCard({ question }: SimulationTrackCardProps) {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
-  const Icon = resolveIcon(track.iconName, AlignJustify)
-  const practicePath = practicePathForTrackId(track.id)
+  const Icon = formatIcon(question.format)
+  const practicePath = practicePathForBankQuestion(question)
+  const formatKey = formatLabelKey(question.format)
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-border/60 bg-card p-4 shadow-sm">
@@ -28,38 +55,29 @@ export function SimulationTrackCard({ track, recommended = false }: SimulationTr
         <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Icon className="size-4" />
         </div>
-        <div className="flex flex-col items-end gap-1">
-          {recommended ? (
-            <Badge
-              variant="outline"
-              className="gap-1 border-primary/30 px-1.5 py-0 text-2xs text-primary"
-            >
-              <Sparkles className="size-2.5" />
-              {t("simulations.tracksBrowser.recommendedBadge")}
-            </Badge>
-          ) : null}
-          <Badge variant={difficultyVariant(track.difficulty)} className="text-2xs">
-            {t(`simulations.difficulty.${track.difficulty}`)}
-          </Badge>
-        </div>
+        <DifficultyBadge
+          difficulty={question.difficulty}
+          translationPrefix="questionBank.difficulty"
+        />
       </div>
 
       <div className="flex flex-col gap-1">
-        <h3 className="text-sm font-semibold leading-snug">{t(track.titleKey)}</h3>
-        <p className="text-xs leading-snug text-muted-foreground">{t(track.descriptionKey)}</p>
+        <h3 className="line-clamp-2 text-sm font-semibold leading-snug">
+          {question.title}
+        </h3>
+        <p className="text-xs leading-snug text-muted-foreground">
+          {t(`questionBank.domains.${question.domain}`)}
+        </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-        <Badge variant="outline" className="px-1.5 py-0 text-2xs font-normal">
-          {t(`simulations.format.${track.format}`)}
-        </Badge>
-        <span className="flex items-center gap-1">
-          <AlignJustify className="size-3.5" />
-          {t("simulations.taskCount", { count: track.taskCount })}
-        </span>
-        <span className="flex items-center gap-1">
-          <Clock className="size-3.5" />
-          {track.durationMin} {t("simulations.recentSessions.durationSuffix")}
+        {formatKey ? (
+          <Badge variant="outline" className="px-1.5 py-0 text-2xs font-normal">
+            {t(`simulations.format.${formatKey}`)}
+          </Badge>
+        ) : null}
+        <span className="text-2xs text-muted-foreground">
+          {t(`questionBank.status.${question.status}`)}
         </span>
       </div>
 

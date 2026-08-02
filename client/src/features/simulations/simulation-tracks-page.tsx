@@ -1,96 +1,42 @@
-import { useMemo, useState } from "react"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Bookmark } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
 import { TableToolbar } from "@/components/dashboard/table-toolbar"
-import { TrackBrowserFilters } from "./components/track-browser-filters"
-import { TrackBrowserTable } from "./components/track-browser-table"
-import { INTERVIEW_TRACKS } from "./constants"
-import { useResumeRoleHints } from "./hooks/use-resume-role-hints"
-import { durationBucket, isTrackRecommended } from "./lib/track-filters"
-import type {
-  DifficultyLevel,
-  DurationBucket,
-  TrackFormat,
-  TrackRoleFamily,
-} from "./types"
-
-function toggleSet<T>(set: Set<T>, value: T, setter: (s: Set<T>) => void) {
-  const next = new Set(set)
-  if (next.has(value)) {
-    next.delete(value)
-  } else {
-    next.add(value)
-  }
-  setter(next)
-}
+import { EntityEmptyState } from "@/components/data/entity-empty-state"
+import { EntityListStates } from "@/components/data/entity-list-states"
+import { QuestionBankFilters } from "@/features/question-bank/components/question-bank-filters"
+import { QuestionBankTable } from "@/features/question-bank/components/question-bank-table"
+import { useQuestionBankList } from "@/features/question-bank/hooks/use-question-bank-list"
 
 export function SimulationTracksPageContent() {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
-  const roleHints = useResumeRoleHints()
+  const list = useQuestionBankList()
 
-  const [search, setSearch] = useState("")
-  const [selectedRoleFamilies, setSelectedRoleFamilies] = useState<Set<TrackRoleFamily>>(
-    new Set()
+  const emptyState = (
+    <EntityEmptyState
+      icon={Bookmark}
+      title={
+        list.hasFilters
+          ? t("simulations.tracksBrowser.noResults")
+          : t("questionBank.emptyTitle", {
+              defaultValue: "No questions yet",
+            })
+      }
+      description={
+        list.hasFilters
+          ? t("questionBank.emptySearchDescription", {
+              defaultValue: "Try different filters or search terms.",
+            })
+          : t("questionBank.emptyDescription", {
+              defaultValue:
+                "Apply to a job in Discover or import a job in Applications — questions generate automatically into this bank.",
+            })
+      }
+    />
   )
-  const [selectedDifficulties, setSelectedDifficulties] = useState<Set<DifficultyLevel>>(
-    new Set()
-  )
-  const [selectedFormats, setSelectedFormats] = useState<Set<TrackFormat>>(new Set())
-  const [selectedDurations, setSelectedDurations] = useState<Set<DurationBucket>>(new Set())
-
-  const filtered = useMemo(() => {
-    const needle = search.trim().toLowerCase()
-    const list = INTERVIEW_TRACKS.filter((track) => {
-      const title = t(track.titleKey).toLowerCase()
-      const description = t(track.descriptionKey).toLowerCase()
-      const formatLabel = t(`simulations.format.${track.format}`).toLowerCase()
-      const matchesSearch =
-        needle.length === 0 ||
-        title.includes(needle) ||
-        description.includes(needle) ||
-        formatLabel.includes(needle)
-      const matchesRole =
-        selectedRoleFamilies.size === 0 ||
-        track.roleFamilies.some((f) => selectedRoleFamilies.has(f))
-      const matchesDifficulty =
-        selectedDifficulties.size === 0 || selectedDifficulties.has(track.difficulty)
-      const matchesFormat =
-        selectedFormats.size === 0 || selectedFormats.has(track.format)
-      const matchesDuration =
-        selectedDurations.size === 0 ||
-        selectedDurations.has(durationBucket(track.durationMin))
-      return (
-        matchesSearch &&
-        matchesRole &&
-        matchesDifficulty &&
-        matchesFormat &&
-        matchesDuration
-      )
-    })
-
-    // Recommended first when we know the user's role families
-    if (roleHints.canRecommend) {
-      return [...list].sort((a, b) => {
-        const aRec = isTrackRecommended(a, roleHints.families) ? 0 : 1
-        const bRec = isTrackRecommended(b, roleHints.families) ? 0 : 1
-        return aRec - bRec
-      })
-    }
-    return list
-  }, [
-    search,
-    selectedRoleFamilies,
-    selectedDifficulties,
-    selectedFormats,
-    selectedDurations,
-    roleHints.families,
-    roleHints.canRecommend,
-    t,
-  ])
 
   return (
     <DashboardPageShell title={t("simulations.tracksBrowser.browseTitle")}>
@@ -107,48 +53,47 @@ export function SimulationTracksPageContent() {
           <DashboardPageHeader
             title={t("simulations.tracksBrowser.browseTitle")}
             description={t("simulations.tracksBrowser.browseDescription", {
-              count: INTERVIEW_TRACKS.length,
+              count: list.total,
             })}
           />
         </div>
 
         <div className="flex flex-1 items-start gap-4 min-h-0">
-          <aside className="sticky top-[10px] hidden w-48 shrink-0 self-start lg:block">
-            <TrackBrowserFilters
-              selectedRoleFamilies={selectedRoleFamilies}
-              selectedDifficulties={selectedDifficulties}
-              selectedFormats={selectedFormats}
-              selectedDurations={selectedDurations}
-              onRoleFamilyToggle={(f) =>
-                toggleSet(selectedRoleFamilies, f, setSelectedRoleFamilies)
-              }
-              onDifficultyToggle={(d) =>
-                toggleSet(selectedDifficulties, d, setSelectedDifficulties)
-              }
-              onFormatToggle={(f) => toggleSet(selectedFormats, f, setSelectedFormats)}
-              onDurationToggle={(b) => toggleSet(selectedDurations, b, setSelectedDurations)}
+          <aside className="sticky top-[10px] hidden w-44 shrink-0 self-start lg:block">
+            <QuestionBankFilters
+              selectedDomains={list.selectedDomains}
+              selectedDifficulties={list.selectedDifficulties}
+              selectedStatuses={list.selectedStatuses}
+              onDomainToggle={list.onDomainToggle}
+              onDifficultyToggle={list.onDifficultyToggle}
+              onStatusToggle={list.onStatusToggle}
+              domainCounts={list.domainCounts}
+              difficultyCounts={list.difficultyCounts}
+              statusCounts={list.statusCounts}
             />
           </aside>
 
           <div className="flex flex-1 flex-col gap-3 min-w-0">
             <TableToolbar
               searchPlaceholder={t("simulations.tracksBrowser.searchPlaceholder")}
-              search={search}
-              onSearchChange={setSearch}
+              search={list.search}
+              onSearchChange={list.setSearch}
               searchClassName="max-w-full sm:max-w-xs"
             />
-            <TrackBrowserTable
-              tracks={filtered}
-              recommendedTrackIds={
-                roleHints.canRecommend
-                  ? new Set(
-                      INTERVIEW_TRACKS.filter((track) =>
-                        isTrackRecommended(track, roleHints.families)
-                      ).map((track) => track.id)
-                    )
-                  : undefined
-              }
-            />
+            <EntityListStates
+              isError={list.isError}
+              isLoading={list.isLoading}
+              isEmpty={list.isEmpty}
+              errorMessage={t("questionBank.loadError", {
+                defaultValue: "Could not load questions.",
+              })}
+              loadingMessage={t("questionBank.loading", {
+                defaultValue: "Loading questions…",
+              })}
+              emptyState={emptyState}
+            >
+              <QuestionBankTable questions={list.questions} />
+            </EntityListStates>
           </div>
         </div>
       </div>

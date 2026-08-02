@@ -1,11 +1,4 @@
-import type {
-  DifficultyLevel,
-  DurationBucket,
-  InterviewTrack,
-  RecentSession,
-  TrackFormat,
-  TrackRoleFamily,
-} from "./types"
+import type { InterviewTrack, RecentSession } from "./types"
 
 /**
  * Live practice surfaces.
@@ -179,37 +172,6 @@ export const INTERVIEW_TRACKS: readonly InterviewTrack[] = [
     titleKey: "simulations.tracks.workspace.title",
     descriptionKey: "simulations.tracks.workspace.description",
   },
-] as const
-
-export const TRACK_DIFFICULTIES: readonly DifficultyLevel[] = [
-  "adaptive",
-  "easy",
-  "medium",
-  "hard",
-] as const
-
-/** Practice environment formats currently available. */
-export const TRACK_FORMATS: readonly TrackFormat[] = [
-  "conversation",
-  "codeRun",
-  "workspace",
-  "terminal",
-] as const
-
-export const TRACK_ROLE_FAMILIES: readonly TrackRoleFamily[] = [
-  "engineering",
-  "product",
-  "design",
-  "finance",
-  "consulting",
-  "clinical",
-  "general",
-] as const
-
-export const TRACK_DURATION_BUCKETS: readonly DurationBucket[] = [
-  "short",
-  "medium",
-  "long",
 ] as const
 
 /** History is server-backed via voice.listSessions — no hard-coded rows. */

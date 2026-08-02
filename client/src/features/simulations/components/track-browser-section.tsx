@@ -1,40 +1,40 @@
-import { useMemo } from "react"
 import { ArrowRight } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { StaggerItem } from "@mockmatch/ui/stagger"
+import { RobotLoader } from "@mockmatch/ui/robot-loader"
+import { trpc } from "@/lib/trpc"
+import type { BankQuestion } from "@/features/question-bank/types"
 import { SimulationTrackCard } from "./simulation-track-card"
-import { useResumeRoleHints } from "../hooks/use-resume-role-hints"
-import { isTrackRecommended } from "../lib/track-filters"
-import type { InterviewTrack } from "../types"
 
 interface TrackBrowserSectionProps {
-  readonly tracks: readonly InterviewTrack[]
   readonly browseAllTo: string
   readonly featuredCount?: number
 }
 
-/** Featured interview-track strip + link to full browse page. */
+/** Featured bank questions strip + link to full browse page. */
 export function TrackBrowserSection({
-  tracks,
   browseAllTo,
   featuredCount = 5,
 }: TrackBrowserSectionProps) {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
-  const roleHints = useResumeRoleHints()
 
-  const featured = useMemo(() => {
-    if (!roleHints.canRecommend) {
-      return tracks.slice(0, featuredCount)
-    }
-    const sorted = [...tracks].sort((a, b) => {
-      const aRec = isTrackRecommended(a, roleHints.families) ? 0 : 1
-      const bRec = isTrackRecommended(b, roleHints.families) ? 0 : 1
-      return aRec - bRec
-    })
-    return sorted.slice(0, featuredCount)
-  }, [tracks, featuredCount, roleHints.canRecommend, roleHints.families])
+  const listQuery = trpc.questions.list.useQuery({
+    page: 1,
+    pageSize: featuredCount,
+  })
+
+  const featured: BankQuestion[] = (listQuery.data?.items ?? []).map((q) => ({
+    id: q.id,
+    title: q.title,
+    domain: q.domain,
+    difficulty: q.difficulty,
+    company: q.company,
+    status: q.status,
+    format: q.format,
+    trackHint: q.trackHint,
+  }))
 
   return (
     <div className="flex flex-col gap-3">
@@ -44,11 +44,7 @@ export function TrackBrowserSection({
             {t("simulations.tracksBrowser.title")}
           </h2>
           <p className="text-sm text-muted-foreground">
-            {roleHints.canRecommend && roleHints.sourceLabels.length > 0
-              ? t("simulations.tracksBrowser.descriptionRecommended", {
-                  roles: roleHints.sourceLabels.join(", "),
-                })
-              : t("simulations.tracksBrowser.description")}
+            {t("simulations.tracksBrowser.description")}
           </p>
         </div>
         <button
@@ -61,18 +57,31 @@ export function TrackBrowserSection({
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {featured.map((track, index) => (
-          <StaggerItem key={track.id} index={index} direction="left">
-            <SimulationTrackCard
-              track={track}
-              recommended={
-                roleHints.canRecommend && isTrackRecommended(track, roleHints.families)
-              }
-            />
-          </StaggerItem>
-        ))}
-      </div>
+      {listQuery.isLoading ? (
+        <div className="flex items-center justify-center py-8">
+          <RobotLoader
+            size="sm"
+            label={t("questionBank.loading", {
+              defaultValue: "Loading questions…",
+            })}
+          />
+        </div>
+      ) : featured.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          {t("questionBank.emptyDescription", {
+            defaultValue:
+              "Apply to a job in Discover or import a job in Applications — questions generate automatically into this bank.",
+          })}
+        </p>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          {featured.map((question, index) => (
+            <StaggerItem key={question.id} index={index} direction="left">
+              <SimulationTrackCard question={question} />
+            </StaggerItem>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

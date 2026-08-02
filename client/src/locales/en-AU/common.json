@@ -1153,29 +1153,13 @@
     },
     "tracksBrowser": {
       "title": "Interview tracks",
-      "description": "Pick a practice format — behavioural, coding, system design, and more.",
-      "descriptionRecommended": "Suggested for your resume roles: {{roles}}.",
+      "description": "Practice questions from your bank — same set as Question Bank.",
       "browseAll": "Browse all",
       "browseTitle": "Browse interview tracks",
       "browseBackLink": "Back to Simulations",
-      "browseDescription": "{{count}} interview tracks. Filter by role, difficulty, duration, or format.",
-      "searchPlaceholder": "Search tracks...",
-      "noResults": "No tracks found",
-      "recommendedBadge": "For you",
-      "columns": {
-        "track": "Track",
-        "format": "Format",
-        "difficulty": "Difficulty",
-        "duration": "Duration",
-        "action": "Action"
-      },
-      "filters": {
-        "title": "Filters",
-        "roleFamily": "Role family",
-        "difficulty": "Difficulty",
-        "duration": "Duration",
-        "format": "Format"
-      }
+      "browseDescription": "{{count}} questions from your bank. Filter by domain, difficulty, or status.",
+      "searchPlaceholder": "Search questions...",
+      "noResults": "No questions found"
     },
     "tracks": {
       "jsSum": {

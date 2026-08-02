@@ -13,7 +13,6 @@ import { EntityTablePagination } from "@/components/data/entity-table-pagination
 import { SessionTable } from "./components/session-table"
 import { TrackBrowserSection } from "./components/track-browser-section"
 import { useSessionsList } from "./hooks/use-sessions-list"
-import { INTERVIEW_TRACKS } from "./constants"
 import type { RecentSession } from "./types"
 
 export function SimulationsPageContent() {
@@ -102,10 +101,7 @@ export function SimulationsPageContent() {
         </EntityListStates>
 
         <Separator className="my-2" />
-        <TrackBrowserSection
-          tracks={INTERVIEW_TRACKS}
-          browseAllTo="/simulations/tracks"
-        />
+        <TrackBrowserSection browseAllTo="/simulations/tracks" />
       </div>
     </DashboardPageShell>
   )
