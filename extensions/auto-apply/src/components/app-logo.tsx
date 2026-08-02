@@ -1,6 +1,6 @@
 import { cn } from "@mockmatch/ui/utils"
 
-/** Same robot mark as client `AppLogo` — assets in extension `public/icons/`. */
+/** Same robot mark as client `AppLogo` — assets in `public/icons/`. */
 export function AppLogo({ className }: { readonly className?: string }) {
   return (
     <img

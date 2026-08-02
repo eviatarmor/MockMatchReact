@@ -31,7 +31,6 @@ type ExtensionStore = ExtensionState & {
   setRoute: (route: PanelRoute) => void
   signIn: () => void
   signOut: () => void
-  setFormScenario: (form: FormDetection) => void
   selectResume: (id: string | null) => void
   selectCoverLetter: (id: string | null) => void
   setCoverLetterMode: (mode: CoverLetterMode) => void
@@ -42,7 +41,6 @@ type ExtensionStore = ExtensionState & {
   updateSettings: (patch: Partial<ExtensionSettings>) => void
   setTheme: (theme: ThemePreference) => void
   setBanner: (message: string | null) => void
-  setEmptyDocs: (empty: boolean) => void
   setAuthError: (message: string | null) => void
 }
 
@@ -167,11 +165,6 @@ export function ExtensionProvider({
     setAuthError(null)
   }, [])
 
-  const setFormScenario = useCallback((next: FormDetection) => {
-    setForm(next)
-    setFillPhase("idle")
-  }, [])
-
   const generateTailorDraft = useCallback(() => {
     setTailorLoading(true)
     setCoverLetterMode("tailor")
@@ -211,20 +204,6 @@ export function ExtensionProvider({
     setSettings((prev) => ({ ...prev, theme }))
   }, [])
 
-  const setEmptyDocs = useCallback((empty: boolean) => {
-    if (empty) {
-      setResumes([])
-      setCoverLetters([])
-      setSelectedResumeId(null)
-      setSelectedCoverLetterId(null)
-    } else {
-      setResumes(MOCK_RESUMES)
-      setCoverLetters(MOCK_COVER_LETTERS)
-      setSelectedResumeId("r1")
-      setSelectedCoverLetterId("c1")
-    }
-  }, [])
-
   const value = useMemo<ExtensionStore>(
     () => ({
       signedIn,
@@ -249,7 +228,6 @@ export function ExtensionProvider({
       setRoute,
       signIn,
       signOut,
-      setFormScenario,
       selectResume: setSelectedResumeId,
       selectCoverLetter: setSelectedCoverLetterId,
       setCoverLetterMode,
@@ -260,7 +238,6 @@ export function ExtensionProvider({
       updateSettings,
       setTheme,
       setBanner,
-      setEmptyDocs,
       setAuthError,
     }),
     [
@@ -285,13 +262,11 @@ export function ExtensionProvider({
       banner,
       signIn,
       signOut,
-      setFormScenario,
       generateTailorDraft,
       startFill,
       clearFill,
       updateSettings,
       setTheme,
-      setEmptyDocs,
     ],
   )
 

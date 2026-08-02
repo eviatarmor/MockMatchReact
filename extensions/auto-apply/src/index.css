@@ -1,21 +1,30 @@
 @import "tailwindcss";
-/* Shared MockMatch tokens (colors, radius, fonts) — same source as client + docs */
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+/* Shared MockMatch tokens (colors, radius, fonts) — single source with client + docs */
 @import "@mockmatch/ui/theme.css";
 
-@source "../../packages/ui/src/**/*.{ts,tsx}";
+/*
+ * Shared packages live outside this package — scan for class names.
+ * From extensions/auto-apply/src: ../../../ = monorepo root.
+ */
+@source "../../../packages/ui/src/**/*.{ts,tsx}";
 @source "./**/*.{ts,tsx}";
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-muted text-foreground overflow-hidden;
   }
   html,
   body,
   #root {
     @apply h-full;
   }
-  body {
-    @apply m-0 bg-muted text-foreground font-sans antialiased;
+  html {
+    @apply font-sans;
   }
 }
 

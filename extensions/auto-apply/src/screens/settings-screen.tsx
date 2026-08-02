@@ -57,14 +57,9 @@ export function SettingsScreen() {
 
   return (
     <div className="flex flex-1 flex-col gap-8 p-4">
-      <div>
-        <h1 className="font-heading text-lg font-semibold tracking-tight text-foreground">
-          Settings
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Theme, fill behavior, and privacy for Auto Apply.
-        </p>
-      </div>
+      <p className="text-sm text-muted-foreground">
+        Theme, fill behavior, and privacy for Auto Apply.
+      </p>
 
       <AppearanceSection />
 

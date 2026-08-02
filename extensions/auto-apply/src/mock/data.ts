@@ -133,5 +133,3 @@ I'd welcome the chance to bring that same focus to your team.
 Best regards,
 Alex Rivera`
 
-/** Synthetic demo label — not real product metrics. */
-export const DEMO_NOTICE = "Demo data — not connected to your account yet"

@@ -1,6 +1,6 @@
 export type ThemePreference = "light" | "dark" | "system"
 
-export type PanelRoute = "apply" | "settings" | "account"
+export type PanelRoute = "apply" | "settings"
 
 export type ChipState =
   | "idle"
@@ -68,6 +68,8 @@ export interface SessionUser {
   readonly fullName: string
   readonly email: string
   readonly initials: string
+  /** Optional; filled when session/avatar bridge lands. */
+  readonly avatarUrl?: string
 }
 
 export interface ExtensionState {
