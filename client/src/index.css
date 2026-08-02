@@ -9,6 +9,7 @@
 @source "../../packages/ui/src/**/*.{ts,tsx}";
 @source "../../packages/ai-chat/src/**/*.{ts,tsx}";
 @source "../../packages/ide/src/**/*.{ts,tsx}";
+@source "../../packages/voice-agent/src/**/*.{ts,tsx}";
 @source "../../packages/document-editor/src/**/*.{ts,tsx}";
 @source "../../packages/collab/src/**/*.{ts,tsx}";
 @source "../../packages/document-assistant/src/**/*.{ts,tsx}";

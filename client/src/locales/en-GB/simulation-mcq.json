@@ -1,0 +1,58 @@
+{
+  "documentTitle": "Multiple choice — MockMatch",
+  "badge": "Multiple choice",
+  "loading": "Loading questions…",
+  "optionsLabel": "Answer choices",
+  "variant": {
+    "single": "Single answer",
+    "multi": "Select all that apply",
+    "order": "Put in order"
+  },
+  "hints": {
+    "multi": "Select every correct option.",
+    "order": "Drag steps into the correct order, top to bottom."
+  },
+  "header": {
+    "back": "Question bank"
+  },
+  "menubar": {
+    "session": "Session"
+  },
+  "rail": {
+    "title": "Questions",
+    "item": "Q{{n}}"
+  },
+  "questionOf": "Question {{current}} of {{total}}",
+  "progress": {
+    "step": "{{current}} / {{total}}",
+    "done": "{{correct}} / {{total}} correct"
+  },
+  "score": {
+    "short": "{{correct}}/{{answered}} correct"
+  },
+  "actions": {
+    "check": "Check answer",
+    "checking": "Checking…",
+    "next": "Next",
+    "prev": "Previous",
+    "finish": "See results",
+    "tryAgain": "Try again",
+    "restart": "Restart set",
+    "bank": "Back to bank",
+    "drag": "Drag to reorder"
+  },
+  "result": {
+    "correct": "Correct",
+    "incorrect": "Not quite"
+  },
+  "summary": {
+    "title": "Set complete",
+    "score": "You got {{correct}} of {{total}} right."
+  },
+  "errors": {
+    "invalidId": "That question link is invalid.",
+    "notFound": "That practice set was not found.",
+    "submitFailed": "Could not check your answer. Try again.",
+    "backToQuestionBank": "Back to question bank"
+  }
+}

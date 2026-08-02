@@ -99,13 +99,26 @@ export type WorkspaceQuestionPayload = {
   durationMin?: number
 }
 
-/** Pick-the-right-answer (single correct). */
+/** MCQ interaction mode. Default `single` when omitted (legacy rows). */
+export type McqVariant = "single" | "multi" | "order"
+
+/**
+ * Pick / multi-select / order answers.
+ * - single: `correctIndex`
+ * - multi: `correctIndices` (one or more)
+ * - order: `correctOrder` = permutation of option indices in correct sequence
+ */
 export type McqQuestionPayload = {
   stem: string
   /** 2–6 choices */
   options: string[]
-  /** 0-based index into options */
-  correctIndex: number
+  variant?: McqVariant
+  /** single — 0-based index into options */
+  correctIndex?: number
+  /** multi — indices of all correct options */
+  correctIndices?: number[]
+  /** order — correct sequence as option indices */
+  correctOrder?: number[]
   explanation?: string
 }
 

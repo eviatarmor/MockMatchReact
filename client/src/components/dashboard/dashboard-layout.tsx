@@ -25,6 +25,8 @@ function DashboardShell() {
       !matchPath("/cover-letters/templates", pathname)) ||
       matchPath("/resumes/:resumeId", pathname) ||
       matchPath("/simulations/code-run/:format", pathname) ||
+      matchPath("/simulations/practice/:questionId", pathname) ||
+      matchPath("/simulations/mcq/:questionId", pathname) ||
       matchPath("/simulations/workspace", pathname) ||
       matchPath("/simulations/terminal-lab", pathname) ||
       matchPath("/simulations/conversation/:trackId", pathname)

@@ -7,7 +7,10 @@ import type { NavSection } from "@/components/dashboard/types"
 export function useActiveSection(): NavSection {
   const { pathname } = useLocation()
   const match = NAV_SECTIONS.find((section) =>
-    section.items.some((item) => item.href && pathname.startsWith(item.href))
+    section.items.some(
+      (item) =>
+        item.href && !item.external && pathname.startsWith(item.href)
+    )
   )
   return match ?? NAV_SECTIONS[0]
 }

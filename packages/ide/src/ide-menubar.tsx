@@ -135,6 +135,7 @@ export function IdeMenubar({
             ) : null}
             {onRunTests ? (
               <MenubarItem
+                data-slot="ide-run-tests"
                 disabled={runTestsDisabled || runTestsBusy}
                 onClick={onRunTests}
               >

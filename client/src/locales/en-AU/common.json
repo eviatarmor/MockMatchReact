@@ -8,7 +8,8 @@
   "signIn": "Sign in",
   "nav": {
     "collapse": "Collapse sidebar",
-    "expand": "Expand sidebar"
+    "expand": "Expand sidebar",
+    "opensExternally": "opens in a new tab"
   },
   "navGroups": {
     "applications": "Applications",
@@ -29,7 +30,8 @@
     "interviewRecorder": "Interview Recorder",
     "discover": "Discover",
     "applications": "Applications",
-    "help": "Help & support"
+    "help": "Help & support",
+    "docs": "Docs"
   },
   "userMenu": {
     "accountSettings": "Account Settings",
@@ -1119,7 +1121,8 @@
       "codeRun": "Code run",
       "workspace": "Dev workspace",
       "terminal": "Terminal lab",
-      "conversation": "Conversation"
+      "conversation": "Conversation",
+      "mcq": "Multiple choice"
     },
     "recentSessions": {
       "title": "Recent sessions",

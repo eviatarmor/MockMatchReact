@@ -159,20 +159,6 @@ function normalizeMcqPayload(
     : []
   if (options.length < 2) return null
 
-  let correctIndex =
-    typeof fromPayload.correctIndex === "number" &&
-    Number.isInteger(fromPayload.correctIndex)
-      ? fromPayload.correctIndex
-      : -1
-  if (correctIndex < 0 || correctIndex >= options.length) {
-    // Accept letter keys A–F from sloppy models
-    const letter = fromPayload.correctOption ?? fromPayload.correct
-    if (typeof letter === "string" && /^[A-Fa-f]$/.test(letter.trim())) {
-      correctIndex = letter.trim().toUpperCase().charCodeAt(0) - 65
-    }
-  }
-  if (correctIndex < 0 || correctIndex >= options.length) return null
-
   const stem =
     typeof fromPayload.stem === "string" && fromPayload.stem.trim()
       ? fromPayload.stem.trim()
@@ -182,9 +168,81 @@ function normalizeMcqPayload(
       ? fromPayload.explanation.trim()
       : undefined
 
+  let variant: McqQuestionPayload["variant"] =
+    fromPayload.variant === "multi" ||
+    fromPayload.variant === "order" ||
+    fromPayload.variant === "single"
+      ? fromPayload.variant
+      : undefined
+  if (!variant) {
+    if (Array.isArray(fromPayload.correctOrder)) variant = "order"
+    else if (Array.isArray(fromPayload.correctIndices)) variant = "multi"
+    else variant = "single"
+  }
+
+  if (variant === "multi") {
+    let correctIndices = Array.isArray(fromPayload.correctIndices)
+      ? fromPayload.correctIndices
+          .filter((n): n is number => typeof n === "number" && Number.isInteger(n))
+          .filter((n) => n >= 0 && n < options.length)
+      : []
+    if (correctIndices.length === 0) {
+      if (
+        typeof fromPayload.correctIndex === "number" &&
+        fromPayload.correctIndex >= 0 &&
+        fromPayload.correctIndex < options.length
+      ) {
+        correctIndices = [fromPayload.correctIndex]
+      } else return null
+    }
+    correctIndices = [...new Set(correctIndices)].sort((a, b) => a - b)
+    return {
+      stem,
+      options,
+      variant: "multi",
+      correctIndices,
+      ...(explanation ? { explanation } : {}),
+    }
+  }
+
+  if (variant === "order") {
+    let correctOrder = Array.isArray(fromPayload.correctOrder)
+      ? fromPayload.correctOrder
+          .filter((n): n is number => typeof n === "number" && Number.isInteger(n))
+          .filter((n) => n >= 0 && n < options.length)
+      : []
+    if (correctOrder.length !== options.length) {
+      // Identity order when model listed steps already sorted
+      correctOrder = options.map((_, i) => i)
+    }
+    const sorted = [...correctOrder].sort((a, b) => a - b)
+    if (!sorted.every((v, i) => v === i)) return null
+    return {
+      stem,
+      options,
+      variant: "order",
+      correctOrder,
+      ...(explanation ? { explanation } : {}),
+    }
+  }
+
+  let correctIndex =
+    typeof fromPayload.correctIndex === "number" &&
+    Number.isInteger(fromPayload.correctIndex)
+      ? fromPayload.correctIndex
+      : -1
+  if (correctIndex < 0 || correctIndex >= options.length) {
+    const letter = fromPayload.correctOption ?? fromPayload.correct
+    if (typeof letter === "string" && /^[A-Fa-f]$/.test(letter.trim())) {
+      correctIndex = letter.trim().toUpperCase().charCodeAt(0) - 65
+    }
+  }
+  if (correctIndex < 0 || correctIndex >= options.length) return null
+
   return {
     stem,
     options,
+    variant: "single",
     correctIndex,
     ...(explanation ? { explanation } : {}),
   }
@@ -374,14 +432,16 @@ Each question:
 - payload:
   - conversation: { interviewerPrompt, followUps?, trackHint? }
   - code_run: { prompt, language, starterCode?, tests?: [{name, stdin?, expectedStdout?}] }
-  - mcq: { stem, options: string[3-5], correctIndex: number (0-based), explanation? }
+  - mcq: { stem, options: string[3-5], variant?: "single"|"multi"|"order",
+    correctIndex? (single), correctIndices? (multi), correctOrder? (order = permutation of indices),
+    explanation? }
 
 Rules:
 - Match the requested mix counts closely.
 - Conversation questions fit voice AI interviewer (clear stem + follow-ups).
 - trackHint for conversation MUST be one of: behavioral-core | product-sense | system-design-talk (never job titles).
 - code_run = single-file problems with optional I/O tests (no multi-file workspaces).
-- mcq = single correct answer; 3–5 plausible options; no "all of the above" / "none of the above" spam; distractors must be wrong but believable; body should match the stem.
+- mcq variants: single (one correct), multi (select all that apply), order (arrange steps). Use multi/order when the skill fits; otherwise single. 3–5 options; no "all of the above" spam; body matches stem.
 - Do not invent whiteboard formats.
 - Make questions distinct skills — not rephrasings of each other.`,
       `Role family hint: ${plan.roleFamily ?? "general"}

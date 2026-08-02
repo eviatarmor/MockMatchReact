@@ -6,6 +6,7 @@ import {
   looksLikeWebAppEntry,
   type RuntimeLanguage,
 } from "@mockmatch/browser-runner"
+import { fireCelebrationConfetti } from "@mockmatch/ui/confetti"
 import type { IdeFormatPreset, IoTestCase } from "../types"
 
 export type TerminalFeed = { seq: number; chunk: string }
@@ -175,6 +176,9 @@ export function useBrowserRunActions({
             ? `═══ Tests ${target.entryPath} (${target.language}) ═══`
             : `═══ Run ${target.entryPath} (${target.language}) ═══`
         const parts: string[] = [`\r\n\x1b[36m${label}\x1b[0m\r\n`]
+        let testCount = 0
+        let testsPassed = 0
+        let exitCode: number | null = null
 
         try {
           await runner.run(
@@ -194,6 +198,13 @@ export function useBrowserRunActions({
             (event) => {
               const line = formatRunEventLine(event)
               if (line) parts.push(line)
+              if (mode === "tests" && event.type === "test-result") {
+                testCount += 1
+                if (event.pass) testsPassed += 1
+              }
+              if (event.type === "exit") {
+                exitCode = event.code
+              }
             },
             ac.signal
           )
@@ -205,6 +216,19 @@ export function useBrowserRunActions({
         await waitTerminalReady()
         if (!ac.signal.aborted) {
           pushTerminal(parts.join(""))
+          // All tests green — same celebration as MCQ perfect set
+          if (
+            mode === "tests" &&
+            testCount > 0 &&
+            testsPassed === testCount &&
+            exitCode === 0
+          ) {
+            const originBtn =
+              typeof document !== "undefined"
+                ? document.querySelector("[data-slot='ide-run-tests']")
+                : null
+            void fireCelebrationConfetti({ element: originBtn })
+          }
         }
         if (abortRef.current === ac) abortRef.current = null
         setRunBusy(false)

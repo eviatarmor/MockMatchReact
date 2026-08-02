@@ -144,3 +144,70 @@ const ConfettiButtonComponent = ({
 ConfettiButtonComponent.displayName = "ConfettiButton"
 
 export const ConfettiButton = ConfettiButtonComponent
+
+/** Shared celebration burst (IDE all-tests-pass, MCQ perfect set, …). */
+export type CelebrationConfettiOrigin = {
+  readonly x?: number
+  readonly y?: number
+}
+
+export type FireCelebrationConfettiOptions = ConfettiOptions & {
+  /** Viewport-normalized origin (0–1). Overrides `element` when both set. */
+  readonly origin?: CelebrationConfettiOrigin
+  /** Prefer button/rect center (e.g. Run tests control that was pressed). */
+  readonly element?: Element | null
+}
+
+/**
+ * Fire the product celebration confetti.
+ * When `element` is set, origin matches {@link ConfettiButton} (click center).
+ */
+export function fireCelebrationConfetti(
+  options: FireCelebrationConfettiOptions = {}
+): Promise<null> | null {
+  const { element, origin: originOpt, ...rest } = options
+
+  let origin: { x: number; y: number } = {
+    x: 0.5,
+    y: 0.65,
+  }
+
+  if (element && typeof window !== "undefined") {
+    const rect = element.getBoundingClientRect()
+    origin = {
+      x: (rect.left + rect.width / 2) / window.innerWidth,
+      y: (rect.top + rect.height / 2) / window.innerHeight,
+    }
+  }
+
+  if (originOpt?.x != null) origin.x = originOpt.x
+  if (originOpt?.y != null) origin.y = originOpt.y
+
+  try {
+    return confetti({
+      particleCount: 100,
+      spread: 70,
+      startVelocity: 35,
+      origin,
+      zIndex: 200,
+      disableForReducedMotion: true,
+      ...rest,
+    })
+  } catch (error) {
+    console.error("Celebration confetti error:", error)
+    return null
+  }
+}
+
+/** Resolve a celebration origin from a DOM element (button center). */
+export function celebrationOriginFromElement(
+  element: Element | null | undefined
+): CelebrationConfettiOrigin | undefined {
+  if (!element || typeof window === "undefined") return undefined
+  const rect = element.getBoundingClientRect()
+  if (rect.width === 0 && rect.height === 0) return undefined
+  return {
+    x: (rect.left + rect.width / 2) / window.innerWidth,
+    y: (rect.top + rect.height / 2) / window.innerHeight,
+  }
+}

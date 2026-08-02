@@ -169,6 +169,35 @@ function ExerciseCollabBootstrap({
   /** Seed catalog (not freeform workspace, not bank). */
   const isCatalog = format !== "workspace" && !isBank
 
+  // Redirect MCQ / conversation bank items away from the IDE surface
+  const bankSummary = trpc.questions.get.useQuery(
+    { id: questionId! },
+    {
+      enabled: isBank && Boolean(questionId),
+      retry: false,
+      staleTime: 60_000,
+    }
+  )
+  const bankFormat = bankSummary.data?.format
+  const bankNeedsRedirect =
+    bankFormat === "mcq" || bankFormat === "conversation"
+  const bankReadyForIde =
+    !isBank ||
+    (Boolean(bankSummary.data) &&
+      bankFormat !== "mcq" &&
+      bankFormat !== "conversation")
+
+  useEffect(() => {
+    if (!isBank || !questionId || !bankSummary.data) return
+    if (bankSummary.data.format === "mcq") {
+      navigate(`/simulations/mcq/${questionId}`, { replace: true })
+      return
+    }
+    if (bankSummary.data.format === "conversation") {
+      navigate(`/simulations/conversation/${questionId}`, { replace: true })
+    }
+  }, [isBank, questionId, bankSummary.data, navigate])
+
   const basePath = isBank && questionId
     ? `/simulations/practice/${questionId}`
     : pathForFormat(format === "bank" ? "js-sum" : format)
@@ -185,7 +214,12 @@ function ExerciseCollabBootstrap({
   const openQuery = trpc.practiceSessions.openForTrack.useQuery(
     { trackId: trackKey },
     {
-      enabled: !isValidId && !shareToken && !forceNew && Boolean(trackKey),
+      enabled:
+        bankReadyForIde &&
+        !isValidId &&
+        !shareToken &&
+        !forceNew &&
+        Boolean(trackKey),
       retry: false,
       staleTime: 5_000,
     }
@@ -243,6 +277,8 @@ function ExerciseCollabBootstrap({
   useEffect(() => {
     if (isValidId || shareToken) return
     if (!resumeChecked || resumePrompt) return
+    if (isBank && !bankReadyForIde) return
+    if (bankNeedsRedirect) return
     if (
       createOnce.current ||
       startNew.isPending ||
@@ -292,7 +328,19 @@ function ExerciseCollabBootstrap({
     isCatalog,
     isBank,
     questionId,
+    bankReadyForIde,
+    bankNeedsRedirect,
   ])
+
+  if (isBank && (bankSummary.isLoading || bankNeedsRedirect)) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-sm text-muted-foreground">
+        <RobotLoader size="md" label={t("collab.preparing")} />
+        {t("collab.preparing")}
+      </div>
+    )
+  }
+
   if (shareToken && !isValidId) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 p-8 text-sm text-muted-foreground">
@@ -752,6 +800,7 @@ function EditorCollabSession({
                         size="sm"
                         variant="secondary"
                         className="h-8 cursor-pointer gap-1.5 px-3"
+                        data-slot="ide-run-tests"
                         disabled={run.runBusy || run.runTestsBusy}
                         onClick={run.onRunTests}
                         aria-label={t("actions.runTests")}

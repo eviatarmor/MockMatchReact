@@ -6,6 +6,8 @@ export interface NavItem {
   readonly title?: string
   readonly icon?: LucideIcon
   readonly href?: string
+  /** External URL (new tab). Skip for in-app route matching. */
+  readonly external?: boolean
 }
 
 export interface NavSection {

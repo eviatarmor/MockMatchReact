@@ -1,17 +1,23 @@
-import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm"
+import { and, desc, eq, ilike, inArray, ne, or, sql } from "drizzle-orm"
 import { TRPCError } from "@trpc/server"
 import type {
   BankQuestionDto,
+  McqSession,
+  McqVariant,
   QuestionDomain,
   QuestionDifficulty,
   QuestionFormat,
+  QuestionMcqDetail,
   QuestionPracticeDetail,
   QuestionUserStatus,
+  SubmitMcqInput,
+  SubmitMcqResult,
 } from "@mockmatch/schemas"
 import type { Database } from "../../db/client.js"
 import {
   questions,
   type CodeRunQuestionPayload,
+  type McqQuestionPayload,
   type QuestionPayload,
 } from "../../db/schema/questions.js"
 import { userQuestionProgress } from "../../db/schema/user-question-progress.js"
@@ -286,6 +292,405 @@ function resolveFileMap(
   }
 }
 
+type ParsedMcq = {
+  stem: string
+  options: string[]
+  variant: McqVariant
+  correctIndex: number | null
+  correctIndices: number[] | null
+  correctOrder: number[] | null
+  explanation: string | null
+}
+
+function asIndexList(
+  raw: unknown,
+  optionCount: number
+): number[] | null {
+  if (!Array.isArray(raw)) return null
+  const nums = raw
+    .filter((n): n is number => typeof n === "number" && Number.isInteger(n))
+    .filter((n) => n >= 0 && n < optionCount)
+  if (nums.length === 0) return null
+  return nums
+}
+
+function parseMcqPayload(
+  payload: QuestionPayload | null | undefined,
+  body: string | null
+): ParsedMcq {
+  const p = (payload ?? {}) as Partial<McqQuestionPayload> & Record<string, unknown>
+  const options = Array.isArray(p.options)
+    ? p.options
+        .map((o) => (typeof o === "string" ? o.trim() : String(o ?? "").trim()))
+        .filter((o) => o.length > 0)
+        .slice(0, 6)
+    : []
+  if (options.length < 2) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "MCQ question is missing options",
+    })
+  }
+
+  const rawVariant = p.variant
+  let variant: McqVariant =
+    rawVariant === "multi" || rawVariant === "order" || rawVariant === "single"
+      ? rawVariant
+      : "single"
+
+  // Infer variant from payload shape when omitted
+  if (p.variant == null) {
+    if (Array.isArray(p.correctOrder)) variant = "order"
+    else if (Array.isArray(p.correctIndices)) variant = "multi"
+    else variant = "single"
+  }
+
+  let correctIndex: number | null = null
+  let correctIndices: number[] | null = null
+  let correctOrder: number[] | null = null
+
+  if (variant === "single") {
+    const idx =
+      typeof p.correctIndex === "number" && Number.isInteger(p.correctIndex)
+        ? p.correctIndex
+        : -1
+    if (idx < 0 || idx >= options.length) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "MCQ question has invalid correct answer",
+      })
+    }
+    correctIndex = idx
+  } else if (variant === "multi") {
+    const list = asIndexList(p.correctIndices, options.length)
+    if (!list || list.length === 0) {
+      // Fallback: single correctIndex treated as multi
+      if (
+        typeof p.correctIndex === "number" &&
+        Number.isInteger(p.correctIndex) &&
+        p.correctIndex >= 0 &&
+        p.correctIndex < options.length
+      ) {
+        correctIndices = [p.correctIndex]
+      } else {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "MCQ multi question is missing correctIndices",
+        })
+      }
+    } else {
+      correctIndices = [...new Set(list)].sort((a, b) => a - b)
+    }
+  } else {
+    const list = asIndexList(p.correctOrder, options.length)
+    if (!list || list.length !== options.length) {
+      // Default identity order if options already listed correctly
+      if (list == null && options.length >= 2) {
+        correctOrder = options.map((_, i) => i)
+      } else {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "MCQ order question needs a full correctOrder permutation",
+        })
+      }
+    } else {
+      const sorted = [...list].sort((a, b) => a - b)
+      const identity = options.map((_, i) => i)
+      const isPerm =
+        sorted.length === identity.length &&
+        sorted.every((v, i) => v === identity[i])
+      if (!isPerm) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "MCQ correctOrder must be a permutation of option indices",
+        })
+      }
+      correctOrder = list
+    }
+  }
+
+  const stem =
+    typeof p.stem === "string" && p.stem.trim()
+      ? p.stem.trim()
+      : body?.trim() || ""
+  if (!stem) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "MCQ question is missing a stem",
+    })
+  }
+  const explanation =
+    typeof p.explanation === "string" && p.explanation.trim()
+      ? p.explanation.trim()
+      : null
+  return {
+    stem,
+    options,
+    variant,
+    correctIndex,
+    correctIndices,
+    correctOrder,
+    explanation,
+  }
+}
+
+function toMcqDetail(row: {
+  id: string
+  title: string
+  domain: string
+  difficulty: string
+  company: string | null
+  body: string | null
+  payload: QuestionPayload | null
+}): QuestionMcqDetail {
+  const { stem, options, variant } = parseMcqPayload(row.payload, row.body)
+  return {
+    id: row.id,
+    title: row.title,
+    format: "mcq",
+    domain: row.domain as QuestionDomain,
+    difficulty: row.difficulty as QuestionDifficulty,
+    company: row.company,
+    stem,
+    options,
+    variant,
+  }
+}
+
+function arraysEqual(a: number[], b: number[]): boolean {
+  if (a.length !== b.length) return false
+  return a.every((v, i) => v === b[i])
+}
+
+/**
+ * Bank MCQ → stem + options (no answer until submit).
+ */
+export async function getQuestionForMcq(
+  db: Database,
+  questionId: string
+): Promise<QuestionMcqDetail> {
+  const row = await db.query.questions.findFirst({
+    where: eq(questions.id, questionId),
+  })
+  if (!row || row.status === "archived") {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Question not found",
+    })
+  }
+  if (row.format !== "mcq") {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Question is not an MCQ",
+    })
+  }
+  return toMcqDetail(row)
+}
+
+/**
+ * Same-domain MCQ pack: seed first, then more published MCQs in that domain.
+ */
+export async function getMcqSession(
+  db: Database,
+  seedId: string,
+  limit = 8
+): Promise<McqSession> {
+  const seed = await db.query.questions.findFirst({
+    where: eq(questions.id, seedId),
+  })
+  if (!seed || seed.status === "archived") {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Question not found",
+    })
+  }
+  if (seed.format !== "mcq") {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Question is not an MCQ",
+    })
+  }
+
+  const cap = Math.min(Math.max(limit, 1), 20)
+  const peers = await db
+    .select({
+      id: questions.id,
+      title: questions.title,
+      domain: questions.domain,
+      difficulty: questions.difficulty,
+      company: questions.company,
+      body: questions.body,
+      payload: questions.payload,
+    })
+    .from(questions)
+    .where(
+      and(
+        eq(questions.format, "mcq"),
+        eq(questions.domain, seed.domain),
+        eq(questions.status, "published"),
+        ne(questions.id, seed.id)
+      )
+    )
+    .orderBy(desc(questions.updatedAt))
+    .limit(cap - 1)
+
+  const items: QuestionMcqDetail[] = [toMcqDetail(seed)]
+  for (const peer of peers) {
+    try {
+      items.push(toMcqDetail(peer))
+    } catch {
+      // Skip malformed peers
+    }
+  }
+
+  return {
+    seedId: seed.id,
+    domain: seed.domain as QuestionDomain,
+    questions: items,
+  }
+}
+
+/**
+ * Grade MCQ selection (single / multi / order), update per-user progress.
+ * Correct → mastered; incorrect → attempted (never demotes mastered).
+ */
+export async function submitMcqAnswer(
+  db: Database,
+  userId: string,
+  questionId: string,
+  answer: Pick<
+    SubmitMcqInput,
+    "selectedIndex" | "selectedIndices" | "orderedIndices"
+  >
+): Promise<SubmitMcqResult> {
+  const row = await db.query.questions.findFirst({
+    where: eq(questions.id, questionId),
+  })
+  if (!row || row.status === "archived") {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Question not found",
+    })
+  }
+  if (row.format !== "mcq") {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Question is not an MCQ",
+    })
+  }
+
+  const parsed = parseMcqPayload(row.payload, row.body)
+  const { options, variant, explanation } = parsed
+  let correct = false
+
+  if (variant === "single") {
+    const selectedIndex = answer.selectedIndex
+    if (
+      selectedIndex === undefined ||
+      selectedIndex < 0 ||
+      selectedIndex >= options.length
+    ) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Invalid selected option",
+      })
+    }
+    correct = selectedIndex === parsed.correctIndex
+  } else if (variant === "multi") {
+    const selected = answer.selectedIndices
+    if (!selected || selected.length === 0) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Select at least one option",
+      })
+    }
+    if (selected.some((i) => i < 0 || i >= options.length)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Invalid selected options",
+      })
+    }
+    const a = [...new Set(selected)].sort((x, y) => x - y)
+    const b = parsed.correctIndices ?? []
+    correct = arraysEqual(a, b)
+  } else {
+    const ordered = answer.orderedIndices
+    if (!ordered || ordered.length !== options.length) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Ordered answer must include every option once",
+      })
+    }
+    if (ordered.some((i) => i < 0 || i >= options.length)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Invalid ordered indices",
+      })
+    }
+    const sorted = [...ordered].sort((x, y) => x - y)
+    const identity = options.map((_, i) => i)
+    if (!arraysEqual(sorted, identity)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Ordered answer must be a full permutation",
+      })
+    }
+    correct = arraysEqual(ordered, parsed.correctOrder ?? identity)
+  }
+
+  const nextStatus: QuestionUserStatus = correct ? "mastered" : "attempted"
+  const now = new Date()
+
+  const [existing] = await db
+    .select({
+      status: userQuestionProgress.status,
+      attemptCount: userQuestionProgress.attemptCount,
+    })
+    .from(userQuestionProgress)
+    .where(
+      and(
+        eq(userQuestionProgress.userId, userId),
+        eq(userQuestionProgress.questionId, questionId)
+      )
+    )
+    .limit(1)
+
+  const prevStatus = existing?.status as QuestionUserStatus | undefined
+  const status: QuestionUserStatus =
+    prevStatus === "mastered" ? "mastered" : nextStatus
+  const attemptCount = (existing?.attemptCount ?? 0) + 1
+
+  await db
+    .insert(userQuestionProgress)
+    .values({
+      userId,
+      questionId,
+      status,
+      attemptCount,
+      lastAttemptAt: now,
+      updatedAt: now,
+    })
+    .onConflictDoUpdate({
+      target: [userQuestionProgress.userId, userQuestionProgress.questionId],
+      set: {
+        status,
+        attemptCount,
+        lastAttemptAt: now,
+        updatedAt: now,
+      },
+    })
+
+  return {
+    correct,
+    variant,
+    correctIndex: parsed.correctIndex,
+    correctIndices: parsed.correctIndices,
+    correctOrder: parsed.correctOrder,
+    explanation,
+    status,
+  }
+}
+
 /**
  * Bank question → IDE document + chrome flags.
  * Source of truth for generated code_run / workspace / terminal items.
@@ -308,6 +713,12 @@ export async function getQuestionForPractice(
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "Conversation questions open in voice, not the IDE",
+    })
+  }
+  if (row.format === "mcq") {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "MCQ questions open in the MCQ practice surface, not the IDE",
     })
   }
 

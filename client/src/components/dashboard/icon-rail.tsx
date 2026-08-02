@@ -95,7 +95,10 @@ export function IconRail({
         {NAV_SECTIONS.map((section) => {
           const Icon = section.icon
           const isActive = section.id === activeSectionId
-          const target = section.items[0]?.href ?? "/"
+          // Prefer first in-app route (skip external links e.g. Docs).
+          const target =
+            section.items.find((item) => item.href && !item.external)?.href ??
+            "/"
           return (
             <Tooltip key={section.id}>
               <TooltipTrigger

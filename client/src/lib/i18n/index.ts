@@ -14,6 +14,7 @@ import collabEnUS from "@/locales/en-US/collab.json"
 import askEnUS from "@/locales/en-US/ask.json"
 import simulationIdeEnUS from "@/locales/en-US/simulation-ide.json"
 import simulationConversationEnUS from "@/locales/en-US/simulation-conversation.json"
+import simulationMcqEnUS from "@/locales/en-US/simulation-mcq.json"
 import helpEnUS from "@/locales/en-US/help.json"
 import notFoundEnUS from "@/locales/en-US/not-found.json"
 
@@ -29,6 +30,7 @@ import collabEnGB from "@/locales/en-GB/collab.json"
 import askEnGB from "@/locales/en-GB/ask.json"
 import simulationIdeEnGB from "@/locales/en-GB/simulation-ide.json"
 import simulationConversationEnGB from "@/locales/en-GB/simulation-conversation.json"
+import simulationMcqEnGB from "@/locales/en-GB/simulation-mcq.json"
 import helpEnGB from "@/locales/en-GB/help.json"
 import notFoundEnGB from "@/locales/en-GB/not-found.json"
 
@@ -44,6 +46,7 @@ import collabEnAU from "@/locales/en-AU/collab.json"
 import askEnAU from "@/locales/en-AU/ask.json"
 import simulationIdeEnAU from "@/locales/en-AU/simulation-ide.json"
 import simulationConversationEnAU from "@/locales/en-AU/simulation-conversation.json"
+import simulationMcqEnAU from "@/locales/en-AU/simulation-mcq.json"
 import helpEnAU from "@/locales/en-AU/help.json"
 import notFoundEnAU from "@/locales/en-AU/not-found.json"
 
@@ -69,6 +72,7 @@ const enUS = {
   ask: askEnUS,
   "simulation-ide": simulationIdeEnUS,
   "simulation-conversation": simulationConversationEnUS,
+  "simulation-mcq": simulationMcqEnUS,
   help: helpEnUS,
   "not-found": notFoundEnUS,
 }
@@ -86,6 +90,7 @@ const enGB = {
   ask: askEnGB,
   "simulation-ide": simulationIdeEnGB,
   "simulation-conversation": simulationConversationEnGB,
+  "simulation-mcq": simulationMcqEnGB,
   help: helpEnGB,
   "not-found": notFoundEnGB,
 }
@@ -103,6 +108,7 @@ const enAU = {
   ask: askEnAU,
   "simulation-ide": simulationIdeEnAU,
   "simulation-conversation": simulationConversationEnAU,
+  "simulation-mcq": simulationMcqEnAU,
   help: helpEnAU,
   "not-found": notFoundEnAU,
 }

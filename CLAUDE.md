@@ -39,11 +39,12 @@ Workspaces: `client/`, `api/`, `packages/*` (`schemas`, `ui`, `ai-chat`, `ide`, 
 | `@mockmatch/ui` | `packages/ui` | Shared UI kits: `src/shadcn/`, `src/shadcn-space/`, `src/kibo-ui/` + `cn()` — web + future extensions |
 | `@mockmatch/ai-chat` | `packages/ai-chat` | Product-agnostic chat shell (hooks + message UI); host supplies transport/labels. Later OSS extract. |
 | `@mockmatch/ide` | `packages/ide` | IDE shell: optional file tree, resizable split, Monaco, tabs, settings bar. Host supplies tree/tabs/session. |
+| `@mockmatch/voice-agent` | `packages/voice-agent` | Live voice-agent shell: chrome slot, agent stage, chat/transcript, mute/end. Host supplies transport (Pipecat) + labels. |
 | `@mockmatch/document-editor` | `packages/document-editor` | Block/rich-text editor shell + Harper grammar. Host supplies dialect, labels, save. |
 | `@mockmatch/collab` | `packages/collab` | Collab room hook (inject ticket), presence/cursors, path-ops. Share admin UI stays in host. |
 | `@mockmatch/document-assistant` | `packages/document-assistant` | Document AI rail on top of ai-chat (replace tool, attachments). |
 
-Imports: `@mockmatch/ui/button`, `@mockmatch/ai-chat`, `@mockmatch/ai-chat/ai-elements/speech-input`, `@mockmatch/ide`, `@mockmatch/document-editor`, `@mockmatch/collab`, `@mockmatch/document-assistant`. Theme CSS tokens stay in the host (`client/src/index.css`); Tailwind must `@source` package `src/**` (paths relative to `client/src`: `../../packages/<name>/src/**/*.{ts,tsx}`).
+Imports: `@mockmatch/ui/button`, `@mockmatch/ai-chat`, `@mockmatch/ai-chat/ai-elements/speech-input`, `@mockmatch/ide`, `@mockmatch/voice-agent`, `@mockmatch/document-editor`, `@mockmatch/collab`, `@mockmatch/document-assistant`. Theme CSS tokens stay in the host (`client/src/index.css`); Tailwind must `@source` package `src/**` (paths relative to `client/src`: `../../packages/<name>/src/**/*.{ts,tsx}`).
 
 ### Where new shared code goes
 

@@ -5,6 +5,8 @@ import type { BankQuestion } from "@/features/question-bank/types"
 export const CONVERSATION_BASE_PATH = "/simulations/conversation"
 /** Bank-sourced IDE practice (code_run / workspace / terminal). */
 export const QUESTION_PRACTICE_BASE_PATH = "/simulations/practice"
+/** Bank-sourced MCQ practice. */
+export const QUESTION_MCQ_BASE_PATH = "/simulations/mcq"
 
 /** App path for a conversation track session. */
 export function conversationPathForTrackId(trackId: string): string {
@@ -16,8 +18,33 @@ export function practicePathForQuestionId(questionId: string): string {
   return `${QUESTION_PRACTICE_BASE_PATH}/${questionId}`
 }
 
+/** MCQ path for a global bank question. */
+export function mcqPathForQuestionId(questionId: string): string {
+  return `${QUESTION_MCQ_BASE_PATH}/${questionId}`
+}
+
+/**
+ * Route bank question id + format → practice URL.
+ */
+export function practicePathForFormat(
+  questionId: string,
+  format: string | undefined | null
+): string | null {
+  if (format === "conversation") return conversationPathForTrackId(questionId)
+  if (format === "mcq") return mcqPathForQuestionId(questionId)
+  if (
+    format === "code_run" ||
+    format === "workspace" ||
+    format === "terminal"
+  ) {
+    return practicePathForQuestionId(questionId)
+  }
+  return null
+}
+
 /**
  * Catalog track id → practice path (IDE formats + conversation + bank `q:`).
+ * Bank `q:` rows need format from the session/list; without format, prefer IDE practice URL.
  */
 export function practicePathForTrackId(trackId: string): string | null {
   if (trackId.startsWith("q:")) {
@@ -35,20 +62,11 @@ export function practicePathForTrackId(trackId: string): string | null {
  * Question bank Practice button.
  * URLs use only the question UUID (no job titles / free-form track slugs).
  * - conversation → /simulations/conversation/:questionId
+ * - mcq → /simulations/mcq/:questionId
  * - code / workspace / terminal → /simulations/practice/:questionId
  */
 export function practicePathForBankQuestion(
   q: Pick<BankQuestion, "id" | "format" | "trackHint">
 ): string | null {
-  if (q.format === "conversation") {
-    return conversationPathForTrackId(q.id)
-  }
-  if (
-    q.format === "code_run" ||
-    q.format === "workspace" ||
-    q.format === "terminal"
-  ) {
-    return practicePathForQuestionId(q.id)
-  }
-  return null
+  return practicePathForFormat(q.id, q.format)
 }

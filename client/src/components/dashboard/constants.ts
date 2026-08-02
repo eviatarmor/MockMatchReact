@@ -18,8 +18,14 @@ import {
   Dumbbell,
   BarChart3,
   Bot,
+  BookOpen,
 } from "lucide-react"
 import type { NavItem, NavSection, DashboardUser, UserMenuAction } from "@/components/dashboard/types"
+
+/** Public product docs (`docs.mockmatch.ai`). Override with VITE_DOCS_URL for local docs. */
+export const DOCS_URL =
+  (import.meta.env.VITE_DOCS_URL as string | undefined)?.replace(/\/$/, "") ||
+  "https://docs.mockmatch.ai"
 
 // Grouped nav: each section owns an icon (shown in the far-left icon rail) and
 // its items (shown in the label column when that section is active).
@@ -68,6 +74,12 @@ export const NAV_SECTIONS: NavSection[] = [
     icon: LifeBuoy,
     items: [
       { title: "navItems.help", icon: LifeBuoy, href: "/help" },
+      {
+        title: "navItems.docs",
+        icon: BookOpen,
+        href: DOCS_URL,
+        external: true,
+      },
     ],
   },
 ]

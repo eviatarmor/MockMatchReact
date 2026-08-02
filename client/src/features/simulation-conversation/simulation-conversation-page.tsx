@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { RobotAgent } from "@mockmatch/ui/robot-agent"
 import { Button } from "@mockmatch/ui/button"
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@mockmatch/ui/resizable"
 import { RobotLoader } from "@mockmatch/ui/robot-loader"
+import {
+  AgentStage,
+  VoiceAgentMobileEndedActions,
+  VoiceAgentShell,
+  type AgentPresenceState,
+  type SessionPhase,
+  type TranscriptTurn,
+} from "@mockmatch/voice-agent"
 import { INTERVIEW_TRACKS } from "@/features/simulations/constants"
 import { trpc } from "@/lib/trpc"
 import {
@@ -19,21 +21,12 @@ import {
 import { useMockConversationSession } from "./hooks/use-mock-conversation-session"
 import { useVoiceSession } from "./hooks/use-voice-session"
 import { ConversationSessionBar } from "./components/conversation-session-bar"
-import { AgentControls } from "./components/agent-controls"
 import { ChatPanel } from "./components/chat-panel"
 import { SessionSetupDialog } from "./components/session-setup-dialog"
 import type {
-  AgentPresenceState,
   AgentVoiceId,
   ConversationSessionConfig,
-  SessionPhase,
-  TranscriptTurn,
 } from "./types"
-
-const AGENT_PANEL_DEFAULT = "34"
-const CHAT_PANEL_DEFAULT = "66"
-const AGENT_PANEL_MIN = "22"
-const CHAT_PANEL_MIN = "40"
 
 /** Accept any standard UUID shape (not only RFC version 1–5). */
 const UUID_RE =
@@ -139,8 +132,16 @@ function ConversationSession({
     phase === "setup" ||
     liveVoice.status === "ended"
 
+  const muted = liveActive ? liveVoice.muted : session.muted
+  const onMuteToggle = liveActive ? liveVoice.toggleMute : session.toggleMute
+  const controlsLabels = {
+    mute: t("simulation-conversation:controls.mute"),
+    unmute: t("simulation-conversation:controls.unmute"),
+    endSession: t("simulation-conversation:controls.endSession"),
+  }
+
   return (
-    <div className="flex h-full min-h-0 flex-col bg-background">
+    <>
       <SessionSetupDialog
         open={setupOpen}
         trackTitle={title}
@@ -148,226 +149,86 @@ function ConversationSession({
         onStart={handleStart}
       />
 
-      <ConversationSessionBar
-        title={title}
-        phase={phase}
-        muted={liveActive ? liveVoice.muted : session.muted}
-        voice={voice}
-        onMuteToggle={
-          liveActive ? liveVoice.toggleMute : session.toggleMute
-        }
-        onVoiceChange={handleVoiceChange}
-        onEnd={handleEnd}
-        onRestart={handleRestart}
-        onBack={goSimulations}
-      />
-
-      <div className="hidden min-h-0 flex-1 lg:flex">
-        <ResizablePanelGroup
-          orientation="horizontal"
-          className="h-full w-full"
-          id="conversation-chat"
-        >
-          <ResizablePanel
-            id="agent"
-            defaultSize={AGENT_PANEL_DEFAULT}
-            minSize={AGENT_PANEL_MIN}
-            className="min-h-0 min-w-0"
-          >
-            <AgentStage
-              agentState={agentState}
-              statusLabel={statusLabel}
-              phase={phase}
-              muted={liveActive ? liveVoice.muted : session.muted}
-              phaseEnded={phaseEnded}
-              onMuteToggle={
-                liveActive ? liveVoice.toggleMute : session.toggleMute
-              }
-              onEnd={handleEnd}
-              onRestart={handleRestart}
-              onBack={goSimulations}
-              onOpenSetup={() => setSetupOpen(true)}
-            />
-          </ResizablePanel>
-          <ResizableHandle withHandle />
-          <ResizablePanel
-            id="chat"
-            defaultSize={CHAT_PANEL_DEFAULT}
-            minSize={CHAT_PANEL_MIN}
-            className="min-h-0 min-w-0 border-l border-border"
-          >
-            <ChatPanel
-              turns={turns}
-              liveTurnId={liveTurnId}
-              playbackTime={playbackTime}
-              canSend={canSend}
-              isBusy={isBusy}
-              phaseEnded={phaseEnded}
-              inputResetKey={`${trackId}-${inputKey}`}
-              onSend={session.sendMessage}
-              onListeningChange={session.setListening}
-              className="h-full border-0"
-            />
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </div>
-
-      <div className="flex min-h-0 flex-1 flex-col lg:hidden">
-        <div className="flex shrink-0 flex-col gap-2 border-b border-border bg-muted/20 px-3 py-2">
-          <div className="flex items-center gap-3">
-            <RobotAgent
-              state={agentState}
-              size="sm"
-              label={t("simulation-conversation:agent.label", {
-                state: statusLabel,
-              })}
-            />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium leading-tight">
-                {t("simulation-conversation:agent.name")}
-              </p>
-              <p
-                className="text-2xs text-muted-foreground"
-                aria-live="polite"
-                aria-atomic="true"
-              >
-                {statusLabel}
-              </p>
-            </div>
-          </div>
-          <AgentControls
-            phase={phase}
-            muted={liveActive ? liveVoice.muted : session.muted}
-            onMuteToggle={
-              liveActive ? liveVoice.toggleMute : session.toggleMute
-            }
-            onEnd={handleEnd}
-          />
-        </div>
-        <ChatPanel
-          turns={turns}
-          liveTurnId={liveTurnId}
-          playbackTime={playbackTime}
-          canSend={canSend}
-          isBusy={isBusy}
-          phaseEnded={phaseEnded}
-          inputResetKey={`${trackId}-${inputKey}`}
-          onSend={session.sendMessage}
-          onListeningChange={session.setListening}
-          className="min-h-0 flex-1 border-0"
-        />
-        {phaseEnded && phase !== "setup" ? (
-          <div className="flex shrink-0 flex-wrap justify-center gap-2 border-t border-border p-3">
-            <Button
-              variant="default"
-              className="h-8 cursor-pointer"
-              onClick={handleRestart}
-            >
-              {t("simulation-conversation:controls.restart")}
-            </Button>
-            <Button
-              variant="secondary"
-              className="h-8 cursor-pointer"
-              onClick={goSimulations}
-            >
-              {t("simulation-conversation:controls.backToSimulations")}
-            </Button>
-          </div>
-        ) : null}
-      </div>
-    </div>
-  )
-}
-
-function AgentStage({
-  agentState,
-  statusLabel,
-  phase,
-  muted,
-  phaseEnded,
-  onMuteToggle,
-  onEnd,
-  onRestart,
-  onBack,
-  onOpenSetup,
-}: {
-  readonly agentState: AgentPresenceState
-  readonly statusLabel: string
-  readonly phase: SessionPhase
-  readonly muted: boolean
-  readonly phaseEnded: boolean
-  readonly onMuteToggle: () => void
-  readonly onEnd: () => void
-  readonly onRestart: () => void
-  readonly onBack: () => void
-  readonly onOpenSetup: () => void
-}) {
-  const { t } = useTranslation("simulation-conversation")
-
-  return (
-    <div className="flex h-full min-h-0 flex-col items-center justify-center gap-5 bg-muted/20 px-4 py-8">
-      <div className="flex flex-col items-center gap-3">
-        <RobotAgent
-          state={agentState}
-          size="xl"
-          label={t("agent.label", { state: statusLabel })}
-        />
-        <div className="text-center">
-          <p className="text-sm font-medium">{t("agent.name")}</p>
-          <p
-            className="text-sm text-muted-foreground"
-            aria-live="polite"
-            aria-atomic="true"
-          >
-            {statusLabel}
-          </p>
-        </div>
-      </div>
-
-      {phase === "setup" ? (
-        <div className="flex flex-col items-center gap-2">
-          <p className="max-w-[16rem] text-center text-xs text-muted-foreground">
-            {t("setup.waitingHint")}
-          </p>
-          <Button
-            variant="default"
-            className="h-8 cursor-pointer"
-            onClick={onOpenSetup}
-          >
-            {t("setup.openAgain")}
-          </Button>
-        </div>
-      ) : phaseEnded ? (
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          <Button
-            variant="default"
-            className="h-8 cursor-pointer"
-            onClick={onRestart}
-          >
-            {t("controls.restart")}
-          </Button>
-          <Button
-            variant="secondary"
-            className="h-8 cursor-pointer"
-            onClick={onBack}
-          >
-            {t("controls.backToSimulations")}
-          </Button>
-        </div>
-      ) : (
-        <>
-          <AgentControls
+      <VoiceAgentShell
+        chrome={
+          <ConversationSessionBar
+            title={title}
             phase={phase}
             muted={muted}
+            voice={voice}
             onMuteToggle={onMuteToggle}
-            onEnd={onEnd}
+            onVoiceChange={handleVoiceChange}
+            onEnd={handleEnd}
+            onRestart={handleRestart}
+            onBack={goSimulations}
           />
-          <p className="max-w-[16rem] text-center text-xs text-muted-foreground">
-            {t("hint")}
-          </p>
-        </>
-      )}
-    </div>
+        }
+        agentPanel={
+          <AgentStage
+            agentState={agentState}
+            statusLabel={statusLabel}
+            phase={phase}
+            muted={muted}
+            phaseEnded={phaseEnded}
+            onMuteToggle={onMuteToggle}
+            onEnd={handleEnd}
+            onRestart={handleRestart}
+            onBack={goSimulations}
+            onOpenSetup={() => setSetupOpen(true)}
+            labels={{
+              agentName: t("simulation-conversation:agent.name"),
+              agentLabel: (state) =>
+                t("simulation-conversation:agent.label", { state }),
+              waitingHint: t("simulation-conversation:setup.waitingHint"),
+              openSetup: t("simulation-conversation:setup.openAgain"),
+              restart: t("simulation-conversation:controls.restart"),
+              back: t("simulation-conversation:controls.backToSimulations"),
+              hint: t("simulation-conversation:hint"),
+              controls: controlsLabels,
+            }}
+          />
+        }
+        chatPanel={
+          <ChatPanel
+            turns={turns}
+            liveTurnId={liveTurnId}
+            playbackTime={playbackTime}
+            canSend={canSend}
+            isBusy={isBusy}
+            phaseEnded={phaseEnded}
+            inputResetKey={`${trackId}-${inputKey}`}
+            onSend={session.sendMessage}
+            onListeningChange={session.setListening}
+            className="h-full border-0"
+          />
+        }
+        mobileAgent={{
+          agentState,
+          statusLabel,
+          agentName: t("simulation-conversation:agent.name"),
+          agentAriaLabel: t("simulation-conversation:agent.label", {
+            state: statusLabel,
+          }),
+          phase,
+          muted,
+          onMuteToggle,
+          onEnd: handleEnd,
+          controlsLabels,
+        }}
+        mobileFooter={
+          phaseEnded && phase !== "setup" ? (
+            <VoiceAgentMobileEndedActions
+              restartLabel={t("simulation-conversation:controls.restart")}
+              backLabel={t(
+                "simulation-conversation:controls.backToSimulations"
+              )}
+              onRestart={handleRestart}
+              onBack={goSimulations}
+            />
+          ) : null
+        }
+      />
+    </>
   )
 }
 
@@ -441,6 +302,10 @@ export function SimulationConversationPageContent() {
     }
 
     const q = questionQuery.data
+    if (q.format === "mcq") {
+      navigate(`/simulations/mcq/${q.id}`, { replace: true })
+      return null
+    }
     if (q.format !== "conversation") {
       navigate(`/simulations/practice/${q.id}`, { replace: true })
       return null

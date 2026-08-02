@@ -1,26 +1,10 @@
-import type { RobotAgentState } from "@mockmatch/ui/robot-agent"
-
-export type AgentPresenceState = RobotAgentState
-
-export type TranscriptRole = "agent" | "user" | "system"
-
-/** Word-level segment compatible with `@mockmatch/ai-chat` Transcription. */
-export interface TranscriptSegment {
-  readonly text: string
-  readonly startSecond: number
-  readonly endSecond: number
-}
-
-export interface TranscriptTurn {
-  readonly id: string
-  readonly role: TranscriptRole
-  readonly text: string
-  readonly at: number
-  readonly segments: readonly TranscriptSegment[]
-  readonly durationSec: number
-}
-
-export type SessionPhase = "setup" | "joining" | "active" | "ended"
+export type {
+  AgentPresenceState,
+  TranscriptRole,
+  TranscriptSegment,
+  TranscriptTurn,
+  SessionPhase,
+} from "@mockmatch/voice-agent"
 
 export type SessionKind = "practice" | "fullInterview" | "freeform"
 

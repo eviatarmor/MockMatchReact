@@ -353,6 +353,7 @@ export function IdeTabs({
                       variant="secondary"
                       size="sm"
                       className="h-7 gap-1 px-2 text-xs font-medium"
+                      data-slot="ide-run-tests"
                       aria-label={labels?.runTests ?? "Run tests"}
                       disabled={runTestsDisabled || runTestsBusy}
                       onClick={onRunTests}
