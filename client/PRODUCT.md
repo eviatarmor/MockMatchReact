@@ -29,7 +29,8 @@ One end-to-end prep loop competitors cannot honestly claim as a single product: 
 - Jobs: Discover (search/browse, summaries, fit scores, fit resume/cover letter generation) and Applications (table/kanban stages, import job description).
 - Practice: Simulations (sessions + interview tracks; code-run, terminal lab, dev workspace, conversation formats rolling out) and Question Bank.
 - Insights: Readiness and Performance.
-- Automation: Autofill profiles; Interview Recorder surface in nav.
+- Automation: Autofill profiles + **MockMatch Auto Apply** browser extension (Chrome/Edge/Brave/Firefox target); Interview Recorder surface in nav.
+- Extension session: user signs in on MockMatch web; extension detects session (token/shared auth path TBD in impl). No separate extension password.
 - Account: settings (profile photo), billing/credits, privacy; Help & support tickets; anonymous navbar Feedback.
 - Auth: email OTP; social providers (LinkedIn may be stubbed by env); short-lived access JWT, Redis-backed refresh.
 - Dev/local: monorepo `client` + Hono/tRPC `api` + collab WS + BullMQ worker; Postgres + Redis (+ S3-compatible storage).
@@ -43,17 +44,26 @@ Confirmed product surfaces (see also `api/src/modules/ask/product-guide.ts` for 
 - Practice exercises catalog (Postgres + object storage files); live collab on IDE/code-run/terminal paths.
 - Credits model: free tier / grants; AI and some collab actions may consume credits; Stripe top-up when keys set.
 - i18n: en-US, en-GB, en-AU only (no other locales committed).
-- Theme: light/dark/system.
+- Theme: light/dark/system (web + extension chrome).
 - In-app Ask product guide chat (navbar).
+- **Browser extension (Auto Apply) — confirmed UX product rules (logic later):**
+  - Cross-browser: Chromium (Chrome/Edge/Brave) + Firefox.
+  - Topology: **browser side panel** (resume, cover letter, settings) + **on-page chip** on detected application forms.
+  - Safety: **fill + review; never auto-submit.** Settings may include “auto fill” and “auto apply” labels, but auto-apply means detect/prepare/queue — not silent form submit.
+  - Cover letter: in-extension pick existing **or** AI tailor + short edit; deep edit remains on MockMatch.
+  - Resume: choose which resume (and job-fit variants when available) before fill.
+  - Settings surface in extension: theme, auto-fill behavior, auto-apply posture, defaults for docs, etc.
 
 Constraints / not assumed shipped:
 
 - Production hosting/IaC TBD.
 - Full LinkedIn OAuth and Google OAuth may be incomplete depending on env.
 - Some simulation formats and interview-recorder depth still rolling out; Run/judge for some languages may be partial.
+- Extension fill engine, store listings, and production auth bridge not assumed shipped (dashboard Autofill page is mock/activity shell today).
 - Do not invent customers, benchmarks, pricing tiers, or testimonials not present in product.
+- Web Autofill copy currently implies extension may “submit for you” — **product rule above overrides**; update copy when building.
 
-Undecided / open: production domain and hosting provider; final commercial packaging beyond free + credits; formal accessibility standard beyond good product practice (none product-mandated yet).
+Undecided / open: production domain and hosting provider; final commercial packaging beyond free + credits; formal accessibility standard beyond good product practice (none product-mandated yet); exact extension token/session bridge (OAuth-style redirect vs cookie/token handoff).
 
 ## Brand Commitments
 
