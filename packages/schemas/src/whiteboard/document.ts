@@ -88,6 +88,7 @@ const connectorSchema = z.object({
   strokeWidth: z.number(),
   startArrow: z.boolean(),
   endArrow: z.boolean(),
+  routing: z.enum(["straight", "elbow"]).optional(),
 })
 
 export const whiteboardElementSchema = z.union([

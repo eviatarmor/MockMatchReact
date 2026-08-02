@@ -126,3 +126,14 @@ export {
   pathHitsBrush,
   erasePathPoints,
 } from "./lib/erase"
+
+export {
+  FLOW_GRID,
+  snapToGrid,
+  snapPoint,
+  elementPorts,
+  nearestPort,
+  elbowPolyline,
+  applyResize,
+  type ResizeHandle,
+} from "./lib/flowchart"

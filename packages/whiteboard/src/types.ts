@@ -118,6 +118,8 @@ export type PathElement = {
   readonly opacity?: number
 }
 
+export type ConnectorRouting = "straight" | "elbow"
+
 export type ConnectorElement = {
   readonly id: string
   readonly type: "connector"
@@ -128,6 +130,8 @@ export type ConnectorElement = {
   readonly strokeWidth: number
   readonly startArrow: boolean
   readonly endArrow: boolean
+  /** Orthogonal routing for architecture diagrams (default elbow). */
+  readonly routing?: ConnectorRouting
 }
 
 export type WhiteboardElement =

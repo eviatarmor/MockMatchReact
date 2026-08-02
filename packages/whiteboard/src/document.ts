@@ -135,6 +135,7 @@ export function createConnector(partial: {
   strokeWidth?: number
   startArrow?: boolean
   endArrow?: boolean
+  routing?: ConnectorElement["routing"]
   z?: number
 }): ConnectorElement {
   return {
@@ -147,6 +148,7 @@ export function createConnector(partial: {
     strokeWidth: partial.strokeWidth ?? 2,
     startArrow: partial.startArrow ?? false,
     endArrow: partial.endArrow ?? true,
+    routing: partial.routing ?? "elbow",
   }
 }
 

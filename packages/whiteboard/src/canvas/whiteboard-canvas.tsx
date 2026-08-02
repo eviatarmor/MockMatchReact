@@ -17,8 +17,16 @@ import {
   precisionEraseAt,
 } from "../lib/erase"
 import { classifySmartStroke } from "../lib/geometry"
+import {
+  applyResize,
+  elementPorts,
+  nearestPort,
+  snapToGrid,
+  type ResizeHandle,
+} from "../lib/flowchart"
 import { WHITEBOARD_ZOOM, type WhiteboardViewport } from "../viewport"
 import type {
+  ConnectorAnchor,
   DrawStrokeStyle,
   ShapeKind,
   WhiteboardCommand,
@@ -56,6 +64,8 @@ type DragState =
       ids: string[]
       lastX: number
       lastY: number
+      accDx: number
+      accDy: number
     }
   | {
       kind: "stroke"
@@ -73,8 +83,15 @@ type DragState =
   | {
       kind: "connector"
       fromId: string | null
+      fromAnchor: ConnectorAnchor | null
       fromX: number
       fromY: number
+    }
+  | {
+      kind: "resize"
+      id: string
+      handle: ResizeHandle
+      start: { x: number; y: number; w: number; h: number }
     }
   | null
 
@@ -199,6 +216,8 @@ export function WhiteboardCanvas({
           ids,
           lastX: x,
           lastY: y,
+          accDx: 0,
+          accDy: 0,
         }
         ;(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)
       } else {
@@ -290,13 +309,21 @@ export function WhiteboardCanvas({
 
     if (tool === "connector") {
       const hit = hitTest(docRef.current, x, y)
+      const hitEl = hit ? docRef.current.elements[hit] : null
+      const port = hitEl ? nearestPort(hitEl, x, y, 40) : null
       dragRef.current = {
         kind: "connector",
         fromId: hit,
-        fromX: x,
-        fromY: y,
+        fromAnchor: port?.anchor ?? (hit ? "c" : null),
+        fromX: port?.x ?? x,
+        fromY: port?.y ?? y,
       }
-      setDraftLine({ x1: x, y1: y, x2: x, y2: y })
+      setDraftLine({
+        x1: port?.x ?? x,
+        y1: port?.y ?? y,
+        x2: x,
+        y2: y,
+      })
       ;(e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId)
     }
   }
@@ -340,9 +367,32 @@ export function WhiteboardCanvas({
       const dx = x - drag.lastX
       const dy = y - drag.lastY
       if (dx !== 0 || dy !== 0) {
-        onCommand({ type: "move", ids: drag.ids, dx, dy })
-        dragRef.current = { ...drag, lastX: x, lastY: y }
+        // Accumulate and apply grid-snapped deltas for architecture layout
+        const accDx = drag.accDx + dx
+        const accDy = drag.accDy + dy
+        const snapDx = snapToGrid(accDx) - snapToGrid(drag.accDx)
+        const snapDy = snapToGrid(accDy) - snapToGrid(drag.accDy)
+        if (snapDx !== 0 || snapDy !== 0) {
+          onCommand({ type: "move", ids: drag.ids, dx: snapDx, dy: snapDy })
+        }
+        dragRef.current = {
+          ...drag,
+          lastX: x,
+          lastY: y,
+          accDx,
+          accDy,
+        }
       }
+      return
+    }
+
+    if (drag.kind === "resize" && canEdit) {
+      const next = applyResize(drag.start, drag.handle, x, y)
+      onCommand({
+        type: "patch",
+        id: drag.id,
+        patch: next as Partial<import("../types").WhiteboardElement>,
+      })
       return
     }
 
@@ -482,12 +532,14 @@ export function WhiteboardCanvas({
 
     const { x, y } = clientToBoard(e.clientX, e.clientY)
     const toHit = hitTest(docRef.current, x, y)
+    const toEl = toHit ? docRef.current.elements[toHit] : null
+    const toPort = toEl ? nearestPort(toEl, x, y, 40) : null
     const from =
       drag.fromId && docRef.current.elements[drag.fromId]
         ? {
             kind: "element" as const,
             elementId: drag.fromId,
-            anchor: "c" as const,
+            anchor: (drag.fromAnchor ?? "c") as ConnectorAnchor,
           }
         : { kind: "point" as const, x: drag.fromX, y: drag.fromY }
     const to =
@@ -495,7 +547,7 @@ export function WhiteboardCanvas({
         ? {
             kind: "element" as const,
             elementId: toHit,
-            anchor: "c" as const,
+            anchor: (toPort?.anchor ?? "c") as ConnectorAnchor,
           }
         : { kind: "point" as const, x, y }
 
@@ -510,6 +562,7 @@ export function WhiteboardCanvas({
     const el = createConnector({
       from,
       to,
+      routing: "elbow",
       z: maxZ(docRef.current) + 1,
     })
     onCommand({ type: "upsert", element: el })
@@ -588,6 +641,7 @@ export function WhiteboardCanvas({
               doc={doc}
               selected={selectedIds.includes(el.id)}
               canEdit={canEdit}
+              showPorts={tool === "connector" || selectedIds.includes(el.id)}
               onSelect={(id) => onSelectedIdsChange([id])}
               onTextChange={(id, text) => {
                 if (!canEdit) return
@@ -603,6 +657,30 @@ export function WhiteboardCanvas({
               }}
               onPointerDownElement={(id, ev) => {
                 if (tool === "pan") return
+                if (tool === "connector" && canEdit) {
+                  // Start connector from this node
+                  ev.stopPropagation()
+                  const { x, y } = clientToBoard(ev.clientX, ev.clientY)
+                  const hitEl = docRef.current.elements[id]
+                  const port = hitEl ? nearestPort(hitEl, x, y, 40) : null
+                  dragRef.current = {
+                    kind: "connector",
+                    fromId: id,
+                    fromAnchor: port?.anchor ?? "c",
+                    fromX: port?.x ?? x,
+                    fromY: port?.y ?? y,
+                  }
+                  setDraftLine({
+                    x1: port?.x ?? x,
+                    y1: port?.y ?? y,
+                    x2: x,
+                    y2: y,
+                  })
+                  ;(ev.currentTarget as HTMLElement).setPointerCapture?.(
+                    ev.pointerId
+                  )
+                  return
+                }
                 if (tool !== "select" || !canEdit) return
                 ev.stopPropagation()
                 const { x, y } = clientToBoard(ev.clientX, ev.clientY)
@@ -611,8 +689,55 @@ export function WhiteboardCanvas({
                   ids: selectedIds.includes(id) ? [...selectedIds] : [id],
                   lastX: x,
                   lastY: y,
+                  accDx: 0,
+                  accDy: 0,
                 }
                 if (!selectedIds.includes(id)) onSelectedIdsChange([id])
+                ;(ev.currentTarget as HTMLElement).setPointerCapture?.(
+                  ev.pointerId
+                )
+              }}
+              onPortPointerDown={(elementId, anchor, ev) => {
+                if (!canEdit) return
+                ev.stopPropagation()
+                const hitEl = docRef.current.elements[elementId]
+                const port = hitEl
+                  ? elementPorts(hitEl)?.find((p) => p.anchor === anchor)
+                  : null
+                const p = port ?? { x: 0, y: 0, anchor }
+                dragRef.current = {
+                  kind: "connector",
+                  fromId: elementId,
+                  fromAnchor: anchor,
+                  fromX: p.x,
+                  fromY: p.y,
+                }
+                setDraftLine({ x1: p.x, y1: p.y, x2: p.x, y2: p.y })
+                ;(ev.currentTarget as HTMLElement).setPointerCapture?.(
+                  ev.pointerId
+                )
+              }}
+              onResizePointerDown={(elementId, handle, ev) => {
+                if (!canEdit) return
+                ev.stopPropagation()
+                const hitEl = docRef.current.elements[elementId]
+                if (
+                  !hitEl ||
+                  hitEl.type === "path" ||
+                  hitEl.type === "connector"
+                )
+                  return
+                dragRef.current = {
+                  kind: "resize",
+                  id: elementId,
+                  handle,
+                  start: {
+                    x: hitEl.x,
+                    y: hitEl.y,
+                    w: hitEl.w,
+                    h: hitEl.h,
+                  },
+                }
                 ;(ev.currentTarget as HTMLElement).setPointerCapture?.(
                   ev.pointerId
                 )

@@ -1,5 +1,6 @@
 import type { PointerEvent as ReactPointerEvent, ReactNode } from "react"
 import type {
+  ConnectorAnchor,
   ConnectorElement,
   PathElement,
   ShapeElement,
@@ -9,6 +10,12 @@ import type {
   WhiteboardElement,
 } from "../types"
 import { resolveConnectorPoint } from "../document"
+import {
+  elementPorts,
+  elbowPolyline,
+  resizeHandlePoints,
+  type ResizeHandle,
+} from "../lib/flowchart"
 import { cn } from "@mockmatch/ui/utils"
 
 export type ElementViewProps = {
@@ -20,6 +27,18 @@ export type ElementViewProps = {
   readonly onTextChange?: (id: string, text: string) => void
   readonly onPointerDownElement?: (
     id: string,
+    e: ReactPointerEvent
+  ) => void
+  /** Show N/S/E/W ports (connector tool or selected architecture nodes). */
+  readonly showPorts?: boolean
+  readonly onPortPointerDown?: (
+    elementId: string,
+    anchor: ConnectorAnchor,
+    e: ReactPointerEvent
+  ) => void
+  readonly onResizePointerDown?: (
+    elementId: string,
+    handle: ResizeHandle,
     e: ReactPointerEvent
   ) => void
 }
@@ -42,6 +61,63 @@ function SelectionRing({
   )
 }
 
+function BoxChrome({
+  el,
+  selected,
+  showPorts,
+  canEdit,
+  onPortPointerDown,
+  onResizePointerDown,
+}: {
+  readonly el: Extract<WhiteboardElement, { w: number; h: number; x: number; y: number }>
+  readonly selected: boolean
+  readonly showPorts?: boolean
+  readonly canEdit: boolean
+  readonly onPortPointerDown?: ElementViewProps["onPortPointerDown"]
+  readonly onResizePointerDown?: ElementViewProps["onResizePointerDown"]
+}) {
+  const ports = showPorts ? elementPorts(el) : null
+  const handles =
+    selected && canEdit ? resizeHandlePoints(0, 0, el.w, el.h) : []
+
+  return (
+    <>
+      {ports?.map((p) => (
+        <button
+          key={p.anchor}
+          type="button"
+          aria-label={`Connect ${p.anchor}`}
+          className="pan-ignore absolute z-20 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-blue-500 bg-white shadow-sm hover:scale-125"
+          style={{ left: p.x - el.x, top: p.y - el.y }}
+          onPointerDown={(e) => {
+            e.stopPropagation()
+            onPortPointerDown?.(el.id, p.anchor, e)
+          }}
+        />
+      ))}
+      {handles.map((h) => (
+        <button
+          key={h.id}
+          type="button"
+          aria-label={`Resize ${h.id}`}
+          className={cn(
+            "pan-ignore absolute z-20 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-sm border border-blue-500 bg-white shadow-sm",
+            (h.id === "n" || h.id === "s") && "cursor-ns-resize",
+            (h.id === "e" || h.id === "w") && "cursor-ew-resize",
+            (h.id === "nw" || h.id === "se") && "cursor-nwse-resize",
+            (h.id === "ne" || h.id === "sw") && "cursor-nesw-resize"
+          )}
+          style={{ left: h.x, top: h.y }}
+          onPointerDown={(e) => {
+            e.stopPropagation()
+            onResizePointerDown?.(el.id, h.id, e)
+          }}
+        />
+      ))}
+    </>
+  )
+}
+
 export function StickyView({
   el,
   selected,
@@ -49,6 +125,9 @@ export function StickyView({
   onSelect,
   onTextChange,
   onPointerDownElement,
+  showPorts,
+  onPortPointerDown,
+  onResizePointerDown,
 }: {
   readonly el: StickyElement
   readonly selected: boolean
@@ -56,12 +135,15 @@ export function StickyView({
   readonly onSelect: (id: string) => void
   readonly onTextChange?: (id: string, text: string) => void
   readonly onPointerDownElement?: (id: string, e: ReactPointerEvent) => void
+  readonly showPorts?: boolean
+  readonly onPortPointerDown?: ElementViewProps["onPortPointerDown"]
+  readonly onResizePointerDown?: ElementViewProps["onResizePointerDown"]
 }) {
   return (
     <div
       data-el-id={el.id}
       className={cn(
-        "pan-ignore absolute overflow-hidden rounded-sm shadow-md",
+        "pan-ignore absolute rounded-sm shadow-md",
         "border border-black/10"
       )}
       style={{
@@ -80,12 +162,20 @@ export function StickyView({
     >
       <SelectionRing w={el.w} h={el.h} selected={selected} />
       <textarea
-        className="pan-ignore size-full resize-none bg-transparent p-2 text-sm text-neutral-900 outline-none placeholder:text-neutral-500"
+        className="pan-ignore size-full resize-none overflow-hidden bg-transparent p-2 text-sm text-neutral-900 outline-none placeholder:text-neutral-500"
         value={el.text}
         disabled={!canEdit}
         placeholder="Note…"
         onChange={(e) => onTextChange?.(el.id, e.target.value)}
         onPointerDown={(e) => e.stopPropagation()}
+      />
+      <BoxChrome
+        el={el}
+        selected={selected}
+        showPorts={showPorts || selected}
+        canEdit={canEdit}
+        onPortPointerDown={onPortPointerDown}
+        onResizePointerDown={onResizePointerDown}
       />
     </div>
   )
@@ -269,12 +359,18 @@ export function ShapeView({
   canEdit,
   onSelect,
   onPointerDownElement,
+  showPorts,
+  onPortPointerDown,
+  onResizePointerDown,
 }: {
   readonly el: ShapeElement
   readonly selected: boolean
   readonly canEdit: boolean
   readonly onSelect: (id: string) => void
   readonly onPointerDownElement?: (id: string, e: ReactPointerEvent) => void
+  readonly showPorts?: boolean
+  readonly onPortPointerDown?: ElementViewProps["onPortPointerDown"]
+  readonly onResizePointerDown?: ElementViewProps["onResizePointerDown"]
 }) {
   return (
     <div
@@ -307,6 +403,14 @@ export function ShapeView({
           {el.label}
         </span>
       ) : null}
+      <BoxChrome
+        el={el}
+        selected={selected}
+        showPorts={showPorts || selected}
+        canEdit={canEdit}
+        onPortPointerDown={onPortPointerDown}
+        onResizePointerDown={onResizePointerDown}
+      />
     </div>
   )
 }
@@ -386,9 +490,16 @@ export function ConnectorView({
 }) {
   const a = resolveConnectorPoint(el.from, doc)
   const b = resolveConnectorPoint(el.to, doc)
-  const line = `M ${a.x} ${a.y} L ${b.x} ${b.y}`
-  const head = el.endArrow ? arrowHead(a, b) : ""
-  const tail = el.startArrow ? arrowHead(b, a) : ""
+  const routing = el.routing ?? "elbow"
+  const pts =
+    routing === "elbow" ? elbowPolyline(a.x, a.y, b.x, b.y) : [a, b]
+  const line = pts
+    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
+    .join(" ")
+  const prev = pts[pts.length - 2] ?? a
+  const head = el.endArrow ? arrowHead(prev, b) : ""
+  const next = pts[1] ?? b
+  const tail = el.startArrow ? arrowHead(next, a) : ""
   return (
     <svg
       data-el-id={el.id}
@@ -401,6 +512,7 @@ export function ConnectorView({
         stroke={selected ? "#60a5fa" : el.stroke}
         strokeWidth={el.strokeWidth + (selected ? 1 : 0)}
         strokeLinecap="round"
+        strokeLinejoin="round"
         style={{ pointerEvents: "stroke" }}
         onPointerDown={(e) => {
           e.stopPropagation()
@@ -423,6 +535,9 @@ export function ElementView(props: ElementViewProps) {
         onSelect={props.onSelect}
         onTextChange={props.onTextChange}
         onPointerDownElement={props.onPointerDownElement}
+        showPorts={props.showPorts}
+        onPortPointerDown={props.onPortPointerDown}
+        onResizePointerDown={props.onResizePointerDown}
       />
     )
   }
@@ -446,6 +561,9 @@ export function ElementView(props: ElementViewProps) {
         canEdit={props.canEdit}
         onSelect={props.onSelect}
         onPointerDownElement={props.onPointerDownElement}
+        showPorts={props.showPorts}
+        onPortPointerDown={props.onPortPointerDown}
+        onResizePointerDown={props.onResizePointerDown}
       />
     )
   }
