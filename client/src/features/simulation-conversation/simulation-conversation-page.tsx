@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react"
-import { useNavigate, useParams } from "react-router-dom"
+import { useEffect, useMemo, useState } from "react"
+import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { RobotAgent } from "@mockmatch/ui/robot-agent"
 import { Button } from "@mockmatch/ui/button"
@@ -8,7 +8,9 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@mockmatch/ui/resizable"
+import { RobotLoader } from "@mockmatch/ui/robot-loader"
 import { INTERVIEW_TRACKS } from "@/features/simulations/constants"
+import { trpc } from "@/lib/trpc"
 import {
   DEFAULT_AGENT_VOICE,
   isConversationTrackId,
@@ -33,7 +35,20 @@ const CHAT_PANEL_DEFAULT = "66"
 const AGENT_PANEL_MIN = "22"
 const CHAT_PANEL_MIN = "40"
 
-function ConversationSession({ trackId }: { readonly trackId: ConversationTrackId }) {
+/** Accept any standard UUID shape (not only RFC version 1–5). */
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function ConversationSession({
+  trackId,
+  questionId,
+  questionTitle,
+}: {
+  readonly trackId: ConversationTrackId
+  /** Bank question UUID — seeds interviewer prompt; also used as URL identity. */
+  readonly questionId?: string
+  readonly questionTitle?: string | null
+}) {
   const navigate = useNavigate()
   const { t } = useTranslation(["simulation-conversation", "common"])
   const [config, setConfig] = useState<ConversationSessionConfig | null>(null)
@@ -57,7 +72,9 @@ function ConversationSession({ trackId }: { readonly trackId: ConversationTrackI
     () => INTERVIEW_TRACKS.find((item) => item.id === trackId),
     [trackId]
   )
-  const title = track ? t(track.titleKey, { ns: "common" }) : trackId
+  const title =
+    questionTitle?.trim() ||
+    (track ? t(track.titleKey, { ns: "common" }) : trackId)
 
   const agentState: AgentPresenceState = liveActive
     ? liveVoice.agentState
@@ -99,7 +116,7 @@ function ConversationSession({ trackId }: { readonly trackId: ConversationTrackI
     // Prefer live immediately so mock script never fakes a "session"
     // (text-only transcript) while WebRTC is connecting or after a live error.
     setPreferLive(true)
-    await liveVoice.start(trackId, next)
+    await liveVoice.start(trackId, next, { questionId })
   }
 
   const handleRestart = () => {
@@ -356,9 +373,94 @@ function AgentStage({
 
 export function SimulationConversationPageContent() {
   const { trackId: trackParam } = useParams<{ trackId: string }>()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { t } = useTranslation("simulation-conversation")
 
+  // Prefer explicit ?questionId= (legacy links) or UUID in path segment
+  const queryQuestionId = searchParams.get("questionId")
+  const pathIsUuid = Boolean(trackParam && UUID_RE.test(trackParam))
+  const bankQuestionId =
+    queryQuestionId && UUID_RE.test(queryQuestionId)
+      ? queryQuestionId
+      : pathIsUuid
+        ? trackParam!
+        : null
+
+  const questionQuery = trpc.questions.get.useQuery(
+    { id: bankQuestionId! },
+    {
+      enabled: Boolean(bankQuestionId),
+      retry: false,
+      staleTime: 60_000,
+    }
+  )
+
+  // Canonicalize legacy URLs → /conversation/:questionId only
+  useEffect(() => {
+    if (!bankQuestionId) return
+    if (trackParam === bankQuestionId && !searchParams.has("questionId")) return
+    navigate(`/simulations/conversation/${bankQuestionId}`, { replace: true })
+  }, [bankQuestionId, trackParam, searchParams, navigate])
+
+  // Bank question practice (path = UUID and/or ?questionId=)
+  if (bankQuestionId) {
+    if (questionQuery.isLoading || questionQuery.isFetching) {
+      return (
+        <div className="flex h-full flex-col items-center justify-center gap-3 bg-background p-6 text-sm text-muted-foreground">
+          <RobotLoader
+            size="md"
+            label={t("errors.loading", { defaultValue: "Loading…" })}
+          />
+        </div>
+      )
+    }
+
+    if (questionQuery.isError || !questionQuery.data) {
+      return (
+        <div className="flex h-full flex-col items-center justify-center gap-3 bg-background p-6">
+          <p className="text-sm text-muted-foreground">
+            {t("errors.questionNotFound", {
+              defaultValue: "That practice question was not found.",
+            })}
+          </p>
+          <p className="max-w-sm text-center text-xs text-muted-foreground">
+            {questionQuery.error?.message}
+          </p>
+          <Button
+            variant="secondary"
+            className="h-8 cursor-pointer"
+            onClick={() => navigate("/question-bank")}
+          >
+            {t("errors.backToQuestionBank", {
+              defaultValue: "Back to question bank",
+            })}
+          </Button>
+        </div>
+      )
+    }
+
+    const q = questionQuery.data
+    if (q.format !== "conversation") {
+      navigate(`/simulations/practice/${q.id}`, { replace: true })
+      return null
+    }
+
+    const trackId: ConversationTrackId =
+      q.conversationTrackId && isConversationTrackId(q.conversationTrackId)
+        ? q.conversationTrackId
+        : "behavioral-core"
+
+    return (
+      <ConversationSession
+        trackId={trackId}
+        questionId={q.id}
+        questionTitle={q.title}
+      />
+    )
+  }
+
+  // Catalog tracks only (behavioral-core, product-sense, system-design-talk)
   if (!isConversationTrackId(trackParam)) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 bg-background p-6">

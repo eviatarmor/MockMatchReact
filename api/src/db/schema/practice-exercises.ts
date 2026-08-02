@@ -8,8 +8,8 @@ import {
   timestamp,
   uniqueIndex,
   uuid,
-  customType,
 } from "drizzle-orm/pg-core"
+import { vector1536 } from "./vector.js"
 
 /**
  * Practice exercise catalog (cpp-sort, react, shell, …).
@@ -60,21 +60,6 @@ export const exerciseDomainEnum = pgEnum("exercise_domain", [
   "clinical",
   "general",
 ])
-
-const vector1536 = customType<{ data: number[]; driverData: string }>({
-  dataType() {
-    return "vector(1536)"
-  },
-  toDriver(value: number[]): string {
-    return `[${value.join(",")}]`
-  },
-  fromDriver(value: unknown): number[] {
-    if (typeof value !== "string") return []
-    const inner = value.replace(/^\[/, "").replace(/\]$/, "")
-    if (!inner.trim()) return []
-    return inner.split(",").map((n) => Number(n.trim()))
-  },
-})
 
 export type ExerciseIoTest = {
   name: string

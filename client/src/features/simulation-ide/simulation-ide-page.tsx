@@ -53,16 +53,27 @@ import {
 } from "./hooks/use-collab-workspace-session"
 import { useBrowserRunActions } from "./hooks/use-browser-run-actions"
 import {
-  isCodeRunFormatSlug,
   isIdeFormatSlug,
+  isPracticeExerciseSlug,
   type IdeFormatSlug,
 } from "./types"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@mockmatch/ui/dialog"
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 export function SimulationIdePageContent() {
-  const { format: formatParam } = useParams<{ format: string }>()
+  const { format: formatParam, questionId: questionIdParam } = useParams<{
+    format?: string
+    questionId?: string
+  }>()
   const { pathname } = useLocation()
   const navigate = useNavigate()
 
@@ -72,17 +83,22 @@ export function SimulationIdePageContent() {
   const isTerminalLabRoute =
     pathname === "/simulations/terminal-lab" ||
     pathname.startsWith("/simulations/terminal-lab/")
+  const isBankPracticeRoute =
+    Boolean(questionIdParam && UUID_RE.test(questionIdParam)) ||
+    pathname.startsWith("/simulations/practice/")
 
-  const format: IdeFormatSlug | null = isWorkspaceRoute
-    ? "workspace"
-    : isTerminalLabRoute
-      ? "shell"
-      : isCodeRunFormatSlug(formatParam)
-        ? formatParam
-        : null
+  const format: string | null = isBankPracticeRoute
+    ? "bank"
+    : isWorkspaceRoute
+      ? "workspace"
+      : isTerminalLabRoute
+        ? "shell"
+        : isPracticeExerciseSlug(formatParam)
+          ? formatParam!
+          : null
 
   useEffect(() => {
-    if (isWorkspaceRoute || isTerminalLabRoute) return
+    if (isWorkspaceRoute || isTerminalLabRoute || isBankPracticeRoute) return
     // Legacy routes → dedicated paths
     if (formatParam === "workspace") {
       navigate(pathForFormat("workspace"), { replace: true })
@@ -98,6 +114,7 @@ export function SimulationIdePageContent() {
   }, [
     isWorkspaceRoute,
     isTerminalLabRoute,
+    isBankPracticeRoute,
     formatParam,
     format,
     navigate,
@@ -107,79 +124,175 @@ export function SimulationIdePageContent() {
     return null
   }
 
-  return <ExerciseCollabBootstrap format={format} />
+  return (
+    <ExerciseCollabBootstrap
+      format={format}
+      bankQuestionId={
+        questionIdParam && UUID_RE.test(questionIdParam)
+          ? questionIdParam
+          : null
+      }
+    />
+  )
 }
 
 /**
  * Ensure a durable collab workspace id for any practice format.
+ * - Bank: `/simulations/practice/:questionId` loads from `questions` only
+ * - Catalog: seed exercise slug
  * - `?id=` + optional `?share=` for join
- * - else create one and replace into URL
+ * - else check open attempt → Continue / Start new dialog
  */
-function ExerciseCollabBootstrap({ format }: { format: IdeFormatSlug }) {
+function ExerciseCollabBootstrap({
+  format,
+  bankQuestionId,
+}: {
+  format: string
+  bankQuestionId?: string | null
+}) {
   const { t } = useTranslation("simulation-ide")
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const idParam = searchParams.get("id")
   const shareToken = searchParams.get("share")
+  const forceNew = searchParams.get("new") === "1"
+  const queryQuestionId = searchParams.get("questionId")
+  const questionId =
+    bankQuestionId ||
+    (queryQuestionId && UUID_RE.test(queryQuestionId) ? queryQuestionId : null)
+  const isBank = format === "bank" || Boolean(bankQuestionId)
+  const trackKey = isBank && questionId ? `q:${questionId}` : format
   const isValidId = typeof idParam === "string" && UUID_RE.test(idParam)
-  const preset = IDE_FORMAT_PRESETS[format]
-  /** Catalog exercises (not freeform workspace) load seed from DB/S3. */
-  const isCatalog = format !== "workspace"
+  const knownPreset = isIdeFormatSlug(format)
+    ? IDE_FORMAT_PRESETS[format]
+    : null
+  /** Seed catalog (not freeform workspace, not bank). */
+  const isCatalog = format !== "workspace" && !isBank
 
-  const exerciseQuery = trpc.practiceExercises.bySlug.useQuery(
-    { slug: format },
+  const basePath = isBank && questionId
+    ? `/simulations/practice/${questionId}`
+    : pathForFormat(format === "bank" ? "js-sum" : format)
+
+  const [resumePrompt, setResumePrompt] = useState<{
+    sessionId: string
+    workspaceId: string
+    title: string
+  } | null>(null)
+  const [resumeChecked, setResumeChecked] = useState(
+    forceNew || isValidId || Boolean(shareToken)
+  )
+
+  const openQuery = trpc.practiceSessions.openForTrack.useQuery(
+    { trackId: trackKey },
     {
-      enabled: isCatalog && !isValidId && !shareToken,
+      enabled: !isValidId && !shareToken && !forceNew && Boolean(trackKey),
       retry: false,
-      staleTime: 60_000,
+      staleTime: 5_000,
     }
   )
 
+  useEffect(() => {
+    if (isValidId || shareToken || forceNew) {
+      setResumeChecked(true)
+      return
+    }
+    if (openQuery.isLoading) return
+    if (openQuery.data?.session?.workspaceId) {
+      setResumePrompt({
+        sessionId: openQuery.data.session.id,
+        workspaceId: openQuery.data.session.workspaceId,
+        title: openQuery.data.session.title,
+      })
+      setResumeChecked(true)
+      return
+    }
+    setResumeChecked(true)
+  }, [isValidId, shareToken, forceNew, openQuery.isLoading, openQuery.data])
+
+  const startNew = trpc.practiceSessions.startNew.useMutation({
+    onSuccess: (result) => {
+      const path =
+        isBank && questionId
+          ? `/simulations/practice/${questionId}?id=${result.workspaceId}`
+          : `${pathForFormat(format)}?id=${result.workspaceId}`
+      navigate(path, { replace: true })
+    },
+  })
+
+  const attachSession = trpc.practiceSessions.attachWorkspace.useMutation()
+
   const create = trpc.ideWorkspaces.create.useMutation({
     onSuccess: (ws) => {
-      navigate(`${pathForFormat(format)}?id=${ws.id}`, { replace: true })
+      attachSession.mutate(
+        {
+          trackId: trackKey,
+          workspaceId: ws.id,
+          title: ws.title,
+          questionId: questionId ?? undefined,
+        },
+        {
+          onSettled: () => {
+            navigate(`${basePath}?id=${ws.id}`, { replace: true })
+          },
+        }
+      )
     },
   })
 
   const createOnce = useRef(false)
   useEffect(() => {
     if (isValidId || shareToken) return
-    if (createOnce.current || create.isPending || create.isSuccess) return
+    if (!resumeChecked || resumePrompt) return
+    if (
+      createOnce.current ||
+      startNew.isPending ||
+      create.isPending ||
+      create.isSuccess
+    )
+      return
 
-    if (isCatalog) {
-      if (exerciseQuery.isLoading || exerciseQuery.isError) return
-      if (!exerciseQuery.data) return
+    if (isBank) {
+      if (!questionId) return
       createOnce.current = true
-      create.mutate({
-        title: exerciseQuery.data.title,
-        templateId: format,
-        document: exerciseQuery.data.document as {
-          tree: never
-          files: Record<string, { language?: string; content: string }>
-        },
+      startNew.mutate({
+        questionId,
+        abandonOpen: true,
+      })
+      return
+    }
+
+    // Seed catalog — startNew loads exercise server-side
+    if (isCatalog) {
+      createOnce.current = true
+      startNew.mutate({
+        trackId: format,
+        abandonOpen: true,
       })
       return
     }
 
     createOnce.current = true
     create.mutate({
-      title: t(preset.titleKey),
+      title: knownPreset ? t(knownPreset.titleKey) : format,
       templateId: format,
-      document: seedDocumentForFormat(format),
+      document: isIdeFormatSlug(format)
+        ? seedDocumentForFormat(format)
+        : undefined,
     })
   }, [
     isValidId,
     shareToken,
+    resumeChecked,
+    resumePrompt,
     create,
+    startNew,
     t,
     format,
-    preset.titleKey,
+    knownPreset,
     isCatalog,
-    exerciseQuery.isLoading,
-    exerciseQuery.isError,
-    exerciseQuery.data,
+    isBank,
+    questionId,
   ])
-
   if (shareToken && !isValidId) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 p-8 text-sm text-muted-foreground">
@@ -195,20 +308,62 @@ function ExerciseCollabBootstrap({ format }: { format: IdeFormatSlug }) {
     )
   }
 
+  if (resumePrompt && !isValidId) {
+    return (
+      <Dialog open>
+        <DialogContent className="max-w-md" showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>
+              {t("resume.title", { defaultValue: "Continue previous session?" })}
+            </DialogTitle>
+            <DialogDescription>
+              {t("resume.description", {
+                title: resumePrompt.title,
+                defaultValue:
+                  "You have an unfinished attempt for this exercise. Continue where you left off, or start a new attempt.",
+              })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              className="cursor-pointer"
+              onClick={() => {
+                setResumePrompt(null)
+                createOnce.current = false
+                startNew.mutate(
+                  isBank && questionId
+                    ? { questionId, abandonOpen: true }
+                    : { trackId: format, abandonOpen: true }
+                )
+              }}
+              disabled={startNew.isPending}
+            >
+              {t("resume.startNew", { defaultValue: "Start new" })}
+            </Button>
+            <Button
+              className="cursor-pointer"
+              onClick={() => {
+                navigate(`${basePath}?id=${resumePrompt.workspaceId}`, {
+                  replace: true,
+                })
+              }}
+            >
+              {t("resume.continue", { defaultValue: "Continue" })}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
   if (!isValidId) {
-    const exerciseFailed = isCatalog && exerciseQuery.isError
+    const startFailed = startNew.isError || create.isError
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-sm text-muted-foreground">
-        {exerciseFailed || create.isError ? (
+        {startFailed ? (
           <>
-            {exerciseFailed
-              ? t("collab.loadError")
-              : t("collab.createError")}
-            <p className="max-w-md text-center text-xs">
-              {exerciseFailed
-                ? "Run: cd api && npm run db:migrate && npm run db:seed:exercises"
-                : null}
-            </p>
+            {t("collab.createError")}
             <Button
               variant="outline"
               className="cursor-pointer"
@@ -229,7 +384,9 @@ function ExerciseCollabBootstrap({ format }: { format: IdeFormatSlug }) {
 
   return (
     <ExerciseCollabLoader
-      format={format}
+      format={isBank ? "js-sum" : format}
+      catalogSlug={isBank ? undefined : format}
+      bankQuestionId={isBank ? questionId : null}
       workspaceId={idParam}
       shareToken={shareToken}
     />
@@ -238,10 +395,14 @@ function ExerciseCollabBootstrap({ format }: { format: IdeFormatSlug }) {
 
 function ExerciseCollabLoader({
   format,
+  catalogSlug,
+  bankQuestionId,
   workspaceId,
   shareToken,
 }: {
-  format: IdeFormatSlug
+  format: string
+  catalogSlug?: string
+  bankQuestionId?: string | null
   workspaceId: string
   shareToken: string | null
 }) {
@@ -266,8 +427,10 @@ function ExerciseCollabLoader({
   )
 
   useEffect(() => {
+    if (bankQuestionId) return
     if (!query.data?.templateId) return
     const stored = query.data.templateId
+    if (stored.startsWith("q:")) return
     if (isIdeFormatSlug(stored) && stored !== format) {
       const qs = new URLSearchParams()
       qs.set("id", workspaceId)
@@ -276,7 +439,14 @@ function ExerciseCollabLoader({
         replace: true,
       })
     }
-  }, [query.data?.templateId, format, workspaceId, shareToken, navigate])
+  }, [
+    query.data?.templateId,
+    format,
+    workspaceId,
+    shareToken,
+    navigate,
+    bankQuestionId,
+  ])
 
   if (query.isLoading || (shareToken && access.isLoading)) {
     return (
@@ -302,10 +472,6 @@ function ExerciseCollabLoader({
     )
   }
 
-  const resolvedFormat = isIdeFormatSlug(query.data.templateId)
-    ? query.data.templateId
-    : format
-
   const seed: WorkspaceSessionSeed = {
     id: query.data.id,
     title: query.data.title,
@@ -313,15 +479,29 @@ function ExerciseCollabLoader({
     shareToken,
   }
 
-  if (resolvedFormat === "shell") {
-    return <ShellCollabSession key={seed.id} seed={seed} format={resolvedFormat} />
+  if (format === "shell" || query.data.templateId === "shell") {
+    return (
+      <ShellCollabSession key={seed.id} seed={seed} format="shell" />
+    )
   }
+
+  const editorFormat: Exclude<IdeFormatSlug, "shell"> = isIdeFormatSlug(format)
+    ? (format as Exclude<IdeFormatSlug, "shell">)
+    : "js-sum"
 
   return (
     <EditorCollabSession
       key={seed.id}
       seed={seed}
-      format={resolvedFormat}
+      format={editorFormat}
+      catalogSlug={
+        bankQuestionId
+          ? undefined
+          : isIdeFormatSlug(catalogSlug ?? format)
+            ? (catalogSlug ?? format)
+            : undefined
+      }
+      bankQuestionId={bankQuestionId}
     />
   )
 }
@@ -374,27 +554,52 @@ function CollabRoomGates({
 function EditorCollabSession({
   seed,
   format,
+  catalogSlug,
+  bankQuestionId,
 }: {
   seed: WorkspaceSessionSeed
   format: Exclude<IdeFormatSlug, "shell">
+  /** Seed catalog slug for runtime/tests. */
+  catalogSlug?: string
+  /** Bank question id — load uiFlags from questions.forPractice. */
+  bankQuestionId?: string | null
 }) {
   const { t } = useTranslation("simulation-ide")
   const { resolvedTheme } = useTheme()
   const preset = IDE_FORMAT_PRESETS[format]
+  const bankQuery = trpc.questions.forPractice.useQuery(
+    { id: bankQuestionId! },
+    {
+      enabled: Boolean(bankQuestionId),
+      staleTime: 60_000,
+      retry: false,
+    }
+  )
+  const exerciseQuery = trpc.practiceExercises.bySlug.useQuery(
+    { slug: catalogSlug ?? format },
+    {
+      enabled: !bankQuestionId && (Boolean(catalogSlug) || format !== "workspace"),
+      staleTime: 60_000,
+      retry: false,
+    }
+  )
+  const uiFlags = bankQuery.data?.uiFlags ?? exerciseQuery.data?.uiFlags
   const session = useCollabWorkspaceSession(seed, {
-    openSeedTabs: preset.openSeedTabs,
-    defaultShowTree: preset.defaultShowTree,
+    openSeedTabs: uiFlags?.openSeedTabs ?? preset.openSeedTabs,
+    defaultShowTree: uiFlags?.defaultShowTree ?? preset.defaultShowTree,
   })
   const { settings, patchSettings, setSettings } = useIdeSettings()
   const pageRef = useRef<HTMLDivElement>(null)
   const [fullscreen, setFullscreen] = useState(false)
-  const [showTerminal, setShowTerminal] = useState(preset.defaultShowTerminal)
+  const [showTerminal, setShowTerminal] = useState(
+    uiFlags?.defaultShowTerminal ?? preset.defaultShowTerminal
+  )
   const [showAi, setShowAi] = useState(false)
   const [shareOpen, setShareOpen] = useState(false)
   const { isOwner, canShare, isPaidOwner } = useCollabHeaderAccess(seed)
 
-  const treeEnabled = preset.treeEnabled
-  const tabsClosable = preset.tabsClosable
+  const treeEnabled = uiFlags?.treeEnabled ?? preset.treeEnabled
+  const tabsClosable = uiFlags?.tabsClosable ?? preset.tabsClosable
 
   const toggleFullscreen = useCallback(async () => {
     const el = pageRef.current
@@ -428,11 +633,41 @@ function EditorCollabSession({
   )
 
   const labels = useIdeLabels(t)
+  const runtimeOverride = useMemo(() => {
+    if (!uiFlags) return null
+    const lang = uiFlags.runtimeLanguage
+    const asRuntime:
+      | "typescript"
+      | "javascript"
+      | "python"
+      | "cpp"
+      | "nodejs"
+      | undefined =
+      lang === "typescript" ||
+      lang === "javascript" ||
+      lang === "python" ||
+      lang === "cpp" ||
+      lang === "nodejs"
+        ? lang
+        : lang === "ts"
+          ? "typescript"
+          : lang === "js"
+            ? "javascript"
+            : lang === "py"
+              ? "python"
+              : undefined
+    return {
+      language: asRuntime,
+      entryPath: uiFlags.entryPath,
+      tests: uiFlags.tests,
+    }
+  }, [uiFlags])
   const run = useBrowserRunActions({
     preset,
     activeTabId: session.activeTabId,
     getFilesSnapshot: session.getFilesSnapshot,
     setShowTerminal,
+    runtimeOverride,
   })
 
   return (

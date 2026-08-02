@@ -17,6 +17,7 @@ export function discoverJobToTracked(job: DiscoverJob): TrackedJob {
   const matchScore = job.matchScore ?? 0
   return {
     id: job.id,
+    sourceKey: job.id,
     title: job.title,
     company: job.company,
     location: job.location,
@@ -84,6 +85,7 @@ export function parseJobDescriptionToTracked(raw: string): TrackedJob {
 
   return {
     id,
+    sourceKey: id,
     title,
     company,
     location,

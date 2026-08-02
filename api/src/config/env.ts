@@ -159,6 +159,28 @@ const envSchema = z
       .min(1)
       .default("google/gemma-4-26b-a4b-it:free"),
     /**
+     * Cheap model that plans question mix + picks a generator model.
+     * Generation pipeline lands after tracked_jobs foundation.
+     */
+    OPENROUTER_QUESTION_ROUTER_MODEL: z
+      .string()
+      .min(1)
+      .default("openai/gpt-oss-20b:free"),
+    /** High-end generator for interview questions (default: Kimi K3). */
+    OPENROUTER_QUESTION_GENERATOR_MODEL: z
+      .string()
+      .min(1)
+      .default("moonshotai/kimi-k3"),
+    /** Embeddings for question / exercise semantic dedupe (1536-dim). */
+    OPENROUTER_EMBEDDING_MODEL: z
+      .string()
+      .min(1)
+      .default("openai/text-embedding-3-small"),
+    /** Credits per job-based question generation run (0 = free when key set). */
+    QUESTION_GEN_CREDIT_COST: z.coerce.number().int().nonnegative().default(5),
+    /** Max candidate questions per generate call. */
+    QUESTION_GEN_MAX_PER_RUN: z.coerce.number().int().positive().max(20).default(8),
+    /**
      * Jira (optional). Empty → support mutations accept + log stub ticket keys.
      * Wire REST in modules/support/jira-client.ts when ready.
      */

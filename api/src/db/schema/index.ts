@@ -1,5 +1,8 @@
 export * from "./users.js"
+export * from "./vector.js"
 export * from "./questions.js"
+export * from "./user-question-progress.js"
+export * from "./tracked-jobs.js"
 export * from "./outbox.js"
 export * from "./resumes.js"
 export * from "./cover-letters.js"
@@ -9,6 +12,7 @@ export * from "./candidate-profile.js"
 export * from "./document-versions.js"
 export * from "./ide-workspaces.js"
 export * from "./practice-exercises.js"
+export * from "./practice-sessions.js"
 export * from "./voice-sessions.js"
 
 

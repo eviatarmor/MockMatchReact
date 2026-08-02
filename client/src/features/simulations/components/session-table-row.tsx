@@ -25,9 +25,19 @@ export function SessionTableRow({
   const avatarClass = avatarClassFor(avatarText)
 
   const openSession = () => {
+    const workspaceId = session._workspaceId ?? session.workspaceId
+    if (session.trackId && workspaceId) {
+      const path = practicePathForTrackId(session.trackId)
+      if (path) {
+        const sep = path.includes("?") ? "&" : "?"
+        navigate(`${path}${sep}id=${workspaceId}`)
+        return
+      }
+    }
     if (session.trackId) {
       const path = practicePathForTrackId(session.trackId)
       if (path) {
+        // Continue / new dialog when no workspace id
         navigate(path)
         return
       }

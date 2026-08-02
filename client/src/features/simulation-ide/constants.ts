@@ -824,7 +824,7 @@ export const WORKSPACE_BASE_PATH = "/simulations/workspace"
 export const TERMINAL_LAB_BASE_PATH = "/simulations/terminal-lab"
 
 /** App path for a practice format (share links + create redirect). */
-export function pathForFormat(slug: IdeFormatSlug): string {
+export function pathForFormat(slug: string): string {
   if (slug === "workspace") return WORKSPACE_BASE_PATH
   if (slug === "shell") return TERMINAL_LAB_BASE_PATH
   return `${CODE_RUN_BASE_PATH}/${slug}`
@@ -835,11 +835,24 @@ export function seedDocumentForFormat(slug: IdeFormatSlug) {
   return documentFromTabs(treeForFormat(slug), tabsForFormat(slug))
 }
 
+const CONVERSATION_TRACK_IDS = new Set([
+  "behavioral-core",
+  "product-sense",
+  "system-design-talk",
+])
+
 /**
  * Catalog / track id → practice path.
- * Track ids match exercise slugs (and shell / workspace).
+ * Known presets + generated `gen-*` exercise slugs → code-run IDE.
  */
 export function idePathForTrackId(trackId: string): string | null {
-  if (isIdeFormatSlug(trackId)) return pathForFormat(trackId)
+  if (CONVERSATION_TRACK_IDS.has(trackId)) return null
+  if (isIdeFormatSlug(trackId) || trackId.startsWith("gen-")) {
+    return pathForFormat(trackId)
+  }
+  // Unknown catalog slug (future exercises) — try code-run path
+  if (trackId.length > 0 && !trackId.includes("/")) {
+    return pathForFormat(trackId)
+  }
   return null
 }

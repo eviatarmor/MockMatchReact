@@ -11,6 +11,14 @@ export type QuestionDifficulty = "easy" | "medium" | "hard"
 
 export type QuestionStatus = "new" | "attempted" | "mastered"
 
+export type QuestionFormat =
+  | "conversation"
+  | "code_run"
+  | "workspace"
+  | "terminal"
+  | "whiteboard"
+  | "mcq"
+
 export interface BankQuestion {
   readonly id: string
   readonly title: string
@@ -18,6 +26,8 @@ export interface BankQuestion {
   readonly difficulty: QuestionDifficulty
   readonly company: string | null
   readonly status: QuestionStatus
+  readonly format?: QuestionFormat
+  readonly trackHint?: string | null
 }
 
 export interface DomainFilter {

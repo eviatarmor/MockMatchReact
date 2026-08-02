@@ -6,6 +6,7 @@ import {
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core"
+import { questions } from "./questions.js"
 import { users } from "./users.js"
 
 /**
@@ -18,6 +19,10 @@ export const voiceSessions = pgTable("voice_sessions", {
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
   trackId: text("track_id").notNull(),
+  /** Optional bank question that seeds the interviewer prompt. */
+  questionId: uuid("question_id").references(() => questions.id, {
+    onDelete: "set null",
+  }),
   sessionKind: text("session_kind").notNull().default("practice"),
   voiceId: text("voice_id").notNull().default("buttery"),
   analyzeFace: boolean("analyze_face").notNull().default(false),
