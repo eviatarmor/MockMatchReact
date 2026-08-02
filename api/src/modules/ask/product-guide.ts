@@ -66,7 +66,7 @@ application tracking, practice, and readiness insights.
    - **Dev workspace** (\`/simulations/workspace\`) — freeform multi-file collab IDE.
    - Share URLs include \`id\` + \`share\` query params (owner must stay in room).
    - **Exercise catalog** is Postgres \`practice_exercises\` (slug, domain, difficulty, prompt, tags, embedding-ready). Starter **files** live under S3 prefix \`exercises/<slug>/<version>/\` (dev mirror in \`content_cache\`). Seed: \`npm run db:seed:exercises\` in \`api/\`.
-6. **Question Bank** (\`/question-bank\`) — **shared global content bank** (\`questions\` only): format + payload + \`content_cache\` / \`content_prefix\` for files. Auto-filled on apply/import. Kimi K3 + vector dedupe. Conversation → voice; code_run/workspace/terminal → \`/simulations/practice/:questionId\` (IDE loads bank row, not practice_exercises). Seeds stay in \`practice_exercises\`.
+6. **Question Bank** (\`/question-bank\`) — **shared global content bank** (\`questions\` only): format + payload + \`content_cache\` / \`content_prefix\` for files. Auto-filled on apply/import. Kimi K3 + vector dedupe. **Formats generated:** conversation, code_run, **mcq** (pick-the-right-answer; payload \`stem\` / \`options\` / \`correctIndex\`; practice UI TBD — Practice disabled for mcq). Conversation → voice; code_run/workspace/terminal → \`/simulations/practice/:questionId\` (IDE loads bank row, not practice_exercises). **Domains:** coding, systemDesign, dataScience, ml, security, devops, product, design, caseStudy, consulting, behavioral, finance, marketing, sales, clinical. Seeds stay in \`practice_exercises\`.
 
 ### Insights area
 7. **Readiness** (\`/readiness\`) — readiness metrics / progress toward interview readiness.

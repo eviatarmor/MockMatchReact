@@ -29,6 +29,14 @@ export const questionDomainEnum = pgEnum("question_domain", [
   "behavioral",
   "finance",
   "clinical",
+  "dataScience",
+  "ml",
+  "security",
+  "devops",
+  "design",
+  "consulting",
+  "marketing",
+  "sales",
 ])
 
 export const questionDifficultyEnum = pgEnum("question_difficulty", [
@@ -91,10 +99,21 @@ export type WorkspaceQuestionPayload = {
   durationMin?: number
 }
 
+/** Pick-the-right-answer (single correct). */
+export type McqQuestionPayload = {
+  stem: string
+  /** 2–6 choices */
+  options: string[]
+  /** 0-based index into options */
+  correctIndex: number
+  explanation?: string
+}
+
 export type QuestionPayload =
   | ConversationQuestionPayload
   | CodeRunQuestionPayload
   | WorkspaceQuestionPayload
+  | McqQuestionPayload
   | Record<string, unknown>
 
 /** path → file body (local/dev mirror of S3 content_prefix). */

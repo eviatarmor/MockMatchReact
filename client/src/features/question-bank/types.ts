@@ -6,6 +6,14 @@ export type QuestionDomain =
   | "behavioral"
   | "finance"
   | "clinical"
+  | "dataScience"
+  | "ml"
+  | "security"
+  | "devops"
+  | "design"
+  | "consulting"
+  | "marketing"
+  | "sales"
 
 export type QuestionDifficulty = "easy" | "medium" | "hard"
 

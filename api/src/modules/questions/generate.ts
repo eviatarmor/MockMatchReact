@@ -3,6 +3,7 @@ import { env } from "../../config/env.js"
 import type { Database } from "../../db/client.js"
 import {
   questions,
+  type McqQuestionPayload,
   type QuestionPayload,
 } from "../../db/schema/questions.js"
 import { trackedJobs } from "../../db/schema/tracked-jobs.js"
@@ -29,22 +30,34 @@ const GENERATOR_ALLOWLIST = new Set([
   "google/gemma-4-26b-a4b-it:free",
 ])
 
+const QUESTION_DOMAINS = [
+  "coding",
+  "systemDesign",
+  "caseStudy",
+  "product",
+  "behavioral",
+  "finance",
+  "clinical",
+  "dataScience",
+  "ml",
+  "security",
+  "devops",
+  "design",
+  "consulting",
+  "marketing",
+  "sales",
+] as const
+
+const GENERATABLE_FORMATS = ["conversation", "code_run", "mcq"] as const
+
 const routerSchema = z.object({
   generatorModel: z.string().optional(),
   roleFamily: z.string().optional(),
   mix: z
     .array(
       z.object({
-        format: z.enum(["conversation", "code_run"]),
-        domain: z.enum([
-          "coding",
-          "systemDesign",
-          "caseStudy",
-          "product",
-          "behavioral",
-          "finance",
-          "clinical",
-        ]),
+        format: z.enum(GENERATABLE_FORMATS),
+        domain: z.enum(QUESTION_DOMAINS),
         difficulty: z.enum(["easy", "medium", "hard"]),
         count: z.number().int().min(1).max(6),
         language: z.string().optional(),
@@ -59,17 +72,9 @@ const routerSchema = z.object({
 const generatedItemSchema = z.object({
   title: z.string().min(1).max(300),
   body: z.string().min(1).max(8000),
-  domain: z.enum([
-    "coding",
-    "systemDesign",
-    "caseStudy",
-    "product",
-    "behavioral",
-    "finance",
-    "clinical",
-  ]),
+  domain: z.enum(QUESTION_DOMAINS),
   difficulty: z.enum(["easy", "medium", "hard"]),
-  format: z.enum(["conversation", "code_run"]),
+  format: z.enum(GENERATABLE_FORMATS),
   language: z.string().nullable().optional(),
   company: z.string().nullable().optional(),
   tags: z.array(z.string()).optional(),
@@ -141,10 +146,54 @@ function safeTrackHint(
   return "behavioral-core"
 }
 
-function defaultPayload(
-  format: "conversation" | "code_run",
+function normalizeMcqPayload(
   item: z.infer<typeof generatedItemSchema>
-): QuestionPayload {
+): McqQuestionPayload | null {
+  const fromPayload = (item.payload ?? {}) as Record<string, unknown>
+  const rawOptions = fromPayload.options
+  const options = Array.isArray(rawOptions)
+    ? rawOptions
+        .map((o) => (typeof o === "string" ? o.trim() : String(o ?? "").trim()))
+        .filter((o) => o.length > 0)
+        .slice(0, 6)
+    : []
+  if (options.length < 2) return null
+
+  let correctIndex =
+    typeof fromPayload.correctIndex === "number" &&
+    Number.isInteger(fromPayload.correctIndex)
+      ? fromPayload.correctIndex
+      : -1
+  if (correctIndex < 0 || correctIndex >= options.length) {
+    // Accept letter keys A–F from sloppy models
+    const letter = fromPayload.correctOption ?? fromPayload.correct
+    if (typeof letter === "string" && /^[A-Fa-f]$/.test(letter.trim())) {
+      correctIndex = letter.trim().toUpperCase().charCodeAt(0) - 65
+    }
+  }
+  if (correctIndex < 0 || correctIndex >= options.length) return null
+
+  const stem =
+    typeof fromPayload.stem === "string" && fromPayload.stem.trim()
+      ? fromPayload.stem.trim()
+      : item.body
+  const explanation =
+    typeof fromPayload.explanation === "string" && fromPayload.explanation.trim()
+      ? fromPayload.explanation.trim()
+      : undefined
+
+  return {
+    stem,
+    options,
+    correctIndex,
+    ...(explanation ? { explanation } : {}),
+  }
+}
+
+function defaultPayload(
+  format: (typeof GENERATABLE_FORMATS)[number],
+  item: z.infer<typeof generatedItemSchema>
+): QuestionPayload | null {
   if (format === "conversation") {
     const fromPayload = (item.payload ?? {}) as { trackHint?: string }
     return {
@@ -153,9 +202,12 @@ function defaultPayload(
       ...(item.payload ?? {}),
       trackHint: safeTrackHint(
         item.domain,
-        fromPayload.trackHint ?? item.payload?.trackHint as string | undefined
+        fromPayload.trackHint ?? (item.payload?.trackHint as string | undefined)
       ),
     }
+  }
+  if (format === "mcq") {
+    return normalizeMcqPayload(item)
   }
   const language = item.language ?? "javascript"
   const fromPayload = (item.payload ?? {}) as Record<string, unknown>
@@ -269,9 +321,9 @@ export async function generateQuestionsFromJobs(
       routerModel,
       `You are a cheap planning model for an interview-prep product.
 Given job description(s), choose a question mix and a generator model.
-Formats: conversation (voice interview) or code_run (single-file coding IDE).
-Domains: coding, systemDesign, caseStudy, product, behavioral, finance, clinical.
-Prefer conversation for soft skills/product/system design talk; code_run for SWE coding.
+Formats: conversation (voice interview), code_run (single-file coding IDE), mcq (pick the right answer / knowledge check).
+Domains: coding, systemDesign, caseStudy, product, behavioral, finance, clinical, dataScience, ml, security, devops, design, consulting, marketing, sales.
+Prefer conversation for soft skills/product/system design talk; code_run for SWE coding; mcq for factual/screening knowledge (security basics, ML concepts, sales product knowledge, consulting frameworks, etc.).
 Total count across mix ≤ ${env.QUESTION_GEN_MAX_PER_RUN}.
 generatorModel must be a strong OpenRouter model id (prefer moonshotai/kimi-k3).
 Reply JSON: { "generatorModel": string, "roleFamily": string, "mix": [{ "format", "domain", "difficulty", "count", "language?", "trackHint?" }], "rationale": string }`,
@@ -314,20 +366,23 @@ Reply JSON: { "generatorModel": string, "roleFamily": string, "mix": [{ "format"
       `You write high-quality interview questions for MockMatch.
 Output JSON: { "questions": [ ... ] }.
 Each question:
-- title, body, domain, difficulty, format (conversation|code_run)
+- title, body, domain, difficulty, format (conversation|code_run|mcq)
 - language (required for code_run)
 - company (job company if company-specific else null)
 - tags: string[]
 - roleFamilies: string[]
-- payload: for conversation { interviewerPrompt, followUps?, trackHint? };
-  for code_run { prompt, language, starterCode?, tests?: [{name, stdin?, expectedStdout?}] }
+- payload:
+  - conversation: { interviewerPrompt, followUps?, trackHint? }
+  - code_run: { prompt, language, starterCode?, tests?: [{name, stdin?, expectedStdout?}] }
+  - mcq: { stem, options: string[3-5], correctIndex: number (0-based), explanation? }
 
 Rules:
 - Match the requested mix counts closely.
 - Conversation questions fit voice AI interviewer (clear stem + follow-ups).
 - trackHint for conversation MUST be one of: behavioral-core | product-sense | system-design-talk (never job titles).
 - code_run = single-file problems with optional I/O tests (no multi-file workspaces).
-- Do not invent whiteboard/mcq formats.
+- mcq = single correct answer; 3–5 plausible options; no "all of the above" / "none of the above" spam; distractors must be wrong but believable; body should match the stem.
+- Do not invent whiteboard formats.
 - Make questions distinct skills — not rephrasings of each other.`,
       `Role family hint: ${plan.roleFamily ?? "general"}
 Mix: ${JSON.stringify(mix)}
@@ -394,7 +449,15 @@ ${jobBlob}`,
       continue
     }
 
-    let payload = defaultPayload(item.format, item)
+    const payload = defaultPayload(item.format, item)
+    if (!payload) {
+      skippedNear += 1
+      logger.warn(
+        { title: item.title, format: item.format },
+        "question_invalid_payload_skip"
+      )
+      continue
+    }
     const contentCache = contentCacheFromPayload(item.format, payload)
     try {
       const [row] = await db

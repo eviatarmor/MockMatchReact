@@ -6,10 +6,18 @@ export const MOCK_QUESTIONS: readonly never[] = []
 export const QUESTION_DOMAINS: readonly QuestionDomain[] = [
   "coding",
   "systemDesign",
-  "caseStudy",
+  "dataScience",
+  "ml",
+  "security",
+  "devops",
   "product",
+  "design",
+  "caseStudy",
+  "consulting",
   "behavioral",
   "finance",
+  "marketing",
+  "sales",
   "clinical",
 ]
 

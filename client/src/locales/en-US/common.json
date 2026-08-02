@@ -1104,10 +1104,18 @@
     "domains": {
       "coding": "Coding",
       "systemDesign": "System design",
-      "caseStudy": "Case study",
+      "dataScience": "Data science",
+      "ml": "Machine learning",
+      "security": "Security",
+      "devops": "DevOps",
       "product": "Product",
+      "design": "Design",
+      "caseStudy": "Case study",
+      "consulting": "Consulting",
       "behavioral": "Behavioral",
       "finance": "Finance",
+      "marketing": "Marketing",
+      "sales": "Sales",
       "clinical": "Clinical"
     },
     "difficulty": {

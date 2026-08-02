@@ -8,6 +8,14 @@ export const questionDomainSchema = z.enum([
   "behavioral",
   "finance",
   "clinical",
+  "dataScience",
+  "ml",
+  "security",
+  "devops",
+  "design",
+  "consulting",
+  "marketing",
+  "sales",
 ])
 
 export const questionDifficultySchema = z.enum(["easy", "medium", "hard"])
@@ -26,7 +34,7 @@ export const questionUserStatusSchema = z.enum(["new", "attempted", "mastered"])
 export const questionListInputSchema = z
   .object({
     search: z.string().trim().max(200).optional(),
-    domains: z.array(questionDomainSchema).max(10).optional(),
+    domains: z.array(questionDomainSchema).max(20).optional(),
     difficulties: z.array(questionDifficultySchema).max(3).optional(),
     formats: z.array(questionFormatSchema).max(6).optional(),
     userStatuses: z.array(questionUserStatusSchema).max(3).optional(),
