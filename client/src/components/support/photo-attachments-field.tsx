@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react"
+import { useEffect, useId, useRef } from "react"
 import { ImagePlus, X } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
@@ -14,8 +14,6 @@ import {
   AttachmentTrigger,
 } from "@mockmatch/ui/attachment"
 import { cn } from "@/lib/utils"
-import { fileToBase64 } from "@/lib/file-to-base64"
-import type { SupportAttachment } from "@mockmatch/schemas"
 
 export const SUPPORT_PHOTO_MAX_COUNT = 3
 export const SUPPORT_PHOTO_MAX_BYTES = 2 * 1024 * 1024
@@ -200,34 +198,4 @@ export function PhotoAttachmentsField({
       />
     </div>
   )
-}
-
-/** Encode local photos for the support API payload. */
-export async function encodeSupportPhotos(
-  photos: readonly LocalPhotoAttachment[]
-): Promise<SupportAttachment[]> {
-  const out: SupportAttachment[] = []
-  for (const photo of photos) {
-    const dataBase64 = await fileToBase64(photo.file)
-    out.push({
-      fileName: photo.file.name.slice(0, 200),
-      mimeType: photo.mimeType,
-      dataBase64,
-    })
-  }
-  return out
-}
-
-/** Hook-friendly photo list with cleanup helpers. */
-export function usePhotoAttachments() {
-  const [photos, setPhotos] = useState<LocalPhotoAttachment[]>([])
-
-  function clearPhotos() {
-    for (const photo of photos) {
-      URL.revokeObjectURL(photo.previewUrl)
-    }
-    setPhotos([])
-  }
-
-  return { photos, setPhotos, clearPhotos }
 }

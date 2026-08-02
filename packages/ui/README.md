@@ -6,6 +6,7 @@ Shared UI kits for MockMatch web and future browser extensions.
 
 ```
 src/
+  styles/          # shared theme tokens (theme.css)
   shadcn/          # shadcn/ui + magic-ui primitives
   shadcn-space/    # @shadcn-space registry blocks
   kibo-ui/         # @kibo-ui registry blocks
@@ -23,11 +24,16 @@ import { Cursor } from "@mockmatch/ui/kibo-ui/cursor"
 import { cn } from "@mockmatch/ui/utils"
 ```
 
-Deep imports preferred (tree-shaking). Host must provide Tailwind v4 + CSS variables (`client/src/index.css`).
+Deep imports preferred (tree-shaking). Hosts import shared tokens + scan package sources:
 
 ```css
+@import "tailwindcss";
+@import "@mockmatch/ui/theme.css";
+
 @source "../../packages/ui/src/**/*.{ts,tsx}";
 ```
+
+`theme.css` owns `:root` / `.dark` / `.light` surface tokens and the core Tailwind `@theme` color/radius/font map. App-only CSS (print, streamdown, decorative keyframes) stays in the host (`client`, `docs`, …).
 
 ## Adding components
 

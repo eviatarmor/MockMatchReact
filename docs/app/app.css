@@ -1,0 +1,101 @@
+@import 'tailwindcss';
+/* MockMatch tokens first so Fumadocs shadcn preset maps --color-fd-* */
+@import '@mockmatch/ui/theme.css';
+@import 'fumadocs-ui/css/shadcn.css';
+@import 'fumadocs-ui/css/preset.css';
+
+html {
+  scrollbar-gutter: stable;
+  font-family: var(--font-sans);
+}
+
+html > body[data-scroll-locked] {
+  margin-right: 0px !important;
+  --removed-body-scroll-bar-size: 0px !important;
+}
+
+/*
+ * Desktop only: compact left rail.
+ * Default Fumadocs docs grid uses [1fr gutter | sidebar | main | toc | 1fr] and
+ * paints the sidebar across gutter+col → huge dark slab on wide screens.
+ * Do NOT set --fd-sidebar-width below md — mobile needs 0 so content is full-width
+ * (drawer is fixed overlay, not a grid column).
+ */
+@media (min-width: 768px) {
+  #nd-docs-layout {
+    --fd-sidebar-width: 240px;
+    grid-template:
+      'sidebar header toc'
+      'sidebar toc-popover toc'
+      'sidebar main toc' 1fr /
+      var(--fd-sidebar-col) minmax(0, 1fr) var(--fd-toc-width) !important;
+  }
+}
+
+/*
+ * Enterprise docs rail — always near-black chrome (product Dark Chrome Rule).
+ * Applies to desktop sticky rail + mobile drawer (#nd-sidebar).
+ */
+#nd-sidebar {
+  background-color: var(--sidebar);
+  color: var(--sidebar-foreground);
+  border-color: var(--sidebar-border);
+
+  --color-fd-background: var(--sidebar);
+  --color-fd-foreground: var(--sidebar-foreground);
+  --color-fd-muted: oklch(1 0 0 / 8%);
+  --color-fd-muted-foreground: oklch(0.78 0 0);
+  --color-fd-popover: oklch(0.22 0 0);
+  --color-fd-popover-foreground: oklch(0.97 0 0);
+  --color-fd-card: oklch(0.22 0 0);
+  --color-fd-card-foreground: oklch(0.97 0 0);
+  --color-fd-border: var(--sidebar-border);
+  --color-fd-primary: oklch(0.72 0.16 262);
+  --color-fd-primary-foreground: oklch(0.985 0 0);
+  --color-fd-secondary: oklch(1 0 0 / 10%);
+  --color-fd-secondary-foreground: oklch(0.97 0 0);
+  --color-fd-accent: var(--sidebar-accent);
+  --color-fd-accent-foreground: var(--sidebar-accent-foreground);
+  --color-fd-ring: var(--sidebar-ring);
+}
+
+/* Lucide SVGs from serialized page-tree icons */
+#nd-sidebar svg {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+#nd-sidebar a[data-active='true'] svg,
+#nd-sidebar [data-active='true'] svg {
+  opacity: 1;
+  color: var(--color-fd-primary);
+}
+
+/* Search field on dark rail */
+#nd-sidebar input {
+  background-color: oklch(1 0 0 / 8%);
+  border-color: oklch(1 0 0 / 12%);
+  color: oklch(0.97 0 0);
+}
+
+#nd-sidebar input::placeholder {
+  color: oklch(0.7 0 0);
+}
+
+/* Mobile: full-width content, tidy header title */
+@media (max-width: 767px) {
+  #nd-docs-layout {
+    --fd-sidebar-width: 0px;
+    --fd-sidebar-col: 0px;
+  }
+
+  /* Avoid "MockMatch Docs" wrapping into a tall header on narrow screens */
+  #nd-subnav a span {
+    max-width: 11rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
