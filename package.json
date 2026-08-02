@@ -5,14 +5,14 @@
     "client",
     "api",
     "docs",
-    "extension",
+    "extensions/*",
     "packages/*"
   ],
   "scripts": {
     "dev": "concurrently -n client,api,ws,worker,studio,voice -c cyan,magenta,green,blue,yellow,white \"npm:dev --workspace=client\" \"npm:dev --workspace=@mockmatch/api\" \"npm:dev:ws --workspace=@mockmatch/api\" \"npm:dev:worker --workspace=@mockmatch/api\" \"npm:db:studio --workspace=@mockmatch/api\" \"npm:dev:voice\"",
     "dev:client": "npm run dev --workspace=client",
     "dev:docs": "npm run dev --workspace=@mockmatch/docs",
-    "dev:extension": "npm run dev --workspace=@mockmatch/extension",
+    "dev:extension": "npm run dev --workspace=@mockmatch/extension-auto-apply",
     "dev:api": "npm run dev --workspace=@mockmatch/api",
     "dev:ws": "npm run dev:ws --workspace=@mockmatch/api",
     "dev:worker": "npm run dev:worker --workspace=@mockmatch/api",

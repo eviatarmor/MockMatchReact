@@ -9,6 +9,14 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"),
     },
   },
+  // Scan monorepo packages for Tailwind @source + linked @mockmatch/ui
+  server: {
+    port: 5180,
+    strictPort: true,
+    fs: {
+      allow: [path.resolve(__dirname, "../..")],
+    },
+  },
   build: {
     rollupOptions: {
       input: {
@@ -28,9 +36,5 @@ export default defineConfig({
     },
     outDir: "dist",
     emptyOutDir: true,
-  },
-  server: {
-    port: 5180,
-    strictPort: true,
   },
 })
