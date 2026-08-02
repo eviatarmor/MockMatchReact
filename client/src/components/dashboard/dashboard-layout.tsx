@@ -29,7 +29,9 @@ function DashboardShell() {
       matchPath("/simulations/mcq/:questionId", pathname) ||
       matchPath("/simulations/workspace", pathname) ||
       matchPath("/simulations/terminal-lab", pathname) ||
-      matchPath("/simulations/conversation/:trackId", pathname)
+      matchPath("/simulations/conversation/:trackId", pathname) ||
+      matchPath("/simulations/whiteboard/:questionId", pathname) ||
+      matchPath("/simulations/whiteboard/board/:boardId", pathname)
   )
 
   return (

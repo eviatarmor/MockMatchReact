@@ -721,6 +721,13 @@ export async function getQuestionForPractice(
       message: "MCQ questions open in the MCQ practice surface, not the IDE",
     })
   }
+  if (row.format === "whiteboard") {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message:
+        "Whiteboard questions open in the whiteboard practice surface, not the IDE",
+    })
+  }
 
   const payload = (row.payload ?? {}) as CodeRunQuestionPayload & {
     trackHint?: string

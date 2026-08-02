@@ -7,6 +7,8 @@ export const CONVERSATION_BASE_PATH = "/simulations/conversation"
 export const QUESTION_PRACTICE_BASE_PATH = "/simulations/practice"
 /** Bank-sourced MCQ practice. */
 export const QUESTION_MCQ_BASE_PATH = "/simulations/mcq"
+/** Bank-sourced whiteboard practice. */
+export const QUESTION_WHITEBOARD_BASE_PATH = "/simulations/whiteboard"
 
 /** App path for a conversation track session. */
 export function conversationPathForTrackId(trackId: string): string {
@@ -23,6 +25,11 @@ export function mcqPathForQuestionId(questionId: string): string {
   return `${QUESTION_MCQ_BASE_PATH}/${questionId}`
 }
 
+/** Whiteboard path for a global bank question. */
+export function whiteboardPathForQuestionId(questionId: string): string {
+  return `${QUESTION_WHITEBOARD_BASE_PATH}/${questionId}`
+}
+
 /**
  * Route bank question id + format → practice URL.
  */
@@ -32,6 +39,7 @@ export function practicePathForFormat(
 ): string | null {
   if (format === "conversation") return conversationPathForTrackId(questionId)
   if (format === "mcq") return mcqPathForQuestionId(questionId)
+  if (format === "whiteboard") return whiteboardPathForQuestionId(questionId)
   if (
     format === "code_run" ||
     format === "workspace" ||
@@ -63,6 +71,7 @@ export function practicePathForTrackId(trackId: string): string | null {
  * URLs use only the question UUID (no job titles / free-form track slugs).
  * - conversation → /simulations/conversation/:questionId
  * - mcq → /simulations/mcq/:questionId
+ * - whiteboard → /simulations/whiteboard/:questionId
  * - code / workspace / terminal → /simulations/practice/:questionId
  */
 export function practicePathForBankQuestion(

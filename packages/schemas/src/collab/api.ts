@@ -4,6 +4,7 @@ export const documentKindSchema = z.enum([
   "resume",
   "cover_letter",
   "workspace",
+  "whiteboard",
 ])
 export const collabRoleSchema = z.enum(["view", "edit"])
 /** Effective room role including owner (never stored on collaborator rows). */

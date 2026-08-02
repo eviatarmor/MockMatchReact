@@ -54,6 +54,19 @@ export const practiceSessionsRouter = router({
       return service.attachWorkspaceSession(ctx.db, ctx.user.id, input)
     }),
 
+  startWhiteboard: protectedProcedure
+    .input(
+      z.object({
+        questionId: z.string().uuid(),
+        boardId: z.string().uuid(),
+        title: z.string().max(200).optional(),
+        abandonOpen: z.boolean().default(false),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return service.startWhiteboardPracticeSession(ctx.db, ctx.user.id, input)
+    }),
+
   complete: protectedProcedure
     .input(
       z.object({

@@ -13,6 +13,7 @@
 @source "../../packages/document-editor/src/**/*.{ts,tsx}";
 @source "../../packages/collab/src/**/*.{ts,tsx}";
 @source "../../packages/document-assistant/src/**/*.{ts,tsx}";
+@source "../../packages/whiteboard/src/**/*.{ts,tsx}";
 
 /* Client-only decorative / motion tokens (not part of the product theme contract) */
 @theme inline {

@@ -15,6 +15,7 @@ import {
 import { coverLetters } from "../../db/schema/cover-letters.js"
 import { ideWorkspaces } from "../../db/schema/ide-workspaces.js"
 import { resumes } from "../../db/schema/resumes.js"
+import { whiteboardBoards } from "../../db/schema/whiteboard-boards.js"
 import { users } from "../../db/schema/users.js"
 import { hashToken } from "../../lib/crypto.js"
 import { signCollabTicket } from "../../lib/jwt.js"
@@ -65,6 +66,11 @@ function shareUrl(
           : `/simulations/code-run/${format}`
     const url = new URL(path, env.APP_URL)
     url.searchParams.set("id", documentId)
+    url.searchParams.set("share", rawToken)
+    return url.toString()
+  }
+  if (kind === "whiteboard") {
+    const url = new URL(`/simulations/whiteboard/board/${documentId}`, env.APP_URL)
     url.searchParams.set("share", rawToken)
     return url.toString()
   }
@@ -490,6 +496,20 @@ export async function loadDocumentSnapshot(
       updatedAt: row.updatedAt.toISOString(),
     }
   }
+  if (kind === "whiteboard") {
+    const row = await db.query.whiteboardBoards.findFirst({
+      where: eq(whiteboardBoards.id, documentId),
+    })
+    if (!row) return null
+    return {
+      ownerUserId: row.userId,
+      title: row.title,
+      templateId: "whiteboard",
+      style: {} as Record<string, unknown>,
+      document: row.document as unknown,
+      updatedAt: row.updatedAt.toISOString(),
+    }
+  }
   const row = await db.query.ideWorkspaces.findFirst({
     where: eq(ideWorkspaces.id, documentId),
   })
@@ -574,6 +594,24 @@ export async function persistDocumentSnapshot(
       document: snapshot.document,
       source: "collab_flush",
     })
+    return
+  }
+
+  if (kind === "whiteboard") {
+    await db
+      .update(whiteboardBoards)
+      .set({
+        title: snapshot.title,
+        document:
+          snapshot.document as typeof whiteboardBoards.$inferInsert.document,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(whiteboardBoards.id, documentId),
+          eq(whiteboardBoards.userId, ownerUserId)
+        )
+      )
     return
   }
 

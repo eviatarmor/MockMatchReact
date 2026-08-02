@@ -122,11 +122,24 @@ export type McqQuestionPayload = {
   explanation?: string
 }
 
+export type WhiteboardQuestionPayload = {
+  prompt: string
+  durationMin?: number
+  /** Optional starter board (element map). */
+  starterBoard?: {
+    version: 1
+    elements: Record<string, unknown>
+  }
+  defaultTemplateId?: string
+  rubric?: string
+}
+
 export type QuestionPayload =
   | ConversationQuestionPayload
   | CodeRunQuestionPayload
   | WorkspaceQuestionPayload
   | McqQuestionPayload
+  | WhiteboardQuestionPayload
   | Record<string, unknown>
 
 /** path → file body (local/dev mirror of S3 content_prefix). */

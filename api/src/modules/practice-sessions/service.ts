@@ -243,6 +243,59 @@ export async function touchPracticeSession(
     )
 }
 
+/**
+ * Whiteboard practice attempt — links board, no IDE workspace.
+ */
+export async function startWhiteboardPracticeSession(
+  db: Database,
+  userId: string,
+  input: {
+    questionId: string
+    boardId: string
+    title?: string
+    abandonOpen?: boolean
+  }
+): Promise<PracticeSessionDto> {
+  const trackId = questionTrackId(input.questionId)
+  if (input.abandonOpen !== false) {
+    await db
+      .update(practiceSessions)
+      .set({
+        status: "abandoned",
+        endedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(practiceSessions.userId, userId),
+          eq(practiceSessions.trackId, trackId),
+          eq(practiceSessions.status, "in_progress")
+        )
+      )
+  }
+
+  const [session] = await db
+    .insert(practiceSessions)
+    .values({
+      userId,
+      trackId,
+      title: input.title?.trim() || "Whiteboard",
+      boardId: input.boardId,
+      questionId: input.questionId,
+      status: "in_progress",
+      startedAt: new Date(),
+    })
+    .returning()
+
+  if (!session) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Failed to create practice session",
+    })
+  }
+  return toDto(session)
+}
+
 export async function completePracticeSession(
   db: Database,
   userId: string,

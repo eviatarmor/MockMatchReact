@@ -17,6 +17,6 @@ export const EVENT_QUEUE_MAP = {
 } as const
 
 export type CollabFlushJob = {
-  kind: "resume" | "cover_letter" | "workspace"
+  kind: "resume" | "cover_letter" | "workspace" | "whiteboard"
   documentId: string
 }

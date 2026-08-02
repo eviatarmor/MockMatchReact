@@ -16,6 +16,7 @@ export const documentKindEnum = pgEnum("document_kind", [
   "resume",
   "cover_letter",
   "workspace",
+  "whiteboard",
 ])
 
 /**

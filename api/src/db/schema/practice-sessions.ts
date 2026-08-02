@@ -10,6 +10,7 @@ import {
 import { ideWorkspaces } from "./ide-workspaces.js"
 import { questions } from "./questions.js"
 import { users } from "./users.js"
+import { whiteboardBoards } from "./whiteboard-boards.js"
 
 /** IDE / code-run practice attempt (retakes = separate rows). */
 export const practiceSessionStatusEnum = pgEnum("practice_session_status", [
@@ -29,6 +30,9 @@ export const practiceSessions = pgTable(
     trackId: text("track_id").notNull(),
     title: text("title").notNull(),
     workspaceId: uuid("workspace_id").references(() => ideWorkspaces.id, {
+      onDelete: "set null",
+    }),
+    boardId: uuid("board_id").references(() => whiteboardBoards.id, {
       onDelete: "set null",
     }),
     questionId: uuid("question_id").references(() => questions.id, {

@@ -1,4 +1,8 @@
 import type { ReactNode } from "react"
+import {
+  EDITOR_SECONDARY_BAR_ROW,
+  EDITOR_SECONDARY_BAR_SURFACE_STUCK,
+} from "@mockmatch/ui/lib/editor-chrome"
 import { cn } from "@mockmatch/ui/utils"
 
 export type IdeChromeBarDensity = "page" | "shell"
@@ -31,8 +35,8 @@ export type IdeChromeBarProps = {
    */
   readonly end?: ReactNode
   /**
-   * - `page` — host simulation bars (`px-3 py-1.5`)
-   * - `shell` — internal IdeShell menubar row (`px-2 py-1`)
+   * - `page` — host practice bars (resume-editor glass, h-11)
+   * - `shell` — internal IdeShell menubar row (same glass, slightly tighter gap)
    */
   readonly density?: IdeChromeBarDensity
   readonly className?: string
@@ -40,8 +44,8 @@ export type IdeChromeBarProps = {
 
 /**
  * Shared workbench top bar for IDE hosts and other practice surfaces
- * (e.g. conversation simulation). Slot-based so products compose title,
- * menubar, center actions, and trailing chrome without re-styling the row.
+ * (conversation, MCQ, whiteboard). Glass secondary chrome matches resume-editor
+ * {@link EditorSecondaryBar}.
  *
  * Layout: `[leading] [title] [badge] [start] [center flex-1] [end]`
  */
@@ -71,8 +75,9 @@ export function IdeChromeBar({
       data-slot="ide-chrome-bar"
       data-density={density}
       className={cn(
-        "flex shrink-0 items-center gap-2 border-b border-border",
-        density === "shell" ? "px-2 py-1" : "px-3 py-1.5",
+        EDITOR_SECONDARY_BAR_ROW,
+        EDITOR_SECONDARY_BAR_SURFACE_STUCK,
+        density === "shell" && "gap-1.5",
         className
       )}
     >
@@ -93,7 +98,7 @@ export function IdeChromeBar({
       {end != null ? (
         <div
           data-slot="ide-chrome-bar-end"
-          className="flex shrink-0 items-center gap-2"
+          className="flex shrink-0 items-center gap-1.5"
         >
           {end}
         </div>

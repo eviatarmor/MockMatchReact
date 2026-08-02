@@ -1,0 +1,78 @@
+{
+  "title": "Whiteboard",
+  "loading": "Loading whiteboard…",
+  "prompt": "Prompt",
+  "templates": "Templates",
+  "rail": {
+    "prompt": "Prompt",
+    "templates": "Templates",
+    "collapse": "Collapse panel",
+    "resize": "Resize panel"
+  },
+  "promptPanel": {
+    "title": "Prompt",
+    "description": "What this whiteboard question asks you to sketch or explain."
+  },
+  "templatesPanel": {
+    "title": "Templates",
+    "description": "Start from a layout, then adapt it to your answer."
+  },
+  "endSession": "End",
+  "exportPng": "Export PNG",
+  "undo": "Undo",
+  "redo": "Redo",
+  "zoomIn": "Zoom in",
+  "zoomOut": "Zoom out",
+  "resetView": "Reset view",
+  "share": "Share",
+  "delete": "Delete",
+  "tools": {
+    "select": "Select",
+    "pan": "Pan",
+    "pen": "Pen",
+    "sticky": "Sticky note",
+    "text": "Text",
+    "shape": "Shape",
+    "connector": "Connector"
+  },
+  "templatesCatalog": {
+    "blank": {
+      "title": "Blank",
+      "description": "Start with an empty board"
+    },
+    "systemDesign": {
+      "title": "System design",
+      "description": "Client → API → service → DB"
+    },
+    "matrix": {
+      "title": "2×2 matrix",
+      "description": "Impact vs effort quadrants"
+    },
+    "flowchart": {
+      "title": "Flowchart",
+      "description": "Start, decision, yes/no, end"
+    },
+    "swot": {
+      "title": "SWOT",
+      "description": "Strengths, weaknesses, opportunities, threats"
+    },
+    "userJourney": {
+      "title": "User journey",
+      "description": "Awareness through advocacy stages"
+    }
+  },
+  "applyTemplateTitle": "Replace board?",
+  "applyTemplateConfirm": "Applying a template replaces everything on the board. This can be undone.",
+  "apply": "Apply",
+  "cancel": "Cancel",
+  "saved": "Saved",
+  "saving": "Saving…",
+  "ended": "Session ended",
+  "errors": {
+    "invalidId": "Invalid question id",
+    "notFound": "Question not found",
+    "backToQuestionBank": "Back to question bank",
+    "wrongFormat": "This question is not a whiteboard exercise"
+  },
+  "emptyPrompt": "Use the board to sketch your answer. Tools are on the left; open Prompt or Templates from the right rail."
+}

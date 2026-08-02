@@ -14,5 +14,6 @@ export * from "./ide-workspaces.js"
 export * from "./practice-exercises.js"
 export * from "./practice-sessions.js"
 export * from "./voice-sessions.js"
+export * from "./whiteboard-boards.js"
 
 

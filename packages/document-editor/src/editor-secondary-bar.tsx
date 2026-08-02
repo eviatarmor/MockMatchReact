@@ -1,17 +1,16 @@
 import type { ReactNode } from "react"
+import {
+  EDITOR_SECONDARY_BAR_ROW,
+  EDITOR_SECONDARY_BAR_SURFACE,
+  EDITOR_SECONDARY_BAR_SURFACE_STUCK,
+} from "@mockmatch/ui/lib/editor-chrome"
 import { cn } from "@mockmatch/ui/utils"
 
-/**
- * Shared surface for secondary chrome under the main dashboard navbar.
- * Matches the content card (`main` in DashboardLayout): neutral-50 / neutral-950 —
- * never pure `bg-background` (white), which flashes on the gray shell.
- */
-export const SECONDARY_BAR_SURFACE =
-  "border-b border-border/60 bg-neutral-50 dark:bg-neutral-950"
+/** @deprecated Prefer `EDITOR_SECONDARY_BAR_SURFACE` from `@mockmatch/ui/lib/editor-chrome`. */
+export const SECONDARY_BAR_SURFACE = EDITOR_SECONDARY_BAR_SURFACE
 
-/** Over-content glass: translucent + blur so the canvas / board peeks through. */
-export const SECONDARY_BAR_SURFACE_STUCK =
-  "border-b border-border/60 bg-neutral-50/75 backdrop-blur-md dark:bg-neutral-950/75"
+/** @deprecated Prefer `EDITOR_SECONDARY_BAR_SURFACE_STUCK` from `@mockmatch/ui/lib/editor-chrome`. */
+export const SECONDARY_BAR_SURFACE_STUCK = EDITOR_SECONDARY_BAR_SURFACE_STUCK
 
 interface EditorSecondaryBarProps {
   readonly left?: ReactNode
@@ -32,8 +31,9 @@ export function EditorSecondaryBar({
   return (
     <div
       className={cn(
-        "flex h-11 shrink-0 items-center justify-between gap-3 px-3 sm:px-4",
-        SECONDARY_BAR_SURFACE_STUCK,
+        EDITOR_SECONDARY_BAR_ROW,
+        "justify-between gap-3",
+        EDITOR_SECONDARY_BAR_SURFACE_STUCK,
         className
       )}
     >

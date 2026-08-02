@@ -23,6 +23,7 @@ import { SimulationTracksPage } from "@/pages/dashboard/simulation-tracks-page"
 import { SimulationIdePage } from "@/pages/dashboard/simulation-ide-page"
 import { SimulationConversationPage } from "@/pages/dashboard/simulation-conversation-page"
 import { SimulationMcqPage } from "@/pages/dashboard/simulation-mcq-page"
+import { SimulationWhiteboardPage } from "@/pages/dashboard/simulation-whiteboard-page"
 import { QuestionBankPage } from "@/pages/dashboard/question-bank-page"
 import { ReadinessPage } from "@/pages/dashboard/readiness-page"
 import { PerformancePage } from "@/pages/dashboard/performance-page"
@@ -86,6 +87,10 @@ export function dashboardRoutes() {
         <Route
           path="simulations/mcq/:questionId"
           element={<SimulationMcqPage />}
+        />
+        <Route
+          path="simulations/whiteboard/:questionId"
+          element={<SimulationWhiteboardPage />}
         />
         <Route path="resumes/:resumeId" element={<ResumeEditorPage />} />
         <Route path="notifications" element={<NotificationsPage />} />

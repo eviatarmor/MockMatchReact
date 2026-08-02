@@ -9,6 +9,7 @@ import {
 import { coverLetters } from "../../db/schema/cover-letters.js"
 import { ideWorkspaces } from "../../db/schema/ide-workspaces.js"
 import { resumes } from "../../db/schema/resumes.js"
+import { whiteboardBoards } from "../../db/schema/whiteboard-boards.js"
 import { isMember } from "../../lib/collab-store.js"
 import { hashToken } from "../../lib/crypto.js"
 
@@ -38,16 +39,27 @@ async function loadOwnerUserId(
     })
     return row?.userId ?? null
   }
-  const row = await db.query.ideWorkspaces.findFirst({
-    where: eq(ideWorkspaces.id, documentId),
-    columns: { userId: true },
-  })
-  return row?.userId ?? null
+  if (kind === "workspace") {
+    const row = await db.query.ideWorkspaces.findFirst({
+      where: eq(ideWorkspaces.id, documentId),
+      columns: { userId: true },
+    })
+    return row?.userId ?? null
+  }
+  if (kind === "whiteboard") {
+    const row = await db.query.whiteboardBoards.findFirst({
+      where: eq(whiteboardBoards.id, documentId),
+      columns: { userId: true },
+    })
+    return row?.userId ?? null
+  }
+  return null
 }
 
 function notFoundMessage(kind: DocumentKind): string {
   if (kind === "resume") return "Resume not found."
   if (kind === "cover_letter") return "Cover letter not found."
+  if (kind === "whiteboard") return "Whiteboard not found."
   return "Workspace not found."
 }
 
