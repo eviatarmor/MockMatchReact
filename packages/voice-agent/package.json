@@ -18,5 +18,13 @@
     "lucide-react": "*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
+  },
+  "scripts": {
+    "test": "vitest run --config vitest.config.ts",
+    "test:unit": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.10"
   }
 }

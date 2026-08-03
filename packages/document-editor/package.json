@@ -36,6 +36,14 @@
     "harper.js": "^2.4.0",
     "lexical": "^0.45.0",
     "lucide-react": "^1.18.0",
-    "yjs": "^13.6.31"
+    "yjs": "^13.6.0"
+  },
+  "scripts": {
+    "test": "vitest run --config vitest.config.ts",
+    "test:unit": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.10"
   }
 }

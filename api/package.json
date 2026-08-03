@@ -22,7 +22,13 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "db:schema:mermaid": "tsx scripts/generate-schema-mermaid.ts",
-    "db:seed:exercises": "tsx scripts/seed-practice-exercises.ts"
+    "db:seed:exercises": "tsx scripts/seed-practice-exercises.ts",
+    "test": "npm run test:unit",
+    "test:unit": "vitest run --config vitest.config.ts",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:watch": "vitest --config vitest.config.ts",
+    "test:bench": "vitest bench --config vitest.bench.config.ts --run",
+    "test:bench:db": "vitest bench --config vitest.bench.db.config.ts --run"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",
@@ -51,13 +57,17 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@testcontainers/postgresql": "^11.14.0",
+    "@testcontainers/redis": "^11.14.0",
     "@types/node": "^22",
     "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.15.4",
     "@types/ws": "^8.18.1",
     "drizzle-kit": "^0.31.4",
     "pino-pretty": "^13.0.0",
+    "testcontainers": "^11.14.0",
     "tsx": "^4.20.3",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
   }
 }

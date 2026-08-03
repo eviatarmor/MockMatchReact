@@ -63,7 +63,7 @@ jobs:
           category: fallow
 
   quality:
-    name: Typecheck · Lint · Build
+    name: Typecheck · Lint · Unit · Build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -86,6 +86,10 @@ jobs:
 
       - name: Lint client
         run: npm run lint --workspace=client
+
+      # Unit only — no Docker / Testcontainers / Playwright (see npm run test:full locally)
+      - name: Unit tests
+        run: npm run test:unit
 
       - name: Build client
         run: npm run build --workspace=client

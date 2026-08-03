@@ -16,6 +16,11 @@ function getTrpcProcedurePath(error: unknown): string | null {
     const path = error.data?.path
     if (typeof path === "string") return path
   }
+  // Plain error shapes (tests / non-TRPCClientError wrappers)
+  if (error && typeof error === "object" && "data" in error) {
+    const path = (error as { data?: { path?: unknown } }).data?.path
+    if (typeof path === "string") return path
+  }
   return null
 }
 

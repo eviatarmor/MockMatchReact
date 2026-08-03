@@ -8,23 +8,34 @@
     "api/src/lib/s3.ts",
     "client/src/components/ui/**/*.{ts,tsx}",
     "client/src/components/shadcn-space/**/*.{ts,tsx}",
-    "client/src/components/format/**/*.{ts,tsx}"
+    "client/src/components/format/**/*.{ts,tsx}",
+    "api/tests/**/*.{ts,tsx}",
+    "client/tests/**/*.{ts,tsx}",
+    "packages/*/tests/**/*.{ts,tsx}",
+    "voice/tests/**/*.py"
+  ],
+  "ignoreDependencies": [
+    "ws",
+    "testcontainers",
+    "@testcontainers/postgresql",
+    "@testcontainers/redis"
   ],
   "workspaces": {
     "packages": ["client", "api", "packages/*"]
   },
   "duplicates": {
-    // Hide pair-only clones; focus on widespread copy-paste
-    // worth refactoring. Lower to 2 to report every duplicate pair.
     "minOccurrences": 3,
     "ignore": [
       "client/src/components/ui/**",
-      "client/src/components/shadcn-space/**"
+      "client/src/components/shadcn-space/**",
+      "**/tests/**",
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/*.bench.ts",
+      "**/*.spec.ts"
     ]
   },
   "rules": {
-    // Public/shared surfaces intentionally export more than current callers.
-    // PR gate (`fallow audit`) still flags newly introduced dead code.
     "unused-exports": "off",
     "unused-types": "off",
     "duplicate-exports": "off",
