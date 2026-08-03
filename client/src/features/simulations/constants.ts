@@ -172,6 +172,17 @@ export const INTERVIEW_TRACKS: readonly InterviewTrack[] = [
     titleKey: "simulations.tracks.workspace.title",
     descriptionKey: "simulations.tracks.workspace.description",
   },
+  {
+    id: "page",
+    iconName: "FileText",
+    difficulty: "medium",
+    taskCount: 1,
+    format: "page",
+    durationMin: 30,
+    roleFamilies: ["consulting", "product", "finance", "general"],
+    titleKey: "simulations.tracks.page.title",
+    descriptionKey: "simulations.tracks.page.description",
+  },
 ] as const
 
 /** History is server-backed via voice.listSessions — no hard-coded rows. */

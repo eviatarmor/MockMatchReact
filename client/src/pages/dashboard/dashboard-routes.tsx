@@ -24,6 +24,7 @@ import { SimulationIdePage } from "@/pages/dashboard/simulation-ide-page"
 import { SimulationConversationPage } from "@/pages/dashboard/simulation-conversation-page"
 import { SimulationMcqPage } from "@/pages/dashboard/simulation-mcq-page"
 import { SimulationWhiteboardPage } from "@/pages/dashboard/simulation-whiteboard-page"
+import { SimulationPagePage } from "@/pages/dashboard/simulation-page-page"
 import { QuestionBankPage } from "@/pages/dashboard/question-bank-page"
 import { ReadinessPage } from "@/pages/dashboard/readiness-page"
 import { PerformancePage } from "@/pages/dashboard/performance-page"
@@ -92,6 +93,7 @@ export function dashboardRoutes() {
           path="simulations/whiteboard/:questionId"
           element={<SimulationWhiteboardPage />}
         />
+        <Route path="simulations/page" element={<SimulationPagePage />} />
         <Route path="resumes/:resumeId" element={<ResumeEditorPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         {DASHBOARD_ROUTES.map(({ path, titleKey }) => {

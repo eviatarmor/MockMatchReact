@@ -1183,7 +1183,8 @@
       "workspace": "Dev workspace",
       "terminal": "Terminal lab",
       "conversation": "Conversation",
-      "mcq": "Multiple choice"
+      "mcq": "Multiple choice",
+      "page": "Document"
     },
     "recentSessions": {
       "title": "Recent sessions",
@@ -1281,6 +1282,10 @@
       "workspace": {
         "title": "Dev workspace",
         "description": "Freeform multiplayer IDE for multi-file practice."
+      },
+      "page": {
+        "title": "Document analysis",
+        "description": "Freeform Notion-style page for case writeups and long-form analysis."
       },
       "behavioralCore": {
         "title": "Behavioral · Core stories",

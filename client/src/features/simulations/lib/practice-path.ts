@@ -9,6 +9,8 @@ export const QUESTION_PRACTICE_BASE_PATH = "/simulations/practice"
 export const QUESTION_MCQ_BASE_PATH = "/simulations/mcq"
 /** Bank-sourced whiteboard practice. */
 export const QUESTION_WHITEBOARD_BASE_PATH = "/simulations/whiteboard"
+/** Freeform document analysis page practice. */
+export const PAGE_PRACTICE_PATH = "/simulations/page"
 
 /** App path for a conversation track session. */
 export function conversationPathForTrackId(trackId: string): string {
@@ -62,6 +64,9 @@ export function practicePathForTrackId(trackId: string): string | null {
   const track = INTERVIEW_TRACKS.find((t) => t.id === trackId)
   if (track?.format === "conversation") {
     return conversationPathForTrackId(trackId)
+  }
+  if (track?.format === "page" || trackId === "page") {
+    return PAGE_PRACTICE_PATH
   }
   return idePathForTrackId(trackId)
 }
