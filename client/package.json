@@ -38,6 +38,7 @@
     "@mockmatch/ide": "*",
     "@mockmatch/mcq": "*",
     "@mockmatch/schemas": "*",
+    "@mockmatch/spreadsheet": "*",
     "@mockmatch/ui": "*",
     "@mockmatch/voice-agent": "*",
     "@mockmatch/whiteboard": "*",

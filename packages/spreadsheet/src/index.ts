@@ -1,0 +1,70 @@
+/**
+ * Product-agnostic multi-sheet spreadsheet shell.
+ * Host supplies chrome, i18n labels, persistence, and collab room.
+ */
+
+export {
+  SpreadsheetShell,
+  type SpreadsheetShellProps,
+} from "./spreadsheet-shell"
+export { FormulaBar, type FormulaBarProps } from "./formula-bar"
+export { SheetTabs, type SheetTabsProps } from "./sheet-tabs"
+export {
+  SpreadsheetGrid,
+  type SpreadsheetGridProps,
+} from "./grid/spreadsheet-grid"
+export {
+  useSpreadsheet,
+  type UseSpreadsheetOptions,
+  type UseSpreadsheetApi,
+} from "./use-spreadsheet"
+export {
+  createEmptyWorkbook,
+  createEmptySheet,
+  getActiveSheet,
+  getCellRaw,
+  setCellRaw,
+  updateSheet,
+  cloneDocument,
+  newSheetId,
+} from "./document"
+export {
+  colToLetter,
+  letterToCol,
+  toA1,
+  parseA1,
+  cellKey,
+  parseCellKey,
+  normalizeRange,
+  inRange,
+} from "./address"
+export {
+  createFormulaEngine,
+  getDisplayCell,
+  applyCellToEngine,
+  rebuildEngine,
+} from "./formula/engine"
+export {
+  materializeWorkbook,
+  ensureWorkbookYDoc,
+  setCellInYDoc,
+  observeWorkbook,
+} from "./collab/yjs-workbook"
+export type {
+  SpreadsheetCell,
+  SpreadsheetSheet,
+  SpreadsheetDocument,
+  CellCoord,
+  CellRange,
+  SpreadsheetSelection,
+  DisplayCell,
+  SpreadsheetShellLabels,
+} from "./types"
+export {
+  DEFAULT_ROW_COUNT,
+  DEFAULT_COL_COUNT,
+  DEFAULT_ROW_HEIGHT,
+  DEFAULT_COL_WIDTH,
+  ROW_HEADER_WIDTH,
+  COL_HEADER_HEIGHT,
+} from "./types"
