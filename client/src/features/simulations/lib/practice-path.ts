@@ -9,6 +9,10 @@ export const QUESTION_PRACTICE_BASE_PATH = "/simulations/practice"
 export const QUESTION_MCQ_BASE_PATH = "/simulations/mcq"
 /** Bank-sourced whiteboard practice. */
 export const QUESTION_WHITEBOARD_BASE_PATH = "/simulations/whiteboard"
+/** Freeform spreadsheet practice. */
+export const SPREADSHEET_PRACTICE_PATH = "/simulations/spreadsheet"
+/** Freeform document analysis page practice. */
+export const PAGE_PRACTICE_PATH = "/simulations/page"
 
 /** App path for a conversation track session. */
 export function conversationPathForTrackId(trackId: string): string {
@@ -40,6 +44,12 @@ export function practicePathForFormat(
   if (format === "conversation") return conversationPathForTrackId(questionId)
   if (format === "mcq") return mcqPathForQuestionId(questionId)
   if (format === "whiteboard") return whiteboardPathForQuestionId(questionId)
+  if (format === "spreadsheet") {
+    return `${SPREADSHEET_PRACTICE_PATH}?questionId=${encodeURIComponent(questionId)}`
+  }
+  if (format === "page") {
+    return `${PAGE_PRACTICE_PATH}?questionId=${encodeURIComponent(questionId)}`
+  }
   if (
     format === "code_run" ||
     format === "workspace" ||
@@ -62,6 +72,12 @@ export function practicePathForTrackId(trackId: string): string | null {
   const track = INTERVIEW_TRACKS.find((t) => t.id === trackId)
   if (track?.format === "conversation") {
     return conversationPathForTrackId(trackId)
+  }
+  if (track?.format === "spreadsheet" || trackId === "spreadsheet") {
+    return SPREADSHEET_PRACTICE_PATH
+  }
+  if (track?.format === "page" || trackId === "page") {
+    return PAGE_PRACTICE_PATH
   }
   return idePathForTrackId(trackId)
 }

@@ -4,7 +4,7 @@ icon: MonitorPlay
 description: Sessions, interview tracks, and practice formats
 ---
 
-Simulations is the practice home: recent sessions, featured interview tracks, and entry points into formats such as code run, conversation, terminal lab, dev workspace, multiple choice (MCQ), and whiteboard.
+Simulations is the practice home: recent sessions, featured interview tracks, and entry points into formats such as code run, conversation, terminal lab, dev workspace, multiple choice (MCQ), whiteboard, spreadsheet, and freeform document analysis.
 
 ## Open Simulations
 
@@ -30,6 +30,8 @@ Seed IDE labs (catalog exercises) remain available from direct URLs and session 
 | **Conversation** | Live agent interview (robot + chat, voice pipeline) | `/simulations/conversation/:trackId` |
 | **MCQ** | Single, multi-select, or order questions in a sequence | `/simulations/mcq/:seedId` |
 | **Whiteboard** | Pan/zoom canvas: sticky notes, shapes, pen, connectors | `/simulations/whiteboard/:questionId` |
+| **Spreadsheet** | Multi-sheet grid with formulas for case and finance drills | `/simulations/spreadsheet` |
+| **Document** | Freeform Notion-style page for case writeups | `/simulations/page` |
 
 ### Code run notes
 
@@ -46,6 +48,14 @@ MCQ sessions run a same-domain sequence. Variants: **single**, **multi** (select
 ### Whiteboard notes
 
 Whiteboard practice uses a canvas shell with templates, autosave, and collab kind `whiteboard`.
+
+### Spreadsheet notes
+
+Spreadsheet practice is a multi-sheet workbook: editable cells, formula bar, and sheet tabs. Freeform: `/simulations/spreadsheet`. From the question bank, Practice opens `?questionId=` with the case prompt and optional starter workbook from generation. Workbooks autosave; **Share** uses collab kind `spreadsheet` (`?id=` + `share`).
+
+### Document analysis notes
+
+Document analysis is a freeform Lexical page (headings, lists, checklist, quote, code, slash menu). Freeform: `/simulations/page`. Bank Practice opens `?questionId=` with the prompt and optional starter outline HTML. Separate from Resume Lab sectioned editors. Collab kind `page`.
 
 ## Collaboration on practice rooms
 

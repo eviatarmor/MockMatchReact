@@ -53,6 +53,8 @@ export const questionFormatEnum = pgEnum("question_format", [
   "terminal",
   "whiteboard",
   "mcq",
+  "spreadsheet",
+  "page",
 ])
 
 export const questionSourceEnum = pgEnum("question_source", [
@@ -134,12 +136,40 @@ export type WhiteboardQuestionPayload = {
   rubric?: string
 }
 
+/** Case / finance table practice. */
+export type SpreadsheetQuestionPayload = {
+  prompt: string
+  durationMin?: number
+  rubric?: string
+  starterWorkbook?: {
+    version: 1
+    sheets: Array<{
+      id: string
+      name: string
+      cells: Record<string, { raw: string }>
+      rowCount: number
+      colCount: number
+    }>
+    activeSheetId: string
+  }
+}
+
+/** Freeform document analysis / writeup practice. */
+export type PageQuestionPayload = {
+  prompt: string
+  durationMin?: number
+  rubric?: string
+  starterHtml?: string
+}
+
 export type QuestionPayload =
   | ConversationQuestionPayload
   | CodeRunQuestionPayload
   | WorkspaceQuestionPayload
   | McqQuestionPayload
   | WhiteboardQuestionPayload
+  | SpreadsheetQuestionPayload
+  | PageQuestionPayload
   | Record<string, unknown>
 
 /** path → file body (local/dev mirror of S3 content_prefix). */

@@ -1,0 +1,26 @@
+{
+  "documentTitle": "Spreadsheet — MockMatch",
+  "title": "Spreadsheet practice",
+  "subtitle": "Cells, sheets, and formulas",
+  "header": {
+    "back": "Simulations"
+  },
+  "formulaBarAria": "Formula bar",
+  "nameBoxAria": "Active cell",
+  "gridAria": "Spreadsheet grid",
+  "sheetTabsAria": "Sheets",
+  "sheetFallback": "Sheet{{n}}",
+  "cannotDeleteLastSheet": "Keep at least one sheet.",
+  "actions": {
+    "addSheet": "Add sheet",
+    "renameSheet": "Rename sheet",
+    "deleteSheet": "Delete sheet",
+    "share": "Share"
+  },
+  "loading": "Loading spreadsheet…",
+  "save": {
+    "saved": "Saved",
+    "saving": "Saving…",
+    "error": "Save failed"
+  }
+}

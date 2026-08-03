@@ -1122,7 +1122,9 @@
       "workspace": "Dev workspace",
       "terminal": "Terminal lab",
       "conversation": "Conversation",
-      "mcq": "Multiple choice"
+      "mcq": "Multiple choice",
+      "spreadsheet": "Spreadsheet",
+      "page": "Document"
     },
     "recentSessions": {
       "title": "Recent sessions",
@@ -1221,6 +1223,10 @@
         "title": "Dev workspace",
         "description": "Freeform multiplayer IDE for multi-file practice."
       },
+      "spreadsheet": {
+        "title": "Spreadsheet lab",
+        "description": "Multi-sheet grid with formulas for case and finance drills."
+      },
       "behavioralCore": {
         "title": "Behavioral · Core stories",
         "description": "Live agent mock for STAR-style behavioural answers. Hold mic to practice."
@@ -1232,6 +1238,10 @@
       "systemDesignTalk": {
         "title": "System design · Talk track",
         "description": "Architecture discussion only — no code. Voice-first agent stage."
+      },
+      "page": {
+        "title": "Document analysis",
+        "description": "Freeform Notion-style page for case write-ups and long-form analysis."
       }
     }
   }

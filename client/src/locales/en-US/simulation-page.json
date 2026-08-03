@@ -1,0 +1,38 @@
+{
+  "documentTitle": "Document analysis — MockMatch",
+  "title": "Document analysis",
+  "subtitle": "Freeform writeup · type / for blocks",
+  "header": {
+    "back": "Simulations"
+  },
+  "canvasAria": "Document canvas",
+  "slashMenuAria": "Insert block",
+  "placeholder": "Start writing, or type / for blocks…",
+  "toolbar": {
+    "bold": "Bold",
+    "italic": "Italic",
+    "underline": "Underline",
+    "strikethrough": "Strikethrough",
+    "heading1": "Heading 1",
+    "heading2": "Heading 2",
+    "heading3": "Heading 3",
+    "bulletList": "Bullet list",
+    "numberedList": "Numbered list",
+    "checkList": "Checklist",
+    "quote": "Quote",
+    "code": "Code",
+    "divider": "Divider",
+    "link": "Link",
+    "linkPrompt": "URL",
+    "paragraph": "Paragraph"
+  },
+  "loading": "Loading document…",
+  "actions": {
+    "share": "Share"
+  },
+  "save": {
+    "saved": "Saved",
+    "saving": "Saving…",
+    "error": "Save failed"
+  }
+}

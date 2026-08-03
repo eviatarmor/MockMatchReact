@@ -16,6 +16,10 @@ import {
 } from "./dedupe.js"
 import { chatJsonWithModel } from "./openrouter-json.js"
 import { logger } from "../../lib/logger.js"
+import {
+  normalizePagePayload,
+  normalizeSpreadsheetPayload,
+} from "./payloads.js"
 
 const GENERATOR_ALLOWLIST = new Set([
   "moonshotai/kimi-k3",
@@ -48,7 +52,13 @@ const QUESTION_DOMAINS = [
   "sales",
 ] as const
 
-const GENERATABLE_FORMATS = ["conversation", "code_run", "mcq"] as const
+const GENERATABLE_FORMATS = [
+  "conversation",
+  "code_run",
+  "mcq",
+  "spreadsheet",
+  "page",
+] as const
 
 const routerSchema = z.object({
   generatorModel: z.string().optional(),
@@ -267,6 +277,28 @@ function defaultPayload(
   if (format === "mcq") {
     return normalizeMcqPayload(item)
   }
+  if (format === "spreadsheet") {
+    return normalizeSpreadsheetPayload({
+      title: item.title,
+      body: item.body,
+      domain: item.domain,
+      difficulty: item.difficulty,
+      format: item.format,
+      language: item.language,
+      payload: item.payload as Record<string, unknown> | undefined,
+    })
+  }
+  if (format === "page") {
+    return normalizePagePayload({
+      title: item.title,
+      body: item.body,
+      domain: item.domain,
+      difficulty: item.difficulty,
+      format: item.format,
+      language: item.language,
+      payload: item.payload as Record<string, unknown> | undefined,
+    })
+  }
   const language = item.language ?? "javascript"
   const fromPayload = (item.payload ?? {}) as Record<string, unknown>
   const entryPath =
@@ -379,9 +411,9 @@ export async function generateQuestionsFromJobs(
       routerModel,
       `You are a cheap planning model for an interview-prep product.
 Given job description(s), choose a question mix and a generator model.
-Formats: conversation (voice interview), code_run (single-file coding IDE), mcq (pick the right answer / knowledge check).
+Formats: conversation (voice interview), code_run (single-file coding IDE), mcq (pick the right answer / knowledge check), spreadsheet (Excel-like case / finance tables with formulas), page (freeform Notion-like document analysis / written case).
 Domains: coding, systemDesign, caseStudy, product, behavioral, finance, clinical, dataScience, ml, security, devops, design, consulting, marketing, sales.
-Prefer conversation for soft skills/product/system design talk; code_run for SWE coding; mcq for factual/screening knowledge (security basics, ML concepts, sales product knowledge, consulting frameworks, etc.).
+Prefer conversation for soft skills/product/system design talk; code_run for SWE coding; mcq for factual/screening knowledge; spreadsheet for finance/consulting/ops quantitative cases; page for long-form case writeups, product memos, or document analysis.
 Total count across mix ≤ ${env.QUESTION_GEN_MAX_PER_RUN}.
 generatorModel must be a strong OpenRouter model id (prefer moonshotai/kimi-k3).
 Reply JSON: { "generatorModel": string, "roleFamily": string, "mix": [{ "format", "domain", "difficulty", "count", "language?", "trackHint?" }], "rationale": string }`,
@@ -424,7 +456,7 @@ Reply JSON: { "generatorModel": string, "roleFamily": string, "mix": [{ "format"
       `You write high-quality interview questions for MockMatch.
 Output JSON: { "questions": [ ... ] }.
 Each question:
-- title, body, domain, difficulty, format (conversation|code_run|mcq)
+- title, body, domain, difficulty, format (conversation|code_run|mcq|spreadsheet|page)
 - language (required for code_run)
 - company (job company if company-specific else null)
 - tags: string[]
@@ -435,6 +467,13 @@ Each question:
   - mcq: { stem, options: string[3-5], variant?: "single"|"multi"|"order",
     correctIndex? (single), correctIndices? (multi), correctOrder? (order = permutation of indices),
     explanation? }
+  - spreadsheet: { prompt, durationMin?, rubric?,
+    starterWorkbook?: { version: 1, activeSheetId, sheets: [{ id, name, rowCount, colCount,
+      cells: { "row:col": { raw: string } } }] } }
+    Use sparse cells only. Put headers, given inputs, and 1–3 formulas the candidate should extend or fix.
+    Cell keys are 0-based "row:col" (A1 → "0:0"). Prefer finance/consulting/ops table cases.
+  - page: { prompt, durationMin?, rubric?, starterHtml? }
+    starterHtml is a short outline (h1/h2/p/ul only) the candidate expands — not the full answer.
 
 Rules:
 - Match the requested mix counts closely.
@@ -442,6 +481,8 @@ Rules:
 - trackHint for conversation MUST be one of: behavioral-core | product-sense | system-design-talk (never job titles).
 - code_run = single-file problems with optional I/O tests (no multi-file workspaces).
 - mcq variants: single (one correct), multi (select all that apply), order (arrange steps). Use multi/order when the skill fits; otherwise single. 3–5 options; no "all of the above" spam; body matches stem.
+- spreadsheet: realistic quantitative case the candidate solves in a grid (not pure narrative). Include starterWorkbook when it helps.
+- page: written analysis / memo / case writeup; starterHtml optional outline only.
 - Do not invent whiteboard formats.
 - Make questions distinct skills — not rephrasings of each other.`,
       `Role family hint: ${plan.roleFamily ?? "general"}

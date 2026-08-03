@@ -13,6 +13,8 @@ import { resumesRouter } from "../modules/resumes/router.js"
 import { supportRouter } from "../modules/support/router.js"
 import { trackedJobsRouter } from "../modules/tracked-jobs/router.js"
 import { voiceRouter } from "../modules/voice/router.js"
+import { pageDocumentsRouter } from "../modules/page-documents/router.js"
+import { spreadsheetRouter } from "../modules/spreadsheet/router.js"
 import { whiteboardRouter } from "../modules/whiteboard/router.js"
 import { router } from "./trpc.js"
 
@@ -33,6 +35,8 @@ export const appRouter = router({
   trackedJobs: trackedJobsRouter,
   voice: voiceRouter,
   whiteboard: whiteboardRouter,
+  spreadsheet: spreadsheetRouter,
+  pageDocuments: pageDocumentsRouter,
 })
 
 export type AppRouter = typeof appRouter
