@@ -18,9 +18,9 @@ describe("heuristicSummary", () => {
     expect(heuristicSummary(job({ description: "" }))).toBe(
       "Backend Engineer at Acme · NYC."
     )
-    expect(heuristicSummary(job({ description: "   ", location: null }))).toBe(
-      "Backend Engineer at Acme."
-    )
+    expect(
+      heuristicSummary(job({ description: "   ", location: undefined }))
+    ).toBe("Backend Engineer at Acme.")
   })
 
   it("uses first sentences from description", () => {

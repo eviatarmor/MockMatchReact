@@ -12,6 +12,7 @@
     "api/tests/**/*.{ts,tsx}",
     "client/tests/**/*.{ts,tsx}",
     "packages/*/tests/**/*.{ts,tsx}",
+    "tools/vitest/**/*.{ts,tsx}",
     "voice/tests/**/*.py"
   ],
   "ignoreDependencies": [

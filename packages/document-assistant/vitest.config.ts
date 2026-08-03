@@ -1,17 +1,8 @@
-import path from "node:path"
-import { defineConfig } from "vitest/config"
-import react from "@vitejs/plugin-react"
+import { createPackageVitestConfig } from "../../tools/vitest/create-config.ts"
 
-export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      "@": path.resolve(import.meta.dirname, "./src"),
-    },
-  },
-  test: {
-    name: "document-assistant",
-    environment: "jsdom",
-    include: ["tests/unit/**/*.{test,spec}.{ts,tsx}"],
-  },
+export default createPackageVitestConfig({
+  name: "document-assistant",
+  rootDir: import.meta.dirname,
+  // stripHtml uses DOMParser
+  environment: "jsdom",
 })

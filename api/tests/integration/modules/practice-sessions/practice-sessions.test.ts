@@ -3,8 +3,6 @@ import {
   describeIntegration,
   signupAuthedCaller,
 } from "../../../helpers/integration.js"
-import { env } from "@/config/env.js"
-
 describeIntegration("practiceSessions (integration)", () => {
   it("list empty → startNew freeform → complete → delete", async () => {
     const caller = await signupAuthedCaller()

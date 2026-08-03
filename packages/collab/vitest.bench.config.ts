@@ -1,18 +1,6 @@
-import path from "node:path"
-import { defineConfig } from "vitest/config"
+import { createPackageBenchConfig } from "../../tools/vitest/create-config.ts"
 
-export default defineConfig({
-  resolve: {
-    alias: {
-      "@": path.resolve(import.meta.dirname, "./src"),
-    },
-  },
-  test: {
-    name: "collab-bench",
-    environment: "node",
-    benchmark: {
-      include: ["tests/bench/**/*.bench.ts"],
-      reporters: ["verbose"],
-    },
-  },
+export default createPackageBenchConfig({
+  name: "collab-bench",
+  rootDir: import.meta.dirname,
 })

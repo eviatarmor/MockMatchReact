@@ -1,15 +1,6 @@
-import path from "node:path"
-import { defineConfig } from "vitest/config"
+import { createPackageVitestConfig } from "../../tools/vitest/create-config.ts"
 
-export default defineConfig({
-  resolve: {
-    alias: {
-      "@": path.resolve(import.meta.dirname, "./src"),
-    },
-  },
-  test: {
-    name: "whiteboard",
-    environment: "node",
-    include: ["tests/unit/**/*.{test,spec}.{ts,tsx}"],
-  },
+export default createPackageVitestConfig({
+  name: "whiteboard",
+  rootDir: import.meta.dirname,
 })

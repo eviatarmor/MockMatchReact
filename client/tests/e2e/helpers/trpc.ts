@@ -1,8 +1,16 @@
 import type { APIRequestContext, APIResponse } from "@playwright/test"
+import {
+  extractTrpcData,
+  isTrpcErrorBody,
+  trpcQueryPath,
+} from "../../../../api/tests/helpers/trpc-http.ts"
 import { E2E_API_URL } from "./env"
 
+export { extractTrpcData }
+
 /**
- * tRPC HTTP via Hono adapter — body is the raw input object (not `{ json: … }`).
+ * tRPC HTTP via Hono adapter — raw input JSON (no superjson transformer).
+ * Wire helpers: api/tests/helpers/trpc-http.ts (shared with API HTTP benches).
  */
 export async function trpcMutation<TInput>(
   request: APIRequestContext,
@@ -21,14 +29,8 @@ export async function trpcQuery(
   procedure: string,
   input?: unknown
 ): Promise<APIResponse> {
-  const params = new URLSearchParams()
-  if (input !== undefined) {
-    // GET input: raw JSON (Hono/tRPC accepts unwrapped input)
-    params.set("input", JSON.stringify(input))
-  }
-  const q = params.toString()
-  const url = `${E2E_API_URL}/trpc/${procedure}${q ? `?${q}` : ""}`
-  return request.get(url)
+  const path = trpcQueryPath(procedure, input)
+  return request.get(`${E2E_API_URL}${path}`)
 }
 
 export async function assertTrpcOk(
@@ -46,39 +48,12 @@ export async function assertTrpcOk(
   } catch {
     throw new Error(`${label}: non-JSON body: ${text.slice(0, 200)}`)
   }
-  // tRPC error envelope
-  if (
-    body &&
-    typeof body === "object" &&
-    "error" in body &&
-    (body as { error?: unknown }).error
-  ) {
-    throw new Error(`${label}: ${JSON.stringify((body as { error: unknown }).error)}`)
+  if (isTrpcErrorBody(body)) {
+    throw new Error(
+      `${label}: ${JSON.stringify((body as { error: unknown }).error)}`
+    )
   }
   return body
-}
-
-/**
- * Unwrap tRPC success payload.
- * Hono adapter returns `{ result: { data: T } }` (data not superjson-wrapped).
- */
-export function extractTrpcData<T = unknown>(body: unknown): T {
-  if (!body || typeof body !== "object") {
-    throw new Error(`Unexpected tRPC body: ${JSON.stringify(body)}`)
-  }
-  const root = body as Record<string, unknown>
-  if ("result" in root && root.result && typeof root.result === "object") {
-    const result = root.result as { data?: { json?: unknown } | unknown }
-    const data = result.data
-    if (data && typeof data === "object" && data !== null && "json" in data) {
-      return (data as { json: T }).json
-    }
-    return data as T
-  }
-  if ("0" in root) {
-    return extractTrpcData<T>((root as { "0": unknown })["0"])
-  }
-  throw new Error(`No tRPC data in: ${JSON.stringify(body).slice(0, 300)}`)
 }
 
 export async function trpcMutationData<TInput, TOut = unknown>(

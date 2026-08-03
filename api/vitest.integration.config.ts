@@ -1,22 +1,16 @@
-import path from "node:path"
-import { defineConfig } from "vitest/config"
+import { createPackageVitestConfig } from "../tools/vitest/create-config.ts"
 
 /**
- * API integration tests under tests/integration.
- * Postgres + Redis via Testcontainers (or USE_EXISTING_INFRA=1).
+ * API integration — Postgres + Redis via Testcontainers (or USE_EXISTING_INFRA=1).
+ * Set REQUIRE_INTEGRATION=1 (CI) to fail instead of skip when infra is unavailable.
  */
-export default defineConfig({
-  resolve: {
-    alias: {
-      "@": path.resolve(import.meta.dirname, "./src"),
-    },
-  },
+export default createPackageVitestConfig({
+  name: "api-integration",
+  rootDir: import.meta.dirname,
+  include: ["tests/integration/**/*.{test,spec}.ts"],
+  setupFiles: ["./tests/setup/setup-env.ts"],
   test: {
-    name: "api-integration",
-    environment: "node",
-    include: ["tests/integration/**/*.{test,spec}.ts"],
     globalSetup: ["./tests/setup/global-setup.ts"],
-    setupFiles: ["./tests/setup/setup-env.ts"],
     pool: "forks",
     fileParallelism: false,
     testTimeout: 60_000,

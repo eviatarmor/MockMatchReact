@@ -1,13 +1,10 @@
-import "@testing-library/jest-dom/vitest"
-import { cleanup } from "@testing-library/react"
-import { afterEach } from "vitest"
-
-afterEach(() => {
-  cleanup()
-})
+import "../../../tools/vitest/setup-jsdom.ts"
 
 // Monaco (via @mockmatch/ide) probes clipboard APIs at import time.
-if (typeof document !== "undefined" && typeof document.queryCommandSupported !== "function") {
+if (
+  typeof document !== "undefined" &&
+  typeof document.queryCommandSupported !== "function"
+) {
   document.queryCommandSupported = () => false
 }
 

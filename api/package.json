@@ -28,7 +28,8 @@
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:watch": "vitest --config vitest.config.ts",
     "test:bench": "vitest bench --config vitest.bench.config.ts --run",
-    "test:bench:db": "vitest bench --config vitest.bench.db.config.ts --run"
+    "test:bench:db": "vitest bench --config vitest.bench.db.config.ts --run",
+    "typecheck:tests": "tsc -p tsconfig.tests.json --noEmit"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",
@@ -67,7 +68,6 @@
     "pino-pretty": "^13.0.0",
     "testcontainers": "^11.14.0",
     "tsx": "^4.20.3",
-    "typescript": "^5",
-    "vitest": "^3.2.7"
+    "typescript": "^5"
   }
 }

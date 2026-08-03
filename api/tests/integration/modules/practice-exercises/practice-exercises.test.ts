@@ -3,8 +3,6 @@ import {
   describeIntegration,
   signupAuthedCaller,
 } from "../../../helpers/integration.js"
-import { env } from "@/config/env.js"
-
 describeIntegration("practiceExercises (integration)", () => {
   it("list returns array (may be empty without seed)", async () => {
     const caller = await signupAuthedCaller()

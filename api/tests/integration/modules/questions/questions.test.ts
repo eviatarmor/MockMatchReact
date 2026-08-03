@@ -4,8 +4,6 @@ import {
   describeIntegration,
   signupAuthedCaller,
 } from "../../../helpers/integration.js"
-import { env } from "@/config/env.js"
-
 describeIntegration("questions (integration)", () => {
   it("list returns paginated shape (may be empty)", async () => {
     const caller = await signupAuthedCaller()

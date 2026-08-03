@@ -1,6 +1,5 @@
-import { beforeAll, bench, describe } from "vitest"
+import { beforeAll, bench } from "vitest"
 import {
-  deleteOtpChallenge,
   getOtpChallenge,
   setOtpChallenge,
   storeRefreshToken,
@@ -9,14 +8,14 @@ import {
 } from "@/lib/auth-store.js"
 import { hashToken } from "@/lib/crypto.js"
 import {
-  describeBenchIntegration,
+  describeIntegration,
   integrationAvailable,
 } from "../../helpers/integration.js"
 
 /**
  * Auth store on real Redis (OTP + refresh hashes) — multi-replica shared path.
  */
-describeBenchIntegration("db redis auth-store", () => {
+describeIntegration("db redis auth-store", () => {
   const email = `bench-otp+${Date.now()}@example.com`
   let refreshHash = ""
 
