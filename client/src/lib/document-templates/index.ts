@@ -1,14 +1,8 @@
 import type { TemplateItem } from "@/components/templates/types"
 import { companyLogoUrl } from "@/lib/company-logos"
 import { STYLE, buildCoverLetterDocument, buildResumeDocument } from "./builders"
-import {
-  industryEducation,
-  industryExperience,
-  industrySkills,
-  industrySummary,
-  letterParagraphs,
-} from "./industry-seeds"
 import { ROLE_DIRECTORY } from "./role-directory"
+import { getRoleSeed } from "./seeds"
 import type { CoverLetterRoleTemplate, ResumeRoleTemplate } from "./types"
 
 const PEOPLE: Record<
@@ -35,19 +29,36 @@ const PEOPLE: Record<
   auL: { name: "Isla Bennett", email: "isla.bennett@email.com", phone: "+61 2 5550 8800", linkedin: "in/islabennett" },
 }
 
-function personFor(entry: (typeof ROLE_DIRECTORY)[number]) {
-  const base = PEOPLE[entry.personKey] ?? PEOPLE.usT
+function personFor(
+  entry: (typeof ROLE_DIRECTORY)[number],
+  seedPerson?: {
+    name: string
+    email: string
+    phone: string
+    linkedin: string
+    website?: string
+  }
+) {
+  const base = seedPerson ?? PEOPLE[entry.personKey] ?? PEOPLE.usT
   return {
-    ...base,
+    name: base.name,
+    email: base.email,
+    phone: base.phone,
+    linkedin: base.linkedin,
+    website: seedPerson?.website,
     headline: entry.headline,
     location: entry.location,
   }
 }
 
-/** Full resume role templates (50). */
+/** Full resume role templates (50) — unique content per company/role. */
 export function getResumeRoleTemplates(): readonly ResumeRoleTemplate[] {
   return ROLE_DIRECTORY.map((entry) => {
-    const person = personFor(entry)
+    const seed = getRoleSeed(entry.id)
+    if (!seed) {
+      throw new Error(`[document-templates] missing role seed for "${entry.id}"`)
+    }
+    const person = personFor(entry, seed.person)
     return {
       id: entry.id,
       title: entry.title,
@@ -59,19 +70,25 @@ export function getResumeRoleTemplates(): readonly ResumeRoleTemplate[] {
       layoutId: entry.resumeLayout,
       style: { ...STYLE[entry.styleKey] },
       person,
-      summary: industrySummary(entry.category, entry.title),
-      experience: industryExperience(entry.category, entry.company, entry.title, entry.country),
-      education: industryEducation(entry.category, entry.country),
-      skills: industrySkills(entry.category),
+      summary: seed.summary,
+      experience: seed.experience,
+      education: seed.education,
+      skills: seed.skills,
+      projects: seed.projects,
+      certifications: seed.certifications,
+      languages: seed.languages,
     } satisfies ResumeRoleTemplate
   })
 }
 
-/** Full cover-letter role templates (50) — paired to the same employers/roles. */
+/** Full cover-letter role templates (50) — paired unique letters. */
 export function getCoverLetterRoleTemplates(): readonly CoverLetterRoleTemplate[] {
   return ROLE_DIRECTORY.map((entry) => {
-    const person = personFor(entry)
-    const letter = letterParagraphs(entry.category, entry.title, entry.company)
+    const seed = getRoleSeed(entry.id)
+    if (!seed) {
+      throw new Error(`[document-templates] missing role seed for "${entry.id}"`)
+    }
+    const person = personFor(entry, seed.person)
     const hq = entry.location
     return {
       id: entry.id,
@@ -91,9 +108,9 @@ export function getCoverLetterRoleTemplates(): readonly CoverLetterRoleTemplate[
         company: entry.company,
         addressLines: [hq],
       },
-      greeting: letter.greeting,
-      paragraphs: letter.paragraphs,
-      closing: letter.closing,
+      greeting: seed.letter.greeting,
+      paragraphs: seed.letter.paragraphs,
+      closing: seed.letter.closing,
     } satisfies CoverLetterRoleTemplate
   })
 }
