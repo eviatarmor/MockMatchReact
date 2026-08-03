@@ -15,7 +15,7 @@ import {
 } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { GripVertical } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn } from "@mockmatch/ui/utils"
 
 /** Lock drag transform to the Y axis (no horizontal drift). */
 const restrictToVerticalAxis: Modifier = ({ transform }) => ({
@@ -23,7 +23,7 @@ const restrictToVerticalAxis: Modifier = ({ transform }) => ({
   x: 0,
 })
 
-type McqOrderListProps = {
+export type McqOrderListProps = {
   readonly options: readonly string[]
   /** Current display order as original option indices */
   readonly orderedIndices: readonly number[]
@@ -54,8 +54,7 @@ function SortableRow({
     useSortable({ id, disabled })
 
   // Also zero x here so sorted items never slide sideways mid-drag.
-  const locked =
-    transform == null ? null : { ...transform, x: 0 }
+  const locked = transform == null ? null : { ...transform, x: 0 }
 
   return (
     <li
@@ -125,8 +124,7 @@ export function McqOrderList({
           {orderedIndices.map((optIndex, pos) => {
             let tone: "correct" | "wrong" | "neutral" = "neutral"
             if (revealed && correctOrder) {
-              tone =
-                correctOrder[pos] === optIndex ? "correct" : "wrong"
+              tone = correctOrder[pos] === optIndex ? "correct" : "wrong"
             }
             return (
               <SortableRow

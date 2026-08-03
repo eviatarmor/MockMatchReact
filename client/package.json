@@ -36,6 +36,7 @@
     "@mockmatch/document-assistant": "*",
     "@mockmatch/document-editor": "*",
     "@mockmatch/ide": "*",
+    "@mockmatch/mcq": "*",
     "@mockmatch/schemas": "*",
     "@mockmatch/ui": "*",
     "@mockmatch/voice-agent": "*",
