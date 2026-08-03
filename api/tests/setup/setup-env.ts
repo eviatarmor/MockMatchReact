@@ -19,9 +19,10 @@ process.env.APP_URL ??= "http://localhost:5173"
 process.env.API_URL ??= "http://localhost:3000"
 process.env.WS_URL ??= "ws://localhost:3001"
 process.env.LOG_LEVEL ??= "silent"
-// Force free tier in tests so collab paid-gate cases are meaningful
-// (api/.env often sets FREE_CREDIT_GRANT=100 for local collab UX).
-process.env.FREE_CREDIT_GRANT = "0"
+// Default free tier for unit tests; do not clobber an explicit env value.
+// Integration (containers available) forces 0 so collab paid-gate cases work even
+// when api/.env grants credits for local UX.
+process.env.FREE_CREDIT_GRANT ??= "0"
 
 // Placeholders for unit tests; integration globalSetup replaces when available.
 process.env.DATABASE_URL ??=
@@ -34,13 +35,17 @@ if (existsSync(statePath)) {
       available?: boolean
       databaseUrl?: string
       redisUrl?: string
+      reason?: string
     }
     if (state.available && state.databaseUrl && state.redisUrl) {
       process.env.DATABASE_URL = state.databaseUrl
       process.env.REDIS_URL = state.redisUrl
       process.env.TEST_CONTAINERS_AVAILABLE = "1"
+      // Paid-gate collab tests need a true free tier
+      process.env.FREE_CREDIT_GRANT = "0"
     } else {
       process.env.TEST_CONTAINERS_AVAILABLE = "0"
+      if (state.reason) process.env.TEST_CONTAINERS_REASON = state.reason
     }
   } catch {
     process.env.TEST_CONTAINERS_AVAILABLE = "0"

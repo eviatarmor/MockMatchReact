@@ -32,8 +32,13 @@ test.describe("resume lab create → edit → list", () => {
       await page.goto(`/resumes/${created.id}`)
       await expect(page).not.toHaveURL(/\/login/, { timeout: 25_000 })
       await expect(page).toHaveURL(new RegExp(`/resumes/${created.id}`))
-      await expect(page.locator("body")).toBeVisible()
-      await page.waitForTimeout(800)
+      // Editor shell or document title region
+      await expect(
+        page
+          .getByRole("main")
+          .or(page.getByText(/E2E Resume Title/i))
+          .first()
+      ).toBeVisible({ timeout: 25_000 })
 
       await page.goto("/resume-lab")
       await expect(page).not.toHaveURL(/\/login/, { timeout: 25_000 })
@@ -64,7 +69,12 @@ test.describe("resume lab create → edit → list", () => {
 
       await page.goto("/resume-lab")
       await expect(page).toHaveURL(/\/resume-lab/)
-      await page.waitForTimeout(500)
+      await expect(
+        page.locator(`[href*="${resumeId}"], [data-resume-id="${resumeId}"]`).or(
+          page.getByRole("link").filter({ hasText: /./ }).first()
+        )
+      ).toBeVisible({ timeout: 20_000 })
+
       const listed = await trpcQueryData<{
         items: { id: string }[]
       }>(context.request, "resumes.list", { page: 1, pageSize: 20 })

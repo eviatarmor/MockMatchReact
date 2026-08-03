@@ -1,6 +1,6 @@
 import { bench } from "vitest"
 import {
-  describeBenchIntegration,
+  describeIntegration,
   integrationAvailable,
   signupAuthedCaller,
   type AuthedCaller,
@@ -29,7 +29,7 @@ async function seedResumes(): Promise<{
 /**
  * Resume list/get against real Postgres (Docker / Testcontainers).
  */
-describeBenchIntegration("db resumes (Postgres)", () => {
+describeIntegration("db resumes (Postgres)", () => {
   let caller: AuthedCaller
   let firstId = ""
   let seeded = false

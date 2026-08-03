@@ -3,8 +3,6 @@ import {
   describeIntegration,
   signupAuthedCaller,
 } from "../../../helpers/integration.js"
-import { env } from "@/config/env.js"
-
 describeIntegration("collab (integration)", () => {
   it("getAccess owner on cover letter; share flow after dev credits", async () => {
     const caller = await signupAuthedCaller()

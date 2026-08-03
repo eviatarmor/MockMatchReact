@@ -128,26 +128,27 @@ Local ops: see `infra/README.md` and `.claude/rules/ops-checklist.md`. No produc
 
 ### Testing
 
-See **`TESTING.md`**.
+See **`TESTING.md`**. Shared Vitest factory: `tools/vitest/`.
 
 | Layer | Where |
 |-------|--------|
 | API unit + integration | `api/tests/{unit,integration,setup,helpers}` |
 | Client unit | `client/tests/unit` |
-| **Playwright E2E** | `client/tests/e2e` (smoke, public, auth, dashboard, **resume-lab**, **collab-ws**) |
-| Packages | `packages/<name>/tests/unit` (+ optional `tests/setup`) — **not** under `src/` |
+| **Playwright E2E** | `client/tests/e2e` (public, auth, dashboard, resume-lab, collab-ws) |
+| Packages | `packages/<name>/tests/unit` — **not** under `src/` |
 
 ```bash
-npm run test              # unit (all TS workspaces)
-npm run test:full         # unit + integration + voice (local package.json; needs Docker/infra for integration)
+npm run test              # unit (all workspaces with test:unit)
+npm run test:full         # unit + integration + voice
 npm run test:integration  # api Testcontainers / USE_EXISTING_INFRA=1
 npm run test:e2e          # Playwright — needs npm run dev + infra
-npm run test:bench        # Vitest micro-benches (path-op, crypto, zod, geometry, …)
-npm run test:bench:db     # DB/Redis/Hono benches (Docker Testcontainers or USE_EXISTING_INFRA=1)
+npm run test:bench        # Vitest micro-benches
+npm run test:bench:db     # DB/Redis/Hono benches
+npm run typecheck:tests   # tsc for api tests
 npm run test:voice
 ```
 
-CI runs **unit only** (plus typecheck/lint/build/fallow) — not integration/e2e.
+CI: **unit** + **integration** (REQUIRE_INTEGRATION=1, Docker) + typecheck/lint/build/fallow. E2E remains local.
 
 **Agent habit:** after changes → `test:unit`; API/DB → `test:integration`; UI/routes → `test:e2e` when stack up.
 

@@ -3,8 +3,6 @@ import {
   describeIntegration,
   signupAuthedCaller,
 } from "../../../helpers/integration.js"
-import { env } from "@/config/env.js"
-
 describeIntegration("documentVersions (integration)", () => {
   it("list after resume create has at least one version", async () => {
     const caller = await signupAuthedCaller()

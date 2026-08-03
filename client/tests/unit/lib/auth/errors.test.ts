@@ -1,16 +1,27 @@
 import { describe, expect, it } from "vitest"
-import { isUnauthorizedError, isSessionUnauthorizedError } from "@/lib/auth/errors"
+import { TRPCClientError } from "@trpc/client"
+import {
+  isUnauthorizedError,
+  isSessionUnauthorizedError,
+} from "@/lib/auth/errors"
 
-function fakeTrpcError(code: string, path?: string) {
-  return {
-    data: { code, path },
-  }
+function trpcError(code: string, path?: string) {
+  return TRPCClientError.from(
+    {
+      error: {
+        message: code,
+        code: -32001,
+        data: { code, path, httpStatus: 401 },
+      },
+    },
+    { meta: undefined }
+  )
 }
 
 describe("isUnauthorizedError", () => {
-  it("detects UNAUTHORIZED data code", () => {
-    expect(isUnauthorizedError(fakeTrpcError("UNAUTHORIZED"))).toBe(true)
-    expect(isUnauthorizedError(fakeTrpcError("BAD_REQUEST"))).toBe(false)
+  it("detects TRPCClientError UNAUTHORIZED", () => {
+    expect(isUnauthorizedError(trpcError("UNAUTHORIZED"))).toBe(true)
+    expect(isUnauthorizedError(trpcError("BAD_REQUEST"))).toBe(false)
     expect(isUnauthorizedError(null)).toBe(false)
   })
 })
@@ -18,18 +29,16 @@ describe("isUnauthorizedError", () => {
 describe("isSessionUnauthorizedError", () => {
   it("false for auth OTP procedures", () => {
     expect(
-      isSessionUnauthorizedError(
-        fakeTrpcError("UNAUTHORIZED", "auth.verifyOtp")
-      )
+      isSessionUnauthorizedError(trpcError("UNAUTHORIZED", "auth.verifyOtp"))
     ).toBe(false)
     expect(
-      isSessionUnauthorizedError(fakeTrpcError("UNAUTHORIZED", "auth.requestOtp"))
+      isSessionUnauthorizedError(trpcError("UNAUTHORIZED", "auth.requestOtp"))
     ).toBe(false)
   })
 
   it("true for other protected procedures", () => {
     expect(
-      isSessionUnauthorizedError(fakeTrpcError("UNAUTHORIZED", "account.get"))
+      isSessionUnauthorizedError(trpcError("UNAUTHORIZED", "account.get"))
     ).toBe(true)
   })
 })

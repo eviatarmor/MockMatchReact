@@ -1,18 +1,10 @@
-import path from "node:path"
-import { defineConfig } from "vitest/config"
 import react from "@vitejs/plugin-react"
+import { createPackageVitestConfig } from "../../tools/vitest/create-config.ts"
 
-export default defineConfig({
+export default createPackageVitestConfig({
+  name: "ui",
+  rootDir: import.meta.dirname,
+  environment: "jsdom",
+  setupFiles: ["../../tools/vitest/setup-jsdom.ts"],
   plugins: [react()],
-  resolve: {
-    alias: {
-      "@": path.resolve(import.meta.dirname, "./src"),
-    },
-  },
-  test: {
-    name: "ui",
-    environment: "jsdom",
-    include: ["tests/unit/**/*.{test,spec}.{ts,tsx}"],
-    setupFiles: ["./tests/setup/setup.ts"],
-  },
 })

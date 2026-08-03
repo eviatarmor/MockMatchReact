@@ -3,8 +3,6 @@ import {
   describeIntegration,
   signupAuthedCaller,
 } from "../../../helpers/integration.js"
-import { env } from "@/config/env.js"
-
 describeIntegration("whiteboard (integration)", () => {
   it("create → get → update → delete", async () => {
     const caller = await signupAuthedCaller()

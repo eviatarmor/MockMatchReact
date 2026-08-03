@@ -2,8 +2,8 @@
  * Shared helpers for API integration tests.
  * Import only from integration / bench files under tests/.
  */
-import { describe } from "vitest"
-import type { Hono } from "hono"
+import { describe, it } from "vitest"
+import type { Context as HonoContext } from "hono"
 import { appRouter } from "../../src/trpc/router.js"
 import { createCallerFactory } from "../../src/trpc/trpc.js"
 import type { Context } from "../../src/trpc/context.js"
@@ -11,6 +11,7 @@ import { db } from "../../src/db/client.js"
 import { createBullMqEventBus } from "../../src/events/bullmq-bus.js"
 import { createApp } from "../../src/app.js"
 import { env } from "../../src/config/env.js"
+import type { Hono } from "hono"
 
 const createAppCaller = createCallerFactory(appRouter)
 
@@ -20,32 +21,52 @@ export function integrationAvailable(): boolean {
   return process.env.TEST_CONTAINERS_AVAILABLE === "1"
 }
 
-/** Skip suite when Testcontainers / existing infra is unavailable. */
+/**
+ * Run suite when Testcontainers / existing infra is available.
+ * With REQUIRE_INTEGRATION=1 (CI), fail loudly instead of skip-as-pass.
+ */
 export function describeIntegration(name: string, fn: () => void): void {
-  ;(integrationAvailable() ? describe : describe.skip)(name, fn)
+  if (integrationAvailable()) {
+    describe(name, fn)
+    return
+  }
+  if (process.env.REQUIRE_INTEGRATION === "1") {
+    describe(name, () => {
+      it("requires Docker/Testcontainers (infra unavailable)", () => {
+        const reason =
+          process.env.TEST_CONTAINERS_REASON ??
+          "TEST_CONTAINERS_AVAILABLE is not 1"
+        throw new Error(`Integration infra unavailable: ${reason}`)
+      })
+    })
+    return
+  }
+  describe.skip(name, fn)
 }
 
-/** Same skip rule for Vitest `bench` files (DB / Redis / HTTP-in-process). */
-export function describeBenchIntegration(name: string, fn: () => void): void {
-  describeIntegration(name, fn)
-}
-
-export function createTestContext(user: Context["user"] = null): Context {
-  const hono = {
+/**
+ * Minimal hono surface for procedure-level callers.
+ * Expand fields when a procedure under test reads more of the request.
+ */
+function createTestHono(): HonoContext {
+  const raw = new Request("http://localhost/trpc")
+  return {
     req: {
       header: () => undefined,
-      raw: new Request("http://localhost/trpc"),
+      raw,
     },
     header: () => undefined,
     get: () => undefined,
     set: () => undefined,
-  } as unknown as Context["hono"]
+  } as unknown as HonoContext
+}
 
+export function createTestContext(user: Context["user"] = null): Context {
   return {
     db,
     bus: createBullMqEventBus(),
     user,
-    hono,
+    hono: createTestHono(),
   }
 }
 

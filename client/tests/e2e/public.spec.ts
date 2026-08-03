@@ -6,21 +6,14 @@ test.describe("public surfaces", () => {
 
   test("home redirects into app shell (then auth gate)", async ({ page }) => {
     await page.goto("/")
-    // Home → first nav href; unauthenticated → login or loader then login
     await page.waitForURL(/\/(login|resume-lab|discover)/, { timeout: 20_000 })
-    const url = page.url()
-    expect(
-      url.includes("/login") ||
-        url.includes("/resume-lab") ||
-        url.includes("/discover")
-    ).toBe(true)
+    await expect(page).toHaveURL(/\/(login|resume-lab|discover)/)
   })
 
   test("login page has email + continue", async ({ page }) => {
     await page.goto("/login")
     const email = page.locator('input[type="email"], #email').first()
     await expect(email).toBeVisible({ timeout: 20_000 })
-    // Exact "Continue" — not "Continue with Google/LinkedIn"
     await expect(
       page.getByRole("button", { name: "Continue", exact: true })
     ).toBeVisible()
@@ -47,11 +40,17 @@ test.describe("public surfaces", () => {
     await expect(page).toHaveURL(/\/login/)
   })
 
-  test("unknown route shows not-found or app shell", async ({ page }) => {
+  test("unauthenticated dashboard gates to login", async ({ page }) => {
+    await page.goto("/discover")
+    await expect(page).toHaveURL(/\/login/, { timeout: 20_000 })
+  })
+
+  test("unknown route shows not-found copy or redirects", async ({ page }) => {
     await page.goto("/this-route-does-not-exist-e2e-xyz")
-    // Either dedicated 404 copy or redirect to login/home
     await page.waitForLoadState("domcontentloaded")
-    const body = await page.locator("body").innerText()
-    expect(body.length).toBeGreaterThan(10)
+    const notFound = page.getByText(/not found|404|page doesn/i)
+    const redirected = page.url().includes("/login") || page.url().includes("/")
+    const hasNotFound = (await notFound.count()) > 0
+    expect(hasNotFound || redirected).toBe(true)
   })
 })

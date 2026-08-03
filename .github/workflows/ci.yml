@@ -81,13 +81,15 @@ jobs:
       - name: Typecheck API
         run: npm run typecheck --workspace=@mockmatch/api
 
+      - name: Typecheck API tests
+        run: npm run typecheck:tests --workspace=@mockmatch/api
+
       - name: Typecheck client
         run: npm run typecheck --workspace=client
 
       - name: Lint client
         run: npm run lint --workspace=client
 
-      # Unit only — no Docker / Testcontainers / Playwright (see npm run test:full locally)
       - name: Unit tests
         run: npm run test:unit
 
@@ -96,3 +98,26 @@ jobs:
         env:
           # Build does not need a live API; keep a stable default for any URL reads.
           VITE_API_URL: http://localhost:3000
+
+  # API integration against Testcontainers. Fails if Docker/infra unavailable
+  # (REQUIRE_INTEGRATION=1 — no silent skip-as-pass).
+  integration:
+    name: API integration
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Integration tests
+        run: npm run test:integration
+        env:
+          REQUIRE_INTEGRATION: "1"

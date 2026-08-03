@@ -3,8 +3,6 @@ import {
   describeIntegration,
   signupAuthedCaller,
 } from "../../../helpers/integration.js"
-import { env } from "@/config/env.js"
-
 describeIntegration("trackedJobs (integration)", () => {
   it("list → upsert → updateStatus → remove", async () => {
     const caller = await signupAuthedCaller()
