@@ -10,7 +10,7 @@ web
 
 Primary: mid-career tech job seekers actively applying (software/product-leaning), who need one place to improve materials, find and track roles, practice interviews, and know what to do next.
 
-Docs site (`docs.mockmatch.ai`) v1 audience: the same candidates (signed-in or pre-signup) looking for **product help** — how MockMatch works and which surface to use for their next prep step. Public career guides (resume/cover letter craft) are planned later under the same site, not the v1 optimization target.
+Docs site (`docs.mockmatch.ai`) audience: the same candidates (signed-in or pre-signup) looking for **product help** — how MockMatch works and which surface to use for their next prep step. Public career guides (resume/cover letter craft) ship under the same site (`docs/content/docs/guides/`).
 
 Secondary audiences appear in product copy (consulting, healthcare) but are not the optimization target for workflows, simulations, or density of practice formats.
 
@@ -20,7 +20,7 @@ MockMatch is an interview-prep workspace. It helps candidates sharpen resumes an
 
 Success: the candidate always knows the next high-leverage action (document fix, job fit, practice session, or application stage move) without juggling separate tools.
 
-Docs success (v1): a visitor can find the product area they need, understand what it does, and know how to open it in the app — without inventing marketing claims or unfinished feature depth.
+Docs success: a visitor can find the product area they need, understand what it does, and complete common how-tos — without inventing marketing claims or unfinished feature depth.
 
 ## Positioning
 
@@ -53,11 +53,11 @@ Confirmed product surfaces (see also `api/src/modules/ask/product-guide.ts` for 
 - Theme: light/dark/system; design tokens live in shared UI package for multi-app use.
 - In-app Ask product guide chat (navbar).
 
-Docs constraints (v1):
+Docs constraints:
 
 - Stack: Fumadocs on **Vite + React Router SPA** (+ MDX) in monorepo workspace `docs/` — React app, not Next.js.
 - Visual world: inherit MockMatch client identity (Prep Ultramarine, Geist, calm soft SaaS) via shared tokens in `@mockmatch/ui` — no separate docs brand.
-- Content v1: **stubs only** along the product-loop IA; full how-to and career guides land later.
+- Content: product-loop how-tos + career guides under `docs/content/docs/`; keep in sync with `api/src/modules/ask/product-guide.ts` on every user-facing feature change (see `.claude/rules/docs-product-help.md`).
 - No invented customers, benchmarks, pricing tiers, or testimonials.
 - Production hosting for docs TBD (same as product hosting overall).
 
@@ -84,7 +84,7 @@ Undecided / open: production domain/hosting provider for app and docs; final com
 - Brand/logo and company icon SVGs under `client/public/icons/`.
 - Client design system: `client/DESIGN.md` + tokens in `client/src/index.css` (to be extracted to `@mockmatch/ui` for shared use).
 - No verified third-party testimonials, press, or hard user metrics in-repo—future work must not fabricate them.
-- Docs content not written yet — v1 pages are intentional stubs.
+- Docs content lives in `docs/content/docs/`; maintain with Ask guide on feature ships.
 
 ## Product Principles
 
@@ -93,4 +93,4 @@ Undecided / open: production domain/hosting provider for app and docs; final com
 3. **Calm focus** — Dense tools, quiet chrome; reduce noise so mid-career candidates can work under real job-search pressure.
 4. **Honest AI cost** — Credit-gated actions stay clear; never imply unlimited free AI when the product charges credits.
 5. **Job-real practice** — Simulations and documents should feel closer to real interviews and real applications than generic quizzes or blank templates.
-6. **Docs as product map** — Documentation follows the product loop and honest capability boundaries; stubs beat speculative feature essays.
+6. **Docs as product map** — Documentation follows the product loop and honest capability boundaries; accurate how-tos beat speculative feature essays. Update docs + Ask guide whenever product surfaces change.

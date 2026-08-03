@@ -1,15 +1,50 @@
 ---
 title: Applications
 icon: Kanban
-description: Track application stages
+description: Track stages, import jobs, open application detail
 ---
 
-Applications is your pipeline: table and kanban stages, import a job description, and keep next steps visible.
+Applications is your pipeline for roles you are pursuing. Jobs are stored server-side. You switch table and kanban views, move stages, import a pasted job description, and open detail for a single tracked job.
 
-## In MockMatch
+## Open Applications
 
-Dashboard → **Applications**.
+In the signed-in app: **Applications** area → **Applications** (`/applications`).
 
-## Status
+## Views and stages
 
-Stub.
+Use **table** or **board** (kanban) view from the chrome.
+
+Typical stages include:
+
+- Saved
+- Applied
+- Interviewing
+- Offer
+- Declined
+
+Change status from the table dropdown, or drag cards across kanban columns. Open a row or card for application detail.
+
+## Track a job from Discover
+
+1. Open [Discover](/docs/jobs/discover) and find the role.
+2. Track it into Applications.
+3. Update stage as the process moves.
+
+## Import a job description
+
+1. On Applications, choose **Import Job**.
+2. Paste the job description.
+3. Confirm. The job lands in **Saved**.
+
+Import **auto-generates interview questions** into the global [Question Bank](/docs/practice/question-bank) once per job, with semantic dedupe so near-duplicates do not flood the bank. Discover **mark applied** uses the same once-per-job generation rule.
+
+## Where data lives
+
+Tracked jobs persist via the API (`trackedJobs`). Discover track/untrack and Import Job write to the server. If you have leftover local-only data from an earlier build, the product may run a one-time localStorage import; new work is always server-backed.
+
+## Suggested workflow
+
+1. Discover or import roles you care about.
+2. Keep stages honest so the board matches reality.
+3. For priority roles, generate fit documents from Discover.
+4. Practice bank questions that came from apply/import before interviews.

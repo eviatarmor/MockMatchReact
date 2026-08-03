@@ -1,15 +1,36 @@
 ---
 title: Account settings
 icon: Settings
-description: Profile and preferences
+description: Profile, preferences, privacy, and access
 ---
 
-Account settings cover profile basics (including photo), privacy-related controls, and other preferences in the signed-in app.
+Account Settings is where you manage who you are in MockMatch: name, profile photo, preferences, and related account access. Privacy controls live nearby under the user menu.
 
-## In MockMatch
+## Open Account Settings
 
-Dashboard → **Account settings**.
+In the signed-in app: user menu (avatar) → **Account Settings**.
 
-## Status
+## Profile
 
-Stub.
+- Update display name and other basics the form exposes
+- Set an optional **profile photo** by clicking the avatar and cropping
+- The photo appears in the sidebar user menu when set
+
+Accurate profile data helps Discover fit and Autofill stay consistent.
+
+## Theme and locale
+
+Use the navbar theme control for light, dark, or system. Supported product locales in the committed app are English variants: en-US, en-GB, and en-AU. Follow on-screen locale controls when present.
+
+## Privacy
+
+Open **Privacy** from the user menu for privacy toggles and data preferences. Use the labels on that page as source of truth for what is stored or shared.
+
+## Auth basics
+
+- Sign-in is email OTP by default
+- Access tokens are short-lived; refresh is handled server-side
+- LinkedIn OAuth may be available only when env secrets and handlers are configured
+- Google OAuth is not assumed shipped
+
+If you cannot sign in, use [Help & support](/docs/account/help-support) for account issues.

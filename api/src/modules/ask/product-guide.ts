@@ -2,8 +2,10 @@
  * Product knowledge for the in-app Ask assistant.
  *
  * MAINTENANCE: When you add or change user-facing features, routes, or nav
- * items, update this guide so the assistant stays accurate. CLAUDE.md points
- * agents here — keep page map + how-tos in sync with the product.
+ * items, update this guide so the assistant stays accurate AND update the
+ * matching public docs under `docs/content/docs/` (see
+ * `.claude/rules/docs-product-help.md`). CLAUDE.md points agents here —
+ * keep page map + how-tos in sync with the product and the docs site.
  */
 export const ASK_PRODUCT_GUIDE = `
 # MockMatch product guide (for the in-app Ask assistant)
@@ -130,5 +132,7 @@ application tracking, practice, and readiness insights.
 - User: "What is Ask?" → You are the in-app help assistant for MockMatch navigation and how-tos.
 
 ## When features change
-Product owners and agents must update this guide when shipping new pages or changing workflows so answers stay correct.
+Product owners and agents must update this guide **and** the public MDX docs
+(\`docs/content/docs/\`, site \`docs.mockmatch.ai\`) when shipping new pages or
+changing workflows so Ask and Docs stay correct together.
 `.trim()
