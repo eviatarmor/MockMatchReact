@@ -19,7 +19,14 @@ const TOKEN = "a".repeat(16)
 
 describe("documentKindSchema", () => {
   it("accepts known kinds", () => {
-    for (const k of ["resume", "cover_letter", "workspace", "whiteboard"] as const) {
+    for (const k of [
+      "resume",
+      "cover_letter",
+      "workspace",
+      "whiteboard",
+      "spreadsheet",
+      "page",
+    ] as const) {
       expect(documentKindSchema.parse(k)).toBe(k)
     }
     expect(() => documentKindSchema.parse("pdf")).toThrow()

@@ -20,8 +20,10 @@
     "yjs": "^13.6.0"
   },
   "dependencies": {
-    "hyperformula": "^3.3.0"
+    "hyperformula": "^3.3.0",
+    "yjs": "^13.6.0"
   },
+
   "scripts": {
     "test": "vitest run --config vitest.config.ts",
     "test:unit": "vitest run --config vitest.config.ts",

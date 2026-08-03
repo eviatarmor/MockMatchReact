@@ -14,6 +14,13 @@
   "actions": {
     "addSheet": "Add sheet",
     "renameSheet": "Rename sheet",
-    "deleteSheet": "Delete sheet"
+    "deleteSheet": "Delete sheet",
+    "share": "Share"
+  },
+  "loading": "Loading spreadsheet…",
+  "save": {
+    "saved": "Saved",
+    "saving": "Saving…",
+    "error": "Save failed"
   }
 }

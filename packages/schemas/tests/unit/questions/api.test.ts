@@ -29,6 +29,9 @@ describe("question enums", () => {
     expect(questionDifficultySchema.parse("hard")).toBe("hard")
     expect(questionFormatSchema.parse("code_run")).toBe("code_run")
     expect(questionFormatSchema.parse("whiteboard")).toBe("whiteboard")
+    expect(questionFormatSchema.parse("spreadsheet")).toBe("spreadsheet")
+    expect(questionFormatSchema.parse("page")).toBe("page")
+
     expect(questionUserStatusSchema.parse("mastered")).toBe("mastered")
   })
 })

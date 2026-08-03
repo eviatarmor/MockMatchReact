@@ -44,6 +44,8 @@ export function practicePathForFormat(
   if (format === "conversation") return conversationPathForTrackId(questionId)
   if (format === "mcq") return mcqPathForQuestionId(questionId)
   if (format === "whiteboard") return whiteboardPathForQuestionId(questionId)
+  if (format === "spreadsheet") return SPREADSHEET_PRACTICE_PATH
+  if (format === "page") return PAGE_PRACTICE_PATH
   if (
     format === "code_run" ||
     format === "workspace" ||

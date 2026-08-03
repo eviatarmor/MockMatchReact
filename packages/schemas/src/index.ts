@@ -13,5 +13,7 @@ export * from "./support/index.js"
 export * from "./tracked-jobs/index.js"
 export * from "./questions/index.js"
 export * from "./whiteboard/index.js"
+export * from "./spreadsheet/index.js"
+export * from "./page/index.js"
 
 

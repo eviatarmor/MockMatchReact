@@ -1,7 +1,7 @@
-import { useCallback, useMemo, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Share2 } from "lucide-react"
 import { IdeChromeBar } from "@mockmatch/ide"
 import {
   PageEditor,
@@ -11,20 +11,63 @@ import {
 } from "@mockmatch/page"
 import { Badge } from "@mockmatch/ui/badge"
 import { Button } from "@mockmatch/ui/button"
+import { RobotLoader } from "@mockmatch/ui/robot-loader"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@mockmatch/ui/tooltip"
+import { SaveStatusBadge } from "@/components/data/save-status-badge"
+import { ShareDialog } from "@/features/collab/components/share-dialog"
+import { trpc } from "@/lib/trpc"
+import { usePageDocumentSession } from "./hooks/use-page-document-session"
 
 const SEED_HTML = `<h1>Document analysis</h1><p>Write a structured analysis below. Type <strong>/</strong> for headings, lists, quotes, and more.</p><p></p>`
 
-/** Freeform Notion/Docs-like writeup practice. */
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/** Freeform Notion/Docs-like writeup practice with durable page + share. */
 export function SimulationPagePageContent() {
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const { t } = useTranslation(["simulation-page", "common"])
+  const existingId = (() => {
+    const id = params.get("id")
+    return id && UUID_RE.test(id) ? id : null
+  })()
+
+  const session = usePageDocumentSession({
+    title: t("simulation-page:title"),
+    enabled: true,
+    seedHtml: SEED_HTML,
+    existingId,
+  })
+
   const [html, setHtml] = useState(SEED_HTML)
+  const [seeded, setSeeded] = useState(false)
+  const [shareOpen, setShareOpen] = useState(false)
+
+  const pageId = session.pageId
+  const collabAccess = trpc.collab.getAccess.useQuery(
+    { kind: "page", id: pageId! },
+    { enabled: Boolean(pageId), retry: false }
+  )
+
+  useEffect(() => {
+    if (!session.ready || !session.seedDoc || seeded) return
+    setHtml(session.seedDoc.html || SEED_HTML)
+    setSeeded(true)
+  }, [session.ready, session.seedDoc, seeded])
+
+  const onChange = useCallback(
+    (next: string) => {
+      setHtml(next)
+      if (seeded) session.scheduleSave(next)
+    },
+    [seeded, session]
+  )
 
   const editorLabels: PageEditorLabels = useMemo(
     () => ({
@@ -58,6 +101,15 @@ export function SimulationPagePageContent() {
   )
 
   const goSims = useCallback(() => navigate("/simulations"), [navigate])
+
+  if (!session.ready) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 bg-background p-6 text-sm text-muted-foreground">
+        <RobotLoader size="md" label={t("simulation-page:loading")} />
+        <p>{t("simulation-page:loading")}</p>
+      </div>
+    )
+  }
 
   const chrome = (
     <IdeChromeBar
@@ -97,17 +149,56 @@ export function SimulationPagePageContent() {
           {t("simulation-page:subtitle")}
         </p>
       }
+      end={
+        <div className="flex items-center gap-2">
+          <SaveStatusBadge
+            status={session.saveStatus}
+            labels={{
+              saved: t("simulation-page:save.saved"),
+              saving: t("simulation-page:save.saving"),
+              error: t("simulation-page:save.error"),
+            }}
+          />
+
+          {pageId ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="size-8 cursor-pointer"
+              aria-label={t("simulation-page:actions.share")}
+              onClick={() => setShareOpen(true)}
+            >
+              <Share2 className="size-4" />
+            </Button>
+          ) : null}
+        </div>
+      }
     />
   )
 
   return (
-    <PageShell chrome={chrome} labels={shellLabels} className="h-full">
-      <PageEditor
-        value={html}
-        onChange={setHtml}
-        labels={editorLabels}
-        placeholder={t("simulation-page:placeholder")}
-      />
-    </PageShell>
+    <>
+      <PageShell chrome={chrome} labels={shellLabels} className="h-full">
+        <PageEditor
+          value={html}
+          onChange={onChange}
+          labels={editorLabels}
+          placeholder={t("simulation-page:placeholder")}
+        />
+      </PageShell>
+      {pageId ? (
+        <ShareDialog
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+          kind="page"
+          documentId={pageId}
+          canShare={collabAccess.data?.canShare ?? false}
+          isOwner={collabAccess.data?.role === "owner"}
+          isPaidOwner={collabAccess.data?.isPaidOwner ?? false}
+          documentTitle={t("simulation-page:title")}
+        />
+      ) : null}
+    </>
   )
 }

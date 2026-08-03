@@ -25,5 +25,14 @@
     "link": "Link",
     "linkPrompt": "URL",
     "paragraph": "Paragraph"
+  },
+  "loading": "Loading document…",
+  "actions": {
+    "share": "Share"
+  },
+  "save": {
+    "saved": "Saved",
+    "saving": "Saving…",
+    "error": "Save failed"
   }
 }

@@ -26,6 +26,8 @@ export type QuestionFormat =
   | "terminal"
   | "whiteboard"
   | "mcq"
+  | "spreadsheet"
+  | "page"
 
 export interface BankQuestion {
   readonly id: string

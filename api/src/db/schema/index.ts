@@ -15,5 +15,7 @@ export * from "./practice-exercises.js"
 export * from "./practice-sessions.js"
 export * from "./voice-sessions.js"
 export * from "./whiteboard-boards.js"
+export * from "./spreadsheet-workbooks.js"
+export * from "./page-documents.js"
 
 

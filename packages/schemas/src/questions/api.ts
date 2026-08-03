@@ -27,6 +27,8 @@ export const questionFormatSchema = z.enum([
   "terminal",
   "whiteboard",
   "mcq",
+  "spreadsheet",
+  "page",
 ])
 
 export const questionUserStatusSchema = z.enum(["new", "attempted", "mastered"])
@@ -36,7 +38,7 @@ export const questionListInputSchema = z
     search: z.string().trim().max(200).optional(),
     domains: z.array(questionDomainSchema).max(20).optional(),
     difficulties: z.array(questionDifficultySchema).max(3).optional(),
-    formats: z.array(questionFormatSchema).max(6).optional(),
+    formats: z.array(questionFormatSchema).max(8).optional(),
     userStatuses: z.array(questionUserStatusSchema).max(3).optional(),
     page: z.number().int().min(1).default(1),
     pageSize: z.number().int().min(1).max(100).default(50),

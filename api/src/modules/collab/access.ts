@@ -9,6 +9,8 @@ import {
 import { coverLetters } from "../../db/schema/cover-letters.js"
 import { ideWorkspaces } from "../../db/schema/ide-workspaces.js"
 import { resumes } from "../../db/schema/resumes.js"
+import { pageDocuments } from "../../db/schema/page-documents.js"
+import { spreadsheetWorkbooks } from "../../db/schema/spreadsheet-workbooks.js"
 import { whiteboardBoards } from "../../db/schema/whiteboard-boards.js"
 import { isMember } from "../../lib/collab-store.js"
 import { hashToken } from "../../lib/crypto.js"
@@ -53,6 +55,20 @@ async function loadOwnerUserId(
     })
     return row?.userId ?? null
   }
+  if (kind === "spreadsheet") {
+    const row = await db.query.spreadsheetWorkbooks.findFirst({
+      where: eq(spreadsheetWorkbooks.id, documentId),
+      columns: { userId: true },
+    })
+    return row?.userId ?? null
+  }
+  if (kind === "page") {
+    const row = await db.query.pageDocuments.findFirst({
+      where: eq(pageDocuments.id, documentId),
+      columns: { userId: true },
+    })
+    return row?.userId ?? null
+  }
   return null
 }
 
@@ -60,6 +76,8 @@ function notFoundMessage(kind: DocumentKind): string {
   if (kind === "resume") return "Resume not found."
   if (kind === "cover_letter") return "Cover letter not found."
   if (kind === "whiteboard") return "Whiteboard not found."
+  if (kind === "spreadsheet") return "Spreadsheet not found."
+  if (kind === "page") return "Page not found."
   return "Workspace not found."
 }
 

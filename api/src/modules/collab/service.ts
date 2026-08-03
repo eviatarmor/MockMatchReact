@@ -15,6 +15,8 @@ import {
 import { coverLetters } from "../../db/schema/cover-letters.js"
 import { ideWorkspaces } from "../../db/schema/ide-workspaces.js"
 import { resumes } from "../../db/schema/resumes.js"
+import { pageDocuments } from "../../db/schema/page-documents.js"
+import { spreadsheetWorkbooks } from "../../db/schema/spreadsheet-workbooks.js"
 import { whiteboardBoards } from "../../db/schema/whiteboard-boards.js"
 import { users } from "../../db/schema/users.js"
 import { hashToken } from "../../lib/crypto.js"
@@ -71,6 +73,18 @@ function shareUrl(
   }
   if (kind === "whiteboard") {
     const url = new URL(`/simulations/whiteboard/board/${documentId}`, env.APP_URL)
+    url.searchParams.set("share", rawToken)
+    return url.toString()
+  }
+  if (kind === "spreadsheet") {
+    const url = new URL("/simulations/spreadsheet", env.APP_URL)
+    url.searchParams.set("id", documentId)
+    url.searchParams.set("share", rawToken)
+    return url.toString()
+  }
+  if (kind === "page") {
+    const url = new URL("/simulations/page", env.APP_URL)
+    url.searchParams.set("id", documentId)
     url.searchParams.set("share", rawToken)
     return url.toString()
   }
@@ -510,6 +524,34 @@ export async function loadDocumentSnapshot(
       updatedAt: row.updatedAt.toISOString(),
     }
   }
+  if (kind === "spreadsheet") {
+    const row = await db.query.spreadsheetWorkbooks.findFirst({
+      where: eq(spreadsheetWorkbooks.id, documentId),
+    })
+    if (!row) return null
+    return {
+      ownerUserId: row.userId,
+      title: row.title,
+      templateId: "spreadsheet",
+      style: {} as Record<string, unknown>,
+      document: row.document as unknown,
+      updatedAt: row.updatedAt.toISOString(),
+    }
+  }
+  if (kind === "page") {
+    const row = await db.query.pageDocuments.findFirst({
+      where: eq(pageDocuments.id, documentId),
+    })
+    if (!row) return null
+    return {
+      ownerUserId: row.userId,
+      title: row.title,
+      templateId: "page",
+      style: {} as Record<string, unknown>,
+      document: row.document as unknown,
+      updatedAt: row.updatedAt.toISOString(),
+    }
+  }
   const row = await db.query.ideWorkspaces.findFirst({
     where: eq(ideWorkspaces.id, documentId),
   })
@@ -612,6 +654,62 @@ export async function persistDocumentSnapshot(
           eq(whiteboardBoards.userId, ownerUserId)
         )
       )
+    return
+  }
+
+  if (kind === "spreadsheet") {
+    await db
+      .update(spreadsheetWorkbooks)
+      .set({
+        title: snapshot.title,
+        document:
+          snapshot.document as typeof spreadsheetWorkbooks.$inferInsert.document,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(spreadsheetWorkbooks.id, documentId),
+          eq(spreadsheetWorkbooks.userId, ownerUserId)
+        )
+      )
+    await maybeRecordDocumentVersion(db, {
+      kind,
+      documentId,
+      actorUserId: snapshot.lastEditorUserId ?? ownerUserId,
+      title: snapshot.title,
+      templateId: snapshot.templateId || "spreadsheet",
+      style: snapshot.style,
+      document: snapshot.document,
+      source: "collab_flush",
+    })
+    return
+  }
+
+  if (kind === "page") {
+    await db
+      .update(pageDocuments)
+      .set({
+        title: snapshot.title,
+        document:
+          snapshot.document as typeof pageDocuments.$inferInsert.document,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(pageDocuments.id, documentId),
+          eq(pageDocuments.userId, ownerUserId)
+        )
+      )
+    await maybeRecordDocumentVersion(db, {
+      kind,
+      documentId,
+      actorUserId: snapshot.lastEditorUserId ?? ownerUserId,
+      title: snapshot.title,
+      templateId: snapshot.templateId || "page",
+      style: snapshot.style,
+      document: snapshot.document,
+      source: "collab_flush",
+    })
     return
   }
 

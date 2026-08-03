@@ -53,6 +53,8 @@ export const questionFormatEnum = pgEnum("question_format", [
   "terminal",
   "whiteboard",
   "mcq",
+  "spreadsheet",
+  "page",
 ])
 
 export const questionSourceEnum = pgEnum("question_source", [
