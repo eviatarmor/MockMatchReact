@@ -13,11 +13,15 @@ describe("pathsToTree", () => {
       "README.md",
     ])
     expect(tree.map((n) => n.name)).toEqual(["src", "README.md"])
-    const src = tree.find((n) => n.name === "src")!
-    expect(src.children?.map((c) => c.name)).toEqual(["lib", "main.ts"])
-    const lib = src.children?.find((c) => c.name === "lib")!
-    expect(lib.children?.map((c) => c.name)).toEqual(["util.ts"])
-    expect(lib.children?.[0]?.id).toBe("src/lib/util.ts")
+    const src = tree.find((n) => n.name === "src")
+    expect(src?.children).toBeDefined()
+    const srcChildren = src!.children!
+    expect(srcChildren.map((c) => c.name)).toEqual(["lib", "main.ts"])
+    const lib = srcChildren.find((c) => c.name === "lib")
+    expect(lib?.children).toBeDefined()
+    const libChildren = lib!.children!
+    expect(libChildren.map((c) => c.name)).toEqual(["util.ts"])
+    expect(libChildren[0]?.id).toBe("src/lib/util.ts")
   })
 
   it("skips path traversal and empty paths", () => {
