@@ -2,10 +2,10 @@
 
 Product-agnostic multi-sheet spreadsheet shell (practice / ops tables):
 
-- **Virtualized grid** — sparse cells, frozen headers, keyboard nav
-- **Sheet tabs** — add / rename / switch / delete
+- **Virtualized grid** — sparse cells, frozen headers, keyboard nav (native overflow; not ScrollArea)
+- **Sheet tabs** — IDE-style tab chrome (add / rename / switch / delete)
 - **Formulas** — HyperFormula (`SUM`, `IF`, ranges, cross-sheet, …)
-- **Formula bar** — name box + editor
+- **Formula bar** — resizable name box + editor (`ResizablePanelGroup`)
 - **Optional collab** — Yjs map helpers; host owns room + share UI
 
 > **Status:** private monorepo package. Chrome + engine only — host owns session/AI/i18n.

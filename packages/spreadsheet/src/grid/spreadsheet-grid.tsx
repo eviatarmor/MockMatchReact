@@ -438,15 +438,28 @@ export function SpreadsheetGrid({
 
   return (
     <div
-      className={cn("relative min-h-0 min-w-0 flex-1 outline-none", className)}
+      className={cn(
+        "relative h-0 min-h-0 min-w-0 w-full flex-1 outline-none",
+        className
+      )}
       tabIndex={0}
       role="grid"
       aria-label={ariaLabel}
       onKeyDown={onKeyDown}
     >
+      {/*
+        Native overflow only — do NOT use ScrollArea here.
+        Base UI ScrollArea remeasures thumbs/overflow on every scroll against
+        a multi-million-px virtual canvas → unusable frame rates.
+      */}
       <div
         ref={scrollerRef}
-        className="absolute inset-0 overflow-auto bg-background"
+        className={cn(
+          "absolute inset-0 overflow-auto bg-background",
+          "[scrollbar-width:thin] [scrollbar-color:var(--border)_transparent]",
+          "[&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar]:w-2",
+          "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border"
+        )}
         onScroll={(e) => {
           const t = e.currentTarget
           setScroll({ top: t.scrollTop, left: t.scrollLeft })

@@ -167,9 +167,9 @@ export function SimulationSpreadsheetPageContent() {
   )
 
   return (
-    <>
+    <div className="flex h-full min-h-0 flex-col bg-background">
       <SpreadsheetShell
-        className="h-full"
+        className="h-full min-h-0"
         document={sheet.document}
         selection={sheet.selection}
         labels={labels}
@@ -205,6 +205,6 @@ export function SimulationSpreadsheetPageContent() {
           documentTitle={t("simulation-spreadsheet:title")}
         />
       ) : null}
-    </>
+    </div>
   )
 }

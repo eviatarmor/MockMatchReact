@@ -77,7 +77,7 @@ export function SpreadsheetShell({
       )}
     >
       {chrome ? (
-        <div className="sticky top-0 z-20 shrink-0">{chrome}</div>
+        <div className="z-20 shrink-0">{chrome}</div>
       ) : null}
       <FormulaBar
         a1={a1}
@@ -87,9 +87,11 @@ export function SpreadsheetShell({
         readOnly={readOnly}
         nameBoxAria={labels.nameBoxAria}
         formulaBarAria={labels.formulaBarAria}
-        className="sticky top-11 z-10"
+        className="z-10"
       />
+      {/* h-0 + flex-1: take remaining column height (absolute grid needs definite size) */}
       <SpreadsheetGrid
+        className="h-0 min-h-0 flex-1"
         document={document}
         selection={selection}
         getDisplay={getDisplay}
