@@ -2,6 +2,12 @@ import { cellKey } from "./address"
 import {
   DEFAULT_COL_COUNT,
   DEFAULT_ROW_COUNT,
+  MAX_COL_WIDTH,
+  MAX_ROW_HEIGHT,
+  MIN_COL_WIDTH,
+  MIN_ROW_HEIGHT,
+  SHEET_MAX_COLS,
+  SHEET_MAX_ROWS,
   type SpreadsheetCell,
   type SpreadsheetDocument,
   type SpreadsheetSheet,
@@ -69,9 +75,65 @@ export function setCellRaw(
     nextCells[key] = { raw } satisfies SpreadsheetCell
   }
   // Grow sheet bounds if writing past edge
-  const rowCount = Math.max(sheet.rowCount, row + 1)
-  const colCount = Math.max(sheet.colCount, col + 1)
+  const rowCount = Math.min(
+    SHEET_MAX_ROWS,
+    Math.max(sheet.rowCount, row + 1)
+  )
+  const colCount = Math.min(
+    SHEET_MAX_COLS,
+    Math.max(sheet.colCount, col + 1)
+  )
   return { ...sheet, cells: nextCells, rowCount, colCount }
+}
+
+/**
+ * Expand logical sheet size (empty trailing rows/cols) without touching cells.
+ * Used for infinite-scroll / keyboard navigation growth.
+ */
+export function ensureSheetDimensions(
+  sheet: SpreadsheetSheet,
+  minRows: number,
+  minCols: number
+): SpreadsheetSheet {
+  const rowCount = Math.min(
+    SHEET_MAX_ROWS,
+    Math.max(sheet.rowCount, Math.ceil(minRows))
+  )
+  const colCount = Math.min(
+    SHEET_MAX_COLS,
+    Math.max(sheet.colCount, Math.ceil(minCols))
+  )
+  if (rowCount === sheet.rowCount && colCount === sheet.colCount) return sheet
+  return { ...sheet, rowCount, colCount }
+}
+
+export function setColWidth(
+  sheet: SpreadsheetSheet,
+  col: number,
+  width: number
+): SpreadsheetSheet {
+  if (col < 0) return sheet
+  const w = Math.min(MAX_COL_WIDTH, Math.max(MIN_COL_WIDTH, Math.round(width)))
+  const colWidths = { ...(sheet.colWidths ?? {}) }
+  colWidths[String(col)] = w
+  const colCount = Math.min(SHEET_MAX_COLS, Math.max(sheet.colCount, col + 1))
+  return { ...sheet, colWidths, colCount }
+}
+
+export function setRowHeight(
+  sheet: SpreadsheetSheet,
+  row: number,
+  height: number
+): SpreadsheetSheet {
+  if (row < 0) return sheet
+  const h = Math.min(
+    MAX_ROW_HEIGHT,
+    Math.max(MIN_ROW_HEIGHT, Math.round(height))
+  )
+  const rowHeights = { ...(sheet.rowHeights ?? {}) }
+  rowHeights[String(row)] = h
+  const rowCount = Math.min(SHEET_MAX_ROWS, Math.max(sheet.rowCount, row + 1))
+  return { ...sheet, rowHeights, rowCount }
 }
 
 export function updateSheet(
@@ -92,6 +154,8 @@ export function cloneDocument(doc: SpreadsheetDocument): SpreadsheetDocument {
     sheets: doc.sheets.map((s) => ({
       ...s,
       cells: { ...s.cells },
+      colWidths: s.colWidths ? { ...s.colWidths } : undefined,
+      rowHeights: s.rowHeights ? { ...s.rowHeights } : undefined,
     })),
   }
 }

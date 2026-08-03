@@ -20,26 +20,43 @@ export function createFormulaEngine(doc: SpreadsheetDocument): HyperFormula {
   const hf = HyperFormula.buildFromSheets(sheetsContent, {
     licenseKey: "gpl-v3",
     useColumnIndex: true,
+    // Large caps so setCellContents can expand into "infinite" grid area.
+    maxRows: 10_000,
+    maxColumns: 500,
   })
 
   // Ensure sheet order / names match; buildFromSheets uses object key order.
   return hf
 }
 
+/**
+ * Materialize only the used bounding box (+1) so empty trailing rows/cols
+ * from infinite scroll do not allocate a dense HF matrix.
+ */
 function materializeSheetGrid(
   sheet: SpreadsheetSheet
 ): (string | number | boolean | null)[][] {
+  let maxR = 0
+  let maxC = 0
+  for (const key of Object.keys(sheet.cells)) {
+    const parts = key.split(":")
+    const r = Number(parts[0])
+    const c = Number(parts[1])
+    if (Number.isFinite(r)) maxR = Math.max(maxR, r + 1)
+    if (Number.isFinite(c)) maxC = Math.max(maxC, c + 1)
+  }
+  // At least 1×1; prefer a small working area when empty
+  const rowN = Math.max(1, maxR)
+  const colN = Math.max(1, maxC)
   const rows: (string | number | boolean | null)[][] = []
-  for (let r = 0; r < sheet.rowCount; r++) {
+  for (let r = 0; r < rowN; r++) {
     const row: (string | number | boolean | null)[] = []
-    for (let c = 0; c < sheet.colCount; c++) {
+    for (let c = 0; c < colN; c++) {
       const raw = sheet.cells[cellKey(r, c)]?.raw
       row.push(raw === undefined || raw === "" ? null : raw)
     }
     rows.push(row)
   }
-  // HyperFormula needs at least one row/col
-  if (rows.length === 0) return [[null]]
   return rows
 }
 

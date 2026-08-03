@@ -15,7 +15,11 @@ export const spreadsheetSheetSchema = z.object({
   name: z.string().min(1).max(80),
   cells: z.record(z.string(), spreadsheetCellSchema),
   rowCount: z.number().int().min(1).max(10_000),
-  colCount: z.number().int().min(1).max(200),
+  colCount: z.number().int().min(1).max(500),
+  /** Sparse col index → width px. */
+  colWidths: z.record(z.string(), z.number().positive().max(640)).optional(),
+  /** Sparse row index → height px. */
+  rowHeights: z.record(z.string(), z.number().positive().max(200)).optional(),
 })
 
 export const spreadsheetDocumentSchema = z.object({

@@ -10,6 +10,13 @@ import {
 import { cn } from "@mockmatch/ui/utils"
 import { colToLetter, inRange } from "../address"
 import { getActiveSheet } from "../document"
+import {
+  buildColLayout,
+  buildRowLayout,
+  getColWidth,
+  getRowHeight,
+  visibleRange,
+} from "../layout"
 import type {
   CellCoord,
   DisplayCell,
@@ -20,10 +27,26 @@ import {
   COL_HEADER_HEIGHT,
   DEFAULT_COL_WIDTH,
   DEFAULT_ROW_HEIGHT,
+  MAX_COL_WIDTH,
+  MAX_ROW_HEIGHT,
+  MIN_COL_WIDTH,
+  MIN_ROW_HEIGHT,
   ROW_HEADER_WIDTH,
+  SHEET_GROW_BUFFER_COLS,
+  SHEET_GROW_BUFFER_ROWS,
+  SHEET_MAX_COLS,
+  SHEET_MAX_ROWS,
 } from "../types"
 
 const OVERSCAN = 4
+
+/** Text highlight inside the cell editor (matches resume / whiteboard blue). */
+const CELL_TEXT_SELECTION =
+  "caret-blue-500 selection:bg-blue-400/40 selection:text-neutral-900 dark:selection:text-neutral-50"
+
+type ResizeDrag =
+  | { kind: "col"; index: number; startX: number; startSize: number }
+  | { kind: "row"; index: number; startY: number; startSize: number }
 
 export type SpreadsheetGridProps = {
   readonly document: SpreadsheetDocument
@@ -33,6 +56,13 @@ export type SpreadsheetGridProps = {
   readonly onCommitCell: (row: number, col: number, raw: string) => void
   readonly formulaDraft: string
   readonly onFormulaDraftChange: (v: string) => void
+  /** Expand sheet so scroll / keyboard can keep going (infinite grid). */
+  readonly onEnsureBounds?: (minRows: number, minCols: number) => void
+  readonly onSetColWidth?: (col: number, width: number) => void
+  readonly onSetRowHeight?: (row: number, height: number) => void
+  readonly onSelectColumn?: (col: number) => void
+  readonly onSelectRow?: (row: number) => void
+  readonly onSelectAll?: () => void
   readonly readOnly?: boolean
   readonly ariaLabel: string
   readonly className?: string
@@ -46,6 +76,12 @@ export function SpreadsheetGrid({
   onCommitCell,
   formulaDraft,
   onFormulaDraftChange,
+  onEnsureBounds,
+  onSetColWidth,
+  onSetRowHeight,
+  onSelectColumn,
+  onSelectRow,
+  onSelectAll,
   readOnly = false,
   ariaLabel,
   className,
@@ -60,17 +96,57 @@ export function SpreadsheetGrid({
   const [editing, setEditing] = useState(false)
   const editRef = useRef<HTMLInputElement>(null)
   const dragAnchor = useRef<CellCoord | null>(null)
+  const resizeDrag = useRef<ResizeDrag | null>(null)
+  const [resizeTick, setResizeTick] = useState(0)
+
+  const colLayout = useMemo(
+    () =>
+      sheet
+        ? buildColLayout(sheet)
+        : { offsets: [0], total: 0 },
+    // resizeTick forces recompute during drag when sheet sizes update
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sheet identity + sizes
+    [sheet, sheet?.colCount, sheet?.colWidths, resizeTick]
+  )
+  const rowLayout = useMemo(
+    () =>
+      sheet
+        ? buildRowLayout(sheet)
+        : { offsets: [0], total: 0 },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sheet, sheet?.rowCount, sheet?.rowHeights, resizeTick]
+  )
+
+  const growToCover = useCallback(
+    (scrollTop: number, scrollLeft: number, vw: number, vh: number) => {
+      if (!onEnsureBounds) return
+      // Approximate with defaults (variable sizes still grow past viewport).
+      const rowsNeeded =
+        Math.ceil((scrollTop + vh) / DEFAULT_ROW_HEIGHT) + SHEET_GROW_BUFFER_ROWS
+      const colsNeeded =
+        Math.ceil((scrollLeft + vw) / DEFAULT_COL_WIDTH) + SHEET_GROW_BUFFER_COLS
+      onEnsureBounds(
+        Math.min(SHEET_MAX_ROWS, Math.max(rowsNeeded, 1)),
+        Math.min(SHEET_MAX_COLS, Math.max(colsNeeded, 1))
+      )
+    },
+    [onEnsureBounds]
+  )
 
   useEffect(() => {
     const el = scrollerRef.current
     if (!el) return
     const ro = new ResizeObserver(() => {
-      setViewport({ w: el.clientWidth, h: el.clientHeight })
+      const w = el.clientWidth
+      const h = el.clientHeight
+      setViewport({ w, h })
+      growToCover(el.scrollTop, el.scrollLeft, w, h)
     })
     ro.observe(el)
     setViewport({ w: el.clientWidth, h: el.clientHeight })
+    growToCover(el.scrollTop, el.scrollLeft, el.clientWidth, el.clientHeight)
     return () => ro.disconnect()
-  }, [])
+  }, [growToCover])
 
   useEffect(() => {
     if (editing) {
@@ -79,29 +155,61 @@ export function SpreadsheetGrid({
     }
   }, [editing, selection.active.row, selection.active.col])
 
-  // Exit edit mode when sheet switches
   useEffect(() => {
     setEditing(false)
   }, [document.activeSheetId])
 
-  const totalWidth = ROW_HEADER_WIDTH + colCount * DEFAULT_COL_WIDTH
-  const totalHeight = COL_HEADER_HEIGHT + rowCount * DEFAULT_ROW_HEIGHT
+  // Column / row resize drag
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      const drag = resizeDrag.current
+      if (!drag) return
+      if (drag.kind === "col" && onSetColWidth) {
+        const next = Math.min(
+          MAX_COL_WIDTH,
+          Math.max(MIN_COL_WIDTH, drag.startSize + (e.clientX - drag.startX))
+        )
+        onSetColWidth(drag.index, next)
+        setResizeTick((t) => t + 1)
+      } else if (drag.kind === "row" && onSetRowHeight) {
+        const next = Math.min(
+          MAX_ROW_HEIGHT,
+          Math.max(MIN_ROW_HEIGHT, drag.startSize + (e.clientY - drag.startY))
+        )
+        onSetRowHeight(drag.index, next)
+        setResizeTick((t) => t + 1)
+      }
+    }
+    const onUp = () => {
+      if (resizeDrag.current) {
+        resizeDrag.current = null
+        globalThis.document.body.style.cursor = ""
+        globalThis.document.body.style.userSelect = ""
+      }
+      dragAnchor.current = null
+    }
+    window.addEventListener("mousemove", onMove)
+    window.addEventListener("mouseup", onUp)
+    return () => {
+      window.removeEventListener("mousemove", onMove)
+      window.removeEventListener("mouseup", onUp)
+    }
+  }, [onSetColWidth, onSetRowHeight])
 
-  const colStart = Math.max(
-    0,
-    Math.floor(scroll.left / DEFAULT_COL_WIDTH) - OVERSCAN
+  const totalWidth = ROW_HEADER_WIDTH + colLayout.total
+  const totalHeight = COL_HEADER_HEIGHT + rowLayout.total
+
+  const { start: colStart, end: colEnd } = visibleRange(
+    colLayout,
+    scroll.left,
+    viewport.w,
+    OVERSCAN
   )
-  const colEnd = Math.min(
-    colCount - 1,
-    Math.ceil((scroll.left + viewport.w) / DEFAULT_COL_WIDTH) + OVERSCAN
-  )
-  const rowStart = Math.max(
-    0,
-    Math.floor(scroll.top / DEFAULT_ROW_HEIGHT) - OVERSCAN
-  )
-  const rowEnd = Math.min(
-    rowCount - 1,
-    Math.ceil((scroll.top + viewport.h) / DEFAULT_ROW_HEIGHT) + OVERSCAN
+  const { start: rowStart, end: rowEnd } = visibleRange(
+    rowLayout,
+    scroll.top,
+    viewport.h,
+    OVERSCAN
   )
 
   const visibleCols = useMemo(() => {
@@ -115,6 +223,9 @@ export function SpreadsheetGrid({
     for (let r = rowStart; r <= rowEnd; r++) rows.push(r)
     return rows
   }, [rowStart, rowEnd])
+
+  const rangeStart = selection.range?.start ?? selection.active
+  const rangeEnd = selection.range?.end ?? selection.active
 
   const commitEdit = useCallback(() => {
     if (!editing || readOnly) {
@@ -141,33 +252,51 @@ export function SpreadsheetGrid({
     [onFormulaDraftChange, readOnly]
   )
 
+  const scrollCellIntoView = useCallback(
+    (next: CellCoord) => {
+      const el = scrollerRef.current
+      if (!el || !sheet) return
+      const x = colLayout.offsets[next.col] ?? 0
+      const y = rowLayout.offsets[next.row] ?? 0
+      const cw = getColWidth(sheet, next.col)
+      const rh = getRowHeight(sheet, next.row)
+      if (x < el.scrollLeft) el.scrollLeft = x
+      if (x + cw > el.scrollLeft + el.clientWidth - ROW_HEADER_WIDTH) {
+        el.scrollLeft = x - (el.clientWidth - ROW_HEADER_WIDTH - cw)
+      }
+      if (y < el.scrollTop) el.scrollTop = y
+      if (y + rh > el.scrollTop + el.clientHeight - COL_HEADER_HEIGHT) {
+        el.scrollTop = y - (el.clientHeight - COL_HEADER_HEIGHT - rh)
+      }
+    },
+    [colLayout.offsets, rowLayout.offsets, sheet]
+  )
+
   const moveActive = useCallback(
     (dRow: number, dCol: number, extend: boolean) => {
       const next = {
-        row: Math.max(0, Math.min(rowCount - 1, selection.active.row + dRow)),
-        col: Math.max(0, Math.min(colCount - 1, selection.active.col + dCol)),
+        row: Math.max(
+          0,
+          Math.min(SHEET_MAX_ROWS - 1, selection.active.row + dRow)
+        ),
+        col: Math.max(
+          0,
+          Math.min(SHEET_MAX_COLS - 1, selection.active.col + dCol)
+        ),
       }
+      onEnsureBounds?.(
+        next.row + 1 + SHEET_GROW_BUFFER_ROWS,
+        next.col + 1 + SHEET_GROW_BUFFER_COLS
+      )
       if (extend) {
         const a = selection.range?.start ?? selection.active
         onSelect(next, a)
       } else {
         onSelect(next, null)
       }
-      // Scroll into view
-      const el = scrollerRef.current
-      if (!el) return
-      const x = next.col * DEFAULT_COL_WIDTH
-      const y = next.row * DEFAULT_ROW_HEIGHT
-      if (x < el.scrollLeft) el.scrollLeft = x
-      if (x + DEFAULT_COL_WIDTH > el.scrollLeft + el.clientWidth - ROW_HEADER_WIDTH) {
-        el.scrollLeft = x - (el.clientWidth - ROW_HEADER_WIDTH - DEFAULT_COL_WIDTH)
-      }
-      if (y < el.scrollTop) el.scrollTop = y
-      if (y + DEFAULT_ROW_HEIGHT > el.scrollTop + el.clientHeight - COL_HEADER_HEIGHT) {
-        el.scrollTop = y - (el.clientHeight - COL_HEADER_HEIGHT - DEFAULT_ROW_HEIGHT)
-      }
+      scrollCellIntoView(next)
     },
-    [colCount, onSelect, rowCount, selection]
+    [onEnsureBounds, onSelect, scrollCellIntoView, selection]
   )
 
   const onKeyDown = useCallback(
@@ -227,7 +356,6 @@ export function SpreadsheetGrid({
         moveActive(0, e.shiftKey ? -1 : 1, false)
         return
       }
-      // Type-to-edit for printable chars
       if (
         !readOnly &&
         e.key.length === 1 &&
@@ -268,19 +396,45 @@ export function SpreadsheetGrid({
 
   const onCellMouseEnter = useCallback(
     (row: number, col: number) => {
-      if (!dragAnchor.current) return
+      if (!dragAnchor.current || resizeDrag.current) return
       onSelect({ row, col }, dragAnchor.current)
     },
     [onSelect]
   )
 
-  useEffect(() => {
-    const up = () => {
-      dragAnchor.current = null
-    }
-    window.addEventListener("mouseup", up)
-    return () => window.removeEventListener("mouseup", up)
-  }, [])
+  const startColResize = useCallback(
+    (col: number, e: ReactMouseEvent) => {
+      if (readOnly || !sheet || !onSetColWidth) return
+      e.preventDefault()
+      e.stopPropagation()
+      resizeDrag.current = {
+        kind: "col",
+        index: col,
+        startX: e.clientX,
+        startSize: getColWidth(sheet, col),
+      }
+      globalThis.document.body.style.cursor = "col-resize"
+      globalThis.document.body.style.userSelect = "none"
+    },
+    [onSetColWidth, readOnly, sheet]
+  )
+
+  const startRowResize = useCallback(
+    (row: number, e: ReactMouseEvent) => {
+      if (readOnly || !sheet || !onSetRowHeight) return
+      e.preventDefault()
+      e.stopPropagation()
+      resizeDrag.current = {
+        kind: "row",
+        index: row,
+        startY: e.clientY,
+        startSize: getRowHeight(sheet, row),
+      }
+      globalThis.document.body.style.cursor = "row-resize"
+      globalThis.document.body.style.userSelect = "none"
+    },
+    [onSetRowHeight, readOnly, sheet]
+  )
 
   return (
     <div
@@ -296,115 +450,194 @@ export function SpreadsheetGrid({
         onScroll={(e) => {
           const t = e.currentTarget
           setScroll({ top: t.scrollTop, left: t.scrollLeft })
+          growToCover(t.scrollTop, t.scrollLeft, t.clientWidth, t.clientHeight)
         }}
       >
         <div
           className="relative"
           style={{ width: totalWidth, height: totalHeight }}
         >
-          {/* Corner */}
+          {/* Corner — select all */}
           <div
-            className="sticky left-0 top-0 z-30 border-b border-r border-border bg-muted/60"
+            role="button"
+            tabIndex={-1}
+            aria-label="Select all"
+            className={cn(
+              "sticky left-0 top-0 z-30 cursor-pointer border-b border-r border-border bg-muted/60",
+              "hover:bg-muted"
+            )}
             style={{
               width: ROW_HEADER_WIDTH,
               height: COL_HEADER_HEIGHT,
             }}
+            onMouseDown={(e) => {
+              e.preventDefault()
+              if (editing) commitEdit()
+              onSelectAll?.()
+            }}
           />
 
           {/* Column headers */}
-          {visibleCols.map((c) => (
-            <div
-              key={`ch-${c}`}
-              className="sticky top-0 z-20 flex items-center justify-center border-b border-r border-border bg-muted/40 text-2xs font-medium text-muted-foreground"
-              style={{
-                position: "absolute",
-                left: ROW_HEADER_WIDTH + c * DEFAULT_COL_WIDTH,
-                top: 0,
-                width: DEFAULT_COL_WIDTH,
-                height: COL_HEADER_HEIGHT,
-              }}
-            >
-              <span className="sticky top-0">{colToLetter(c)}</span>
-            </div>
-          ))}
-
-          {/* Row headers + cells */}
-          {visibleRows.map((r) => (
-            <div key={`r-${r}`}>
+          {visibleCols.map((c) => {
+            const inSel = c >= rangeStart.col && c <= rangeEnd.col
+            const left = ROW_HEADER_WIDTH + (colLayout.offsets[c] ?? 0)
+            const width = sheet ? getColWidth(sheet, c) : DEFAULT_COL_WIDTH
+            return (
               <div
-                className="sticky left-0 z-20 flex items-center justify-center border-b border-r border-border bg-muted/40 text-2xs tabular-nums text-muted-foreground"
+                key={`ch-${c}`}
+                role="columnheader"
+                className={cn(
+                  "group sticky top-0 z-20 flex cursor-pointer items-center justify-center border-b border-r border-border text-2xs font-medium select-none",
+                  inSel
+                    ? "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
+                    : "bg-muted/40 text-muted-foreground hover:bg-muted/70"
+                )}
                 style={{
                   position: "absolute",
-                  left: 0,
-                  top: COL_HEADER_HEIGHT + r * DEFAULT_ROW_HEIGHT,
-                  width: ROW_HEADER_WIDTH,
-                  height: DEFAULT_ROW_HEIGHT,
+                  left,
+                  top: 0,
+                  width,
+                  height: COL_HEADER_HEIGHT,
+                }}
+                onMouseDown={(e) => {
+                  // Resize handle owns the right edge
+                  if ((e.target as HTMLElement).dataset.resize === "col") return
+                  e.preventDefault()
+                  if (editing) commitEdit()
+                  onSelectColumn?.(c)
                 }}
               >
-                {r + 1}
-              </div>
-              {visibleCols.map((c) => {
-                const active =
-                  selection.active.row === r && selection.active.col === c
-                const ranged =
-                  selection.range &&
-                  inRange(
-                    { row: r, col: c },
-                    selection.range.start,
-                    selection.range.end
-                  )
-                const display = getDisplay(r, c)
-                const isEdit =
-                  editing &&
-                  selection.active.row === r &&
-                  selection.active.col === c
-
-                return (
+                <span>{colToLetter(c)}</span>
+                {!readOnly ? (
                   <div
-                    key={`c-${r}-${c}`}
-                    role="gridcell"
-                    aria-selected={active || Boolean(ranged)}
-                    className={cn(
-                      "absolute flex items-center border-b border-r border-border/80 px-1.5 text-xs",
-                      active && "ring-2 ring-inset ring-primary z-10",
-                      ranged && !active && "bg-primary/10",
-                      display.error && "text-destructive",
-                      !display.error &&
-                        display.isFormula &&
-                        "text-foreground",
-                      !display.error &&
-                        !display.isFormula &&
-                        typeof display.display === "string" &&
-                        /^-?\d/.test(display.display) &&
-                        "justify-end tabular-nums"
-                    )}
-                    style={{
-                      left: ROW_HEADER_WIDTH + c * DEFAULT_COL_WIDTH,
-                      top: COL_HEADER_HEIGHT + r * DEFAULT_ROW_HEIGHT,
-                      width: DEFAULT_COL_WIDTH,
-                      height: DEFAULT_ROW_HEIGHT,
-                    }}
-                    onMouseDown={(e) => onCellMouseDown(r, c, e)}
-                    onMouseEnter={() => onCellMouseEnter(r, c)}
-                    onDoubleClick={() => startEdit()}
-                  >
-                    {isEdit ? (
-                      <input
-                        ref={editRef}
-                        className="h-full w-full bg-background px-0.5 text-xs outline-none"
-                        value={formulaDraft}
-                        onChange={(e) => onFormulaDraftChange(e.target.value)}
-                        onBlur={commitEdit}
-                        onMouseDown={(e) => e.stopPropagation()}
-                      />
-                    ) : (
-                      <span className="truncate">{display.display}</span>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          ))}
+                    data-resize="col"
+                    role="separator"
+                    aria-orientation="vertical"
+                    aria-label={`Resize column ${colToLetter(c)}`}
+                    className="absolute top-0 right-0 z-10 h-full w-1.5 cursor-col-resize hover:bg-blue-400/50"
+                    onMouseDown={(e) => startColResize(c, e)}
+                  />
+                ) : null}
+              </div>
+            )
+          })}
+
+          {/* Row headers + cells */}
+          {visibleRows.map((r) => {
+            const rowInSel = r >= rangeStart.row && r <= rangeEnd.row
+            const top = COL_HEADER_HEIGHT + (rowLayout.offsets[r] ?? 0)
+            const height = sheet ? getRowHeight(sheet, r) : DEFAULT_ROW_HEIGHT
+            return (
+              <div key={`r-${r}`}>
+                <div
+                  role="rowheader"
+                  className={cn(
+                    "group sticky left-0 z-20 flex cursor-pointer items-center justify-center border-b border-r border-border text-2xs tabular-nums select-none",
+                    rowInSel
+                      ? "bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300"
+                      : "bg-muted/40 text-muted-foreground hover:bg-muted/70"
+                  )}
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top,
+                    width: ROW_HEADER_WIDTH,
+                    height,
+                  }}
+                  onMouseDown={(e) => {
+                    if ((e.target as HTMLElement).dataset.resize === "row") return
+                    e.preventDefault()
+                    if (editing) commitEdit()
+                    onSelectRow?.(r)
+                  }}
+                >
+                  {r + 1}
+                  {!readOnly ? (
+                    <div
+                      data-resize="row"
+                      role="separator"
+                      aria-orientation="horizontal"
+                      aria-label={`Resize row ${r + 1}`}
+                      className="absolute right-0 bottom-0 left-0 z-10 h-1.5 cursor-row-resize hover:bg-blue-400/50"
+                      onMouseDown={(e) => startRowResize(r, e)}
+                    />
+                  ) : null}
+                </div>
+                {visibleCols.map((c) => {
+                  const active =
+                    selection.active.row === r && selection.active.col === c
+                  const ranged =
+                    selection.range &&
+                    inRange(
+                      { row: r, col: c },
+                      selection.range.start,
+                      selection.range.end
+                    )
+                  const display = getDisplay(r, c)
+                  const isEdit =
+                    editing &&
+                    selection.active.row === r &&
+                    selection.active.col === c
+                  const left = ROW_HEADER_WIDTH + (colLayout.offsets[c] ?? 0)
+                  const width = sheet ? getColWidth(sheet, c) : DEFAULT_COL_WIDTH
+
+                  return (
+                    <div
+                      key={`c-${r}-${c}`}
+                      role="gridcell"
+                      aria-selected={active || Boolean(ranged)}
+                      className={cn(
+                        "absolute flex items-center border-b border-r border-border/80 px-1.5 text-xs",
+                        ranged && !active && "bg-blue-400/15 dark:bg-blue-400/20",
+                        active &&
+                          "z-10 bg-background ring-2 ring-inset ring-blue-400",
+                        display.error && "text-destructive",
+                        !display.error &&
+                          display.isFormula &&
+                          "text-foreground",
+                        !display.error &&
+                          !display.isFormula &&
+                          typeof display.display === "string" &&
+                          /^-?\d/.test(display.display) &&
+                          "justify-end tabular-nums"
+                      )}
+                      style={{
+                        left,
+                        top,
+                        width,
+                        height,
+                      }}
+                      onMouseDown={(e) => onCellMouseDown(r, c, e)}
+                      onMouseEnter={() => onCellMouseEnter(r, c)}
+                      onDoubleClick={() => startEdit()}
+                    >
+                      {isEdit ? (
+                        <input
+                          ref={editRef}
+                          className={cn(
+                            "h-full w-full bg-transparent px-0.5 text-xs outline-none",
+                            CELL_TEXT_SELECTION
+                          )}
+                          value={formulaDraft}
+                          onChange={(e) => onFormulaDraftChange(e.target.value)}
+                          onBlur={commitEdit}
+                          onMouseDown={(e) => e.stopPropagation()}
+                        />
+                      ) : (
+                        <span className="truncate">{display.display}</span>
+                      )}
+                      {active && !isEdit ? (
+                        <span
+                          aria-hidden
+                          className="pointer-events-none absolute -bottom-0.5 -right-0.5 size-1.5 bg-blue-400 ring-1 ring-background"
+                        />
+                      ) : null}
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>

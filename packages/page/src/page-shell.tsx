@@ -29,10 +29,12 @@ export function PageShell({
         className
       )}
     >
-      {chrome ? <div className="z-20 shrink-0">{chrome}</div> : null}
-      <div className="flex min-h-0 flex-1">
+      {chrome ? (
+        <div className="sticky top-0 z-20 shrink-0">{chrome}</div>
+      ) : null}
+      <div className="flex min-h-0 min-w-0 flex-1">
         <div
-          className="min-h-0 min-w-0 flex-1"
+          className="flex min-h-0 min-w-0 flex-1 flex-col"
           role="main"
           aria-label={labels?.canvasAria}
         >

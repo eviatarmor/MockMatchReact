@@ -24,10 +24,21 @@ export {
   getActiveSheet,
   getCellRaw,
   setCellRaw,
+  setColWidth,
+  setRowHeight,
+  ensureSheetDimensions,
   updateSheet,
   cloneDocument,
   newSheetId,
 } from "./document"
+export {
+  getColWidth,
+  getRowHeight,
+  buildColLayout,
+  buildRowLayout,
+  findIndexAtOffset,
+  visibleRange,
+} from "./layout"
 export {
   colToLetter,
   letterToCol,
@@ -65,6 +76,14 @@ export {
   DEFAULT_COL_COUNT,
   DEFAULT_ROW_HEIGHT,
   DEFAULT_COL_WIDTH,
+  MIN_COL_WIDTH,
+  MAX_COL_WIDTH,
+  MIN_ROW_HEIGHT,
+  MAX_ROW_HEIGHT,
   ROW_HEADER_WIDTH,
   COL_HEADER_HEIGHT,
+  SHEET_GROW_BUFFER_ROWS,
+  SHEET_GROW_BUFFER_COLS,
+  SHEET_MAX_ROWS,
+  SHEET_MAX_COLS,
 } from "./types"

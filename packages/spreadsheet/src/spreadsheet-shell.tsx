@@ -26,6 +26,13 @@ export type SpreadsheetShellProps = {
   readonly onAddSheet: () => void
   readonly onRenameSheet: (id: string, name: string) => void
   readonly onDeleteSheet: (id: string) => void
+  /** Expand active sheet for infinite scroll / keyboard (from useSpreadsheet). */
+  readonly onEnsureBounds?: (minRows: number, minCols: number) => void
+  readonly onSetColWidth?: (col: number, width: number) => void
+  readonly onSetRowHeight?: (row: number, height: number) => void
+  readonly onSelectColumn?: (col: number) => void
+  readonly onSelectRow?: (row: number) => void
+  readonly onSelectAll?: () => void
   readonly readOnly?: boolean
   /** Optional top chrome (IdeChromeBar, menubar, …). */
   readonly chrome?: ReactNode
@@ -50,6 +57,12 @@ export function SpreadsheetShell({
   onAddSheet,
   onRenameSheet,
   onDeleteSheet,
+  onEnsureBounds,
+  onSetColWidth,
+  onSetRowHeight,
+  onSelectColumn,
+  onSelectRow,
+  onSelectAll,
   readOnly = false,
   chrome,
   className,
@@ -63,7 +76,9 @@ export function SpreadsheetShell({
         className
       )}
     >
-      {chrome ? <div className="z-20 shrink-0">{chrome}</div> : null}
+      {chrome ? (
+        <div className="sticky top-0 z-20 shrink-0">{chrome}</div>
+      ) : null}
       <FormulaBar
         a1={a1}
         value={formulaDraft}
@@ -72,6 +87,7 @@ export function SpreadsheetShell({
         readOnly={readOnly}
         nameBoxAria={labels.nameBoxAria}
         formulaBarAria={labels.formulaBarAria}
+        className="sticky top-11 z-10"
       />
       <SpreadsheetGrid
         document={document}
@@ -81,6 +97,12 @@ export function SpreadsheetShell({
         onCommitCell={onCommitCell}
         formulaDraft={formulaDraft}
         onFormulaDraftChange={onFormulaDraftChange}
+        onEnsureBounds={onEnsureBounds}
+        onSetColWidth={onSetColWidth}
+        onSetRowHeight={onSetRowHeight}
+        onSelectColumn={onSelectColumn}
+        onSelectRow={onSelectRow}
+        onSelectAll={onSelectAll}
         readOnly={readOnly}
         ariaLabel={labels.gridAria}
       />

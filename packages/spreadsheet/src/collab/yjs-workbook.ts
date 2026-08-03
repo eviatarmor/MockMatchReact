@@ -33,12 +33,24 @@ export function materializeWorkbook(ydoc: Y.Doc): SpreadsheetDocument {
     cellsMap?.forEach((raw, key) => {
       if (typeof raw === "string" && raw !== "") cells[key] = { raw }
     })
+    const colWidthsMap = sm.get("colWidths") as Y.Map<number> | undefined
+    const rowHeightsMap = sm.get("rowHeights") as Y.Map<number> | undefined
+    const colWidths: Record<string, number> = {}
+    const rowHeights: Record<string, number> = {}
+    colWidthsMap?.forEach((w, key) => {
+      if (typeof w === "number" && w > 0) colWidths[key] = w
+    })
+    rowHeightsMap?.forEach((h, key) => {
+      if (typeof h === "number" && h > 0) rowHeights[key] = h
+    })
     sheets.push({
       id,
       name: String(sm.get("name") ?? "Sheet"),
       rowCount: Number(sm.get("rowCount") ?? 100),
       colCount: Number(sm.get("colCount") ?? 26),
       cells,
+      ...(Object.keys(colWidths).length > 0 ? { colWidths } : {}),
+      ...(Object.keys(rowHeights).length > 0 ? { rowHeights } : {}),
     })
   }
 
@@ -81,6 +93,16 @@ export function ensureWorkbookYDoc(
         cells.set(k, v.raw)
       }
       sm.set("cells", cells)
+      if (sheet.colWidths) {
+        const cw = new Y.Map<number>()
+        for (const [k, v] of Object.entries(sheet.colWidths)) cw.set(k, v)
+        sm.set("colWidths", cw)
+      }
+      if (sheet.rowHeights) {
+        const rh = new Y.Map<number>()
+        for (const [k, v] of Object.entries(sheet.rowHeights)) rh.set(k, v)
+        sm.set("rowHeights", rh)
+      }
       root.set(`sheet:${sheet.id}`, sm)
     }
   })

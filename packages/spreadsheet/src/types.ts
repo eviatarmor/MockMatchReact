@@ -10,6 +10,10 @@ export type SpreadsheetSheet = {
   readonly cells: Readonly<Record<string, SpreadsheetCell>>
   readonly rowCount: number
   readonly colCount: number
+  /** Sparse col index (string) → width px. Missing → DEFAULT_COL_WIDTH. */
+  readonly colWidths?: Readonly<Record<string, number>>
+  /** Sparse row index (string) → height px. Missing → DEFAULT_ROW_HEIGHT. */
+  readonly rowHeights?: Readonly<Record<string, number>>
 }
 
 export type SpreadsheetDocument = {
@@ -52,9 +56,21 @@ export type SpreadsheetShellLabels = {
   readonly cannotDeleteLastSheet: string
 }
 
-export const DEFAULT_ROW_COUNT = 100
+/** Starting grid size (grows as user scrolls / navigates). */
+export const DEFAULT_ROW_COUNT = 80
 export const DEFAULT_COL_COUNT = 26
 export const DEFAULT_ROW_HEIGHT = 28
 export const DEFAULT_COL_WIDTH = 100
+export const MIN_COL_WIDTH = 36
+export const MAX_COL_WIDTH = 640
+export const MIN_ROW_HEIGHT = 18
+export const MAX_ROW_HEIGHT = 200
 export const ROW_HEADER_WIDTH = 48
 export const COL_HEADER_HEIGHT = 28
+
+/** Extra empty rows/cols kept past the viewport edge (infinite feel). */
+export const SHEET_GROW_BUFFER_ROWS = 40
+export const SHEET_GROW_BUFFER_COLS = 10
+/** Hard caps so scroll size / HyperFormula stay bounded. */
+export const SHEET_MAX_ROWS = 10_000
+export const SHEET_MAX_COLS = 500

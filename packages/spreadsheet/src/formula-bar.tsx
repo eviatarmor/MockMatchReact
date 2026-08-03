@@ -13,6 +13,9 @@ export type FormulaBarProps = {
   readonly className?: string
 }
 
+/**
+ * Name box + formula field using shadcn {@link Input} chrome.
+ */
 export function FormulaBar({
   a1,
   value,
@@ -26,21 +29,25 @@ export function FormulaBar({
   return (
     <div
       className={cn(
-        "flex h-9 shrink-0 items-center gap-2 border-b border-border bg-background px-2",
+        "flex h-11 shrink-0 items-center gap-2 border-b border-border/60 bg-neutral-50/75 px-2 backdrop-blur-md dark:bg-neutral-950/75",
         className
       )}
     >
-      <div
-        className="flex h-7 w-16 shrink-0 items-center justify-center rounded-md border border-border bg-muted/30 px-1 text-xs font-medium tabular-nums text-muted-foreground"
+      <Input
+        readOnly
+        tabIndex={-1}
         aria-label={nameBoxAria}
         title={a1}
-      >
-        <span className="truncate">{a1}</span>
-      </div>
-      <FunctionSquare className="size-3.5 shrink-0 text-muted-foreground" />
+        value={a1}
+        className="h-8 w-16 shrink-0 cursor-default px-1.5 text-center text-xs font-medium tabular-nums"
+      />
+      <FunctionSquare
+        className="size-4 shrink-0 text-muted-foreground"
+        aria-hidden
+      />
       <Input
         aria-label={formulaBarAria}
-        className="h-7 min-w-0 flex-1 border-0 bg-transparent px-1 shadow-none focus-visible:ring-0"
+        className="h-8 min-w-0 flex-1 caret-blue-500 selection:bg-blue-400/40 selection:text-neutral-900 dark:selection:text-neutral-50"
         value={value}
         readOnly={readOnly}
         onChange={(e) => onChange(e.target.value)}

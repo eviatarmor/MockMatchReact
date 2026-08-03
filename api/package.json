@@ -23,6 +23,7 @@
     "db:studio": "drizzle-kit studio",
     "db:schema:mermaid": "tsx scripts/generate-schema-mermaid.ts",
     "db:seed:exercises": "tsx scripts/seed-practice-exercises.ts",
+    "db:seed:spreadsheet-page": "tsx scripts/seed-spreadsheet-page-questions.ts",
     "test": "npm run test:unit",
     "test:unit": "vitest run --config vitest.config.ts",
     "test:integration": "vitest run --config vitest.integration.config.ts",

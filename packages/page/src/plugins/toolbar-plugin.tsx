@@ -136,7 +136,7 @@ export function ToolbarPlugin({
 
   return (
     <div
-      className="flex flex-wrap items-center gap-0.5 border-b border-border bg-background px-2 py-1.5"
+      className="sticky top-0 z-10 flex shrink-0 flex-wrap items-center gap-0.5 border-b border-border/60 bg-neutral-50/75 px-2 py-1.5 backdrop-blur-md dark:bg-neutral-950/75"
       data-page-toolbar
     >
       <ToolbarButton

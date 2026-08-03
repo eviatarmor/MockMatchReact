@@ -185,6 +185,12 @@ export function SimulationSpreadsheetPageContent() {
         onDeleteSheet={(id) => {
           sheet.deleteSheet(id)
         }}
+        onEnsureBounds={sheet.ensureBounds}
+        onSetColWidth={sheet.setColWidth}
+        onSetRowHeight={sheet.setRowHeight}
+        onSelectColumn={sheet.selectColumn}
+        onSelectRow={sheet.selectRow}
+        onSelectAll={sheet.selectAll}
         chrome={chrome}
       />
       {workbookId ? (

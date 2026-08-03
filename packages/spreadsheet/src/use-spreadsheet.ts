@@ -5,8 +5,11 @@ import {
   cloneDocument,
   createEmptySheet,
   createEmptyWorkbook,
+  ensureSheetDimensions,
   getActiveSheet,
   setCellRaw,
+  setColWidth as setSheetColWidth,
+  setRowHeight as setSheetRowHeight,
   updateSheet,
 } from "./document"
 import {
@@ -20,6 +23,12 @@ import type {
   DisplayCell,
   SpreadsheetDocument,
   SpreadsheetSelection,
+} from "./types"
+import {
+  SHEET_GROW_BUFFER_COLS,
+  SHEET_GROW_BUFFER_ROWS,
+  SHEET_MAX_COLS,
+  SHEET_MAX_ROWS,
 } from "./types"
 
 export type UseSpreadsheetOptions = {
@@ -40,6 +49,16 @@ export type UseSpreadsheetApi = {
   readonly deleteSheet: (sheetId: string) => boolean
   readonly reorderSheets: (orderedIds: string[]) => void
   readonly getDisplay: (row: number, col: number) => DisplayCell
+  /**
+   * Grow active sheet so at least `minRows` × `minCols` exist (capped).
+   * Used by the grid for infinite-scroll / keyboard navigation.
+   */
+  readonly ensureBounds: (minRows: number, minCols: number) => void
+  readonly setColWidth: (col: number, width: number) => void
+  readonly setRowHeight: (row: number, height: number) => void
+  readonly selectColumn: (col: number) => void
+  readonly selectRow: (row: number) => void
+  readonly selectAll: () => void
   readonly activeA1: string
   readonly replaceDocument: (doc: SpreadsheetDocument) => void
   readonly engine: HyperFormula
@@ -62,6 +81,8 @@ export function useSpreadsheet(
   if (!engineRef.current) {
     engineRef.current = createFormulaEngine(document)
   }
+  const documentRef = useRef(document)
+  documentRef.current = document
 
   // Keep formula bar in sync when selection changes (caller also sets draft)
   const syncDraftFromSelection = useCallback(
@@ -94,8 +115,61 @@ export function useSpreadsheet(
     [bumpEngine, syncDraftFromSelection]
   )
 
+  const ensureBounds = useCallback((minRows: number, minCols: number) => {
+    const rows = Math.min(SHEET_MAX_ROWS, Math.max(1, Math.ceil(minRows)))
+    const cols = Math.min(SHEET_MAX_COLS, Math.max(1, Math.ceil(minCols)))
+    setDocument((doc) => {
+      const sheet = getActiveSheet(doc)
+      if (!sheet) return doc
+      if (sheet.rowCount >= rows && sheet.colCount >= cols) return doc
+      return updateSheet(doc, sheet.id, (s) =>
+        ensureSheetDimensions(s, rows, cols)
+      )
+    })
+  }, [])
+
+  const setColWidth = useCallback((col: number, width: number) => {
+    setDocument((doc) => {
+      const sheet = getActiveSheet(doc)
+      if (!sheet) return doc
+      return updateSheet(doc, sheet.id, (s) => setSheetColWidth(s, col, width))
+    })
+  }, [])
+
+  const setRowHeight = useCallback((row: number, height: number) => {
+    setDocument((doc) => {
+      const sheet = getActiveSheet(doc)
+      if (!sheet) return doc
+      return updateSheet(doc, sheet.id, (s) => setSheetRowHeight(s, row, height))
+    })
+  }, [])
+
   const select = useCallback(
     (active: CellCoord, rangeEnd?: CellCoord | null) => {
+      // Grow sheet when selection lands past the edge (infinite grid).
+      const needRows =
+        Math.max(active.row, rangeEnd?.row ?? active.row) +
+        1 +
+        SHEET_GROW_BUFFER_ROWS
+      const needCols =
+        Math.max(active.col, rangeEnd?.col ?? active.col) +
+        1 +
+        SHEET_GROW_BUFFER_COLS
+      setDocument((doc) => {
+        const sheet = getActiveSheet(doc)
+        if (!sheet) {
+          syncDraftFromSelection(doc, active)
+          return doc
+        }
+        const nextDoc =
+          sheet.rowCount < needRows || sheet.colCount < needCols
+            ? updateSheet(doc, sheet.id, (s) =>
+                ensureSheetDimensions(s, needRows, needCols)
+              )
+            : doc
+        syncDraftFromSelection(nextDoc, active)
+        return nextDoc
+      })
       setSelection({
         active,
         range:
@@ -113,13 +187,64 @@ export function useSpreadsheet(
               }
             : null,
       })
-      setDocument((doc) => {
-        syncDraftFromSelection(doc, active)
-        return doc
-      })
     },
     [syncDraftFromSelection]
   )
+
+  const selectColumn = useCallback(
+    (col: number) => {
+      const doc = documentRef.current
+      const sheet = getActiveSheet(doc)
+      if (!sheet) return
+      const lastRow = Math.max(0, sheet.rowCount - 1)
+      const active = { row: 0, col }
+      setSelection({
+        active,
+        range: {
+          start: { row: 0, col },
+          end: { row: lastRow, col },
+        },
+      })
+      syncDraftFromSelection(doc, active)
+    },
+    [syncDraftFromSelection]
+  )
+
+  const selectRow = useCallback(
+    (row: number) => {
+      const doc = documentRef.current
+      const sheet = getActiveSheet(doc)
+      if (!sheet) return
+      const lastCol = Math.max(0, sheet.colCount - 1)
+      const active = { row, col: 0 }
+      setSelection({
+        active,
+        range: {
+          start: { row, col: 0 },
+          end: { row, col: lastCol },
+        },
+      })
+      syncDraftFromSelection(doc, active)
+    },
+    [syncDraftFromSelection]
+  )
+
+  const selectAll = useCallback(() => {
+    const doc = documentRef.current
+    const sheet = getActiveSheet(doc)
+    if (!sheet) return
+    const lastRow = Math.max(0, sheet.rowCount - 1)
+    const lastCol = Math.max(0, sheet.colCount - 1)
+    const active = { row: 0, col: 0 }
+    setSelection({
+      active,
+      range: {
+        start: { row: 0, col: 0 },
+        end: { row: lastRow, col: lastCol },
+      },
+    })
+    syncDraftFromSelection(doc, active)
+  }, [syncDraftFromSelection])
 
   const commitCell = useCallback(
     (row: number, col: number, raw: string) => {
@@ -267,6 +392,12 @@ export function useSpreadsheet(
     deleteSheet,
     reorderSheets,
     getDisplay,
+    ensureBounds,
+    setColWidth,
+    setRowHeight,
+    selectColumn,
+    selectRow,
+    selectAll,
     activeA1,
     replaceDocument,
     engine: engineRef.current!,

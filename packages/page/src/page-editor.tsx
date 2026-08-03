@@ -52,7 +52,7 @@ function PageEditorInner({
     <>
       <ToolbarPlugin labels={labels} readOnly={readOnly} />
       <div className="relative min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl px-6 py-8 sm:px-10">
+        <div className="px-6 py-8 sm:px-8">
           <RichTextPlugin
             contentEditable={
               <ContentEditable
@@ -62,7 +62,7 @@ function PageEditorInner({
                 )}
                 aria-placeholder={placeholder ?? labels.placeholder}
                 placeholder={
-                  <div className="pointer-events-none absolute top-8 left-6 text-[15px] text-muted-foreground sm:left-10">
+                  <div className="pointer-events-none absolute top-8 left-6 text-[15px] text-muted-foreground sm:left-8">
                     {placeholder ?? labels.placeholder}
                   </div>
                 }
