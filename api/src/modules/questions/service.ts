@@ -8,7 +8,9 @@ import type {
   QuestionDifficulty,
   QuestionFormat,
   QuestionMcqDetail,
+  QuestionPageDetail,
   QuestionPracticeDetail,
+  QuestionSpreadsheetDetail,
   QuestionUserStatus,
   SubmitMcqInput,
   SubmitMcqResult,
@@ -18,7 +20,9 @@ import {
   questions,
   type CodeRunQuestionPayload,
   type McqQuestionPayload,
+  type PageQuestionPayload,
   type QuestionPayload,
+  type SpreadsheetQuestionPayload,
 } from "../../db/schema/questions.js"
 import { userQuestionProgress } from "../../db/schema/user-question-progress.js"
 
@@ -487,6 +491,76 @@ export async function getQuestionForMcq(
   return toMcqDetail(row)
 }
 
+/** Bank spreadsheet → prompt + starter workbook for practice host. */
+export async function getQuestionForSpreadsheet(
+  db: Database,
+  questionId: string
+): Promise<QuestionSpreadsheetDetail> {
+  const row = await db.query.questions.findFirst({
+    where: eq(questions.id, questionId),
+  })
+  if (!row || row.status === "archived") {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Question not found",
+    })
+  }
+  if (row.format !== "spreadsheet") {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Question is not a spreadsheet exercise",
+    })
+  }
+  const p = (row.payload ?? {}) as SpreadsheetQuestionPayload
+  return {
+    id: row.id,
+    title: row.title,
+    format: "spreadsheet",
+    domain: row.domain as QuestionDomain,
+    difficulty: row.difficulty as QuestionDifficulty,
+    company: row.company,
+    prompt: p.prompt || row.body || "",
+    rubric: p.rubric ?? null,
+    durationMin: p.durationMin ?? null,
+    starterWorkbook: p.starterWorkbook ?? null,
+  }
+}
+
+/** Bank freeform page → prompt + starter HTML for practice host. */
+export async function getQuestionForPage(
+  db: Database,
+  questionId: string
+): Promise<QuestionPageDetail> {
+  const row = await db.query.questions.findFirst({
+    where: eq(questions.id, questionId),
+  })
+  if (!row || row.status === "archived") {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Question not found",
+    })
+  }
+  if (row.format !== "page") {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Question is not a document analysis exercise",
+    })
+  }
+  const p = (row.payload ?? {}) as PageQuestionPayload
+  return {
+    id: row.id,
+    title: row.title,
+    format: "page",
+    domain: row.domain as QuestionDomain,
+    difficulty: row.difficulty as QuestionDifficulty,
+    company: row.company,
+    prompt: p.prompt || row.body || "",
+    rubric: p.rubric ?? null,
+    durationMin: p.durationMin ?? null,
+    starterHtml: p.starterHtml ?? null,
+  }
+}
+
 /**
  * Same-domain MCQ pack: seed first, then more published MCQs in that domain.
  */
@@ -726,6 +800,20 @@ export async function getQuestionForPractice(
       code: "BAD_REQUEST",
       message:
         "Whiteboard questions open in the whiteboard practice surface, not the IDE",
+    })
+  }
+  if (row.format === "spreadsheet") {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message:
+        "Spreadsheet questions open in the spreadsheet practice surface, not the IDE",
+    })
+  }
+  if (row.format === "page") {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message:
+        "Document analysis questions open in the page practice surface, not the IDE",
     })
   }
 

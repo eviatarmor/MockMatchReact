@@ -11,7 +11,9 @@ import {
   questionIdInputSchema,
   questionListInputSchema,
   questionMcqDetailSchema,
+  questionPageDetailSchema,
   questionPracticeDetailSchema,
+  questionSpreadsheetDetailSchema,
   questionSummarySchema,
   questionUserStatusSchema,
   submitMcqInputSchema,
@@ -31,8 +33,38 @@ describe("question enums", () => {
     expect(questionFormatSchema.parse("whiteboard")).toBe("whiteboard")
     expect(questionFormatSchema.parse("spreadsheet")).toBe("spreadsheet")
     expect(questionFormatSchema.parse("page")).toBe("page")
-
     expect(questionUserStatusSchema.parse("mastered")).toBe("mastered")
+  })
+
+  it("accepts spreadsheet and page practice detail shapes", () => {
+    expect(
+      questionSpreadsheetDetailSchema.parse({
+        id: UUID,
+        title: "Unit economics",
+        format: "spreadsheet",
+        domain: "finance",
+        difficulty: "medium",
+        company: null,
+        prompt: "Build LTV/CAC",
+        rubric: null,
+        durationMin: 25,
+        starterWorkbook: null,
+      }).format
+    ).toBe("spreadsheet")
+    expect(
+      questionPageDetailSchema.parse({
+        id: UUID,
+        title: "Memo",
+        format: "page",
+        domain: "product",
+        difficulty: "medium",
+        company: null,
+        prompt: "Write a memo",
+        rubric: null,
+        durationMin: null,
+        starterHtml: "<h1>Outline</h1>",
+      }).starterHtml
+    ).toContain("Outline")
   })
 })
 

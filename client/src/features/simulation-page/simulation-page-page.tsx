@@ -37,12 +37,17 @@ export function SimulationPagePageContent() {
     const id = params.get("id")
     return id && UUID_RE.test(id) ? id : null
   })()
+  const questionId = (() => {
+    const id = params.get("questionId")
+    return id && UUID_RE.test(id) ? id : null
+  })()
 
   const session = usePageDocumentSession({
     title: t("simulation-page:title"),
     enabled: true,
     seedHtml: SEED_HTML,
     existingId,
+    questionId,
   })
 
   const [html, setHtml] = useState(SEED_HTML)
@@ -146,7 +151,7 @@ export function SimulationPagePageContent() {
       }
       center={
         <p className="truncate text-xs text-muted-foreground">
-          {t("simulation-page:subtitle")}
+          {session.prompt ?? t("simulation-page:subtitle")}
         </p>
       }
       end={

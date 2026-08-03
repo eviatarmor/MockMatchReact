@@ -36,11 +36,16 @@ export function SimulationSpreadsheetPageContent() {
     const id = params.get("id")
     return id && UUID_RE.test(id) ? id : null
   })()
+  const questionId = (() => {
+    const id = params.get("questionId")
+    return id && UUID_RE.test(id) ? id : null
+  })()
 
   const session = useSpreadsheetWorkbookSession({
     title: t("simulation-spreadsheet:title"),
     enabled: true,
     existingId,
+    questionId,
   })
 
   const sheet = useSpreadsheet({
@@ -130,7 +135,7 @@ export function SimulationSpreadsheetPageContent() {
       }
       center={
         <p className="truncate text-xs text-muted-foreground">
-          {t("simulation-spreadsheet:subtitle")}
+          {session.prompt ?? t("simulation-spreadsheet:subtitle")}
         </p>
       }
       end={

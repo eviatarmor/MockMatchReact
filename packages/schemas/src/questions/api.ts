@@ -130,6 +130,53 @@ export const generateFromJobsInputSchema = z.object({
   trackedJobIds: z.array(z.string().uuid()).min(1).max(5),
 })
 
+/** Spreadsheet practice detail — prompt + optional starter workbook. */
+export const questionSpreadsheetDetailSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string(),
+  format: z.literal("spreadsheet"),
+  domain: questionDomainSchema,
+  difficulty: questionDifficultySchema,
+  company: z.string().nullable(),
+  prompt: z.string(),
+  rubric: z.string().nullable(),
+  durationMin: z.number().int().positive().nullable(),
+  starterWorkbook: z
+    .object({
+      version: z.literal(1),
+      activeSheetId: z.string(),
+      sheets: z.array(
+        z.object({
+          id: z.string(),
+          name: z.string(),
+          cells: z.record(z.string(), z.object({ raw: z.string() })),
+          rowCount: z.number().int().positive(),
+          colCount: z.number().int().positive(),
+        })
+      ),
+    })
+    .nullable(),
+})
+
+/** Freeform page practice detail — prompt + optional starter HTML. */
+export const questionPageDetailSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string(),
+  format: z.literal("page"),
+  domain: questionDomainSchema,
+  difficulty: questionDifficultySchema,
+  company: z.string().nullable(),
+  prompt: z.string(),
+  rubric: z.string().nullable(),
+  durationMin: z.number().int().positive().nullable(),
+  starterHtml: z.string().nullable(),
+})
+
+export type QuestionSpreadsheetDetail = z.infer<
+  typeof questionSpreadsheetDetailSchema
+>
+export type QuestionPageDetail = z.infer<typeof questionPageDetailSchema>
+
 export const mcqVariantSchema = z.enum(["single", "multi", "order"])
 
 /** MCQ practice detail — options only; answer revealed via submitMcq. */

@@ -10,7 +10,9 @@ import { generateQuestionsFromJobs } from "./generate.js"
 import {
   getMcqSession,
   getQuestionForMcq,
+  getQuestionForPage,
   getQuestionForPractice,
+  getQuestionForSpreadsheet,
   getQuestionSummary,
   listQuestions,
   submitMcqAnswer,
@@ -19,6 +21,7 @@ import {
 /**
  * Global question bank.
  * - list / get / forPractice (IDE) / forMcq + submitMcq
+ * - forSpreadsheet / forPage practice surfaces
  * - generateFromJobs (also fired auto from trackedJobs.upsert)
  */
 export const questionsRouter = router({
@@ -47,6 +50,20 @@ export const questionsRouter = router({
     .input(questionIdInputSchema)
     .query(async ({ ctx, input }) => {
       return getQuestionForMcq(ctx.db, input.id)
+    }),
+
+  /** Spreadsheet case prompt + optional starter workbook. */
+  forSpreadsheet: protectedProcedure
+    .input(questionIdInputSchema)
+    .query(async ({ ctx, input }) => {
+      return getQuestionForSpreadsheet(ctx.db, input.id)
+    }),
+
+  /** Freeform document analysis prompt + optional starter HTML. */
+  forPage: protectedProcedure
+    .input(questionIdInputSchema)
+    .query(async ({ ctx, input }) => {
+      return getQuestionForPage(ctx.db, input.id)
     }),
 
   /** Same-domain MCQ sequence (seed first). */
