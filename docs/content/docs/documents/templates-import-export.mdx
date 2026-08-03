@@ -1,19 +1,46 @@
 ---
 title: Templates, import, export, collab
 icon: FolderInput
-description: Shared document workflows
+description: Shared document workflows for resumes and cover letters
 ---
 
-Shared across resumes and cover letters:
+Resumes and cover letters share templates, PDF import, PDF export, version history, and live collaboration. This page is the reference for those shared rules.
 
-| Capability | Notes |
-|------------|--------|
-| Templates | Start from product templates |
-| Import | PDF import into the editor |
-| Export | PDF via print route + Chromium |
-| Versions | Document history |
-| Collab | Share link active while the owner is in the document; roles `view` \| `edit` |
+## Templates
 
-## Status
+Product templates give you a role-shaped starting point. From Resume Lab or Cover Letters, browse templates and start a new document from one. Templates are a starting shell; you still own final content and targeting.
 
-Stub — detailed collab and export troubleshooting coming later.
+## Import PDF
+
+1. On the document list, choose **Import**.
+2. Select a **PDF** file.
+3. Stay under the product size limit (**5 MB**). Other types are rejected.
+
+Import brings content into the editor so you can revise in MockMatch instead of bouncing between tools.
+
+## Export PDF
+
+1. Open the document in the editor.
+2. Use export.
+3. The API opens the document print route in headless Chromium and returns a PDF.
+
+For local development, the client must be reachable at the configured app URL (default `http://localhost:5173`) while export runs. Install Chromium for the API once if your environment has not already: Playwright Chromium for the API package.
+
+## Version history
+
+The editor keeps document history so you can review earlier states. Use history when an AI rewrite or large edit went the wrong direction, or when you need to compare variants before export.
+
+## Collaboration
+
+| Rule | Behavior |
+|------|----------|
+| Who shares | Owner only (Share control) |
+| Roles | `view` or `edit`; owner always full |
+| Link lifetime | Active while the owner is in the document |
+| Owner leaves | Link expires; collaborators are dropped |
+| Reopen | Does not revive an expired link; create a new share |
+| Remove collaborator | Kicks them out of the live session immediately |
+
+The same share model applies to resume and cover letter editors. Practice surfaces that support collab (for example code-run rooms, terminal lab, and freeform workspace) use share query params and the same “owner must stay in the room” rule. See [Simulations](/docs/practice/simulations).
+
+Collab may require credits depending on plan or grant.

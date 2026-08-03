@@ -1,24 +1,55 @@
 ---
 title: Resume Lab
 icon: FileUser
-description: Create, edit, and score resumes
+description: Create, edit, score, and export resumes
 ---
 
-Resume Lab is where you create and refine resumes: list → template or import → canvas editor → history, collab, PDF export, and AI assist.
+Resume Lab is the home for every resume you keep in MockMatch. You create or import a document, edit it on a canvas with autosave, review history, share for live collab while you stay in the room, export PDF, and use an in-editor AI coach when you need targeted rewrites.
 
-## What you can do (product truth)
+## Open Resume Lab
 
-- Create a resume from a template or blank
-- Import an existing PDF
-- Edit on a document canvas with autosave
-- Review versions and export PDF
-- Share for collab while you are in the document
-- Use the document AI rail (credit-gated when configured)
+In the signed-in app: **Applications** area → **Resume Lab** (`/resume-lab`).
 
-## In MockMatch
+## Create or import a resume
 
-Go to **Documents → Resume Lab** in the signed-in dashboard.
+1. Open **Resume Lab**.
+2. Choose **New resume** for a blank or template start, or **Import** for an existing PDF (product limit: PDF under 5 MB).
+3. For templates, browse role templates and start a new resume from one.
+4. Open the row to enter the canvas editor.
 
-## Status
+You can also duplicate or delete resumes from the list when you need variants or cleanup.
 
-Stub — step-by-step guides and scoring details coming later.
+## Edit on the canvas
+
+The editor is a document canvas with sections and rich text. Changes **autosave**. Use history when you need a prior version. The in-editor **AI rail** is a chat coach that can attach a selection or section; it is not the same as navbar **Ask**, which only explains the product.
+
+Some AI actions may use [credits](/docs/account/credits).
+
+## Understand scores
+
+| Score | Where | What it means |
+|-------|--------|----------------|
+| General resume health | Resume Lab list / editor | Overall document quality signal for this resume |
+| Job-specific ATS fit | [Discover](/docs/jobs/discover) | How this resume matches a specific job |
+
+To score against a role: open Discover, select the job, and use fit scoring or **fit resume** generation (may cost credits).
+
+## Export a PDF
+
+1. Open the resume in the editor.
+2. Use export. The API renders the print page with Chromium and returns a PDF.
+3. For local or self-hosted setups, the client must be reachable at the configured app URL while the export runs.
+
+## Collaborate live
+
+Share links stay active only while **you** (the owner) remain in the document. When you leave, the link expires and collaborators drop. Reopening does not revive the old link; create a new share if you need another session.
+
+Roles: `view` or `edit` (owner keeps full access). Only the owner sees **Share**. Removing someone from the share dialog kicks them out of the live session immediately. Shared workflows: [Templates, import, export, collab](/docs/documents/templates-import-export).
+
+## Suggested workflow
+
+1. Import or create a base resume.
+2. Fix structure and impact bullets in the editor (see [Perfect resume](/docs/guides/perfect-resume)).
+3. Check general health in Resume Lab.
+4. For each priority job, use Discover fit and generate a fit resume when needed.
+5. Export PDF before you apply.

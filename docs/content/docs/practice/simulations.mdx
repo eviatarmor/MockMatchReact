@@ -1,15 +1,60 @@
 ---
 title: Simulations
 icon: MonitorPlay
-description: Interview tracks and practice sessions
+description: Sessions, interview tracks, and practice formats
 ---
 
-Simulations include sessions and interview tracks. Formats rolling out include code-run, terminal lab, dev workspace, and conversation. Some Run/judge paths may still be partial.
+Simulations is the practice home: recent sessions, featured interview tracks, and entry points into formats such as code run, conversation, terminal lab, dev workspace, multiple choice (MCQ), and whiteboard.
 
-## In MockMatch
+## Open Simulations
 
-Dashboard → **Practice → Simulations**.
+In the signed-in app: **Practice** area → **Simulations** (`/simulations`).
 
-## Status
+## Sessions
 
-Stub — do not assume every language/format is fully judged yet.
+Recent practice sessions merge voice and IDE attempts. Each retake is its own row. If you open an unfinished IDE exercise, you can **Continue** or **Start new**.
+
+## Interview tracks
+
+The featured tracks strip shows recent bank questions. **Browse all** opens `/simulations/tracks`, which lists the same global question bank as Question Bank, with the same filters (domain, difficulty, status).
+
+Seed IDE labs (catalog exercises) remain available from direct URLs and session history labels. They are not listed as rows in the tracks table.
+
+## Formats
+
+| Format | What you practice | Entry pattern |
+|--------|-------------------|---------------|
+| **Code run** | Timed coding labs with Run / Run tests where wired | `/simulations/code-run/:format` or practice from a bank question |
+| **Dev workspace** | Freeform multi-file collab IDE | `/simulations/workspace` |
+| **Terminal lab** | Shell-only multi-tab terminal with collab | `/simulations/terminal-lab` |
+| **Conversation** | Live agent interview (robot + chat, voice pipeline) | `/simulations/conversation/:trackId` |
+| **MCQ** | Single, multi-select, or order questions in a sequence | `/simulations/mcq/:seedId` |
+| **Whiteboard** | Pan/zoom canvas: sticky notes, shapes, pen, connectors | `/simulations/whiteboard/:questionId` |
+
+### Code run notes
+
+Code-run rooms support live collab (presence and share). Examples in the catalog include JS/TS/Python labs with I/O tests, C++ sort via client-side clang tooling, and multi-file React-style exercises. Some language run paths and full web-app run for multi-file React are still rolling out; do not assume every language is fully judged yet.
+
+### Conversation notes
+
+Conversation setup creates a voice session (credits may apply for mock interviews). The live path uses speech-to-text, an LLM, and text-to-speech on voice workers, with robot and chat driven by server events. If the voice pipeline fails, a mock path may still drive the UI. Tracks include examples such as behavioral core, product sense, and system-design talk. Camera analysis UI may be present without full backend analysis.
+
+### MCQ notes
+
+MCQ sessions run a same-domain sequence. Variants: **single**, **multi** (select all), and **order** (drag to reorder). Check an answer, move next, then see a summary.
+
+### Whiteboard notes
+
+Whiteboard practice uses a canvas shell with templates, autosave, and collab kind `whiteboard`.
+
+## Collaboration on practice rooms
+
+For IDE-style rooms, share URLs include `id` and `share` query params. The owner must stay in the room; leaving ends the live session for collaborators the same way document share works. See [Templates, import, export, collab](/docs/documents/templates-import-export).
+
+## Exercise catalog
+
+Catalog exercises live in Postgres (`practice_exercises`) with starter files in object storage under `exercises/<slug>/<version>/`. Local seed: `npm run db:seed:exercises` in the API package when you develop against empty storage.
+
+## Credits
+
+Conversation mock interviews and some collab or AI-backed paths may use [credits](/docs/account/credits).

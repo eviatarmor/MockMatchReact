@@ -1,4 +1,4 @@
 {
   "title": "Account & billing",
-  "pages": ["index", "credits", "settings"]
+  "pages": ["index", "credits", "settings", "help-support"]
 }

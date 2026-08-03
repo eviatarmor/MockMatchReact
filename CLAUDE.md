@@ -14,16 +14,25 @@ Always use **caveman ultra** for chat replies (`/caveman ultra` / skill `user:ca
 - Drop caveman only for security warnings, irreversible confirmations, multi-step sequences where compression risks misread, or when user asks to clarify.
 - Off only if user says `stop caveman` / `normal mode`.
 
-## Ask assistant product guide
+## Ask assistant + public product docs
 
-In-app **Ask** chat (navbar) uses a free OpenRouter model and a product system prompt.
+In-app **Ask** chat (navbar) uses a free OpenRouter model and a product system prompt. Public product help lives on the docs site (`docs.mockmatch.ai`, workspace `docs/`).
 
-- **Runtime guide (source of truth):** `api/src/modules/ask/product-guide.ts`
-- **System prompt builder:** `api/src/modules/ask/system-prompt.ts`
-- **Stream route:** `POST /ask/chat` (`api/src/modules/ask/routes.ts`)
-- **Client UI:** `client/src/features/ask/` (shell); shared chat: `@mockmatch/ai-chat`
+| Surface | Path | Role |
+|---------|------|------|
+| Ask runtime guide | `api/src/modules/ask/product-guide.ts` | In-app assistant page map + how-tos |
+| Ask system prompt | `api/src/modules/ask/system-prompt.ts` | Prompt builder |
+| Ask stream | `POST /ask/chat` (`api/src/modules/ask/routes.ts`) | Chat API |
+| Ask UI | `client/src/features/ask/` + `@mockmatch/ai-chat` | Shell |
+| Public docs (MDX) | `docs/content/docs/**` | Human product help (Fumadocs SPA) |
+| Docs maintenance rule | `.claude/rules/docs-product-help.md` (mirror `.grok/rules/`) | When/how to update both |
 
-**When adding or changing user-facing features, routes, or nav items, update `product-guide.ts`** so the assistant stays accurate (page map + how-tos). Do not put the full prompt only in this file — keep the guide co-located with the API module.
+**When adding or changing user-facing features, routes, nav items, or workflows, update both:**
+
+1. `api/src/modules/ask/product-guide.ts` (Ask stays accurate)
+2. Matching pages under `docs/content/docs/` (public docs stay accurate; add pages + `meta.json` entries when a new product area ships)
+
+Do not invent unfinished features, plan prices, or testimonials. Voice: calm, second person, task-first how-tos (see docs rule). Do not put the full Ask prompt only in this file — keep the guide co-located with the API module.
 
 ## Project overview
 
@@ -67,6 +76,7 @@ Detailed memories live in **`.claude/rules/`** (and mirror **`.grok/rules/`**). 
 | `stateless-api-contract.md` | Multi-replica hard rules, probes, prod env guards |
 | `infra-production.md` | Local vs prod status (prod TBD; DO removed) |
 | `ops-checklist.md` | Local boot steps |
+| `docs-product-help.md` | Public docs + Ask guide: update on every user-facing feature |
 
 ### Auth state placement (do not reverse)
 

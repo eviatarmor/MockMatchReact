@@ -27,7 +27,18 @@ Shared tokens: `@mockmatch/ui/theme.css` (same as client). Fumadocs shadcn prese
 
 ## Content
 
-MDX under `content/docs/`. v1 = stubs along the product loop + reserved Guides.
+MDX under `content/docs/`. Product how-tos follow the prep loop; career craft lives under `guides/`.
+
+### Keep docs in sync with the product
+
+When you ship or change user-facing features, update:
+
+1. Matching pages in `content/docs/` (this package)
+2. In-app Ask guide: `api/src/modules/ask/product-guide.ts`
+
+Full rule: `.claude/rules/docs-product-help.md` (mirrored under `.grok/rules/`).
+
+**Voice:** second person, active voice, imperative steps, calm prep tone. No invented prices, testimonials, or unshipped features. Prefer honest “rolling out” over speculative depth.
 
 ## Scripts
 

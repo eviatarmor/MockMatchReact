@@ -1,21 +1,49 @@
 ---
 title: Credits & plans
 icon: Coins
-description: Free grants, AI usage, and top-up
+description: Free plan, usage, and credit top-up
 ---
 
-MockMatch uses a **credits** model for some AI and collab actions.
+MockMatch runs a free plan with pay-as-you-go **credits** for AI features that cost money. Card details stay with Stripe when top-up is configured. This page describes the product model without inventing plan names or prices beyond what the app shows.
 
-- Free tier / grants may apply
-- Top-up is available when Stripe is configured
-- The product does not claim unlimited free AI when credits apply
+## Open Billing
 
-Exact commercial packaging beyond free + credits is product-owned and may change — this page will not invent plan names or prices.
+In the signed-in app: user menu (avatar) → **Billing**. Tabs cover **Usage**, **Payment**, and **Billing history**.
 
-## In MockMatch
+The navbar also shows remaining credits and entry points such as **Get credits** when available.
 
-Dashboard → **Billing** / account billing surfaces.
+## Free plan and credits
 
-## Status
+- No subscription is required for the free plan
+- You buy credits for AI features that consume them
+- Usage breakdown in Billing can group categories such as mock interviews, fit resume, fit cover letter, and job fit scores
 
-Stub.
+Exact pack sizes and prices come from the live Billing UI and Stripe products for that environment. Docs will not hardcode commercial packaging that may change.
+
+## What may use credits
+
+Examples of credit-gated work:
+
+- Job fit scores and fit document generation
+- Conversation mock interviews
+- Some collab or AI rail actions depending on plan and grant
+
+If an action costs credits, the product should make that clear in the UI. MockMatch does not claim unlimited free AI when credits apply.
+
+## Top up
+
+1. Open **Billing** → **Usage**.
+2. Choose a credit pack and **Buy**.
+3. Complete Stripe Checkout when keys are configured.
+
+If Stripe is not configured (common in local dev), the free plan UI still works and paid top-up is disabled. You may see a message that credit top-ups are not configured on this environment.
+
+## Payment method and history
+
+- Cards are collected and stored by Stripe; MockMatch displays last four digits only
+- Full card numbers and CVC are not stored on MockMatch servers
+- Billing history lists invoices for top-ups and other Stripe charges when present
+
+## Local development note
+
+Developers sometimes raise free grants (for example a large `FREE_CREDIT_GRANT`) so collab and AI paths are testable without Checkout. That is an environment setting, not a public plan promise.
