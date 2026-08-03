@@ -18,6 +18,14 @@ client/dist/
 infra/volumes/**
 !infra/volumes/.gitkeep
 
+# test artifacts
+coverage/
+api/tests/setup/.testcontainers-state.json
+**/test-results/
+**/playwright-report/
+client/tests/e2e/test-results/
+client/tests/e2e/playwright-report/
+
 # misc
 .DS_Store
 *.pem

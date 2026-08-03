@@ -20,5 +20,14 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-i18next": "*"
+  },
+  "scripts": {
+    "test": "vitest run --config vitest.config.ts",
+    "test:unit": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts",
+    "test:bench": "vitest bench --config vitest.bench.config.ts --run"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.10"
   }
 }

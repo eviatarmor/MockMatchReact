@@ -24,5 +24,13 @@
     "@xterm/xterm": "^6.0.0",
     "monaco-editor": "0.55.1",
     "motion": "^12.42.2"
+  },
+  "scripts": {
+    "test": "vitest run --config vitest.config.ts",
+    "test:unit": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.10"
   }
 }

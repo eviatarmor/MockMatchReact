@@ -126,7 +126,30 @@ Docker API image (repo root): `docker build -f api/Dockerfile -t mockmatch-api .
 
 Local ops: see `infra/README.md` and `.claude/rules/ops-checklist.md`. No production provider stack in-repo.
 
-No test runner is configured yet.
+### Testing
+
+See **`TESTING.md`**.
+
+| Layer | Where |
+|-------|--------|
+| API unit + integration | `api/tests/{unit,integration,setup,helpers}` |
+| Client unit | `client/tests/unit` |
+| **Playwright E2E** | `client/tests/e2e` (smoke, public, auth, dashboard, **resume-lab**, **collab-ws**) |
+| Packages | `packages/<name>/tests/unit` (+ optional `tests/setup`) — **not** under `src/` |
+
+```bash
+npm run test              # unit (all TS workspaces)
+npm run test:full         # unit + integration + voice (local package.json; needs Docker/infra for integration)
+npm run test:integration  # api Testcontainers / USE_EXISTING_INFRA=1
+npm run test:e2e          # Playwright — needs npm run dev + infra
+npm run test:bench        # Vitest micro-benches (path-op, crypto, zod, geometry, …)
+npm run test:bench:db     # DB/Redis/Hono benches (Docker Testcontainers or USE_EXISTING_INFRA=1)
+npm run test:voice
+```
+
+CI runs **unit only** (plus typecheck/lint/build/fallow) — not integration/e2e.
+
+**Agent habit:** after changes → `test:unit`; API/DB → `test:integration`; UI/routes → `test:e2e` when stack up.
 
 ## Architecture
 
