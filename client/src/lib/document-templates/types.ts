@@ -105,3 +105,31 @@ export type BuiltResumeTemplate = ResumeRoleTemplate & {
 export type BuiltCoverLetterTemplate = CoverLetterRoleTemplate & {
   readonly document: CoverLetterDocument
 }
+
+/** Per-role body content (summary, experience, letter, etc.). */
+export interface RoleSeed {
+  readonly person?: {
+    readonly name: string
+    readonly email: string
+    readonly phone: string
+    readonly linkedin: string
+    readonly website?: string
+  }
+  readonly summary: string
+  readonly experience: readonly SeedExperience[]
+  readonly education: readonly SeedEducation[]
+  readonly skills: readonly string[]
+  readonly projects?: readonly SeedExperience[]
+  readonly certifications?: readonly {
+    readonly name: string
+    readonly issuer: string
+    readonly date: string
+    readonly credentialId?: string
+  }[]
+  readonly languages?: readonly { readonly name: string; readonly proficiency: string }[]
+  readonly letter: {
+    readonly greeting: string
+    readonly paragraphs: readonly string[]
+    readonly closing: string
+  }
+}
