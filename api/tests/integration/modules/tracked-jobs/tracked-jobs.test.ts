@@ -1,30 +1,13 @@
 import { expect, it } from "vitest"
 import {
-  createCaller,
   describeIntegration,
+  signupAuthedCaller,
 } from "../../../helpers/integration.js"
 import { env } from "@/config/env.js"
 
-async function signupCaller() {
-  const email = `tj+${Date.now()}-${Math.random().toString(36).slice(2, 6)}@example.com`
-  const publicCaller = createCaller(null)
-  await publicCaller.auth.requestOtp({
-    purpose: "signup",
-    email,
-    fullName: "Tracked Jobs User",
-    agreeToTerms: true,
-  })
-  const { user } = await publicCaller.auth.verifyOtp({
-    email,
-    code: env.OTP_STUB_CODE || "000000",
-    purpose: "signup",
-  })
-  return createCaller({ id: user.id, email: user.email })
-}
-
 describeIntegration("trackedJobs (integration)", () => {
   it("list → upsert → updateStatus → remove", async () => {
-    const caller = await signupCaller()
+    const caller = await signupAuthedCaller()
 
     const empty = await caller.trackedJobs.list()
     expect(Array.isArray(empty)).toBe(true)
@@ -64,7 +47,7 @@ describeIntegration("trackedJobs (integration)", () => {
   })
 
   it("removeBySourceKey works", async () => {
-    const caller = await signupCaller()
+    const caller = await signupAuthedCaller()
     const sourceKey = `manual:rm-key-${Date.now()}`
     await caller.trackedJobs.upsert({
       sourceKey,

@@ -1,30 +1,13 @@
 import { expect, it } from "vitest"
 import {
-  createCaller,
   describeIntegration,
+  signupAuthedCaller,
 } from "../../../helpers/integration.js"
 import { env } from "@/config/env.js"
 
-async function signupCaller() {
-  const email = `dv+${Date.now()}-${Math.random().toString(36).slice(2, 6)}@example.com`
-  const publicCaller = createCaller(null)
-  await publicCaller.auth.requestOtp({
-    purpose: "signup",
-    email,
-    fullName: "Versions User",
-    agreeToTerms: true,
-  })
-  const { user } = await publicCaller.auth.verifyOtp({
-    email,
-    code: env.OTP_STUB_CODE || "000000",
-    purpose: "signup",
-  })
-  return createCaller({ id: user.id, email: user.email })
-}
-
 describeIntegration("documentVersions (integration)", () => {
   it("list after resume create has at least one version", async () => {
-    const caller = await signupCaller()
+    const caller = await signupAuthedCaller()
     const resume = await caller.resumes.create({ title: "Versioned Resume" })
 
     const page = await caller.documentVersions.list({
@@ -49,7 +32,7 @@ describeIntegration("documentVersions (integration)", () => {
   })
 
   it("list after cover letter create", async () => {
-    const caller = await signupCaller()
+    const caller = await signupAuthedCaller()
     const cl = await caller.coverLetters.create({ title: "Versioned CL" })
 
     const page = await caller.documentVersions.list({

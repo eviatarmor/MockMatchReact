@@ -1,30 +1,13 @@
 import { expect, it } from "vitest"
 import {
-  createCaller,
   describeIntegration,
+  signupAuthedCaller,
 } from "../../../helpers/integration.js"
 import { env } from "@/config/env.js"
 
-async function signupCaller() {
-  const email = `collab+${Date.now()}-${Math.random().toString(36).slice(2, 6)}@example.com`
-  const publicCaller = createCaller(null)
-  await publicCaller.auth.requestOtp({
-    purpose: "signup",
-    email,
-    fullName: "Collab User",
-    agreeToTerms: true,
-  })
-  const { user } = await publicCaller.auth.verifyOtp({
-    email,
-    code: env.OTP_STUB_CODE || "000000",
-    purpose: "signup",
-  })
-  return createCaller({ id: user.id, email: user.email })
-}
-
 describeIntegration("collab (integration)", () => {
   it("getAccess owner on cover letter; share flow after dev credits", async () => {
-    const caller = await signupCaller()
+    const caller = await signupAuthedCaller()
     const doc = await caller.coverLetters.create({ title: "Shared CL" })
 
     const accessFree = await caller.collab.getAccess({
@@ -92,7 +75,7 @@ describeIntegration("collab (integration)", () => {
   })
 
   it("createShareLink forbidden without credits", async () => {
-    const caller = await signupCaller()
+    const caller = await signupAuthedCaller()
     const doc = await caller.coverLetters.create({ title: "No Share" })
 
     await expect(

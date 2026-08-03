@@ -1,30 +1,13 @@
 import { expect, it } from "vitest"
 import {
-  createCaller,
   describeIntegration,
+  signupAuthedCaller,
 } from "../../../helpers/integration.js"
 import { env } from "@/config/env.js"
 
-async function signupCaller() {
-  const email = `ps+${Date.now()}-${Math.random().toString(36).slice(2, 6)}@example.com`
-  const publicCaller = createCaller(null)
-  await publicCaller.auth.requestOtp({
-    purpose: "signup",
-    email,
-    fullName: "Practice Sessions User",
-    agreeToTerms: true,
-  })
-  const { user } = await publicCaller.auth.verifyOtp({
-    email,
-    code: env.OTP_STUB_CODE || "000000",
-    purpose: "signup",
-  })
-  return createCaller({ id: user.id, email: user.email })
-}
-
 describeIntegration("practiceSessions (integration)", () => {
   it("list empty → startNew freeform → complete → delete", async () => {
-    const caller = await signupCaller()
+    const caller = await signupAuthedCaller()
 
     const empty = await caller.practiceSessions.list({ page: 1, pageSize: 10 })
     expect(Array.isArray(empty.items)).toBe(true)
@@ -60,7 +43,7 @@ describeIntegration("practiceSessions (integration)", () => {
   })
 
   it("abandon ends in_progress session", async () => {
-    const caller = await signupCaller()
+    const caller = await signupAuthedCaller()
     const trackId = `abandon-${Date.now()}`
     const started = await caller.practiceSessions.startNew({ trackId })
 

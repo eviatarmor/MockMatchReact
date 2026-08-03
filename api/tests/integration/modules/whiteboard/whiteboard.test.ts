@@ -1,30 +1,13 @@
 import { expect, it } from "vitest"
 import {
-  createCaller,
   describeIntegration,
+  signupAuthedCaller,
 } from "../../../helpers/integration.js"
 import { env } from "@/config/env.js"
 
-async function signupCaller() {
-  const email = `wb+${Date.now()}-${Math.random().toString(36).slice(2, 6)}@example.com`
-  const publicCaller = createCaller(null)
-  await publicCaller.auth.requestOtp({
-    purpose: "signup",
-    email,
-    fullName: "Whiteboard User",
-    agreeToTerms: true,
-  })
-  const { user } = await publicCaller.auth.verifyOtp({
-    email,
-    code: env.OTP_STUB_CODE || "000000",
-    purpose: "signup",
-  })
-  return createCaller({ id: user.id, email: user.email })
-}
-
 describeIntegration("whiteboard (integration)", () => {
   it("create → get → update → delete", async () => {
-    const caller = await signupCaller()
+    const caller = await signupAuthedCaller()
 
     const created = await caller.whiteboard.create({
       title: "Test Board",

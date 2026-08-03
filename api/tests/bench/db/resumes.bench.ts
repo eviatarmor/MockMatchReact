@@ -1,47 +1,42 @@
-import { bench, describe } from "vitest"
-import { env } from "@/config/env.js"
+import { bench } from "vitest"
 import {
-  createCaller,
   describeBenchIntegration,
   integrationAvailable,
+  signupAuthedCaller,
+  type AuthedCaller,
 } from "../../helpers/integration.js"
 
-type Caller = ReturnType<typeof createCaller>
+async function seedResumes(): Promise<{
+  caller: AuthedCaller
+  firstId: string
+}> {
+  const caller = await signupAuthedCaller("bench-resumes")
+  const titles = Array.from(
+    { length: 20 },
+    (_, i) => `Bench Resume ${String(i).padStart(3, "0")}`
+  )
+  const rows = await Promise.all(
+    titles.map((title, i) =>
+      caller.resumes.create({
+        title,
+        targetRole: i % 2 === 0 ? "Engineer" : "Designer",
+      })
+    )
+  )
+  return { caller, firstId: rows[0]!.id }
+}
 
 /**
  * Resume list/get against real Postgres (Docker / Testcontainers).
- * Seed once before benches (not in beforeAll — Vitest bench + async beforeAll
- * was yielding NaN samples on some runs).
  */
 describeBenchIntegration("db resumes (Postgres)", () => {
-  let caller: Caller
+  let caller: AuthedCaller
   let firstId = ""
   let seeded = false
 
-  async function ensureSeed() {
+  async function ensureSeed(): Promise<void> {
     if (seeded || !integrationAvailable()) return
-    const email = `bench-resumes+${Date.now()}@example.com`
-    const pub = createCaller(null)
-    await pub.auth.requestOtp({
-      purpose: "signup",
-      email,
-      fullName: "Bench User",
-      agreeToTerms: true,
-    })
-    const { user } = await pub.auth.verifyOtp({
-      email,
-      code: env.OTP_STUB_CODE || "000000",
-      purpose: "signup",
-    })
-    caller = createCaller({ id: user.id, email: user.email })
-    const SEED = 20
-    for (let i = 0; i < SEED; i++) {
-      const row = await caller.resumes.create({
-        title: `Bench Resume ${String(i).padStart(3, "0")}`,
-        targetRole: i % 2 === 0 ? "Engineer" : "Designer",
-      })
-      if (i === 0) firstId = row.id
-    }
+    ;({ caller, firstId } = await seedResumes())
     seeded = true
   }
 
@@ -86,4 +81,3 @@ describeBenchIntegration("db resumes (Postgres)", () => {
     { time: 500 }
   )
 })
-

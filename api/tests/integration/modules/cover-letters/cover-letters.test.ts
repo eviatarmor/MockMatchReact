@@ -1,30 +1,13 @@
 import { expect, it } from "vitest"
 import {
-  createCaller,
   describeIntegration,
+  signupAuthedCaller,
 } from "../../../helpers/integration.js"
 import { env } from "@/config/env.js"
 
-async function signupCaller() {
-  const email = `cl+${Date.now()}-${Math.random().toString(36).slice(2, 6)}@example.com`
-  const publicCaller = createCaller(null)
-  await publicCaller.auth.requestOtp({
-    purpose: "signup",
-    email,
-    fullName: "Cover Letter User",
-    agreeToTerms: true,
-  })
-  const { user } = await publicCaller.auth.verifyOtp({
-    email,
-    code: env.OTP_STUB_CODE || "000000",
-    purpose: "signup",
-  })
-  return createCaller({ id: user.id, email: user.email })
-}
-
 describeIntegration("coverLetters (integration)", () => {
   it("list → create → get → delete", async () => {
-    const caller = await signupCaller()
+    const caller = await signupAuthedCaller()
 
     const before = await caller.coverLetters.list({ page: 1, pageSize: 10 })
     expect(Array.isArray(before.items)).toBe(true)
@@ -52,7 +35,7 @@ describeIntegration("coverLetters (integration)", () => {
   })
 
   it("duplicate creates a new row", async () => {
-    const caller = await signupCaller()
+    const caller = await signupAuthedCaller()
     const original = await caller.coverLetters.create({
       title: "Original CL",
     })
