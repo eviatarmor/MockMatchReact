@@ -1122,7 +1122,8 @@
       "workspace": "Dev workspace",
       "terminal": "Terminal lab",
       "conversation": "Conversation",
-      "mcq": "Multiple choice"
+      "mcq": "Multiple choice",
+      "spreadsheet": "Spreadsheet"
     },
     "recentSessions": {
       "title": "Recent sessions",
@@ -1220,6 +1221,10 @@
       "workspace": {
         "title": "Dev workspace",
         "description": "Freeform multiplayer IDE for multi-file practice."
+      },
+      "spreadsheet": {
+        "title": "Spreadsheet lab",
+        "description": "Multi-sheet grid with formulas for case and finance drills."
       },
       "behavioralCore": {
         "title": "Behavioral · Core stories",

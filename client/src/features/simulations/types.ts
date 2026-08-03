@@ -8,8 +8,14 @@ export type SessionStatus = "completed" | "in_progress" | "abandoned"
  * - `workspace` — live session over WS: editor + filesystem + terminal.
  * - `terminal` — shell-only lab. DevOps / SRE / ops incident tasks.
  * - `conversation` — AI interviewer dialogue (behavioral, product, design, etc.).
+ * - `spreadsheet` — multi-sheet grid + formulas (case / finance tables).
  */
-export type TrackFormat = "codeRun" | "workspace" | "terminal" | "conversation"
+export type TrackFormat =
+  | "codeRun"
+  | "workspace"
+  | "terminal"
+  | "conversation"
+  | "spreadsheet"
 
 /** Audience buckets used for resume-based track recommendations. */
 export type TrackRoleFamily =
