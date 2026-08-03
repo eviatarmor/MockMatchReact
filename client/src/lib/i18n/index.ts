@@ -17,6 +17,7 @@ import simulationConversationEnUS from "@/locales/en-US/simulation-conversation.
 import simulationMcqEnUS from "@/locales/en-US/simulation-mcq.json"
 import simulationWhiteboardEnUS from "@/locales/en-US/simulation-whiteboard.json"
 import simulationSpreadsheetEnUS from "@/locales/en-US/simulation-spreadsheet.json"
+import simulationPageEnUS from "@/locales/en-US/simulation-page.json"
 import helpEnUS from "@/locales/en-US/help.json"
 import notFoundEnUS from "@/locales/en-US/not-found.json"
 
@@ -35,6 +36,7 @@ import simulationConversationEnGB from "@/locales/en-GB/simulation-conversation.
 import simulationMcqEnGB from "@/locales/en-GB/simulation-mcq.json"
 import simulationWhiteboardEnGB from "@/locales/en-GB/simulation-whiteboard.json"
 import simulationSpreadsheetEnGB from "@/locales/en-GB/simulation-spreadsheet.json"
+import simulationPageEnGB from "@/locales/en-GB/simulation-page.json"
 import helpEnGB from "@/locales/en-GB/help.json"
 import notFoundEnGB from "@/locales/en-GB/not-found.json"
 
@@ -53,6 +55,7 @@ import simulationConversationEnAU from "@/locales/en-AU/simulation-conversation.
 import simulationMcqEnAU from "@/locales/en-AU/simulation-mcq.json"
 import simulationWhiteboardEnAU from "@/locales/en-AU/simulation-whiteboard.json"
 import simulationSpreadsheetEnAU from "@/locales/en-AU/simulation-spreadsheet.json"
+import simulationPageEnAU from "@/locales/en-AU/simulation-page.json"
 import helpEnAU from "@/locales/en-AU/help.json"
 import notFoundEnAU from "@/locales/en-AU/not-found.json"
 
@@ -81,6 +84,7 @@ const enUS = {
   "simulation-mcq": simulationMcqEnUS,
   "simulation-whiteboard": simulationWhiteboardEnUS,
   "simulation-spreadsheet": simulationSpreadsheetEnUS,
+  "simulation-page": simulationPageEnUS,
   help: helpEnUS,
   "not-found": notFoundEnUS,
 }
@@ -101,6 +105,7 @@ const enGB = {
   "simulation-mcq": simulationMcqEnGB,
   "simulation-whiteboard": simulationWhiteboardEnGB,
   "simulation-spreadsheet": simulationSpreadsheetEnGB,
+  "simulation-page": simulationPageEnGB,
   help: helpEnGB,
   "not-found": notFoundEnGB,
 }
@@ -121,6 +126,7 @@ const enAU = {
   "simulation-mcq": simulationMcqEnAU,
   "simulation-whiteboard": simulationWhiteboardEnAU,
   "simulation-spreadsheet": simulationSpreadsheetEnAU,
+  "simulation-page": simulationPageEnAU,
   help: helpEnAU,
   "not-found": notFoundEnAU,
 }

@@ -4,7 +4,7 @@ icon: MonitorPlay
 description: Sessions, interview tracks, and practice formats
 ---
 
-Simulations is the practice home: recent sessions, featured interview tracks, and entry points into formats such as code run, conversation, terminal lab, dev workspace, multiple choice (MCQ), whiteboard, and spreadsheet.
+Simulations is the practice home: recent sessions, featured interview tracks, and entry points into formats such as code run, conversation, terminal lab, dev workspace, multiple choice (MCQ), whiteboard, spreadsheet, and freeform document analysis.
 
 ## Open Simulations
 
@@ -31,6 +31,7 @@ Seed IDE labs (catalog exercises) remain available from direct URLs and session 
 | **MCQ** | Single, multi-select, or order questions in a sequence | `/simulations/mcq/:seedId` |
 | **Whiteboard** | Pan/zoom canvas: sticky notes, shapes, pen, connectors | `/simulations/whiteboard/:questionId` |
 | **Spreadsheet** | Multi-sheet grid with formulas for case and finance drills | `/simulations/spreadsheet` |
+| **Document** | Freeform Notion-style page for case writeups | `/simulations/page` |
 
 ### Code run notes
 
@@ -50,7 +51,11 @@ Whiteboard practice uses a canvas shell with templates, autosave, and collab kin
 
 ### Spreadsheet notes
 
-Spreadsheet practice is a freeform multi-sheet workbook: editable cells, formula bar (`SUM`, arithmetic, ranges), and sheet tabs. Open `/simulations/spreadsheet` directly. Live collab room persistence is still rolling out; the grid shell is available for solo practice now.
+Spreadsheet practice is a freeform multi-sheet workbook: editable cells, formula bar, and sheet tabs. Open `/simulations/spreadsheet`.
+
+### Document analysis notes
+
+Document analysis is a freeform Lexical page (headings, lists, checklist, quote, code, slash menu). Open `/simulations/page`. This is separate from Resume Lab sectioned editors. Collab room persistence is still rolling out; solo practice works now.
 
 ## Collaboration on practice rooms
 

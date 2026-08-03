@@ -9,6 +9,7 @@ export type SessionStatus = "completed" | "in_progress" | "abandoned"
  * - `terminal` — shell-only lab. DevOps / SRE / ops incident tasks.
  * - `conversation` — AI interviewer dialogue (behavioral, product, design, etc.).
  * - `spreadsheet` — multi-sheet grid + formulas (case / finance tables).
+ * - `page` — freeform Notion/Docs-like writeup (document analysis).
  */
 export type TrackFormat =
   | "codeRun"
@@ -16,6 +17,7 @@ export type TrackFormat =
   | "terminal"
   | "conversation"
   | "spreadsheet"
+  | "page"
 
 /** Audience buckets used for resume-based track recommendations. */
 export type TrackRoleFamily =

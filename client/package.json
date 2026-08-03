@@ -37,6 +37,7 @@
     "@mockmatch/document-editor": "*",
     "@mockmatch/ide": "*",
     "@mockmatch/mcq": "*",
+    "@mockmatch/page": "*",
     "@mockmatch/schemas": "*",
     "@mockmatch/spreadsheet": "*",
     "@mockmatch/ui": "*",

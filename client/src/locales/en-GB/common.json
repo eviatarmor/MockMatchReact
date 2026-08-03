@@ -1123,7 +1123,8 @@
       "terminal": "Terminal lab",
       "conversation": "Conversation",
       "mcq": "Multiple choice",
-      "spreadsheet": "Spreadsheet"
+      "spreadsheet": "Spreadsheet",
+      "page": "Document"
     },
     "recentSessions": {
       "title": "Recent sessions",
@@ -1237,6 +1238,10 @@
       "systemDesignTalk": {
         "title": "System design · Talk track",
         "description": "Architecture discussion only — no code. Voice-first agent stage."
+      },
+      "page": {
+        "title": "Document analysis",
+        "description": "Freeform Notion-style page for case write-ups and long-form analysis."
       }
     }
   }

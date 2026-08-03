@@ -11,6 +11,8 @@ export const QUESTION_MCQ_BASE_PATH = "/simulations/mcq"
 export const QUESTION_WHITEBOARD_BASE_PATH = "/simulations/whiteboard"
 /** Freeform spreadsheet practice. */
 export const SPREADSHEET_PRACTICE_PATH = "/simulations/spreadsheet"
+/** Freeform document analysis page practice. */
+export const PAGE_PRACTICE_PATH = "/simulations/page"
 
 /** App path for a conversation track session. */
 export function conversationPathForTrackId(trackId: string): string {
@@ -67,6 +69,9 @@ export function practicePathForTrackId(trackId: string): string | null {
   }
   if (track?.format === "spreadsheet" || trackId === "spreadsheet") {
     return SPREADSHEET_PRACTICE_PATH
+  }
+  if (track?.format === "page" || trackId === "page") {
+    return PAGE_PRACTICE_PATH
   }
   return idePathForTrackId(trackId)
 }
