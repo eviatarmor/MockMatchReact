@@ -6,7 +6,7 @@ import {
   useState,
   type ReactNode,
 } from "react"
-import { useNavigate, useParams } from "react-router-dom"
+import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { ArrowLeft, Download, Share2 } from "lucide-react"
 import { IdeChromeBar } from "@mockmatch/ide"
@@ -68,11 +68,16 @@ function templateI18nKey(key: string): string {
 
 export function SimulationWhiteboardPageContent() {
   const { questionId: questionIdParam } = useParams<{ questionId: string }>()
+  const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { t } = useTranslation(["simulation-whiteboard", "common"])
 
   const seedId =
     questionIdParam && UUID_RE.test(questionIdParam) ? questionIdParam : null
+  const existingBoardId = (() => {
+    const id = searchParams.get("boardId")
+    return id && UUID_RE.test(id) ? id : null
+  })()
 
   const summaryQuery = trpc.questions.get.useQuery(
     { id: seedId! },
@@ -96,6 +101,7 @@ export function SimulationWhiteboardPageContent() {
     questionId: seedId,
     title: summaryQuery.data?.title ?? "Whiteboard",
     enabled: isWhiteboard,
+    existingBoardId,
   })
 
   const historyRef = useRef(createHistory(createEmptyBoard()))

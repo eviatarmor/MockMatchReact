@@ -1123,6 +1123,7 @@
       "terminal": "Terminal lab",
       "conversation": "Conversation",
       "mcq": "Multiple choice",
+      "whiteboard": "Whiteboard",
       "spreadsheet": "Spreadsheet",
       "page": "Document"
     },

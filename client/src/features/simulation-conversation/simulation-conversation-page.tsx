@@ -233,19 +233,24 @@ function ConversationSession({
 }
 
 export function SimulationConversationPageContent() {
-  const { trackId: trackParam } = useParams<{ trackId: string }>()
+  // Unified bank route uses :questionId; catalog uses :trackId.
+  const { trackId: trackParam, questionId: questionIdParam } = useParams<{
+    trackId?: string
+    questionId?: string
+  }>()
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { t } = useTranslation("simulation-conversation")
+  const pathSegment = trackParam ?? questionIdParam
 
   // Prefer explicit ?questionId= (legacy links) or UUID in path segment
   const queryQuestionId = searchParams.get("questionId")
-  const pathIsUuid = Boolean(trackParam && UUID_RE.test(trackParam))
+  const pathIsUuid = Boolean(pathSegment && UUID_RE.test(pathSegment))
   const bankQuestionId =
     queryQuestionId && UUID_RE.test(queryQuestionId)
       ? queryQuestionId
       : pathIsUuid
-        ? trackParam!
+        ? pathSegment!
         : null
 
   const questionQuery = trpc.questions.get.useQuery(
@@ -257,16 +262,18 @@ export function SimulationConversationPageContent() {
     }
   )
 
-  // Canonicalize legacy URLs → /conversation/:questionId only
+  // Canonicalize bank conversation → /simulations/:questionId
   useEffect(() => {
     if (!bankQuestionId) return
-    if (trackParam === bankQuestionId && !searchParams.has("questionId")) return
-    navigate(`/simulations/conversation/${bankQuestionId}`, { replace: true })
-  }, [bankQuestionId, trackParam, searchParams, navigate])
+    const onUnified =
+      questionIdParam === bankQuestionId && !searchParams.has("questionId")
+    if (onUnified) return
+    navigate(`/simulations/${bankQuestionId}`, { replace: true })
+  }, [bankQuestionId, questionIdParam, searchParams, navigate])
 
   // Bank question practice (path = UUID and/or ?questionId=)
   if (bankQuestionId) {
-    if (questionQuery.isLoading || questionQuery.isFetching) {
+    if (questionQuery.isLoading) {
       return (
         <div className="flex h-full flex-col items-center justify-center gap-3 bg-background p-6 text-sm text-muted-foreground">
           <RobotLoader
@@ -302,12 +309,8 @@ export function SimulationConversationPageContent() {
     }
 
     const q = questionQuery.data
-    if (q.format === "mcq") {
-      navigate(`/simulations/mcq/${q.id}`, { replace: true })
-      return null
-    }
     if (q.format !== "conversation") {
-      navigate(`/simulations/practice/${q.id}`, { replace: true })
+      navigate(`/simulations/${q.id}`, { replace: true })
       return null
     }
 
@@ -326,7 +329,7 @@ export function SimulationConversationPageContent() {
   }
 
   // Catalog tracks only (behavioral-core, product-sense, system-design-talk)
-  if (!isConversationTrackId(trackParam)) {
+  if (!isConversationTrackId(pathSegment)) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 bg-background p-6">
         <p className="text-sm text-muted-foreground">
@@ -343,5 +346,5 @@ export function SimulationConversationPageContent() {
     )
   }
 
-  return <ConversationSession trackId={trackParam} />
+  return <ConversationSession trackId={pathSegment as ConversationTrackId} />
 }

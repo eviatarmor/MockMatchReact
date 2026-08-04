@@ -16,6 +16,7 @@ export type PracticeSessionDto = {
   trackId: string
   title: string
   workspaceId: string | null
+  boardId: string | null
   questionId: string | null
   status: "in_progress" | "completed" | "abandoned"
   score: number | null
@@ -33,6 +34,7 @@ function toDto(
     trackId: row.trackId,
     title: row.title,
     workspaceId: row.workspaceId,
+    boardId: row.boardId,
     questionId: row.questionId,
     status: row.status,
     score: row.score,
@@ -43,11 +45,130 @@ function toDto(
   }
 }
 
+/**
+ * Older practice only wrote ide_workspaces / whiteboard_boards without a
+ * practice_sessions history row. Backfill on list so Simulations history
+ * shows real past attempts (latest board per question; unlinked workspaces).
+ */
+async function ensurePracticeHistoryFromArtifacts(
+  db: Database,
+  userId: string
+): Promise<void> {
+  const linked = await db
+    .select({
+      workspaceId: practiceSessions.workspaceId,
+      boardId: practiceSessions.boardId,
+    })
+    .from(practiceSessions)
+    .where(eq(practiceSessions.userId, userId))
+
+  const linkedWorkspaceIds = new Set(
+    linked.map((r) => r.workspaceId).filter((id): id is string => Boolean(id))
+  )
+  const linkedBoardIds = new Set(
+    linked.map((r) => r.boardId).filter((id): id is string => Boolean(id))
+  )
+
+  // Latest board per bank question (skip remount storm duplicates).
+  const boardResult = await db.execute(sql`
+    SELECT DISTINCT ON (question_id)
+      id,
+      title,
+      question_id,
+      status,
+      created_at,
+      updated_at
+    FROM whiteboard_boards
+    WHERE user_id = ${userId}
+      AND question_id IS NOT NULL
+    ORDER BY question_id, updated_at DESC
+  `)
+  const boards = (
+    Array.isArray(boardResult)
+      ? boardResult
+      : ((boardResult as { rows?: unknown[] }).rows ?? [])
+  ) as Array<{
+    id: string
+    title: string
+    question_id: string
+    status: string
+    created_at: Date | string
+    updated_at: Date | string
+  }>
+
+  const newBoardSessions = boards
+    .filter((b) => b.question_id && !linkedBoardIds.has(b.id))
+    .map((b) => {
+      const createdAt =
+        b.created_at instanceof Date ? b.created_at : new Date(b.created_at)
+      const updatedAt =
+        b.updated_at instanceof Date ? b.updated_at : new Date(b.updated_at)
+      return {
+        userId,
+        trackId: questionTrackId(b.question_id),
+        title: b.title || "Whiteboard",
+        boardId: b.id,
+        questionId: b.question_id,
+        workspaceId: null as string | null,
+        status: (b.status === "archived" ? "abandoned" : "in_progress") as
+          | "in_progress"
+          | "completed"
+          | "abandoned",
+        startedAt: createdAt,
+        updatedAt,
+        endedAt: b.status === "archived" ? updatedAt : null,
+      }
+    })
+
+  const workspaceRows = await db
+    .select()
+    .from(ideWorkspaces)
+    .where(eq(ideWorkspaces.userId, userId))
+    .orderBy(desc(ideWorkspaces.updatedAt))
+    .limit(80)
+
+  const newWorkspaceSessions = workspaceRows
+    .filter((w) => !linkedWorkspaceIds.has(w.id))
+    .map((w) => {
+      const slug = w.templateId?.trim() || "workspace"
+      return {
+        userId,
+        trackId: slug,
+        title: w.title || slug,
+        workspaceId: w.id,
+        boardId: null as string | null,
+        questionId: parseQuestionTrackId(slug),
+        status: (w.status === "archived" ? "abandoned" : "in_progress") as
+          | "in_progress"
+          | "completed"
+          | "abandoned",
+        startedAt: w.createdAt,
+        updatedAt: w.updatedAt,
+        endedAt: w.status === "archived" ? w.updatedAt : null,
+      }
+    })
+
+  const toInsert = [...newBoardSessions, ...newWorkspaceSessions]
+  if (toInsert.length === 0) return
+
+  const CHUNK = 50
+  for (let i = 0; i < toInsert.length; i += CHUNK) {
+    await db.insert(practiceSessions).values(toInsert.slice(i, i + CHUNK))
+  }
+}
+
 export async function listPracticeSessions(
   db: Database,
   userId: string,
   opts?: { page?: number; pageSize?: number; search?: string }
 ) {
+  // Recover history for users who only have boards/workspaces (no session rows).
+  try {
+    await ensurePracticeHistoryFromArtifacts(db, userId)
+  } catch (err) {
+    console.error("[practice-sessions] history backfill failed", err)
+  }
+
   const page = opts?.page ?? 1
   const pageSize = opts?.pageSize ?? 10
   const offset = (page - 1) * pageSize
@@ -101,23 +222,23 @@ export async function getOpenPracticeSession(
     .orderBy(desc(practiceSessions.updatedAt))
     .limit(1)
 
-  if (!row?.workspaceId) return row ? toDto(row) : null
-
-  // Ensure workspace still exists
-  const ws = await db.query.ideWorkspaces.findFirst({
-    where: eq(ideWorkspaces.id, row.workspaceId),
-    columns: { id: true },
-  })
-  if (!ws) {
-    await db
-      .update(practiceSessions)
-      .set({
-        status: "abandoned",
-        endedAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(practiceSessions.id, row.id))
-    return null
+  // IDE attempts need a live workspace; whiteboard uses boardId only.
+  if (row.workspaceId) {
+    const ws = await db.query.ideWorkspaces.findFirst({
+      where: eq(ideWorkspaces.id, row.workspaceId),
+      columns: { id: true },
+    })
+    if (!ws) {
+      await db
+        .update(practiceSessions)
+        .set({
+          status: "abandoned",
+          endedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(practiceSessions.id, row.id))
+      return null
+    }
   }
 
   return toDto(row)

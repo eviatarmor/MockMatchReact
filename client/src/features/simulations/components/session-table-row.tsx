@@ -25,24 +25,22 @@ export function SessionTableRow({
   const avatarClass = avatarClassFor(avatarText)
 
   const openSession = () => {
+    if (!session.trackId) {
+      navigate("/simulations/tracks")
+      return
+    }
+    const path = practicePathForTrackId(session.trackId)
+    if (!path) {
+      navigate("/simulations/tracks")
+      return
+    }
     const workspaceId = session._workspaceId ?? session.workspaceId
-    if (session.trackId && workspaceId) {
-      const path = practicePathForTrackId(session.trackId)
-      if (path) {
-        const sep = path.includes("?") ? "&" : "?"
-        navigate(`${path}${sep}id=${workspaceId}`)
-        return
-      }
-    }
-    if (session.trackId) {
-      const path = practicePathForTrackId(session.trackId)
-      if (path) {
-        // Continue / new dialog when no workspace id
-        navigate(path)
-        return
-      }
-    }
-    navigate("/simulations/tracks")
+    const boardId = session.boardId
+    const params = new URLSearchParams()
+    if (workspaceId) params.set("id", workspaceId)
+    if (boardId) params.set("boardId", boardId)
+    const qs = params.toString()
+    navigate(qs ? `${path}?${qs}` : path)
   }
 
   return (

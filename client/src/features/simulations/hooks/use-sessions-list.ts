@@ -19,7 +19,8 @@ function trackTitle(
 function formatLabel(
   kind: "voice" | "ide",
   trackId: string,
-  t: (key: string, opts?: Record<string, unknown>) => string
+  t: (key: string, opts?: Record<string, unknown>) => string,
+  opts?: { boardId?: string | null; workspaceId?: string | null }
 ): string {
   if (kind === "voice") {
     return t("simulations.format.conversation")
@@ -31,6 +32,11 @@ function formatLabel(
   if (trackId === "shell") return t("simulations.format.terminal")
   if (trackId === "workspace" || trackId === "react") {
     return t("simulations.format.workspace")
+  }
+  // Bank q: rows — infer surface from linked document when catalog miss.
+  if (trackId.startsWith("q:")) {
+    if (opts?.boardId) return t("simulations.format.whiteboard")
+    if (opts?.workspaceId) return t("simulations.format.codeRun")
   }
   return t("simulations.format.codeRun")
 }
@@ -111,9 +117,13 @@ export function useSessionsList() {
         _sourceId: row.id,
         _source: "ide",
         title: row.title || trackTitle(row.trackId, t),
-        track: formatLabel("ide", row.trackId, t),
+        track: formatLabel("ide", row.trackId, t, {
+          boardId: row.boardId,
+          workspaceId: row.workspaceId,
+        }),
         trackId: row.trackId,
         workspaceId: row.workspaceId,
+        boardId: row.boardId,
         _workspaceId: row.workspaceId,
         updatedAt: row.updatedAt,
         durationMin,

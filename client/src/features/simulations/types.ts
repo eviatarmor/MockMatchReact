@@ -59,6 +59,8 @@ export interface RecentSession {
   readonly trackId?: string
   /** IDE workspace id when opening an IDE attempt. */
   readonly workspaceId?: string | null
+  /** Whiteboard board id when opening a whiteboard attempt. */
+  readonly boardId?: string | null
   /** ISO timestamp for relative “Updated” column. */
   readonly updatedAt: string
   readonly durationMin: number

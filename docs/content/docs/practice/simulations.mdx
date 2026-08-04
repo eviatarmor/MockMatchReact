@@ -24,14 +24,15 @@ Seed IDE labs (catalog exercises) remain available from direct URLs and session 
 
 | Format | What you practice | Entry pattern |
 |--------|-------------------|---------------|
-| **Code run** | Timed coding labs with Run / Run tests where wired | `/simulations/code-run/:format` or practice from a bank question |
+| **Bank question (any format)** | Practice from Question Bank or tracks | `/simulations/:questionId` |
+| **Code run** | Timed coding labs with Run / Run tests where wired | `/simulations/code-run/:format` or bank URL above |
 | **Dev workspace** | Freeform multi-file collab IDE | `/simulations/workspace` |
 | **Terminal lab** | Shell-only multi-tab terminal with collab | `/simulations/terminal-lab` |
-| **Conversation** | Live agent interview (robot + chat, voice pipeline) | `/simulations/conversation/:trackId` |
-| **MCQ** | Single, multi-select, or order questions in a sequence | `/simulations/mcq/:seedId` |
-| **Whiteboard** | Pan/zoom canvas: sticky notes, shapes, pen, connectors | `/simulations/whiteboard/:questionId` |
-| **Spreadsheet** | Multi-sheet grid with formulas for case and finance drills | `/simulations/spreadsheet` |
-| **Document** | Freeform Notion-style page for case writeups | `/simulations/page` |
+| **Conversation** | Live agent interview (robot + chat, voice pipeline) | Bank URL, or catalog `/simulations/conversation/:trackId` |
+| **MCQ** | Single, multi-select, or order questions in a sequence | `/simulations/:questionId` |
+| **Whiteboard** | Pan/zoom canvas: sticky notes, shapes, pen, connectors | `/simulations/:questionId` |
+| **Spreadsheet** | Multi-sheet grid with formulas for case and finance drills | Freeform `/simulations/spreadsheet`, or bank URL |
+| **Document** | Freeform Notion-style page for case writeups | Freeform `/simulations/page`, or bank URL |
 
 ### Code run notes
 
@@ -51,11 +52,11 @@ Whiteboard practice uses a canvas shell with templates, autosave, and collab kin
 
 ### Spreadsheet notes
 
-Spreadsheet practice is a multi-sheet workbook: editable cells, formula bar, and sheet tabs. Freeform: `/simulations/spreadsheet`. From the question bank, Practice opens `?questionId=` with the case prompt and optional starter workbook from generation. Workbooks autosave; **Share** uses collab kind `spreadsheet` (`?id=` + `share`).
+Spreadsheet practice is a multi-sheet workbook: editable cells, formula bar, and sheet tabs. Freeform: `/simulations/spreadsheet`. From the question bank, Practice opens `/simulations/:questionId` with the case prompt and optional starter workbook from generation. Workbooks autosave; **Share** uses collab kind `spreadsheet` (`?id=` + `share`).
 
 ### Document analysis notes
 
-Document analysis is a freeform Lexical page (headings, lists, checklist, quote, code, slash menu). Freeform: `/simulations/page`. Bank Practice opens `?questionId=` with the prompt and optional starter outline HTML. Separate from Resume Lab sectioned editors. Collab kind `page`.
+Document analysis is a freeform Lexical page (headings, lists, checklist, quote, code, slash menu). Freeform: `/simulations/page`. Bank Practice opens `/simulations/:questionId` with the prompt and optional starter outline HTML. Separate from Resume Lab sectioned editors. Collab kind `page`.
 
 ## Collaboration on practice rooms
 

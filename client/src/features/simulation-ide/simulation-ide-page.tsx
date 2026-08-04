@@ -83,6 +83,7 @@ export function SimulationIdePageContent() {
   const isTerminalLabRoute =
     pathname === "/simulations/terminal-lab" ||
     pathname.startsWith("/simulations/terminal-lab/")
+  /** Bank practice: `/simulations/:questionId` (UUID) or legacy `/practice/`. */
   const isBankPracticeRoute =
     Boolean(questionIdParam && UUID_RE.test(questionIdParam)) ||
     pathname.startsWith("/simulations/practice/")
@@ -138,7 +139,7 @@ export function SimulationIdePageContent() {
 
 /**
  * Ensure a durable collab workspace id for any practice format.
- * - Bank: `/simulations/practice/:questionId` loads from `questions` only
+ * - Bank: `/simulations/:questionId` loads from `questions` only
  * - Catalog: seed exercise slug
  * - `?id=` + optional `?share=` for join
  * - else check open attempt → Continue / Start new dialog
@@ -152,6 +153,7 @@ function ExerciseCollabBootstrap({
 }) {
   const { t } = useTranslation("simulation-ide")
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const [searchParams] = useSearchParams()
   const idParam = searchParams.get("id")
   const shareToken = searchParams.get("share")
@@ -169,7 +171,7 @@ function ExerciseCollabBootstrap({
   /** Seed catalog (not freeform workspace, not bank). */
   const isCatalog = format !== "workspace" && !isBank
 
-  // Redirect MCQ / conversation bank items away from the IDE surface
+  // Non-IDE bank formats must not create IDE workspaces (API rejects them).
   const bankSummary = trpc.questions.get.useQuery(
     { id: questionId! },
     {
@@ -179,28 +181,32 @@ function ExerciseCollabBootstrap({
     }
   )
   const bankFormat = bankSummary.data?.format
-  const bankNeedsRedirect =
-    bankFormat === "mcq" || bankFormat === "conversation"
+  const nonIdeFormats = new Set([
+    "mcq",
+    "conversation",
+    "whiteboard",
+    "spreadsheet",
+    "page",
+  ])
+  const bankNeedsRedirect = Boolean(
+    bankFormat && nonIdeFormats.has(bankFormat)
+  )
   const bankReadyForIde =
     !isBank ||
-    (Boolean(bankSummary.data) &&
-      bankFormat !== "mcq" &&
-      bankFormat !== "conversation")
+    (Boolean(bankSummary.data) && !nonIdeFormats.has(bankFormat ?? ""))
 
   useEffect(() => {
     if (!isBank || !questionId || !bankSummary.data) return
-    if (bankSummary.data.format === "mcq") {
-      navigate(`/simulations/mcq/${questionId}`, { replace: true })
-      return
-    }
-    if (bankSummary.data.format === "conversation") {
-      navigate(`/simulations/conversation/${questionId}`, { replace: true })
-    }
-  }, [isBank, questionId, bankSummary.data, navigate])
+    if (!nonIdeFormats.has(bankSummary.data.format)) return
+    // Dispatcher already on unified path for the right surface — leave.
+    if (pathname === `/simulations/${questionId}`) return
+    navigate(`/simulations/${questionId}`, { replace: true })
+  }, [isBank, questionId, bankSummary.data, navigate, pathname])
 
-  const basePath = isBank && questionId
-    ? `/simulations/practice/${questionId}`
-    : pathForFormat(format === "bank" ? "js-sum" : format)
+  const basePath =
+    isBank && questionId
+      ? `/simulations/${questionId}`
+      : pathForFormat(format === "bank" ? "js-sum" : format)
 
   const [resumePrompt, setResumePrompt] = useState<{
     sessionId: string
@@ -247,7 +253,7 @@ function ExerciseCollabBootstrap({
     onSuccess: (result) => {
       const path =
         isBank && questionId
-          ? `/simulations/practice/${questionId}?id=${result.workspaceId}`
+          ? `/simulations/${questionId}?id=${result.workspaceId}`
           : `${pathForFormat(format)}?id=${result.workspaceId}`
       navigate(path, { replace: true })
     },
@@ -332,7 +338,17 @@ function ExerciseCollabBootstrap({
     bankNeedsRedirect,
   ])
 
-  if (isBank && (bankSummary.isLoading || bankNeedsRedirect)) {
+  if (isBank && bankSummary.isLoading) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-sm text-muted-foreground">
+        <RobotLoader size="md" label={t("collab.preparing")} />
+        {t("collab.preparing")}
+      </div>
+    )
+  }
+
+  // Wrong surface (e.g. deep link race) — redirect effect handles navigation.
+  if (isBank && bankNeedsRedirect) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-sm text-muted-foreground">
         <RobotLoader size="md" label={t("collab.preparing")} />

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { ArrowLeft, Share2 } from "lucide-react"
 import { IdeChromeBar } from "@mockmatch/ide"
@@ -30,6 +30,7 @@ const UUID_RE =
 /** Freeform spreadsheet practice — durable workbook + optional share. */
 export function SimulationSpreadsheetPageContent() {
   const navigate = useNavigate()
+  const { questionId: pathQuestionId } = useParams<{ questionId?: string }>()
   const [params] = useSearchParams()
   const { t } = useTranslation(["simulation-spreadsheet", "common"])
   const existingId = (() => {
@@ -37,6 +38,7 @@ export function SimulationSpreadsheetPageContent() {
     return id && UUID_RE.test(id) ? id : null
   })()
   const questionId = (() => {
+    if (pathQuestionId && UUID_RE.test(pathQuestionId)) return pathQuestionId
     const id = params.get("questionId")
     return id && UUID_RE.test(id) ? id : null
   })()

@@ -2,55 +2,75 @@ import { idePathForTrackId } from "@/features/simulation-ide/constants"
 import { INTERVIEW_TRACKS } from "../constants"
 import type { BankQuestion } from "@/features/question-bank/types"
 
+/** Bank practice: one path for every format — surface chosen by question format. */
+export const SIMULATIONS_BASE_PATH = "/simulations"
+/** @deprecated Use SIMULATIONS_BASE_PATH — bank practice is no longer nested by format. */
+export const QUESTION_PRACTICE_BASE_PATH = SIMULATIONS_BASE_PATH
+/** Catalog conversation tracks (non-UUID slugs). Bank conversation uses /simulations/:questionId. */
 export const CONVERSATION_BASE_PATH = "/simulations/conversation"
-/** Bank-sourced IDE practice (code_run / workspace / terminal). */
-export const QUESTION_PRACTICE_BASE_PATH = "/simulations/practice"
-/** Bank-sourced MCQ practice. */
-export const QUESTION_MCQ_BASE_PATH = "/simulations/mcq"
-/** Bank-sourced whiteboard practice. */
-export const QUESTION_WHITEBOARD_BASE_PATH = "/simulations/whiteboard"
-/** Freeform spreadsheet practice. */
+/** @deprecated Prefer practicePathForQuestionId — format segments removed. */
+export const QUESTION_MCQ_BASE_PATH = SIMULATIONS_BASE_PATH
+/** @deprecated Prefer practicePathForQuestionId — format segments removed. */
+export const QUESTION_WHITEBOARD_BASE_PATH = SIMULATIONS_BASE_PATH
+/** Freeform spreadsheet practice (no bank id). */
 export const SPREADSHEET_PRACTICE_PATH = "/simulations/spreadsheet"
-/** Freeform document analysis page practice. */
+/** Freeform document analysis page practice (no bank id). */
 export const PAGE_PRACTICE_PATH = "/simulations/page"
 
-/** App path for a conversation track session. */
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/** Reserved path segments under /simulations that are not bank question ids. */
+export const SIMULATION_RESERVED_SEGMENTS = new Set([
+  "tracks",
+  "code-run",
+  "workspace",
+  "terminal-lab",
+  "conversation",
+  "spreadsheet",
+  "page",
+  "practice",
+  "mcq",
+  "whiteboard",
+])
+
+/** App path for a catalog conversation track session. */
 export function conversationPathForTrackId(trackId: string): string {
+  if (UUID_RE.test(trackId)) {
+    return practicePathForQuestionId(trackId)
+  }
   return `${CONVERSATION_BASE_PATH}/${trackId}`
 }
 
-/** IDE path for a global bank question. */
+/** Bank question practice URL (all formats). */
 export function practicePathForQuestionId(questionId: string): string {
-  return `${QUESTION_PRACTICE_BASE_PATH}/${questionId}`
+  return `${SIMULATIONS_BASE_PATH}/${questionId}`
 }
 
-/** MCQ path for a global bank question. */
+/** MCQ path for a global bank question (same as unified practice path). */
 export function mcqPathForQuestionId(questionId: string): string {
-  return `${QUESTION_MCQ_BASE_PATH}/${questionId}`
+  return practicePathForQuestionId(questionId)
 }
 
-/** Whiteboard path for a global bank question. */
+/** Whiteboard path for a global bank question (same as unified practice path). */
 export function whiteboardPathForQuestionId(questionId: string): string {
-  return `${QUESTION_WHITEBOARD_BASE_PATH}/${questionId}`
+  return practicePathForQuestionId(questionId)
 }
 
 /**
  * Route bank question id + format → practice URL.
+ * All bank formats use `/simulations/:questionId` (dispatcher picks the surface).
  */
 export function practicePathForFormat(
   questionId: string,
   format: string | undefined | null
 ): string | null {
-  if (format === "conversation") return conversationPathForTrackId(questionId)
-  if (format === "mcq") return mcqPathForQuestionId(questionId)
-  if (format === "whiteboard") return whiteboardPathForQuestionId(questionId)
-  if (format === "spreadsheet") {
-    return `${SPREADSHEET_PRACTICE_PATH}?questionId=${encodeURIComponent(questionId)}`
-  }
-  if (format === "page") {
-    return `${PAGE_PRACTICE_PATH}?questionId=${encodeURIComponent(questionId)}`
-  }
   if (
+    format === "conversation" ||
+    format === "mcq" ||
+    format === "whiteboard" ||
+    format === "spreadsheet" ||
+    format === "page" ||
     format === "code_run" ||
     format === "workspace" ||
     format === "terminal"
@@ -62,7 +82,7 @@ export function practicePathForFormat(
 
 /**
  * Catalog track id → practice path (IDE formats + conversation + bank `q:`).
- * Bank `q:` rows need format from the session/list; without format, prefer IDE practice URL.
+ * Bank `q:` rows need format from the session/list; without format, prefer bank URL.
  */
 export function practicePathForTrackId(trackId: string): string | null {
   if (trackId.startsWith("q:")) {
@@ -84,11 +104,7 @@ export function practicePathForTrackId(trackId: string): string | null {
 
 /**
  * Question bank Practice button.
- * URLs use only the question UUID (no job titles / free-form track slugs).
- * - conversation → /simulations/conversation/:questionId
- * - mcq → /simulations/mcq/:questionId
- * - whiteboard → /simulations/whiteboard/:questionId
- * - code / workspace / terminal → /simulations/practice/:questionId
+ * URLs use only the question UUID under /simulations/:questionId.
  */
 export function practicePathForBankQuestion(
   q: Pick<BankQuestion, "id" | "format" | "trackHint">

@@ -65,6 +65,7 @@ export function SimulationMcqPageContent() {
     const path = practicePathForBankQuestion({
       id: summaryQuery.data.id,
       format: summaryQuery.data.format,
+      trackHint: null,
     })
     if (path) navigate(path, { replace: true })
   }, [seedId, summaryQuery.data, navigate])
@@ -204,7 +205,7 @@ export function SimulationMcqPageContent() {
     )
   }
 
-  if (sessionQuery.isLoading || sessionQuery.isFetching) {
+  if (sessionQuery.isLoading) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 bg-background p-6 text-sm text-muted-foreground">
         <RobotLoader size="md" label={t("simulation-mcq:loading")} />

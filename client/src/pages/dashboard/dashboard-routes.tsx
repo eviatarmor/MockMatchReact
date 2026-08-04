@@ -22,10 +22,10 @@ import { SimulationsPage } from "@/pages/dashboard/simulations-page"
 import { SimulationTracksPage } from "@/pages/dashboard/simulation-tracks-page"
 import { SimulationIdePage } from "@/pages/dashboard/simulation-ide-page"
 import { SimulationConversationPage } from "@/pages/dashboard/simulation-conversation-page"
-import { SimulationMcqPage } from "@/pages/dashboard/simulation-mcq-page"
-import { SimulationWhiteboardPage } from "@/pages/dashboard/simulation-whiteboard-page"
+import { SimulationQuestionPage } from "@/pages/dashboard/simulation-question-page"
 import { SimulationSpreadsheetPage } from "@/pages/dashboard/simulation-spreadsheet-page"
 import { SimulationPagePage } from "@/pages/dashboard/simulation-page-page"
+import { LegacyPracticeRedirect } from "@/features/simulations/components/legacy-practice-redirect"
 import { QuestionBankPage } from "@/pages/dashboard/question-bank-page"
 import { ReadinessPage } from "@/pages/dashboard/readiness-page"
 import { PerformancePage } from "@/pages/dashboard/performance-page"
@@ -71,10 +71,6 @@ export function dashboardRoutes() {
           element={<SimulationIdePage />}
         />
         <Route
-          path="simulations/practice/:questionId"
-          element={<SimulationIdePage />}
-        />
-        <Route
           path="simulations/workspace"
           element={<SimulationIdePage />}
         />
@@ -83,22 +79,33 @@ export function dashboardRoutes() {
           element={<SimulationIdePage />}
         />
         <Route
-          path="simulations/conversation/:trackId"
-          element={<SimulationConversationPage />}
-        />
-        <Route
-          path="simulations/mcq/:questionId"
-          element={<SimulationMcqPage />}
-        />
-        <Route
-          path="simulations/whiteboard/:questionId"
-          element={<SimulationWhiteboardPage />}
-        />
-        <Route
           path="simulations/spreadsheet"
           element={<SimulationSpreadsheetPage />}
         />
         <Route path="simulations/page" element={<SimulationPagePage />} />
+        {/* Catalog conversation tracks (non-UUID). Bank UUIDs redirect → unified path. */}
+        <Route
+          path="simulations/conversation/:trackId"
+          element={<SimulationConversationPage />}
+        />
+        {/* Legacy nested bank paths → /simulations/:questionId */}
+        <Route
+          path="simulations/practice/:questionId"
+          element={<LegacyPracticeRedirect />}
+        />
+        <Route
+          path="simulations/mcq/:questionId"
+          element={<LegacyPracticeRedirect />}
+        />
+        <Route
+          path="simulations/whiteboard/:questionId"
+          element={<LegacyPracticeRedirect />}
+        />
+        {/* Bank practice (all formats) */}
+        <Route
+          path="simulations/:questionId"
+          element={<SimulationQuestionPage />}
+        />
         <Route path="resumes/:resumeId" element={<ResumeEditorPage />} />
         <Route path="notifications" element={<NotificationsPage />} />
         {DASHBOARD_ROUTES.map(({ path, titleKey }) => {

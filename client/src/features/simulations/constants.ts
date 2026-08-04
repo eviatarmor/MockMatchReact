@@ -3,7 +3,8 @@ import type { InterviewTrack, RecentSession } from "./types"
 /**
  * Live practice surfaces.
  * IDE ids match IdeFormatSlug / exercise catalog slug.
- * Conversation ids route to `/simulations/conversation/:trackId`.
+ * Conversation catalog ids route to `/simulations/conversation/:trackId`.
+ * Bank questions (any format) route to `/simulations/:questionId`.
  */
 export const INTERVIEW_TRACKS: readonly InterviewTrack[] = [
   {

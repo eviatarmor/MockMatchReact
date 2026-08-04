@@ -6,6 +6,7 @@ import type { RuntimeLanguage } from "@mockmatch/browser-runner"
  * - code-run: `/simulations/code-run/:format`
  * - terminal-lab: `/simulations/terminal-lab` (shell)
  * - workspace: `/simulations/workspace`
+ * - bank: `/simulations/:questionId`
  */
 export type IdeFormatSlug =
   | "react"
