@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest"
 import {
   createEmptyBoard,
+  createShape,
   createSticky,
   isBoardEmpty,
   listElementsSorted,
+  marqueeSelectIds,
   maxZ,
+  preparePaste,
+  sliceDocument,
 } from "@/document"
 import { createHistory } from "@/history"
 
@@ -35,6 +39,93 @@ describe("whiteboard document helpers", () => {
     expect(sorted[0]?.id).toBe(b.id)
     expect(sorted[1]?.id).toBe(a.id)
     expect(maxZ(doc)).toBe(2)
+  })
+})
+
+describe("marqueeSelectIds", () => {
+  it("selects box elements that overlap the rect", () => {
+    const a = createSticky({ x: 0, y: 0, w: 100, h: 100 })
+    const b = createShape({ x: 200, y: 200, w: 50, h: 50 })
+    const doc = {
+      version: 1 as const,
+      elements: { [a.id]: a, [b.id]: b },
+    }
+    const ids = marqueeSelectIds(doc, { x: -10, y: -10, w: 80, h: 80 })
+    expect(ids).toContain(a.id)
+    expect(ids).not.toContain(b.id)
+  })
+
+  it("normalizes inverted drag rect", () => {
+    const a = createShape({ x: 50, y: 50, w: 40, h: 40 })
+    const doc = {
+      version: 1 as const,
+      elements: { [a.id]: a },
+    }
+    // Drag from bottom-right toward top-left
+    const ids = marqueeSelectIds(doc, { x: 120, y: 120, w: -100, h: -100 })
+    expect(ids).toEqual([a.id])
+  })
+
+  it("returns empty for tiny click rect", () => {
+    const a = createSticky({ x: 0, y: 0 })
+    const doc = {
+      version: 1 as const,
+      elements: { [a.id]: a },
+    }
+    expect(marqueeSelectIds(doc, { x: 10, y: 10, w: 0, h: 0 })).toEqual([])
+  })
+})
+
+describe("copy / paste helpers", () => {
+  it("sliceDocument copies selected shapes only", () => {
+    const a = createShape({ x: 10, y: 20, w: 40, h: 30, stroke: "#dc2626" })
+    const b = createSticky({ x: 100, y: 100 })
+    const doc = {
+      version: 1 as const,
+      elements: { [a.id]: a, [b.id]: b },
+    }
+    const slice = sliceDocument(doc, [a.id])
+    expect(Object.keys(slice.elements)).toEqual([a.id])
+    expect(slice.elements[a.id]).toMatchObject({
+      type: "shape",
+      x: 10,
+      y: 20,
+      stroke: "#dc2626",
+    })
+    // Deep clone — not same ref
+    expect(slice.elements[a.id]).not.toBe(a)
+  })
+
+  it("preparePaste remaps ids and offsets", () => {
+    const a = createShape({ x: 0, y: 0, w: 50, h: 50 })
+    const clip = {
+      version: 1 as const,
+      elements: { [a.id]: a },
+    }
+    const { elements, ids } = preparePaste(clip, {
+      pasteIndex: 1,
+      zBase: 5,
+    })
+    expect(elements).toHaveLength(1)
+    expect(ids).toHaveLength(1)
+    expect(ids[0]).not.toBe(a.id)
+    expect(elements[0]).toMatchObject({
+      type: "shape",
+      x: 24,
+      y: 24,
+      z: 6,
+    })
+    expect(elements[0]!.id).toBe(ids[0])
+  })
+
+  it("repeated pasteIndex stacks further offset", () => {
+    const a = createShape({ x: 0, y: 0 })
+    const clip = { version: 1 as const, elements: { [a.id]: a } }
+    const first = preparePaste(clip, { pasteIndex: 1 })
+    const second = preparePaste(clip, { pasteIndex: 2 })
+    expect(first.elements[0]!.x).toBe(24)
+    expect(second.elements[0]!.x).toBe(48)
+    expect(first.ids[0]).not.toBe(second.ids[0])
   })
 })
 

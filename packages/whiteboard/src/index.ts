@@ -48,11 +48,15 @@ export {
   hitTest,
   isBoardEmpty,
   lassoSelectIds,
+  marqueeSelectIds,
   listElementsSorted,
   maxZ,
   newElementId,
+  PASTE_OFFSET,
+  preparePaste,
   remapDocumentIds,
   resolveConnectorPoint,
+  sliceDocument,
 } from "./document"
 
 export { createHistory, type WhiteboardHistory } from "./history"

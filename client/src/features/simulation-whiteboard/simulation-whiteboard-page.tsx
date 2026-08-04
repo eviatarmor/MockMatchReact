@@ -109,6 +109,7 @@ export function SimulationWhiteboardPageContent() {
   const [tool, setTool] = useState<WhiteboardTool>("select")
   const [shapeKind, setShapeKind] = useState<ShapeKind>("rect")
   const [stickyColor, setStickyColor] = useState("#fef08a")
+  const [shapeColor, setShapeColor] = useState("#171717")
   const [penStyle, setPenStyle] = useState<DrawStrokeStyle>(DEFAULT_PEN_STYLE)
   const [highlighterStyle, setHighlighterStyle] = useState<DrawStrokeStyle>(
     DEFAULT_HIGHLIGHTER_STYLE
@@ -125,6 +126,8 @@ export function SimulationWhiteboardPageContent() {
   const [shareOpen, setShareOpen] = useState(false)
   const viewport = useWhiteboardViewport()
   const seededRef = useRef(false)
+  const selectedIdsRef = useRef(selectedIds)
+  selectedIdsRef.current = selectedIds
 
   const collabAccess = trpc.collab.getAccess.useQuery(
     {
@@ -217,16 +220,23 @@ export function SimulationWhiteboardPageContent() {
   }, [boardSession, syncHistoryFlags])
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null
-      if (
-        target &&
-        (target.tagName === "TEXTAREA" ||
-          target.tagName === "INPUT" ||
-          target.isContentEditable)
-      ) {
-        return
+    const isTypingInField = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement)) return false
+      if (target.isContentEditable) return true
+      if (target.closest('[contenteditable="true"]')) return true
+      if (target.tagName !== "TEXTAREA" && target.tagName !== "INPUT") {
+        return false
       }
+      // Sticky textarea: only block board keys when that sticky is sole selection
+      const elId = target.closest("[data-el-id]")?.getAttribute("data-el-id")
+      const ids = selectedIdsRef.current
+      if (ids.length === 0) return true
+      if (ids.length === 1 && elId && ids[0] === elId) return true
+      return false
+    }
+
+    const onKey = (e: KeyboardEvent) => {
+      if (isTypingInField(e.target)) return
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") {
         e.preventDefault()
         if (e.shiftKey) redo()
@@ -238,10 +248,12 @@ export function SimulationWhiteboardPageContent() {
         redo()
         return
       }
+      // Copy / cut / paste: WhiteboardCanvas (capture phase)
       if (e.key === "Delete" || e.key === "Backspace") {
-        if (selectedIds.length === 0) return
+        const ids = selectedIdsRef.current
+        if (ids.length === 0) return
         e.preventDefault()
-        dispatch({ type: "remove", ids: selectedIds })
+        dispatch({ type: "remove", ids })
         setSelectedIds([])
         return
       }
@@ -271,7 +283,7 @@ export function SimulationWhiteboardPageContent() {
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [dispatch, redo, selectedIds, tool, undo])
+  }, [dispatch, redo, tool, undo])
 
   const toolLabels = useMemo(
     () => ({
@@ -550,6 +562,23 @@ export function SimulationWhiteboardPageContent() {
                   }
                 }
               }}
+              shapeColor={shapeColor}
+              onShapeColorChange={(color) => {
+                setShapeColor(color)
+                // Recolor selected shapes (stroke)
+                const shapeIds = selectedIds.filter(
+                  (id) => doc.elements[id]?.type === "shape"
+                )
+                if (shapeIds.length > 0) {
+                  for (const id of shapeIds) {
+                    dispatch({
+                      type: "patch",
+                      id,
+                      patch: { stroke: color } as { stroke: string },
+                    })
+                  }
+                }
+              }}
             />
           }
           bottomBar={
@@ -576,6 +605,7 @@ export function SimulationWhiteboardPageContent() {
             highlighterStyle={highlighterStyle}
             smartStyle={smartStyle}
             stickyColor={stickyColor}
+            shapeColor={shapeColor}
             shapeLabelLabels={shapeLabelLabels}
           />
         </WhiteboardShell>

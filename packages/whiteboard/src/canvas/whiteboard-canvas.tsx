@@ -7,10 +7,14 @@ import {
   createSticky,
   createText,
   hitTest,
+  isBoardEmpty,
   lassoSelectIds,
+  marqueeSelectIds,
   listElementsSorted,
   maxZ,
   newElementId,
+  preparePaste,
+  sliceDocument,
 } from "../document"
 import {
   eraseWholeStrokesAt,
@@ -55,6 +59,8 @@ export type WhiteboardCanvasProps = {
   readonly highlighterStyle?: DrawStrokeStyle
   readonly smartStyle?: DrawStrokeStyle
   readonly stickyColor?: string
+  /** Stroke color for new shapes (DRAW_COLOR_PRESETS). */
+  readonly shapeColor?: string
   /** Whole-stroke eraser radius (board px). */
   readonly eraserRadius?: number
   /** Precision eraser radius (board px). */
@@ -84,6 +90,15 @@ type DragState =
   | {
       kind: "lasso"
       points: { x: number; y: number }[]
+    }
+  | {
+      kind: "marquee"
+      originX: number
+      originY: number
+      x: number
+      y: number
+      w: number
+      h: number
     }
   | {
       kind: "connector"
@@ -123,6 +138,7 @@ export function WhiteboardCanvas({
   highlighterStyle = DEFAULT_HIGHLIGHTER_STYLE,
   smartStyle = DEFAULT_PEN_STYLE,
   stickyColor = "#fef08a",
+  shapeColor = "#171717",
   eraserRadius = 14,
   precisionEraserRadius = 6,
   shapeLabelLabels,
@@ -145,6 +161,12 @@ export function WhiteboardCanvas({
   const [lassoPoints, setLassoPoints] = useState<
     { x: number; y: number }[] | null
   >(null)
+  const [marqueeRect, setMarqueeRect] = useState<{
+    x: number
+    y: number
+    w: number
+    h: number
+  } | null>(null)
   const [draftLine, setDraftLine] = useState<{
     x1: number
     y1: number
@@ -161,10 +183,136 @@ export function WhiteboardCanvas({
   const [editingLabelId, setEditingLabelId] = useState<string | null>(null)
   const didInitCenter = useRef(false)
 
+  /** In-board clipboard (Ctrl/Cmd+C/X/V). Survives focus quirks better than host-only wiring. */
+  const boardClipboardRef = useRef<WhiteboardDocument | null>(null)
+  const pasteCountRef = useRef(0)
+  const selectedIdsRef = useRef(selectedIds)
+  selectedIdsRef.current = selectedIds
+  const editingLabelIdRef = useRef(editingLabelId)
+  editingLabelIdRef.current = editingLabelId
+  const canEditRef = useRef(canEdit)
+  canEditRef.current = canEdit
+  const onCommandRef = useRef(onCommand)
+  onCommandRef.current = onCommand
+  const onSelectedIdsChangeRef = useRef(onSelectedIdsChange)
+  onSelectedIdsChangeRef.current = onSelectedIdsChange
+
   const clearSelection = useCallback(() => {
     onSelectedIdsChange([])
     setEditingLabelId(null)
   }, [onSelectedIdsChange])
+
+  /**
+   * True only when the user is actively typing in a text field and board
+   * clipboard should yield to native text copy/paste.
+   * Sticky textareas keep focus after shape select — do not treat that as typing
+   * when other elements are selected.
+   */
+  const isNativeTextTarget = useCallback((target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return false
+
+    if (editingLabelIdRef.current) {
+      if (
+        target.isContentEditable ||
+        target.closest("[data-shape-label-editor]") ||
+        target.closest('[contenteditable="true"]')
+      ) {
+        return true
+      }
+    }
+
+    const tag = target.tagName
+    if (tag === "TEXTAREA" || tag === "INPUT") {
+      const elRoot = target.closest("[data-el-id]")
+      const elId = elRoot?.getAttribute("data-el-id")
+      const ids = selectedIdsRef.current
+      // Typing in this sticky/text alone → native. Otherwise board clipboard.
+      if (ids.length === 0) return true
+      if (ids.length === 1 && elId && ids[0] === elId) return true
+      return false
+    }
+
+    if (target.isContentEditable) return true
+    return false
+  }, [])
+
+  // Ctrl/Cmd+C copy, +X cut, +V paste — capture phase so sticky focus cannot eat it
+  useEffect(() => {
+    const copySelection = (): boolean => {
+      if (!canEditRef.current) return false
+      const ids = selectedIdsRef.current
+      if (ids.length === 0) return false
+      const slice = sliceDocument(docRef.current, ids)
+      if (isBoardEmpty(slice)) return false
+      boardClipboardRef.current = slice
+      pasteCountRef.current = 0
+      return true
+    }
+
+    const pasteSelection = (): boolean => {
+      if (!canEditRef.current) return false
+      const clip = boardClipboardRef.current
+      if (!clip || isBoardEmpty(clip)) return false
+      pasteCountRef.current += 1
+      const { elements, ids } = preparePaste(clip, {
+        pasteIndex: pasteCountRef.current,
+        zBase: maxZ(docRef.current),
+      })
+      if (elements.length === 0) return false
+      onCommandRef.current({ type: "upsertMany", elements })
+      onSelectedIdsChangeRef.current(ids)
+      setEditingLabelId(null)
+      return true
+    }
+
+    const cutSelection = (): boolean => {
+      if (!canEditRef.current) return false
+      const ids = [...selectedIdsRef.current]
+      if (!copySelection()) return false
+      onCommandRef.current({ type: "remove", ids })
+      onSelectedIdsChangeRef.current([])
+      setEditingLabelId(null)
+      return true
+    }
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return
+      if (isNativeTextTarget(e.target)) return
+
+      const code = e.code
+      const key = e.key.toLowerCase()
+      const isC = code === "KeyC" || key === "c"
+      const isX = code === "KeyX" || key === "x"
+      const isV = code === "KeyV" || key === "v"
+      if (!isC && !isX && !isV) return
+
+      if (isC) {
+        if (selectedIdsRef.current.length === 0) return
+        e.preventDefault()
+        e.stopPropagation()
+        copySelection()
+        return
+      }
+      if (isX) {
+        if (selectedIdsRef.current.length === 0) return
+        e.preventDefault()
+        e.stopPropagation()
+        cutSelection()
+        return
+      }
+      if (isV) {
+        if (!boardClipboardRef.current || isBoardEmpty(boardClipboardRef.current)) {
+          return
+        }
+        e.preventDefault()
+        e.stopPropagation()
+        pasteSelection()
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown, true)
+    return () => window.removeEventListener("keydown", onKeyDown, true)
+  }, [isNativeTextTarget])
 
   const clientToBoard = useCallback(
     (clientX: number, clientY: number) => {
@@ -178,6 +326,57 @@ export function WhiteboardCanvas({
     },
     [scale]
   )
+
+  /**
+   * Select tool double-click:
+   * - shape (closed) → center label edit
+   * - text → inline text edit
+   * - empty board → place new text
+   * Uses hitTest (not DOM target) so SVG / pointer-events-none children still count.
+   */
+  const onBoardDoubleClick = (e: React.MouseEvent) => {
+    if (!canEdit || tool !== "select") return
+    e.preventDefault()
+    e.stopPropagation()
+    const { x, y } = clientToBoard(e.clientX, e.clientY)
+    const hitId = hitTest(docRef.current, x, y)
+    if (hitId) {
+      const hit = docRef.current.elements[hitId]
+      if (!hit) return
+      if (hit.type === "shape") {
+        const isLineLike =
+          hit.shape === "line" ||
+          hit.shape === "arrow" ||
+          hit.shape === "elbowArrow" ||
+          hit.shape === "divider"
+        if (isLineLike) return
+        onSelectedIdsChange([hitId])
+        setEditingLabelId(hitId)
+        return
+      }
+      if (hit.type === "text") {
+        onSelectedIdsChange([hitId])
+        setEditingLabelId(hitId)
+        return
+      }
+      // sticky has always-on textarea; path/connector have no label editor
+      if (hit.type === "sticky") {
+        onSelectedIdsChange([hitId])
+        return
+      }
+      return
+    }
+    // Empty board → place text and edit
+    const el = createText({
+      x,
+      y,
+      text: "",
+      z: maxZ(docRef.current) + 1,
+    })
+    onCommand({ type: "upsert", element: el })
+    onSelectedIdsChange([el.id])
+    setEditingLabelId(el.id)
+  }
 
   useEffect(() => {
     let raf = 0
@@ -266,7 +465,27 @@ export function WhiteboardCanvas({
       const hit = hitTest(docRef.current, x, y)
       if (hit) {
         e.stopPropagation()
-        // Keep lasso multi-select when dragging a member of the set
+        const hitEl = docRef.current.elements[hit]
+        // Double-click → edit label/text (do not start move/marquee)
+        if (e.detail >= 2 && canEdit && hitEl) {
+          if (hitEl.type === "shape") {
+            const isLineLike =
+              hitEl.shape === "line" ||
+              hitEl.shape === "arrow" ||
+              hitEl.shape === "elbowArrow" ||
+              hitEl.shape === "divider"
+            if (!isLineLike) {
+              onSelectedIdsChange([hit])
+              setEditingLabelId(hit)
+              return
+            }
+          } else if (hitEl.type === "text") {
+            onSelectedIdsChange([hit])
+            setEditingLabelId(hit)
+            return
+          }
+        }
+        // Keep multi-select when dragging a member of the set
         const ids =
           selectedIds.includes(hit) && selectedIds.length > 1
             ? [...selectedIds]
@@ -274,6 +493,17 @@ export function WhiteboardCanvas({
         onSelectedIdsChange(ids)
         if (editingLabelId && !ids.includes(editingLabelId)) {
           setEditingLabelId(null)
+        }
+        // Blur sticky/text fields so board shortcuts (C/X/V/Del) are not swallowed
+        const ae = document.activeElement
+        if (
+          ae instanceof HTMLElement &&
+          (ae.tagName === "TEXTAREA" ||
+            ae.tagName === "INPUT" ||
+            ae.isContentEditable) &&
+          !ids.includes(ae.closest("[data-el-id]")?.getAttribute("data-el-id") ?? "")
+        ) {
+          ae.blur()
         }
         dragRef.current = {
           kind: "move",
@@ -285,8 +515,21 @@ export function WhiteboardCanvas({
         }
         captureBoard(e)
       } else {
-        // Click empty board → deselect
-        clearSelection()
+        // Empty board: drag → marquee multi-select; pure click clears on up
+        // (double-click empty creates text in onBoardDoubleClick)
+        if (e.detail >= 2) return
+        setEditingLabelId(null)
+        dragRef.current = {
+          kind: "marquee",
+          originX: x,
+          originY: y,
+          x,
+          y,
+          w: 0,
+          h: 0,
+        }
+        setMarqueeRect({ x, y, w: 0, h: 0 })
+        captureBoard(e)
       }
       return
     }
@@ -337,9 +580,15 @@ export function WhiteboardCanvas({
     }
 
     if (tool === "text") {
-      const el = createText({ x, y, z: maxZ(docRef.current) + 1 })
+      const el = createText({
+        x,
+        y,
+        text: "",
+        z: maxZ(docRef.current) + 1,
+      })
       onCommand({ type: "upsert", element: el })
       onSelectedIdsChange([el.id])
+      setEditingLabelId(el.id)
       return
     }
 
@@ -473,6 +722,22 @@ export function WhiteboardCanvas({
       return
     }
 
+    if (drag.kind === "marquee") {
+      const x0 = Math.min(drag.originX, x)
+      const y0 = Math.min(drag.originY, y)
+      const w = Math.abs(x - drag.originX)
+      const h = Math.abs(y - drag.originY)
+      dragRef.current = { ...drag, x: x0, y: y0, w, h }
+      setMarqueeRect({ x: x0, y: y0, w, h })
+      // Live highlight like lasso (commit still on pointerup)
+      if (Math.hypot(w, h) >= 6) {
+        onSelectedIdsChange(
+          marqueeSelectIds(docRef.current, { x: x0, y: y0, w, h })
+        )
+      }
+      return
+    }
+
     if (drag.kind === "connector") {
       setDraftLine({
         x1: drag.fromX,
@@ -539,7 +804,7 @@ export function WhiteboardCanvas({
       h,
       shape: drag.shape,
       fill: isLineLike ? "transparent" : "#ffffff",
-      stroke: "#525252",
+      stroke: shapeColor,
       z: maxZ(docRef.current) + 1,
     })
     onCommand({ type: "upsert", element: el })
@@ -552,10 +817,28 @@ export function WhiteboardCanvas({
     setDraftPath(null)
     setDraftMeta(null)
     setLassoPoints(null)
+    setMarqueeRect(null)
     setDraftLine(null)
     setDraftShape(null)
 
     if (!drag) return
+
+    if (drag.kind === "marquee") {
+      const { x, y } = clientToBoard(e.clientX, e.clientY)
+      const x0 = Math.min(drag.originX, x)
+      const y0 = Math.min(drag.originY, y)
+      const w = Math.abs(x - drag.originX)
+      const h = Math.abs(y - drag.originY)
+      // Pure click (no drag) → clear selection
+      if (Math.hypot(w, h) < 6) {
+        clearSelection()
+        return
+      }
+      const ids = marqueeSelectIds(docRef.current, { x: x0, y: y0, w, h })
+      onSelectedIdsChange(ids)
+      setEditingLabelId(null)
+      return
+    }
 
     if (drag.kind === "createShape" && canEdit) {
       const { x, y } = clientToBoard(e.clientX, e.clientY)
@@ -798,6 +1081,7 @@ export function WhiteboardCanvas({
           onPointerMove={onBoardPointerMove}
           onPointerUp={onBoardPointerUp}
           onPointerCancel={onBoardPointerUp}
+          onDoubleClick={onBoardDoubleClick}
         >
           {elements.map((el) => (
             <ElementView
@@ -966,6 +1250,18 @@ export function WhiteboardCanvas({
             </svg>
           ) : null}
 
+          {marqueeRect && marqueeRect.w + marqueeRect.h > 0 ? (
+            <div
+              className="pointer-events-none absolute border border-dashed border-blue-500 bg-blue-500/10"
+              style={{
+                left: marqueeRect.x,
+                top: marqueeRect.y,
+                width: Math.max(1, marqueeRect.w),
+                height: Math.max(1, marqueeRect.h),
+              }}
+            />
+          ) : null}
+
           {draftLine ? (
             <svg
               className="pointer-events-none absolute inset-0 overflow-visible"
@@ -985,12 +1281,13 @@ export function WhiteboardCanvas({
 
           {draftShape && draftShape.w + draftShape.h > 0 ? (
             <div
-              className="pointer-events-none absolute border-2 border-dashed border-blue-400 bg-blue-400/10"
+              className="pointer-events-none absolute border-2 border-dashed bg-transparent"
               style={{
                 left: draftShape.x,
                 top: draftShape.y,
                 width: Math.max(1, draftShape.w),
                 height: Math.max(1, draftShape.h),
+                borderColor: shapeColor,
                 borderRadius:
                   draftShape.shape === "ellipse"
                     ? "50%"

@@ -115,6 +115,9 @@ export type WhiteboardToolRailProps = {
   readonly onSmartStyleChange: (s: DrawStrokeStyle) => void
   readonly stickyColor: string
   readonly onStickyColorChange: (color: string) => void
+  /** Stroke color for new shapes (and recolor of selected shapes in host). */
+  readonly shapeColor: string
+  readonly onShapeColorChange: (color: string) => void
   readonly disabled?: boolean
   readonly className?: string
 }
@@ -199,6 +202,8 @@ export function WhiteboardToolRail({
   onSmartStyleChange,
   stickyColor,
   onStickyColorChange,
+  shapeColor,
+  onShapeColorChange,
   disabled,
   className,
 }: WhiteboardToolRailProps) {
@@ -394,7 +399,7 @@ export function WhiteboardToolRail({
           </SecondaryShell>
         ) : null}
 
-        {/* Secondary shape rail — same chrome as draw */}
+        {/* Secondary shape rail — kinds + stroke colors (pen presets) */}
         {showShapeRail && !showDrawRail ? (
           <SecondaryShell ariaLabel={labels.shapesTitle}>
             {SHAPE_MENU_ITEMS.map((item) => {
@@ -414,6 +419,37 @@ export function WhiteboardToolRail({
                 </RailButton>
               )
             })}
+            <div className="my-1 border-t border-border" />
+            <div
+              className="flex flex-col items-center gap-1.5 px-0.5 pb-0.5"
+              role="listbox"
+              aria-label={drawStyleLabels.color}
+            >
+              {/* Full pen palette — shapes have no separate style popover */}
+              {DRAW_COLOR_PRESETS.map((color) => {
+                const active =
+                  shapeColor.toLowerCase() === color.toLowerCase()
+                return (
+                  <button
+                    key={color}
+                    type="button"
+                    aria-label={color}
+                    aria-selected={active}
+                    disabled={disabled}
+                    onClick={() => {
+                      onShapeColorChange(color)
+                      openShape()
+                    }}
+                    className={cn(
+                      "size-5 rounded-full border border-black/10",
+                      active && "ring-2 ring-blue-500 ring-offset-1",
+                      color === "#ffffff" && "border-neutral-300"
+                    )}
+                    style={{ backgroundColor: color }}
+                  />
+                )
+              })}
+            </div>
           </SecondaryShell>
         ) : null}
 

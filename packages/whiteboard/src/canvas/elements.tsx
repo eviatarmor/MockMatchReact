@@ -202,6 +202,7 @@ export function StickyView({
     >
       <SelectionRing w={el.w} h={el.h} selected={selected} />
       <textarea
+        data-wb-native-edit=""
         className="pan-ignore size-full resize-none overflow-hidden bg-transparent p-2 text-sm text-neutral-900 outline-none placeholder:text-neutral-500"
         value={el.text}
         disabled={!canEdit}
@@ -229,6 +230,9 @@ export function TextView({
   onTextChange,
   onPointerDownElement,
   passThrough,
+  editing,
+  onStartTextEdit,
+  onEndTextEdit,
 }: {
   readonly el: TextElement
   readonly selected: boolean
@@ -237,7 +241,33 @@ export function TextView({
   readonly onTextChange?: (id: string, text: string) => void
   readonly onPointerDownElement?: (id: string, e: ReactPointerEvent) => void
   readonly passThrough?: boolean
+  /** Double-click / text-tool create → inline edit. */
+  readonly editing?: boolean
+  readonly onStartTextEdit?: (id: string) => void
+  readonly onEndTextEdit?: () => void
 }) {
+  const editRef = useRef<HTMLDivElement>(null)
+  const textSnapshotRef = useRef(el.text)
+  textSnapshotRef.current = el.text
+
+  // Seed DOM once on enter-edit; avoid React children overwriting keystrokes.
+  useEffect(() => {
+    if (!editing) return
+    const t = window.setTimeout(() => {
+      const node = editRef.current
+      if (!node) return
+      node.textContent = textSnapshotRef.current
+      node.focus()
+      const range = document.createRange()
+      range.selectNodeContents(node)
+      range.collapse(false)
+      const sel = window.getSelection()
+      sel?.removeAllRanges()
+      sel?.addRange(range)
+    }, 0)
+    return () => window.clearTimeout(t)
+  }, [editing])
+
   return (
     <div
       data-el-id={el.id}
@@ -251,28 +281,56 @@ export function TextView({
       }}
       onPointerDown={(e) => {
         if (passThrough) return
+        // Double-click → edit (skip drag)
+        if (e.detail >= 2 && canEdit) {
+          e.stopPropagation()
+          e.preventDefault()
+          onSelect(el.id)
+          onStartTextEdit?.(el.id)
+          return
+        }
+        if (editing) {
+          e.stopPropagation()
+          return
+        }
         e.stopPropagation()
         onSelect(el.id)
         onPointerDownElement?.(el.id, e)
       }}
+      onDoubleClick={(e) => {
+        if (passThrough || !canEdit) return
+        e.stopPropagation()
+        e.preventDefault()
+        onSelect(el.id)
+        onStartTextEdit?.(el.id)
+      }}
     >
-      <SelectionRing w={el.w} h={el.h} selected={selected} />
+      <SelectionRing w={el.w} h={el.h} selected={selected || Boolean(editing)} />
       <div
+        ref={editRef}
         className={cn(
-          "pan-ignore w-full outline-none",
-          canEdit && "cursor-text"
+          "pan-ignore w-full outline-none empty:before:pointer-events-none empty:before:text-neutral-400 empty:before:content-[attr(data-placeholder)]",
+          canEdit && (editing ? "cursor-text" : "cursor-default")
         )}
         style={{ fontSize: el.fontSize }}
-        contentEditable={canEdit}
+        data-placeholder="Type…"
+        contentEditable={Boolean(editing && canEdit)}
         suppressContentEditableWarning
-        onBlur={(e) =>
+        onBlur={(e) => {
           onTextChange?.(el.id, e.currentTarget.textContent ?? "")
-        }
+          onEndTextEdit?.()
+        }}
         onPointerDown={(e) => {
-          if (canEdit) e.stopPropagation()
+          if (editing && canEdit) e.stopPropagation()
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            e.preventDefault()
+            ;(e.target as HTMLElement).blur()
+          }
         }}
       >
-        {el.text}
+        {editing ? null : el.text}
       </div>
     </div>
   )
@@ -725,6 +783,9 @@ export function ElementView(props: ElementViewProps) {
         onTextChange={props.onTextChange}
         onPointerDownElement={props.onPointerDownElement}
         passThrough={props.passThrough}
+        editing={props.editingLabelId === el.id}
+        onStartTextEdit={props.onStartLabelEdit}
+        onEndTextEdit={props.onEndLabelEdit}
       />
     )
   }
