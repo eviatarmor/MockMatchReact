@@ -4,10 +4,11 @@ import type {
   SpreadsheetPlugin,
   SpreadsheetPluginContext,
 } from "../../plugin-system"
+import { FormulaInput } from "../../formula-input"
 
-/** Text highlight inside the cell editor (matches resume / whiteboard blue). */
-const CELL_TEXT_SELECTION =
-  "caret-blue-500 selection:bg-blue-400/40 selection:text-neutral-900 dark:selection:text-neutral-50"
+/** In-cell field chrome — transparent over FormulaHighlight mirror. */
+const CELL_FIELD =
+  "h-full min-h-0 rounded-none border-0 bg-transparent px-0.5 text-xs shadow-none outline-none focus-visible:border-transparent focus-visible:ring-0"
 
 function startEdit(ctx: SpreadsheetPluginContext, seed?: string) {
   if (!ctx.canEdit()) return
@@ -24,34 +25,27 @@ function commitEdit(ctx: SpreadsheetPluginContext) {
   ctx.setEditing(false)
 }
 
-/** F2 / type-to-edit / Enter-edit; plain input editor. */
+function cancelEdit(ctx: SpreadsheetPluginContext) {
+  const { row, col } = ctx.getSelection().active
+  const d = ctx.getDisplay(row, col)
+  ctx.setFormulaDraft(d.raw)
+  ctx.setEditing(false)
+}
+
+/** F2 / type-to-edit / Enter-edit; formula input with function typeahead. */
 export function createCellEditPlugin(): SpreadsheetPlugin {
   return {
     id: "cell-edit",
     order: 30,
     onKeyDown(e, ctx) {
       if (ctx.isEditing()) {
-        if (e.key === "Enter") {
-          e.preventDefault()
-          commitEdit(ctx)
-          keyboardMoveActive(ctx, e.shiftKey ? -1 : 1, 0, false)
+        // Enter / Tab / Esc / typing handled by FormulaInput + browser;
+        // plugin still claims the event so keyboard nav does not steal arrows.
+        if (e.key === "Enter" || e.key === "Tab" || e.key === "Escape") {
+          // FormulaInput already preventDefault when list open; when not,
+          // its onCommit / onCancel runs from the input handler.
           return true
         }
-        if (e.key === "Tab") {
-          e.preventDefault()
-          commitEdit(ctx)
-          keyboardMoveActive(ctx, 0, e.shiftKey ? -1 : 1, false)
-          return true
-        }
-        if (e.key === "Escape") {
-          e.preventDefault()
-          const { row, col } = ctx.getSelection().active
-          const d = ctx.getDisplay(row, col)
-          ctx.setFormulaDraft(d.raw)
-          ctx.setEditing(false)
-          return true
-        }
-        // Let the input handle other keys while editing.
         return true
       }
 
@@ -80,11 +74,21 @@ export function createCellEditPlugin(): SpreadsheetPlugin {
       if (!ctx.isEditing()) return null
       const draft = ctx.getFormulaDraft()
       return (
-        <input
+        <FormulaInput
           data-spreadsheet-cell-editor
-          className={`h-full w-full bg-transparent px-0.5 text-xs outline-none ${CELL_TEXT_SELECTION}`}
+          className={CELL_FIELD}
           value={draft}
-          onChange={(ev) => ctx.setFormulaDraft(ev.target.value)}
+          onChange={(v) => ctx.setFormulaDraft(v)}
+          commitOnTab
+          onCommit={(meta) => {
+            commitEdit(ctx)
+            if (meta?.key === "Tab") {
+              keyboardMoveActive(ctx, 0, meta.shiftKey ? -1 : 1, false)
+            } else {
+              keyboardMoveActive(ctx, meta?.shiftKey ? -1 : 1, 0, false)
+            }
+          }}
+          onCancel={() => cancelEdit(ctx)}
           onBlur={() => commitEdit(ctx)}
           onMouseDown={(ev) => ev.stopPropagation()}
           autoFocus

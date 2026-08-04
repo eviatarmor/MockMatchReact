@@ -6,6 +6,7 @@ import {
   ResizablePanelGroup,
 } from "@mockmatch/ui/resizable"
 import { cn } from "@mockmatch/ui/utils"
+import { FormulaInput } from "./formula-input"
 
 export type FormulaBarProps = {
   readonly a1: string
@@ -72,18 +73,13 @@ export function FormulaBar({
               className="size-4 shrink-0 text-muted-foreground"
               aria-hidden
             />
-            <Input
+            <FormulaInput
               aria-label={formulaBarAria}
-              className="h-8 min-w-0 flex-1 caret-blue-500 selection:bg-blue-400/40 selection:text-neutral-900 dark:selection:text-neutral-50"
+              className="h-8 min-w-0"
               value={value}
               readOnly={readOnly}
-              onChange={(e) => onChange(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault()
-                  onCommit()
-                }
-              }}
+              onChange={onChange}
+              onCommit={onCommit}
               onBlur={() => onCommit()}
             />
           </div>

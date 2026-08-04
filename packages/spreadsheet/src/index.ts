@@ -8,6 +8,22 @@ export {
   type SpreadsheetShellProps,
 } from "./spreadsheet-shell"
 export { FormulaBar, type FormulaBarProps } from "./formula-bar"
+export { FormulaInput, type FormulaInputProps } from "./formula-input"
+export {
+  getFormulaFunctionNames,
+  getFormulaFunctionNameSet,
+  getFormulaFunctionSuggestions,
+  getFormulaFunctionQuery,
+} from "./formula/functions"
+export {
+  tokenizeFormula,
+  assignRefColors,
+  FORMULA_REF_COLORS,
+  FORMULA_FUNCTION_COLOR,
+  type FormulaToken,
+  type FormulaTokenKind,
+} from "./formula/tokenize"
+export { FormulaHighlight } from "./formula/highlight"
 export { SheetTabs, type SheetTabsProps } from "./sheet-tabs"
 export {
   SpreadsheetGrid,
