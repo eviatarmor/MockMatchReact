@@ -17,6 +17,10 @@ export type FormulaBarProps = {
   readonly nameBoxAria: string
   readonly formulaBarAria: string
   readonly className?: string
+  readonly caret?: number
+  readonly onCaretChange?: (caret: number) => void
+  readonly onFormulaFocus?: () => void
+  readonly onFormulaBlur?: () => void
 }
 
 /**
@@ -34,6 +38,10 @@ export function FormulaBar({
   nameBoxAria,
   formulaBarAria,
   className,
+  caret,
+  onCaretChange,
+  onFormulaFocus,
+  onFormulaBlur,
 }: FormulaBarProps) {
   return (
     <div
@@ -78,9 +86,15 @@ export function FormulaBar({
               className="h-8 min-w-0"
               value={value}
               readOnly={readOnly}
+              caret={caret}
+              onCaretChange={onCaretChange}
               onChange={onChange}
               onCommit={onCommit}
-              onBlur={() => onCommit()}
+              onFocus={() => onFormulaFocus?.()}
+              onBlur={() => {
+                onFormulaBlur?.()
+                onCommit()
+              }}
             />
           </div>
         </ResizablePanel>

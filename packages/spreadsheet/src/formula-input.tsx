@@ -1,4 +1,9 @@
-import { useRef, type FocusEventHandler, type MouseEventHandler } from "react"
+import {
+  useEffect,
+  useRef,
+  type FocusEventHandler,
+  type MouseEventHandler,
+} from "react"
 import { MentionPopup, useMention } from "@mockmatch/ui/mention"
 import { cn } from "@mockmatch/ui/utils"
 import { FormulaHighlight } from "./formula/highlight"
@@ -23,6 +28,10 @@ export type FormulaInputProps = {
   readonly className?: string
   readonly "aria-label"?: string
   readonly autoFocus?: boolean
+  /** Controlled caret (e.g. after click-to-insert ref). */
+  readonly caret?: number
+  readonly onCaretChange?: (caret: number) => void
+  readonly onFocus?: FocusEventHandler<HTMLInputElement>
   /** Forwarded for cell editor focus / query selectors. */
   readonly "data-spreadsheet-cell-editor"?: string | boolean
   readonly onMouseDown?: MouseEventHandler<HTMLInputElement>
@@ -44,12 +53,16 @@ export function FormulaInput({
   disabled,
   className,
   autoFocus,
+  caret,
+  onCaretChange,
+  onFocus,
   onMouseDown,
   onBlur,
   ...rest
 }: FormulaInputProps) {
   const anchorRef = useRef<HTMLInputElement>(null)
   const isDisabled = Boolean(disabled || readOnly)
+  const lastAppliedCaret = useRef<number | null>(null)
 
   const mention = useMention({
     value,
@@ -60,6 +73,21 @@ export function FormulaInput({
     disabled: isDisabled,
     anchorRef,
   })
+
+  const reportCaret = (n: number) => {
+    onCaretChange?.(n)
+  }
+
+  // Apply caret from host (ref pick insert) without fighting user typing.
+  useEffect(() => {
+    if (caret === undefined) return
+    if (lastAppliedCaret.current === caret) return
+    const el = anchorRef.current
+    if (!el || document.activeElement !== el) return
+    const next = Math.max(0, Math.min(value.length, caret))
+    lastAppliedCaret.current = caret
+    el.setSelectionRange(next, next)
+  }, [caret, value])
 
   // Shared box + type metrics — any mismatch moves the caret vs colored text
   const fieldClass = cn(
@@ -108,7 +136,9 @@ export function FormulaInput({
         onChange={(e) => {
           const next = e.target.value
           const nextCaret = e.target.selectionStart ?? next.length
+          lastAppliedCaret.current = nextCaret
           onChange(next)
+          reportCaret(nextCaret)
           mention.sync(nextCaret, { fromUserEdit: true, value: next })
         }}
         onKeyDown={(e) => {
@@ -142,19 +172,31 @@ export function FormulaInput({
           ) {
             return
           }
-          mention.sync(e.currentTarget.selectionStart ?? value.length)
+          const c = e.currentTarget.selectionStart ?? value.length
+          lastAppliedCaret.current = c
+          reportCaret(c)
+          mention.sync(c)
         }}
         onClick={(e) => {
-          mention.sync(e.currentTarget.selectionStart ?? value.length)
+          const c = e.currentTarget.selectionStart ?? value.length
+          lastAppliedCaret.current = c
+          reportCaret(c)
+          mention.sync(c)
         }}
         onSelect={(e) => {
-          mention.sync(e.currentTarget.selectionStart ?? value.length)
+          const c = e.currentTarget.selectionStart ?? value.length
+          lastAppliedCaret.current = c
+          reportCaret(c)
+          mention.sync(c)
         }}
         onBlur={(e) => {
           mention.onBlur()
           onBlur?.(e)
         }}
-        onFocus={() => mention.onFocus()}
+        onFocus={(e) => {
+          mention.onFocus()
+          onFocus?.(e)
+        }}
         onMouseDown={onMouseDown}
         {...rest}
       />

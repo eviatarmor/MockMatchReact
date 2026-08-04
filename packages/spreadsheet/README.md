@@ -2,10 +2,11 @@
 
 Product-agnostic multi-sheet spreadsheet shell (practice / ops tables):
 
-- **Plugin host** — history, selection, fill, keyboard, cell edit, resize, formula bar, sheet tabs, format, clipboard
+- **Plugin host** — history, formula-refs, selection, fill, keyboard, cell edit, resize, formula bar, sheet tabs, format, clipboard
 - **Undo/redo** — **Yjs `UndoManager`** on the workbook Y.Doc (Ctrl/Cmd+Z / Y / Shift+Z)
 - **Collab** — host wires `document_kind: spreadsheet` room; local Y workbook mirrors to shared CRDT
 - **Fill handle** — drag + double-click fill-down; Ctrl+D / Ctrl+R; relative `$` refs
+- **Formula refs** — colored tokens + matching grid highlights; click/drag cells to insert `A1` / `A1:B2` while editing `=`
 - **Paste special** — Ctrl+Shift+V pastes values
 - **Number formats** — general / number / % / currency / integer (Ctrl+Shift+1/4/5/`)
 - **Virtualized grid** — sparse cells, frozen headers (native overflow)
@@ -54,6 +55,7 @@ function SheetPractice() {
 
 | Plugin | Role |
 |--------|------|
+| `formula-refs` | Grid ref highlights + click/drag insert while editing formula |
 | `selection` | Click / drag range, headers, select-all |
 | `keyboard` | Arrows, Tab, Delete (non-edit) |
 | `cell-edit` | F2 / type-to-edit, plain cell input |

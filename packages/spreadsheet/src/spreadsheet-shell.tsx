@@ -74,11 +74,8 @@ export function SpreadsheetShell({
   const sortedPlugins = useMemo(() => sortPlugins(plugins), [plugins])
 
   const [editing, setEditing] = useState(false)
-
-  // End edit when switching sheets
-  useEffect(() => {
-    setEditing(false)
-  }, [document.activeSheetId])
+  /** Formula bar focused — drives grid ref highlights without in-cell editor. */
+  const [formulaBarActive, setFormulaBarActive] = useState(false)
 
   const documentRef = useRef(document)
   documentRef.current = document
@@ -88,6 +85,15 @@ export function SpreadsheetShell({
   formulaDraftRef.current = formulaDraft
   const editingRef = useRef(editing)
   editingRef.current = editing
+  const formulaBarActiveRef = useRef(formulaBarActive)
+  formulaBarActiveRef.current = formulaBarActive
+  const formulaCaretRef = useRef(formulaDraft.length)
+
+  // End edit when switching sheets
+  useEffect(() => {
+    setEditing(false)
+    setFormulaBarActive(false)
+  }, [document.activeSheetId])
   const labelsRef = useRef(labels)
   labelsRef.current = labels
   const getDisplayRef = useRef(getDisplay)
@@ -138,6 +144,15 @@ export function SpreadsheetShell({
       scrollCellIntoView: (coord) => scrollCellIntoViewRef.current?.(coord),
       getActiveCellRect: () => getActiveCellRectRef.current?.() ?? null,
       commitActiveCell,
+      getFormulaCaret: () => formulaCaretRef.current,
+      setFormulaCaret: (n) => {
+        formulaCaretRef.current = Math.max(0, n)
+      },
+      isFormulaBarActive: () => formulaBarActiveRef.current,
+      setFormulaBarActive: (active) => {
+        formulaBarActiveRef.current = active
+        setFormulaBarActive(active)
+      },
     }),
     [commitActiveCell]
   )
@@ -184,6 +199,7 @@ export function SpreadsheetShell({
         plugins={sortedPlugins}
         ctx={ctx}
         editing={editing}
+        formulaBarActive={formulaBarActive}
         ariaLabel={labels.gridAria}
         bindScrollCellIntoView={(fn) => {
           scrollCellIntoViewRef.current = fn

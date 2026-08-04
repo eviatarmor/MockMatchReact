@@ -72,6 +72,12 @@ export type SpreadsheetPluginContext = {
    * Convenience over setCell + draft sync.
    */
   readonly commitActiveCell?: () => void
+  /** Caret in formula draft (formula bar or in-cell editor). */
+  readonly getFormulaCaret?: () => number
+  readonly setFormulaCaret?: (caret: number) => void
+  /** Formula bar field focused — enables ref-pick without in-cell editor. */
+  readonly isFormulaBarActive?: () => boolean
+  readonly setFormulaBarActive?: (active: boolean) => void
 }
 
 export type SpreadsheetChromeSlot = "top" | "bottom" | "overlay"

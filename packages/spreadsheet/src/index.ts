@@ -24,6 +24,18 @@ export {
   type FormulaTokenKind,
 } from "./formula/tokenize"
 export { FormulaHighlight } from "./formula/highlight"
+export {
+  parseFormulaRefSpans,
+  parseRefTokenRange,
+  refColorForCell,
+  applyFormulaRefPick,
+  findRefInsertSite,
+  rangeToA1,
+  isFormulaPickDraft,
+  type FormulaRefSpan,
+  type FormulaRefPickSession,
+  type FormulaRefInsertSite,
+} from "./formula/ref-spans"
 export { SheetTabs, type SheetTabsProps } from "./sheet-tabs"
 export {
   SpreadsheetGrid,
@@ -141,6 +153,7 @@ export {
 export {
   createDefaultPlugins,
   createHistoryPlugin,
+  createFormulaRefsPlugin,
   createSelectionPlugin,
   createFillPlugin,
   fillDownFromHandle,

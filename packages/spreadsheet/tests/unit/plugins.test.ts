@@ -9,6 +9,7 @@ import {
 } from "../../src/plugin-system"
 import {
   createDefaultPlugins,
+  createFormulaRefsPlugin,
   createKeyboardPlugin,
   createSelectionPlugin,
 } from "../../src/plugins"
@@ -25,6 +26,8 @@ function mockCtx(
     setFormulaDraft?: SpreadsheetPluginContext["setFormulaDraft"]
     setEditing?: SpreadsheetPluginContext["setEditing"]
     canEdit?: boolean
+    formulaDraft?: string
+    formulaBarActive?: boolean
   } = {}
 ): SpreadsheetPluginContext {
   let doc = options.document ?? createEmptyWorkbook()
@@ -33,7 +36,10 @@ function mockCtx(
     range: null,
   }
   let editing = options.editing ?? false
-  let draft = ""
+  let draft = options.formulaDraft ?? ""
+
+  let caret = draft.length
+  let formulaBarActive = options.formulaBarActive ?? false
 
   return {
     getDocument: () => doc,
@@ -74,6 +80,7 @@ function mockCtx(
       options.setFormulaDraft ??
       ((v) => {
         draft = v
+        caret = v.length
       }),
     setEditing:
       options.setEditing ??
@@ -81,6 +88,14 @@ function mockCtx(
         editing = v
       }),
     dispatch: options.dispatch ?? vi.fn(),
+    getFormulaCaret: () => caret,
+    setFormulaCaret: (n) => {
+      caret = n
+    },
+    isFormulaBarActive: () => formulaBarActive,
+    setFormulaBarActive: (v) => {
+      formulaBarActive = v
+    },
   }
 }
 
@@ -113,6 +128,7 @@ describe("spreadsheet plugins", () => {
     const ids = createDefaultPlugins().map((p) => p.id)
     expect(ids).toEqual([
       "history",
+      "formula-refs",
       "selection",
       "fill",
       "keyboard",
@@ -123,6 +139,63 @@ describe("spreadsheet plugins", () => {
       "format",
       "clipboard",
     ])
+  })
+
+  it("formula-refs inserts A1 while editing a formula", () => {
+    const setFormulaDraft = vi.fn()
+    const setSelection = vi.fn()
+    const ctx = mockCtx({
+      editing: true,
+      formulaDraft: "=",
+      setFormulaDraft,
+      setSelection,
+    })
+    const plugins = [createFormulaRefsPlugin(), createSelectionPlugin()]
+    const preventDefault = vi.fn()
+    const handled = runPluginPointerDown(
+      plugins,
+      {
+        clientX: 0,
+        clientY: 0,
+        shiftKey: false,
+        target: "cell",
+        row: 1,
+        col: 4,
+        preventDefault,
+        stopPropagation: vi.fn(),
+      },
+      ctx
+    )
+    expect(handled).toBe(true)
+    expect(preventDefault).toHaveBeenCalled()
+    expect(setFormulaDraft).toHaveBeenCalledWith("=E2")
+    expect(setSelection).not.toHaveBeenCalled()
+  })
+
+  it("formula-refs does not steal clicks when not in formula pick mode", () => {
+    const setSelection = vi.fn()
+    const ctx = mockCtx({
+      editing: false,
+      formulaDraft: "hello",
+      setSelection,
+    })
+    const plugins = [createFormulaRefsPlugin(), createSelectionPlugin()]
+    const handled = runPluginPointerDown(
+      plugins,
+      {
+        clientX: 0,
+        clientY: 0,
+        shiftKey: false,
+        target: "cell",
+        row: 1,
+        col: 2,
+        preventDefault: vi.fn(),
+        stopPropagation: vi.fn(),
+      },
+      ctx
+    )
+    expect(handled).toBe(true)
+    expect(setSelection).toHaveBeenCalledWith({ row: 1, col: 2 }, null)
   })
 
   it("runPluginKeyDown stops on first true", () => {

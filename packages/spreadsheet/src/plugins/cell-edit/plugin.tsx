@@ -78,6 +78,8 @@ export function createCellEditPlugin(): SpreadsheetPlugin {
           data-spreadsheet-cell-editor
           className={CELL_FIELD}
           value={draft}
+          caret={ctx.getFormulaCaret?.()}
+          onCaretChange={ctx.setFormulaCaret}
           onChange={(v) => ctx.setFormulaDraft(v)}
           commitOnTab
           onCommit={(meta) => {

@@ -18,6 +18,10 @@ import {
   visibleRange,
 } from "../layout"
 import {
+  parseFormulaRefSpans,
+  refColorForCell,
+} from "../formula/ref-spans"
+import {
   runPluginKeyDown,
   runPluginPointerDown,
   runPluginPointerMove,
@@ -52,6 +56,8 @@ export type SpreadsheetGridProps = {
   readonly plugins: readonly SpreadsheetPlugin[]
   readonly ctx: SpreadsheetPluginContext
   readonly editing: boolean
+  /** Formula bar focused — same ref-highlight mode as in-cell edit. */
+  readonly formulaBarActive?: boolean
   readonly ariaLabel: string
   readonly className?: string
   readonly bindScrollCellIntoView?: (
@@ -78,6 +84,7 @@ export function SpreadsheetGrid({
   plugins,
   ctx,
   editing,
+  formulaBarActive = false,
   ariaLabel,
   className,
   bindScrollCellIntoView,
@@ -262,11 +269,6 @@ export function SpreadsheetGrid({
       row?: number,
       col?: number
     ) => {
-      // Keep keyboard shortcuts (Ctrl+Z, Delete, arrows) on the grid host.
-      // Cell/header clicks would otherwise leave focus on body / other chrome.
-      if (target !== "col-resize" && target !== "row-resize") {
-        gridFocusRef.current?.focus({ preventScroll: true })
-      }
       runPluginPointerDown(
         plugins,
         {
@@ -281,6 +283,15 @@ export function SpreadsheetGrid({
         },
         ctx
       )
+      // Keep keyboard shortcuts on the grid host — but not when a plugin
+      // preventDefault'd (formula ref-pick keeps focus in formula input).
+      if (
+        target !== "col-resize" &&
+        target !== "row-resize" &&
+        !e.defaultPrevented
+      ) {
+        gridFocusRef.current?.focus({ preventScroll: true })
+      }
     },
     [ctx, plugins]
   )
@@ -296,7 +307,13 @@ export function SpreadsheetGrid({
     return null
   }, [ctx, editing, getActiveCellRect, plugins])
 
-  void formulaDraft
+  // Formula ref highlights while editing / formula bar (e.g. =E2 → paint E2).
+  const formulaRefSpans = useMemo(() => {
+    if (!formulaDraft.startsWith("=")) return []
+    if (!editing && !formulaBarActive) return []
+    return parseFormulaRefSpans(formulaDraft)
+  }, [editing, formulaBarActive, formulaDraft])
+
   void rowCount
   void colCount
 
@@ -439,17 +456,24 @@ export function SpreadsheetGrid({
                     selection.active.col === c
                   const left = ROW_HEADER_WIDTH + (colLayout.offsets[c] ?? 0)
                   const width = sheet ? getColWidth(sheet, c) : DEFAULT_COL_WIDTH
+                  const refColor =
+                    formulaRefSpans.length > 0
+                      ? refColorForCell(formulaRefSpans, r, c)
+                      : null
 
                   return (
                     <div
                       key={`c-${r}-${c}`}
                       role="gridcell"
                       aria-selected={active || Boolean(ranged)}
+                      data-formula-ref={refColor ? "true" : undefined}
                       className={cn(
                         "absolute flex cursor-default select-none items-center border-b border-r border-border/80 px-1.5 text-xs",
-                        ranged && !active && "bg-blue-400/15 dark:bg-blue-400/20",
+                        ranged && !active && !refColor && "bg-blue-400/15 dark:bg-blue-400/20",
                         active &&
+                          !refColor &&
                           "z-10 bg-background ring-2 ring-inset ring-blue-400",
+                        active && refColor && "z-10 bg-background",
                         display.error && "text-destructive",
                         !display.error &&
                           display.isFormula &&
@@ -465,6 +489,13 @@ export function SpreadsheetGrid({
                         top,
                         width,
                         height,
+                        ...(refColor
+                          ? {
+                              boxShadow: `inset 0 0 0 2px ${refColor}`,
+                              backgroundColor: `color-mix(in srgb, ${refColor} 22%, transparent)`,
+                              zIndex: active ? 10 : 5,
+                            }
+                          : null),
                       }}
                       onMouseDown={(e) => firePointerDown("cell", e, r, c)}
                       onMouseEnter={() => {
@@ -487,6 +518,13 @@ export function SpreadsheetGrid({
                         cellEditor
                       ) : (
                         <span className="truncate">{display.display}</span>
+                      )}
+                      {plugins.map((p) =>
+                        p.renderCellOverlay?.(ctx, {
+                          row: r,
+                          col: c,
+                          rect: { left, top, width, height },
+                        })
                       )}
                       {active && !isEdit && ctx.canEdit() ? (
                         <div

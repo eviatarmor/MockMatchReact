@@ -17,8 +17,17 @@ export function createFormulaBarPlugin(): SpreadsheetPlugin {
           key="formula-bar"
           a1={a1}
           value={ctx.getFormulaDraft()}
-          onChange={ctx.setFormulaDraft}
+          onChange={(v) => {
+            // Typing in the bar counts as formula entry even if focus race.
+            ctx.setFormulaBarActive?.(true)
+            ctx.setFormulaDraft(v)
+          }}
+          caret={ctx.getFormulaCaret?.()}
+          onCaretChange={ctx.setFormulaCaret}
+          onFormulaFocus={() => ctx.setFormulaBarActive?.(true)}
+          onFormulaBlur={() => ctx.setFormulaBarActive?.(false)}
           onCommit={() => {
+            ctx.setFormulaBarActive?.(false)
             ctx.commitActiveCell?.()
             ctx.setEditing(false)
           }}
