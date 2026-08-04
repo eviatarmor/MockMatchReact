@@ -1,4 +1,5 @@
 import type {
+  SpreadsheetContextMenuEvent,
   SpreadsheetPlugin,
   SpreadsheetPluginContext,
   SpreadsheetPointerDownEvent,
@@ -47,6 +48,17 @@ export function runPluginPointerUp(
 ): boolean {
   for (const plugin of sortPlugins(plugins)) {
     if (plugin.onPointerUp?.(e, ctx) === true) return true
+  }
+  return false
+}
+
+export function runPluginContextMenu(
+  plugins: readonly SpreadsheetPlugin[],
+  e: SpreadsheetContextMenuEvent,
+  ctx: SpreadsheetPluginContext
+): boolean {
+  for (const plugin of sortPlugins(plugins)) {
+    if (plugin.onContextMenu?.(e, ctx) === true) return true
   }
   return false
 }

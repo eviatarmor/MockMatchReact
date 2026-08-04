@@ -1,4 +1,5 @@
 import { cellKey } from "./address"
+import { mergeCellStyle } from "./style"
 import {
   DEFAULT_COL_COUNT,
   DEFAULT_ROW_COUNT,
@@ -8,6 +9,7 @@ import {
   MIN_ROW_HEIGHT,
   SHEET_MAX_COLS,
   SHEET_MAX_ROWS,
+  type CellStyle,
   type SpreadsheetCell,
   type SpreadsheetDocument,
   type SpreadsheetSheet,
@@ -66,30 +68,36 @@ export function setCellRaw(
   row: number,
   col: number,
   raw: string,
-  opts?: { format?: SpreadsheetCell["format"] | null; clearIfEmpty?: boolean }
+  opts?: {
+    format?: SpreadsheetCell["format"] | null
+    style?: CellStyle | null
+    clearIfEmpty?: boolean
+  }
 ): SpreadsheetSheet {
   const key = cellKey(row, col)
   const prev = sheet.cells[key]
   const nextCells = { ...sheet.cells }
   const clearIfEmpty = opts?.clearIfEmpty !== false
-  if (raw === "" && clearIfEmpty && opts?.format == null && !prev?.format) {
-    delete nextCells[key]
-  } else if (raw === "" && clearIfEmpty && opts?.format === null) {
+  const format =
+    opts?.format === null
+      ? undefined
+      : opts?.format !== undefined
+        ? opts.format
+        : prev?.format
+  const style =
+    opts?.style === null
+      ? undefined
+      : opts?.style !== undefined
+        ? mergeCellStyle(undefined, opts.style)
+        : prev?.style
+
+  if (raw === "" && clearIfEmpty && !format && !style) {
     delete nextCells[key]
   } else {
-    const format =
-      opts?.format === null
-        ? undefined
-        : opts?.format !== undefined
-          ? opts.format
-          : prev?.format
-    if (raw === "" && !format) {
-      delete nextCells[key]
-    } else {
-      const cell: SpreadsheetCell = format
-        ? { raw, format }
-        : { raw }
-      nextCells[key] = cell
+    nextCells[key] = {
+      raw,
+      ...(format ? { format } : {}),
+      ...(style ? { style } : {}),
     }
   }
   // Grow sheet bounds if writing past edge
@@ -102,6 +110,31 @@ export function setCellRaw(
     Math.max(sheet.colCount, col + 1)
   )
   return { ...sheet, cells: nextCells, rowCount, colCount }
+}
+
+export function setCellStyle(
+  sheet: SpreadsheetSheet,
+  row: number,
+  col: number,
+  patch: CellStyle | null
+): SpreadsheetSheet {
+  const key = cellKey(row, col)
+  const prev = sheet.cells[key]
+  const raw = prev?.raw ?? ""
+  const format = prev?.format
+  const style =
+    patch === null ? undefined : mergeCellStyle(prev?.style, patch)
+  if (!raw && !format && !style) {
+    if (!prev) return sheet
+    const nextCells = { ...sheet.cells }
+    delete nextCells[key]
+    return { ...sheet, cells: nextCells }
+  }
+  return setCellRaw(sheet, row, col, raw, {
+    format: format ?? null,
+    style: style ?? null,
+    clearIfEmpty: false,
+  })
 }
 
 export function setCellFormat(
@@ -130,12 +163,14 @@ export function setCellsRaw(
     col: number
     raw: string
     format?: SpreadsheetCell["format"] | null
+    style?: CellStyle | null
   }[]
 ): SpreadsheetSheet {
   let next = sheet
   for (const w of writes) {
     next = setCellRaw(next, w.row, w.col, w.raw, {
       format: w.format,
+      style: w.style,
       clearIfEmpty: true,
     })
   }

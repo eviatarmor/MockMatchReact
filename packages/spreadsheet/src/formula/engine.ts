@@ -70,9 +70,17 @@ export function getDisplayCell(
   const cell = sheet.cells[cellKey(row, col)]
   const raw = cell?.raw ?? ""
   const format = cell?.format
+  const style = cell?.style
   const isFormula = raw.startsWith("=")
   if (!raw) {
-    return { raw: "", display: "", isFormula: false, error: null, format }
+    return {
+      raw: "",
+      display: "",
+      isFormula: false,
+      error: null,
+      format,
+      style,
+    }
   }
 
   const sheetId = hf.getSheetId(sheet.name)
@@ -83,6 +91,7 @@ export function getDisplayCell(
       isFormula,
       error: isFormula ? "#REF!" : null,
       format,
+      style,
     }
   }
 
@@ -96,6 +105,7 @@ export function getDisplayCell(
         isFormula,
         error: value.type,
         format,
+        style,
       }
     }
     if (value === null || value === undefined) {
@@ -105,6 +115,7 @@ export function getDisplayCell(
         isFormula,
         error: null,
         format,
+        style,
       }
     }
     if (typeof value === "number") {
@@ -114,6 +125,7 @@ export function getDisplayCell(
         isFormula,
         error: null,
         format,
+        style,
       }
     }
     if (typeof value === "boolean") {
@@ -123,6 +135,7 @@ export function getDisplayCell(
         isFormula,
         error: null,
         format,
+        style,
       }
     }
     // Numeric-looking plain text can still take format
@@ -135,10 +148,18 @@ export function getDisplayCell(
           isFormula,
           error: null,
           format,
+          style,
         }
       }
     }
-    return { raw, display: String(value), isFormula, error: null, format }
+    return {
+      raw,
+      display: String(value),
+      isFormula,
+      error: null,
+      format,
+      style,
+    }
   } catch {
     return {
       raw,
@@ -146,6 +167,7 @@ export function getDisplayCell(
       isFormula,
       error: "#ERROR!",
       format,
+      style,
     }
   }
 }

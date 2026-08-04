@@ -1,6 +1,7 @@
 export type {
   CellRect,
   SpreadsheetChromeSlot,
+  SpreadsheetContextMenuEvent,
   SpreadsheetPlugin,
   SpreadsheetPluginContext,
   SpreadsheetPointerDownEvent,
@@ -12,6 +13,7 @@ export type {
 export { collectChrome, sortPlugins } from "./types"
 
 export {
+  runPluginContextMenu,
   runPluginKeyDown,
   runPluginPointerDown,
   runPluginPointerMove,

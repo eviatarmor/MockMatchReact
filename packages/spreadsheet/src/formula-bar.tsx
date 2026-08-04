@@ -46,7 +46,9 @@ export function FormulaBar({
   return (
     <div
       className={cn(
-        "flex h-11 shrink-0 items-stretch border-b border-border/60 bg-neutral-50/75 px-2 backdrop-blur-md dark:bg-neutral-950/75",
+        // Single bottom rule for the strip — fields inside stay borderless
+        // so we do not stack bar border + input borders.
+        "flex h-10 shrink-0 items-stretch border-b border-border/60 bg-neutral-50/75 px-2 backdrop-blur-md dark:bg-neutral-950/75",
         className
       )}
     >
@@ -63,27 +65,34 @@ export function FormulaBar({
           maxSize={280}
           className="min-w-0"
         >
-          <div className="flex h-full min-w-0 items-center pr-1">
+          <div className="flex h-full min-w-0 items-center border-r border-border/50 pr-1">
             <Input
               readOnly
               tabIndex={-1}
               aria-label={nameBoxAria}
               title={a1}
               value={a1}
-              className="h-8 w-full min-w-0 cursor-default px-1.5 text-center text-xs font-medium tabular-nums"
+              className={cn(
+                "h-8 w-full min-w-0 cursor-default border-0 bg-transparent px-1.5 text-center text-xs font-medium tabular-nums shadow-none",
+                "focus-visible:border-0 focus-visible:ring-0"
+              )}
             />
           </div>
         </ResizablePanel>
-        <ResizableHandle withHandle />
+        {/* Plain divider — avoid ResizableHandle chrome (border-on-border). */}
+        <ResizableHandle className="w-px bg-border/50 after:hidden" />
         <ResizablePanel id="formula" minSize={160} className="min-w-0">
-          <div className="flex h-full min-w-0 items-center gap-2 pl-1">
+          <div className="flex h-full min-w-0 items-center gap-2 pl-2">
             <FunctionSquare
               className="size-4 shrink-0 text-muted-foreground"
               aria-hidden
             />
             <FormulaInput
               aria-label={formulaBarAria}
-              className="h-8 min-w-0"
+              className={cn(
+                "h-8 min-w-0 rounded-none border-0 bg-transparent px-1 shadow-none",
+                "focus-visible:border-0 focus-visible:ring-0"
+              )}
               value={value}
               readOnly={readOnly}
               caret={caret}

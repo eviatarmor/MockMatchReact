@@ -22,6 +22,7 @@ import {
   refColorForCell,
 } from "../formula/ref-spans"
 import {
+  runPluginContextMenu,
   runPluginKeyDown,
   runPluginPointerDown,
   runPluginPointerMove,
@@ -296,6 +297,30 @@ export function SpreadsheetGrid({
     [ctx, plugins]
   )
 
+  const fireContextMenu = useCallback(
+    (
+      target: Parameters<typeof runPluginPointerDown>[1]["target"],
+      e: React.MouseEvent,
+      row?: number,
+      col?: number
+    ) => {
+      runPluginContextMenu(
+        plugins,
+        {
+          clientX: e.clientX,
+          clientY: e.clientY,
+          target,
+          row,
+          col,
+          preventDefault: () => e.preventDefault(),
+          stopPropagation: () => e.stopPropagation(),
+        },
+        ctx
+      )
+    },
+    [ctx, plugins]
+  )
+
   const cellEditor = useMemo(() => {
     if (!editing) return null
     for (const p of plugins) {
@@ -460,6 +485,15 @@ export function SpreadsheetGrid({
                     formulaRefSpans.length > 0
                       ? refColorForCell(formulaRefSpans, r, c)
                       : null
+                  const cellStyle = display.style
+                  const align =
+                    cellStyle?.align ??
+                    (!display.error &&
+                    !display.isFormula &&
+                    typeof display.display === "string" &&
+                    /^-?\d/.test(display.display)
+                      ? "right"
+                      : "left")
 
                   return (
                     <div
@@ -478,26 +512,34 @@ export function SpreadsheetGrid({
                         !display.error &&
                           display.isFormula &&
                           "text-foreground",
-                        !display.error &&
-                          !display.isFormula &&
-                          typeof display.display === "string" &&
-                          /^-?\d/.test(display.display) &&
-                          "justify-end tabular-nums"
+                        align === "center" && "justify-center",
+                        align === "right" && "justify-end tabular-nums",
+                        align === "left" && "justify-start",
+                        cellStyle?.bold && "font-semibold",
+                        cellStyle?.italic && "italic",
+                        cellStyle?.underline && "underline",
+                        cellStyle?.wrap
+                          ? "whitespace-pre-wrap break-words"
+                          : "truncate"
                       )}
                       style={{
                         left,
                         top,
                         width,
                         height,
+                        color: cellStyle?.color,
+                        backgroundColor: refColor
+                          ? `color-mix(in srgb, ${refColor} 22%, transparent)`
+                          : cellStyle?.fill,
                         ...(refColor
                           ? {
                               boxShadow: `inset 0 0 0 2px ${refColor}`,
-                              backgroundColor: `color-mix(in srgb, ${refColor} 22%, transparent)`,
                               zIndex: active ? 10 : 5,
                             }
                           : null),
                       }}
                       onMouseDown={(e) => firePointerDown("cell", e, r, c)}
+                      onContextMenu={(e) => fireContextMenu("cell", e, r, c)}
                       onMouseEnter={() => {
                         runPluginPointerMove(
                           plugins,
@@ -517,7 +559,13 @@ export function SpreadsheetGrid({
                       {isEdit ? (
                         cellEditor
                       ) : (
-                        <span className="truncate">{display.display}</span>
+                        <span
+                          className={cn(
+                            cellStyle?.wrap ? "whitespace-pre-wrap" : "truncate"
+                          )}
+                        >
+                          {display.display}
+                        </span>
                       )}
                       {plugins.map((p) =>
                         p.renderCellOverlay?.(ctx, {

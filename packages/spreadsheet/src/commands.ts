@@ -1,4 +1,4 @@
-import type { NumberFormatId } from "./types"
+import type { CellStyle, NumberFormatId } from "./types"
 
 /** Document mutations plugins send through `ctx.dispatch`. */
 
@@ -8,6 +8,8 @@ export type CellWrite = {
   readonly raw: string
   /** When set, updates format; omit to leave format unchanged. */
   readonly format?: NumberFormatId | null
+  /** When set, replaces style; null clears; omit leaves style unchanged. */
+  readonly style?: CellStyle | null
 }
 
 export type SpreadsheetCommand =
@@ -22,6 +24,26 @@ export type SpreadsheetCommand =
       readonly col: number
       readonly format: NumberFormatId | null
     }
+  | {
+      readonly type: "setCellStyle"
+      readonly row: number
+      readonly col: number
+      /** Patch merged onto existing style; null clears all style. */
+      readonly style: CellStyle | null
+    }
+  | {
+      readonly type: "setStyles"
+      /** Apply the same style patch to every cell in the inclusive range. */
+      readonly startRow: number
+      readonly startCol: number
+      readonly endRow: number
+      readonly endCol: number
+      readonly style: CellStyle | null
+    }
+  | { readonly type: "insertRows"; readonly at: number; readonly count?: number }
+  | { readonly type: "deleteRows"; readonly at: number; readonly count?: number }
+  | { readonly type: "insertCols"; readonly at: number; readonly count?: number }
+  | { readonly type: "deleteCols"; readonly at: number; readonly count?: number }
   | { readonly type: "setActiveSheet"; readonly sheetId: string }
   | { readonly type: "addSheet" }
   | { readonly type: "renameSheet"; readonly sheetId: string; readonly name: string }

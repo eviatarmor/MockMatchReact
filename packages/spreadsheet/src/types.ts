@@ -6,11 +6,28 @@ export type NumberFormatId =
   | "currency"
   | "integer"
 
+export type CellAlign = "left" | "center" | "right"
+
+/** Lightweight cell presentation (not rich text). */
+export type CellStyle = {
+  readonly bold?: boolean
+  readonly italic?: boolean
+  readonly underline?: boolean
+  readonly align?: CellAlign
+  /** CSS color for background fill. */
+  readonly fill?: string
+  /** CSS color for text. */
+  readonly color?: string
+  readonly wrap?: boolean
+}
+
 export type SpreadsheetCell = {
   /** User-authored content: literal or formula starting with `=`. */
   readonly raw: string
   /** Optional number display format (does not change stored raw). */
   readonly format?: NumberFormatId
+  /** Optional presentation style. */
+  readonly style?: CellStyle
 }
 
 export type SpreadsheetSheet = {
@@ -53,6 +70,7 @@ export type DisplayCell = {
   readonly isFormula: boolean
   readonly error: string | null
   readonly format?: NumberFormatId
+  readonly style?: CellStyle
 }
 
 export type SpreadsheetShellLabels = {
@@ -65,6 +83,29 @@ export type SpreadsheetShellLabels = {
   readonly deleteSheet: string
   readonly sheetFallback: (n: number) => string
   readonly cannotDeleteLastSheet: string
+  /** Optional chrome for format toolbar / context menu (English fallbacks). */
+  readonly toolbarAria?: string
+  readonly bold?: string
+  readonly italic?: string
+  readonly underline?: string
+  readonly alignLeft?: string
+  readonly alignCenter?: string
+  readonly alignRight?: string
+  readonly wrapText?: string
+  readonly fillColor?: string
+  readonly formatGeneral?: string
+  readonly formatNumber?: string
+  readonly formatPercent?: string
+  readonly formatCurrency?: string
+  readonly formatInteger?: string
+  readonly insertRow?: string
+  readonly deleteRow?: string
+  readonly insertCol?: string
+  readonly deleteCol?: string
+  readonly clearContents?: string
+  readonly cut?: string
+  readonly copy?: string
+  readonly paste?: string
 }
 
 /** Starting grid size (grows as user scrolls / navigates). */

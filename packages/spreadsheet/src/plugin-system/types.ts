@@ -49,6 +49,16 @@ export type SpreadsheetPointerUpEvent = {
   readonly clientY: number
 }
 
+export type SpreadsheetContextMenuEvent = {
+  readonly clientX: number
+  readonly clientY: number
+  readonly target: SpreadsheetPointerTarget
+  readonly row?: number
+  readonly col?: number
+  readonly preventDefault: () => void
+  readonly stopPropagation: () => void
+}
+
 /** API every plugin receives from the host. */
 export type SpreadsheetPluginContext = {
   readonly getDocument: () => SpreadsheetDocument
@@ -120,6 +130,10 @@ export type SpreadsheetPlugin = {
   ) => boolean | void
   readonly onPointerUp?: (
     e: SpreadsheetPointerUpEvent,
+    ctx: SpreadsheetPluginContext
+  ) => boolean | void
+  readonly onContextMenu?: (
+    e: SpreadsheetContextMenuEvent,
     ctx: SpreadsheetPluginContext
   ) => boolean | void
 }

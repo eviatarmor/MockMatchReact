@@ -134,10 +134,12 @@ describe("spreadsheet plugins", () => {
       "keyboard",
       "cell-edit",
       "resize",
+      "toolbar",
       "formula-bar",
       "sheet-tabs",
       "format",
       "clipboard",
+      "context-menu",
     ])
   })
 
@@ -391,7 +393,20 @@ describe("spreadsheet plugins", () => {
     const ctx = mockCtx()
     const top = collectChrome(plugins, ctx, "top")
     const bottom = collectChrome(plugins, ctx, "bottom")
-    expect(top.length).toBe(1)
+    // formula-bar + toolbar
+    expect(top.length).toBe(2)
     expect(bottom.length).toBe(1)
+  })
+
+  it("keyboard Home jumps to column A", () => {
+    const setSelection = vi.fn()
+    const ctx = mockCtx({
+      selection: { active: { row: 2, col: 5 }, range: null },
+      setSelection,
+    })
+    const plugins = [createKeyboardPlugin()]
+    const e = fakeKey("Home")
+    expect(runPluginKeyDown(plugins, e, ctx)).toBe(true)
+    expect(setSelection).toHaveBeenCalledWith({ row: 2, col: 0 }, null)
   })
 })

@@ -6,9 +6,12 @@ import type {
 } from "../../plugin-system"
 import { FormulaInput } from "../../formula-input"
 
-/** In-cell field chrome — transparent over FormulaHighlight mirror. */
+/**
+ * In-cell field — fill the active cell, no extra frame.
+ * Selection ring stays on the gridcell; editor must not add a smaller border/ring.
+ */
 const CELL_FIELD =
-  "h-full min-h-0 rounded-none border-0 bg-transparent px-0.5 text-xs shadow-none outline-none focus-visible:border-transparent focus-visible:ring-0"
+  "h-full min-h-0 w-full rounded-none border-0 bg-transparent px-0.5 text-xs shadow-none outline-none ring-0 ring-offset-0 focus-visible:border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
 
 function startEdit(ctx: SpreadsheetPluginContext, seed?: string) {
   if (!ctx.canEdit()) return

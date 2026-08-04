@@ -13,16 +13,25 @@ import {
   observeWorkbook,
   renameSheetInYDoc,
   reorderSheetsInYDoc,
+  replaceSheetContentInYDoc,
   replaceWorkbookYDoc,
   setActiveSheetInYDoc,
   setCellInYDoc,
   setCellsInYDoc,
+  setCellStyleInYDoc,
   setColWidthInYDoc,
   setRowHeightInYDoc,
   SS_ORIGIN_LOCAL,
   SS_ORIGIN_REMOTE,
   SS_ORIGIN_SYSTEM,
 } from "./collab/yjs-workbook"
+import { mergeCellStyle } from "./style"
+import {
+  deleteCols,
+  deleteRows,
+  insertCols,
+  insertRows,
+} from "./structure"
 import {
   applyCellToEngine,
   createFormulaEngine,
@@ -31,7 +40,9 @@ import {
 } from "./formula/engine"
 import type {
   CellCoord,
+  CellStyle,
   DisplayCell,
+  NumberFormatId,
   SpreadsheetDocument,
   SpreadsheetSelection,
 } from "./types"
@@ -487,6 +498,102 @@ export function useSpreadsheet(
           )
           stopCapturing()
           break
+        case "setCellStyle": {
+          const sheet = materializeWorkbook(ydoc).sheets.find(
+            (s) => s.id === sheetId
+          )
+          const prev = sheet?.cells[`${command.row}:${command.col}`]
+          const nextStyle =
+            command.style === null
+              ? null
+              : mergeCellStyle(prev?.style, command.style) ?? null
+          setCellStyleInYDoc(
+            ydoc,
+            sheetId,
+            command.row,
+            command.col,
+            nextStyle,
+            SS_ORIGIN_LOCAL
+          )
+          stopCapturing()
+          break
+        }
+        case "setStyles": {
+          const sheet = materializeWorkbook(ydoc).sheets.find(
+            (s) => s.id === sheetId
+          )
+          if (!sheet) break
+          const r0 = Math.min(command.startRow, command.endRow)
+          const r1 = Math.max(command.startRow, command.endRow)
+          const c0 = Math.min(command.startCol, command.endCol)
+          const c1 = Math.max(command.startCol, command.endCol)
+          const writes: {
+            row: number
+            col: number
+            raw: string
+            format?: NumberFormatId | null
+            style: CellStyle | null
+          }[] = []
+          for (let r = r0; r <= r1; r++) {
+            for (let c = c0; c <= c1; c++) {
+              const prev = sheet.cells[`${r}:${c}`]
+              const style =
+                command.style === null
+                  ? null
+                  : mergeCellStyle(prev?.style, command.style) ?? null
+              writes.push({
+                row: r,
+                col: c,
+                raw: prev?.raw ?? "",
+                format: prev?.format,
+                style,
+              })
+            }
+          }
+          setCellsInYDoc(ydoc, sheetId, writes, SS_ORIGIN_LOCAL)
+          stopCapturing()
+          break
+        }
+        case "insertRows": {
+          const sheet = materializeWorkbook(ydoc).sheets.find(
+            (s) => s.id === sheetId
+          )
+          if (!sheet) break
+          const next = insertRows(sheet, command.at, command.count ?? 1)
+          replaceSheetContentInYDoc(ydoc, sheetId, next, SS_ORIGIN_LOCAL)
+          stopCapturing()
+          break
+        }
+        case "deleteRows": {
+          const sheet = materializeWorkbook(ydoc).sheets.find(
+            (s) => s.id === sheetId
+          )
+          if (!sheet) break
+          const next = deleteRows(sheet, command.at, command.count ?? 1)
+          replaceSheetContentInYDoc(ydoc, sheetId, next, SS_ORIGIN_LOCAL)
+          stopCapturing()
+          break
+        }
+        case "insertCols": {
+          const sheet = materializeWorkbook(ydoc).sheets.find(
+            (s) => s.id === sheetId
+          )
+          if (!sheet) break
+          const next = insertCols(sheet, command.at, command.count ?? 1)
+          replaceSheetContentInYDoc(ydoc, sheetId, next, SS_ORIGIN_LOCAL)
+          stopCapturing()
+          break
+        }
+        case "deleteCols": {
+          const sheet = materializeWorkbook(ydoc).sheets.find(
+            (s) => s.id === sheetId
+          )
+          if (!sheet) break
+          const next = deleteCols(sheet, command.at, command.count ?? 1)
+          replaceSheetContentInYDoc(ydoc, sheetId, next, SS_ORIGIN_LOCAL)
+          stopCapturing()
+          break
+        }
         case "setActiveSheet":
           setActiveSheet(command.sheetId)
           break

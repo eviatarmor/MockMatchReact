@@ -2,6 +2,7 @@ import * as Y from "yjs"
 import { cellKey } from "../address"
 import { createEmptyWorkbook, newSheetId } from "../document"
 import type {
+  CellStyle,
   NumberFormatId,
   SpreadsheetCell,
   SpreadsheetDocument,
@@ -34,6 +35,35 @@ function formatsMap(sm: Y.Map<unknown>): Y.Map<string> {
     sm.set("formats", formats)
   }
   return formats
+}
+
+function stylesMap(sm: Y.Map<unknown>): Y.Map<string> {
+  let styles = sm.get("styles") as Y.Map<string> | undefined
+  if (!styles) {
+    styles = new Y.Map<string>()
+    sm.set("styles", styles)
+  }
+  return styles
+}
+
+function encodeStyle(style: CellStyle | undefined): string | null {
+  if (!style) return null
+  try {
+    return JSON.stringify(style)
+  } catch {
+    return null
+  }
+}
+
+function decodeStyle(raw: string | undefined): CellStyle | undefined {
+  if (!raw) return undefined
+  try {
+    const v = JSON.parse(raw) as CellStyle
+    if (v && typeof v === "object") return v
+  } catch {
+    /* ignore */
+  }
+  return undefined
 }
 
 function readCellRaw(value: unknown): string {
@@ -86,21 +116,35 @@ export function materializeWorkbook(ydoc: Y.Doc): SpreadsheetDocument {
     if (!sm) continue
     const cellsMapY = sm.get("cells") as Y.Map<unknown> | undefined
     const formatsMapY = sm.get("formats") as Y.Map<string> | undefined
+    const stylesMapY = sm.get("styles") as Y.Map<string> | undefined
     const cells: Record<string, SpreadsheetCell> = {}
     cellsMapY?.forEach((value, key) => {
       const raw = readCellRaw(value)
       if (raw !== "") {
         const fmt = formatsMapY?.get(key)
-        cells[key] = fmt
-          ? { raw, format: fmt as NumberFormatId }
-          : { raw }
+        const style = decodeStyle(stylesMapY?.get(key))
+        cells[key] = {
+          raw,
+          ...(fmt ? { format: fmt as NumberFormatId } : {}),
+          ...(style ? { style } : {}),
+        }
       }
     })
-    // Format-only keys (empty raw) still materialize
+    // Format/style-only keys (empty raw) still materialize
     formatsMapY?.forEach((fmt, key) => {
       if (!cells[key] && fmt) {
-        cells[key] = { raw: "", format: fmt as NumberFormatId }
+        const style = decodeStyle(stylesMapY?.get(key))
+        cells[key] = {
+          raw: "",
+          format: fmt as NumberFormatId,
+          ...(style ? { style } : {}),
+        }
       }
+    })
+    stylesMapY?.forEach((encoded, key) => {
+      if (cells[key]) return
+      const style = decodeStyle(encoded)
+      if (style) cells[key] = { raw: "", style }
     })
     const colWidthsMap = sm.get("colWidths") as Y.Map<number> | undefined
     const rowHeightsMap = sm.get("rowHeights") as Y.Map<number> | undefined
@@ -188,6 +232,7 @@ function sheetToYMap(sheet: SpreadsheetSheet): Y.Map<unknown> {
   sm.set("colCount", sheet.colCount)
   const cells = new Y.Map<unknown>()
   const formats = new Y.Map<string>()
+  const styles = new Y.Map<string>()
   for (const [k, v] of Object.entries(sheet.cells)) {
     if (v.raw !== "") {
       const t = new Y.Text()
@@ -195,9 +240,12 @@ function sheetToYMap(sheet: SpreadsheetSheet): Y.Map<unknown> {
       cells.set(k, t)
     }
     if (v.format) formats.set(k, v.format)
+    const encoded = encodeStyle(v.style)
+    if (encoded) styles.set(k, encoded)
   }
   sm.set("cells", cells)
   sm.set("formats", formats)
+  sm.set("styles", styles)
   if (sheet.colWidths) {
     const cw = new Y.Map<number>()
     for (const [k, v] of Object.entries(sheet.colWidths)) cw.set(k, v)
@@ -211,13 +259,37 @@ function sheetToYMap(sheet: SpreadsheetSheet): Y.Map<unknown> {
   return sm
 }
 
+/**
+ * Replace full sheet content (structure ops). Single undo step.
+ * Keeps sheet id / name; rewrites cells, formats, styles, sizes, counts.
+ */
+export function replaceSheetContentInYDoc(
+  ydoc: Y.Doc,
+  sheetId: string,
+  sheet: SpreadsheetSheet,
+  origin: unknown = SS_ORIGIN_LOCAL
+): void {
+  const root = rootMap(ydoc)
+  if (!root.get(`sheet:${sheetId}`)) return
+  ydoc.transact(() => {
+    root.set(
+      `sheet:${sheetId}`,
+      sheetToYMap({ ...sheet, id: sheetId, name: sheet.name })
+    )
+  }, origin)
+}
+
 export function setCellInYDoc(
   ydoc: Y.Doc,
   sheetId: string,
   row: number,
   col: number,
   raw: string,
-  opts?: { format?: NumberFormatId | null; origin?: unknown }
+  opts?: {
+    format?: NumberFormatId | null
+    style?: CellStyle | null
+    origin?: unknown
+  }
 ): void {
   const sm = sheetMap(ydoc, sheetId)
   if (!sm) return
@@ -226,9 +298,16 @@ export function setCellInYDoc(
   ydoc.transact(() => {
     const cells = cellsMap(sm)
     const formats = formatsMap(sm)
+    const styles = stylesMap(sm)
     writeCellRaw(cells, key, raw)
     if (opts?.format === null) formats.delete(key)
     else if (opts?.format !== undefined) formats.set(key, opts.format)
+    if (opts?.style === null) styles.delete(key)
+    else if (opts?.style !== undefined) {
+      const enc = encodeStyle(opts.style)
+      if (enc) styles.set(key, enc)
+      else styles.delete(key)
+    }
     // grow bounds only when needed (avoids noisy undo of dimensions alone)
     const rr = Number(sm.get("rowCount") ?? 1)
     const cc = Number(sm.get("colCount") ?? 1)
@@ -245,6 +324,7 @@ export function setCellsInYDoc(
     col: number
     raw: string
     format?: NumberFormatId | null
+    style?: CellStyle | null
   }[],
   origin: unknown = SS_ORIGIN_LOCAL
 ): void {
@@ -253,6 +333,7 @@ export function setCellsInYDoc(
   ydoc.transact(() => {
     const cells = cellsMap(sm)
     const formats = formatsMap(sm)
+    const styles = stylesMap(sm)
     let maxR = Number(sm.get("rowCount") ?? 1)
     let maxC = Number(sm.get("colCount") ?? 1)
     let grew = false
@@ -261,6 +342,12 @@ export function setCellsInYDoc(
       writeCellRaw(cells, key, w.raw)
       if (w.format === null) formats.delete(key)
       else if (w.format !== undefined) formats.set(key, w.format)
+      if (w.style === null) styles.delete(key)
+      else if (w.style !== undefined) {
+        const enc = encodeStyle(w.style)
+        if (enc) styles.set(key, enc)
+        else styles.delete(key)
+      }
       if (w.row + 1 > maxR) {
         maxR = w.row + 1
         grew = true
@@ -274,6 +361,33 @@ export function setCellsInYDoc(
       sm.set("rowCount", maxR)
       sm.set("colCount", maxC)
     }
+  }, origin)
+}
+
+/** Patch style on one cell without changing raw (merge via caller). */
+export function setCellStyleInYDoc(
+  ydoc: Y.Doc,
+  sheetId: string,
+  row: number,
+  col: number,
+  style: CellStyle | null,
+  origin: unknown = SS_ORIGIN_LOCAL
+): void {
+  const sm = sheetMap(ydoc, sheetId)
+  if (!sm) return
+  const key = cellKey(row, col)
+  ydoc.transact(() => {
+    const styles = stylesMap(sm)
+    if (style === null) styles.delete(key)
+    else {
+      const enc = encodeStyle(style)
+      if (enc) styles.set(key, enc)
+      else styles.delete(key)
+    }
+    const rr = Number(sm.get("rowCount") ?? 1)
+    const cc = Number(sm.get("colCount") ?? 1)
+    if (row + 1 > rr) sm.set("rowCount", row + 1)
+    if (col + 1 > cc) sm.set("colCount", col + 1)
   }, origin)
 }
 

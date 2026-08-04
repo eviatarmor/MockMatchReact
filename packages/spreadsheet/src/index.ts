@@ -52,6 +52,7 @@ export {
   getActiveSheet,
   getCellRaw,
   setCellRaw,
+  setCellStyle,
   setColWidth,
   setRowHeight,
   ensureSheetDimensions,
@@ -59,6 +60,13 @@ export {
   cloneDocument,
   newSheetId,
 } from "./document"
+export {
+  insertRows,
+  deleteRows,
+  insertCols,
+  deleteCols,
+} from "./structure"
+export { mergeCellStyle, toggleStyleFlag } from "./style"
 export {
   getColWidth,
   getRowHeight,
@@ -105,12 +113,20 @@ export type {
   DisplayCell,
   SpreadsheetShellLabels,
   NumberFormatId,
+  CellStyle,
+  CellAlign,
 } from "./types"
 export { formatNumberValue } from "./format/number-format"
 export {
   adjustFormulaRefs,
   copyCellRawWithOffset,
 } from "./formula/adjust-refs"
+export {
+  adjustFormulaRefsForRowInsert,
+  adjustFormulaRefsForRowDelete,
+  adjustFormulaRefsForColInsert,
+  adjustFormulaRefsForColDelete,
+} from "./formula/structural-refs"
 export {
   DEFAULT_ROW_COUNT,
   DEFAULT_COL_COUNT,
@@ -147,6 +163,7 @@ export {
   runPluginPointerDown,
   runPluginPointerMove,
   runPluginPointerUp,
+  runPluginContextMenu,
   sortPlugins,
 } from "./plugin-system"
 
@@ -161,7 +178,9 @@ export {
   createCellEditPlugin,
   createResizePlugin,
   createFormulaBarPlugin,
+  createToolbarPlugin,
   createSheetTabsPlugin,
   createFormatPlugin,
   createClipboardPlugin,
+  createContextMenuPlugin,
 } from "./plugins"
