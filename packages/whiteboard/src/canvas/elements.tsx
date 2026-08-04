@@ -1,4 +1,5 @@
 import {
+  memo,
   useEffect,
   useRef,
   type PointerEvent as ReactPointerEvent,
@@ -7,7 +8,6 @@ import {
 } from "react"
 import { RichTextField, type RichTextToolbarLabels } from "@mockmatch/document-editor"
 import type {
-  ConnectorAnchor,
   ConnectorElement,
   PathElement,
   ShapeElement,
@@ -17,50 +17,17 @@ import type {
   WhiteboardDocument,
   WhiteboardElement,
 } from "../types"
+import type { ElementViewProps } from "./element-types"
+
+export type { ElementViewProps } from "./element-types"
 import { resolveConnectorPoint } from "../document"
 import {
   elementPorts,
   elbowPolyline,
   resizeHandlePoints,
-  type ResizeHandle,
 } from "../lib/flowchart"
 import { isBlankHtml } from "../lib/html"
 import { cn } from "@mockmatch/ui/utils"
-
-export type ElementViewProps = {
-  readonly el: WhiteboardElement
-  readonly doc: WhiteboardDocument
-  readonly selected: boolean
-  readonly canEdit: boolean
-  readonly onSelect: (id: string) => void
-  readonly onTextChange?: (id: string, text: string) => void
-  readonly onPointerDownElement?: (
-    id: string,
-    e: ReactPointerEvent
-  ) => void
-  /** Show N/S/E/W ports (connector tool or selected architecture nodes). */
-  readonly showPorts?: boolean
-  /**
-   * When true (pen / eraser / lasso), skip element hit-targets so strokes
-   * reach the board surface. Ports stay hidden via showPorts.
-   */
-  readonly passThrough?: boolean
-  /** Shape currently in label-edit mode (double-click). */
-  readonly editingLabelId?: string | null
-  readonly onStartLabelEdit?: (id: string) => void
-  readonly onEndLabelEdit?: () => void
-  readonly shapeLabelLabels?: ShapeLabelEditorLabels
-  readonly onPortPointerDown?: (
-    elementId: string,
-    anchor: ConnectorAnchor,
-    e: ReactPointerEvent
-  ) => void
-  readonly onResizePointerDown?: (
-    elementId: string,
-    handle: ResizeHandle,
-    e: ReactPointerEvent
-  ) => void
-}
 
 function toRichLabels(labels: ShapeLabelEditorLabels): RichTextToolbarLabels {
   return {
@@ -755,7 +722,8 @@ export function ConnectorView({
   )
 }
 
-export function ElementView(props: ElementViewProps) {
+/** Built-in renderers (also registered by the elements plugin). */
+export function renderDefaultElement(props: ElementViewProps): ReactNode {
   const { el } = props
   if (el.type === "sticky") {
     return (
@@ -831,3 +799,38 @@ export function ElementView(props: ElementViewProps) {
     />
   )
 }
+
+type ElementViewFullProps = ElementViewProps & {
+  readonly renderers?: Map<
+    WhiteboardElement["type"],
+    (p: ElementViewProps) => ReactNode
+  >
+}
+
+function ElementViewInner(props: ElementViewFullProps) {
+  const custom = props.renderers?.get(props.el.type)
+  if (custom) return <>{custom(props)}</>
+  return <>{renderDefaultElement(props)}</>
+}
+
+/** Skip re-render when element ref + chrome flags unchanged (immutable updates). */
+export const ElementView = memo(ElementViewInner, (prev, next) => {
+  return (
+    prev.el === next.el &&
+    prev.doc === next.doc &&
+    prev.selected === next.selected &&
+    prev.canEdit === next.canEdit &&
+    prev.passThrough === next.passThrough &&
+    prev.showPorts === next.showPorts &&
+    prev.editingLabelId === next.editingLabelId &&
+    prev.renderers === next.renderers &&
+    prev.shapeLabelLabels === next.shapeLabelLabels &&
+    prev.onSelect === next.onSelect &&
+    prev.onTextChange === next.onTextChange &&
+    prev.onPointerDownElement === next.onPointerDownElement &&
+    prev.onPortPointerDown === next.onPortPointerDown &&
+    prev.onResizePointerDown === next.onResizePointerDown &&
+    prev.onStartLabelEdit === next.onStartLabelEdit &&
+    prev.onEndLabelEdit === next.onEndLabelEdit
+  )
+})

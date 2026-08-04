@@ -33,11 +33,21 @@ export function useWhiteboardViewport() {
     y: 0,
   })
   const gridLayerRef = useRef<HTMLElement | null>(null)
+  const transformListenersRef = useRef(new Set<() => void>())
+  const notifyRafRef = useRef(0)
   const [scale, setScale] = useState<number>(WHITEBOARD_ZOOM.default)
 
   const bindGridLayer = useCallback((el: HTMLElement | null) => {
     gridLayerRef.current = el
     if (el) applyGridStyles(el, transformRef.current)
+  }, [])
+
+  /** Subscribe to pan/zoom without forcing React re-renders of the board. */
+  const subscribeTransform = useCallback((listener: () => void) => {
+    transformListenersRef.current.add(listener)
+    return () => {
+      transformListenersRef.current.delete(listener)
+    }
   }, [])
 
   const onTransform = useCallback(
@@ -56,6 +66,12 @@ export function useWhiteboardViewport() {
       setScale((prev) =>
         Math.abs(prev - next.scale) < 1e-6 ? prev : next.scale
       )
+      // rAF-coalesce listener fan-out (minimap view-rect, etc.)
+      if (notifyRafRef.current) return
+      notifyRafRef.current = requestAnimationFrame(() => {
+        notifyRafRef.current = 0
+        for (const fn of transformListenersRef.current) fn()
+      })
     },
     []
   )
@@ -138,6 +154,7 @@ export function useWhiteboardViewport() {
     zoomOut,
     resetView,
     centerOnBoardPoint,
+    subscribeTransform,
     canZoomIn: scale < WHITEBOARD_ZOOM.max - 0.001,
     canZoomOut: scale > WHITEBOARD_ZOOM.min + 0.001,
     onTransform,

@@ -142,3 +142,65 @@ export {
   applyResize,
   type ResizeHandle,
 } from "./lib/flowchart"
+
+// --- Plugin runtime ---
+export type {
+  BoardPointer,
+  ElementTypeContribution,
+  InteractionHost,
+  PluginDoubleClickEvent,
+  PluginRailContribution,
+  PluginSelectDoubleActivateEvent,
+  ToolDefinition,
+  ToolGesture,
+  ToolPrimaryButton,
+  ToolRailApi,
+  ToolSecondaryPanel,
+  ViewportAccess,
+  WhiteboardPlugin,
+  WhiteboardPluginContext,
+  WhiteboardToolPlugin,
+} from "./plugin-system"
+
+export {
+  buildToolRegistry,
+  collectElements,
+  collectTools,
+  pointerFromEvent,
+  runPluginDoubleClick,
+  runPluginKeyDown,
+  runPluginSelectDoubleActivate,
+  sortPlugins,
+  sortRailPlugins,
+  sortToolPlugins,
+} from "./plugin-system"
+
+// --- Plugins (single tree under src/plugins/) ---
+export {
+  createClipboardPlugin,
+  createConnectorPlugin,
+  createConnectorToolPlugin,
+  createDefaultBoardPlugins,
+  createDefaultPlugins,
+  createDefaultToolPlugins,
+  createDefaultWhiteboardPlugins,
+  createDrawPlugin,
+  createDrawToolPlugin,
+  createElementsPlugin,
+  createMinimapPlugin,
+  createPanPlugin,
+  createPanToolPlugin,
+  createSelectPlugin,
+  createSelectToolPlugin,
+  createShapeLabelPlugin,
+  createShapePlugin,
+  createShapeToolPlugin,
+  createStickyPlugin,
+  createStickyToolPlugin,
+  createTextEditPlugin,
+  createTextPlugin,
+  createTextToolPlugin,
+  clipboardPlugin,
+  shapeLabelPlugin,
+  textEditPlugin,
+} from "./plugins"

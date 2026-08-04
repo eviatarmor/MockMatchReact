@@ -1,36 +1,37 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
-import {
-  createConnector,
-  createPath,
-  createShape,
-  createSticky,
-  createText,
-  hitTest,
-  isBoardEmpty,
-  lassoSelectIds,
-  marqueeSelectIds,
-  listElementsSorted,
-  maxZ,
-  newElementId,
-  preparePaste,
-  sliceDocument,
-} from "../document"
-import {
-  eraseWholeStrokesAt,
-  precisionEraseAt,
-} from "../lib/erase"
-import { classifySmartStroke } from "../lib/geometry"
+import { hitTest, listElementsSorted } from "../document"
 import {
   applyResize,
   closestPort,
   elementPorts,
-  snapToGrid,
   type ResizeHandle,
 } from "../lib/flowchart"
+import {
+  buildToolRegistry,
+  collectElements,
+  collectTools,
+  pointerFromEvent,
+  runPluginDoubleClick,
+  runPluginKeyDown,
+  runPluginSelectDoubleActivate,
+  sortPlugins,
+  type InteractionHost,
+  type ToolGesture,
+  type ViewportAccess,
+  type WhiteboardPlugin,
+  type WhiteboardPluginContext,
+} from "../plugin-system"
+import { createDefaultPlugins } from "../plugins"
 import { WHITEBOARD_ZOOM, type WhiteboardViewport } from "../viewport"
 import type {
-  ConnectorAnchor,
   DrawStrokeStyle,
   ShapeKind,
   ShapeLabelEditorLabels,
@@ -43,8 +44,6 @@ import { ElementView } from "./elements"
 
 const GRID_DOT_FALLBACK = 24
 const BOARD_SIZE = 3000
-const SHAPE_MIN_SIZE = 24
-const SHAPE_CLICK_DEFAULT = { w: 140, h: 80 } as const
 
 export type WhiteboardCanvasProps = {
   readonly document: WhiteboardDocument
@@ -59,72 +58,24 @@ export type WhiteboardCanvasProps = {
   readonly highlighterStyle?: DrawStrokeStyle
   readonly smartStyle?: DrawStrokeStyle
   readonly stickyColor?: string
-  /** Stroke color for new shapes (DRAW_COLOR_PRESETS). */
   readonly shapeColor?: string
-  /** Whole-stroke eraser radius (board px). */
   readonly eraserRadius?: number
-  /** Precision eraser radius (board px). */
   readonly precisionEraserRadius?: number
-  /** Labels for in-shape rich text (bold / italic / …). */
   readonly shapeLabelLabels?: ShapeLabelEditorLabels
+  /**
+   * Unified plugins (tools, rail, clipboard, elements, minimap, …).
+   * Default: createDefaultPlugins(). Pass [] for bare core.
+   * Prefer the same list on WhiteboardToolRail.
+   */
+  readonly plugins?: readonly WhiteboardPlugin[]
+  /** @deprecated Use `plugins` only. */
+  readonly toolPlugins?: readonly WhiteboardPlugin[]
 }
 
-type DragState =
-  | {
-      kind: "move"
-      ids: string[]
-      lastX: number
-      lastY: number
-      accDx: number
-      accDy: number
-    }
-  | {
-      kind: "stroke"
-      mode: "pen" | "highlighter" | "smart"
-      points: { x: number; y: number }[]
-    }
-  | {
-      kind: "eraser"
-      precision: boolean
-    }
-  | {
-      kind: "lasso"
-      points: { x: number; y: number }[]
-    }
-  | {
-      kind: "marquee"
-      originX: number
-      originY: number
-      x: number
-      y: number
-      w: number
-      h: number
-    }
-  | {
-      kind: "connector"
-      fromId: string | null
-      fromAnchor: ConnectorAnchor | null
-      fromX: number
-      fromY: number
-    }
-  | {
-      kind: "resize"
-      id: string
-      handle: ResizeHandle
-      start: { x: number; y: number; w: number; h: number }
-    }
-  | {
-      kind: "createShape"
-      shape: ShapeKind
-      originX: number
-      originY: number
-      x: number
-      y: number
-      w: number
-      h: number
-    }
-  | null
-
+/**
+ * Thin interaction host.
+ * Behavior comes only from `plugins` (tools, elements, features, chrome).
+ */
 export function WhiteboardCanvas({
   document: doc,
   tool,
@@ -142,75 +93,117 @@ export function WhiteboardCanvas({
   eraserRadius = 14,
   precisionEraserRadius = 6,
   shapeLabelLabels,
+  plugins: pluginsProp,
+  toolPlugins,
 }: WhiteboardCanvasProps) {
   const { ref, scale, onTransform, bindGridLayer, resetView } = viewport
   const surfaceRef = useRef<HTMLDivElement>(null)
-  const dragRef = useRef<DragState>(null)
   const docRef = useRef(doc)
   docRef.current = doc
 
-  const [draftPath, setDraftPath] = useState<
-    { x: number; y: number; color?: string; width?: number; opacity?: number }[] | null
-  >(null)
-  const [draftMeta, setDraftMeta] = useState<{
-    color: string
-    width: number
-    opacity: number
-    highlighter?: boolean
-  } | null>(null)
-  const [lassoPoints, setLassoPoints] = useState<
-    { x: number; y: number }[] | null
-  >(null)
-  const [marqueeRect, setMarqueeRect] = useState<{
-    x: number
-    y: number
-    w: number
-    h: number
-  } | null>(null)
-  const [draftLine, setDraftLine] = useState<{
-    x1: number
-    y1: number
-    x2: number
-    y2: number
-  } | null>(null)
-  const [draftShape, setDraftShape] = useState<{
-    shape: ShapeKind
-    x: number
-    y: number
-    w: number
-    h: number
-  } | null>(null)
   const [editingLabelId, setEditingLabelId] = useState<string | null>(null)
+  const [overlays, setOverlays] = useState<Record<string, ReactNode>>({})
   const didInitCenter = useRef(false)
+  const surfaceRectCacheRef = useRef<DOMRect | null>(null)
+  const overlayPendingRef = useRef<Record<string, ReactNode | null>>({})
+  const overlayRafRef = useRef(0)
 
-  /** In-board clipboard (Ctrl/Cmd+C/X/V). Survives focus quirks better than host-only wiring. */
-  const boardClipboardRef = useRef<WhiteboardDocument | null>(null)
-  const pasteCountRef = useRef(0)
   const selectedIdsRef = useRef(selectedIds)
   selectedIdsRef.current = selectedIds
   const editingLabelIdRef = useRef(editingLabelId)
   editingLabelIdRef.current = editingLabelId
+  const toolRef = useRef(tool)
+  toolRef.current = tool
   const canEditRef = useRef(canEdit)
   canEditRef.current = canEdit
   const onCommandRef = useRef(onCommand)
   onCommandRef.current = onCommand
   const onSelectedIdsChangeRef = useRef(onSelectedIdsChange)
   onSelectedIdsChangeRef.current = onSelectedIdsChange
+  const viewportRef = useRef(viewport)
+  viewportRef.current = viewport
 
-  const clearSelection = useCallback(() => {
-    onSelectedIdsChange([])
-    setEditingLabelId(null)
-  }, [onSelectedIdsChange])
+  // Options bag (plugins read via host.getOption — core stays agnostic)
+  const optionsRef = useRef({
+    shapeKind,
+    penStyle,
+    highlighterStyle,
+    smartStyle,
+    stickyColor,
+    shapeColor,
+    eraserRadius,
+    precisionEraserRadius,
+  })
+  optionsRef.current = {
+    shapeKind,
+    penStyle,
+    highlighterStyle,
+    smartStyle,
+    stickyColor,
+    shapeColor,
+    eraserRadius,
+    precisionEraserRadius,
+  }
 
-  /**
-   * True only when the user is actively typing in a text field and board
-   * clipboard should yield to native text copy/paste.
-   * Sticky textareas keep focus after shape select — do not treat that as typing
-   * when other elements are selected.
-   */
+  const defaultPluginsRef = useRef<WhiteboardPlugin[] | null>(null)
+  if (!defaultPluginsRef.current) {
+    defaultPluginsRef.current = createDefaultPlugins()
+  }
+
+  const plugins = pluginsProp ?? toolPlugins ?? defaultPluginsRef.current
+  const sortedPlugins = useMemo(() => sortPlugins(plugins), [plugins])
+  const toolRegistry = useMemo(
+    () => buildToolRegistry(collectTools(plugins)),
+    [plugins]
+  )
+  const elementRenderers = useMemo(
+    () => collectElements(plugins),
+    [plugins]
+  )
+
+  const activeToolDef = toolRegistry.get(tool)
+  const passThroughElements = Boolean(activeToolDef?.passThroughElements)
+  const cursor = activeToolDef?.cursor ?? "default"
+
+  // Surface rect moves with pan/zoom — invalidate cache cheaply via viewport bus
+  useEffect(() => {
+    surfaceRectCacheRef.current = null
+    return viewport.subscribeTransform(() => {
+      surfaceRectCacheRef.current = null
+    })
+  }, [viewport, scale])
+
+  useEffect(() => {
+    const surface = surfaceRef.current
+    if (!surface || typeof ResizeObserver === "undefined") return
+    const ro = new ResizeObserver(() => {
+      surfaceRectCacheRef.current = null
+    })
+    ro.observe(surface)
+    return () => ro.disconnect()
+  }, [])
+
+  const clientToBoard = useCallback(
+    (clientX: number, clientY: number) => {
+      const surface = surfaceRef.current
+      if (!surface) return { x: 0, y: 0 }
+      let rect = surfaceRectCacheRef.current
+      if (!rect) {
+        rect = surface.getBoundingClientRect()
+        surfaceRectCacheRef.current = rect
+      }
+      return {
+        x: (clientX - rect.left) / scale,
+        y: (clientY - rect.top) / scale,
+      }
+    },
+    [scale]
+  )
+  const clientToBoardRef = useRef(clientToBoard)
+  clientToBoardRef.current = clientToBoard
+
   const isNativeTextTarget = useCallback((target: EventTarget | null) => {
     if (!(target instanceof HTMLElement)) return false
-
     if (editingLabelIdRef.current) {
       if (
         target.isContentEditable ||
@@ -220,163 +213,155 @@ export function WhiteboardCanvas({
         return true
       }
     }
-
     const tag = target.tagName
     if (tag === "TEXTAREA" || tag === "INPUT") {
-      const elRoot = target.closest("[data-el-id]")
-      const elId = elRoot?.getAttribute("data-el-id")
+      const elId = target.closest("[data-el-id]")?.getAttribute("data-el-id")
       const ids = selectedIdsRef.current
-      // Typing in this sticky/text alone → native. Otherwise board clipboard.
       if (ids.length === 0) return true
       if (ids.length === 1 && elId && ids[0] === elId) return true
       return false
     }
-
     if (target.isContentEditable) return true
     return false
   }, [])
+  const isNativeTextTargetRef = useRef(isNativeTextTarget)
+  isNativeTextTargetRef.current = isNativeTextTarget
 
-  // Ctrl/Cmd+C copy, +X cut, +V paste — capture phase so sticky focus cannot eat it
-  useEffect(() => {
-    const copySelection = (): boolean => {
-      if (!canEditRef.current) return false
-      const ids = selectedIdsRef.current
-      if (ids.length === 0) return false
-      const slice = sliceDocument(docRef.current, ids)
-      if (isBoardEmpty(slice)) return false
-      boardClipboardRef.current = slice
-      pasteCountRef.current = 0
-      return true
-    }
-
-    const pasteSelection = (): boolean => {
-      if (!canEditRef.current) return false
-      const clip = boardClipboardRef.current
-      if (!clip || isBoardEmpty(clip)) return false
-      pasteCountRef.current += 1
-      const { elements, ids } = preparePaste(clip, {
-        pasteIndex: pasteCountRef.current,
-        zBase: maxZ(docRef.current),
-      })
-      if (elements.length === 0) return false
-      onCommandRef.current({ type: "upsertMany", elements })
-      onSelectedIdsChangeRef.current(ids)
-      setEditingLabelId(null)
-      return true
-    }
-
-    const cutSelection = (): boolean => {
-      if (!canEditRef.current) return false
-      const ids = [...selectedIdsRef.current]
-      if (!copySelection()) return false
-      onCommandRef.current({ type: "remove", ids })
-      onSelectedIdsChangeRef.current([])
-      setEditingLabelId(null)
-      return true
-    }
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return
-      if (isNativeTextTarget(e.target)) return
-
-      const code = e.code
-      const key = e.key.toLowerCase()
-      const isC = code === "KeyC" || key === "c"
-      const isX = code === "KeyX" || key === "x"
-      const isV = code === "KeyV" || key === "v"
-      if (!isC && !isX && !isV) return
-
-      if (isC) {
-        if (selectedIdsRef.current.length === 0) return
-        e.preventDefault()
-        e.stopPropagation()
-        copySelection()
-        return
-      }
-      if (isX) {
-        if (selectedIdsRef.current.length === 0) return
-        e.preventDefault()
-        e.stopPropagation()
-        cutSelection()
-        return
-      }
-      if (isV) {
-        if (!boardClipboardRef.current || isBoardEmpty(boardClipboardRef.current)) {
-          return
+  /** Coalesce overlay React updates to 1/frame during stroke/marquee. */
+  const setOverlay = useCallback((key: string, node: ReactNode | null) => {
+    overlayPendingRef.current[key] = node
+    if (overlayRafRef.current) return
+    overlayRafRef.current = requestAnimationFrame(() => {
+      overlayRafRef.current = 0
+      const pending = overlayPendingRef.current
+      overlayPendingRef.current = {}
+      setOverlays((prev) => {
+        let next = prev
+        let changed = false
+        for (const [k, v] of Object.entries(pending)) {
+          if (v == null) {
+            if (k in next) {
+              if (!changed) {
+                next = { ...next }
+                changed = true
+              }
+              delete next[k]
+            }
+          } else if (next[k] !== v) {
+            if (!changed) {
+              next = { ...next }
+              changed = true
+            }
+            next[k] = v
+          }
         }
-        e.preventDefault()
-        e.stopPropagation()
-        pasteSelection()
-      }
+        return changed ? next : prev
+      })
+    })
+  }, [])
+
+  const clearOverlays = useCallback(() => {
+    overlayPendingRef.current = {}
+    if (overlayRafRef.current) {
+      cancelAnimationFrame(overlayRafRef.current)
+      overlayRafRef.current = 0
     }
+    setOverlays({})
+  }, [])
 
-    window.addEventListener("keydown", onKeyDown, true)
-    return () => window.removeEventListener("keydown", onKeyDown, true)
-  }, [isNativeTextTarget])
+  const getViewportAccess = useCallback((): ViewportAccess | null => {
+    const vp = viewportRef.current
+    const api = vp.ref.current
+    if (!api) return null
+    const t = vp.transformRef.current
+    return {
+      scale: t.scale,
+      positionX: t.x,
+      positionY: t.y,
+      boardSize: BOARD_SIZE,
+      centerOnBoardPoint: vp.centerOnBoardPoint,
+      setTransform: (x, y, s) => {
+        api.setTransform(x, y, s, 0)
+      },
+      getWrapperSize: () => {
+        const w = api.instance.wrapperComponent
+        return {
+          w: w?.clientWidth ?? 0,
+          h: w?.clientHeight ?? 0,
+        }
+      },
+      subscribeTransform: vp.subscribeTransform,
+    }
+  }, [])
 
-  const clientToBoard = useCallback(
-    (clientX: number, clientY: number) => {
-      const surface = surfaceRef.current
-      if (!surface) return { x: 0, y: 0 }
-      const rect = surface.getBoundingClientRect()
-      return {
-        x: (clientX - rect.left) / scale,
-        y: (clientY - rect.top) / scale,
-      }
-    },
-    [scale]
+  // Plugin context — rebuilt via refs so handlers stay current
+  const featureCtx: WhiteboardPluginContext = useMemo(
+    () => ({
+      getDocument: () => docRef.current,
+      getTool: () => toolRef.current,
+      getSelectedIds: () => selectedIdsRef.current,
+      getEditingId: () => editingLabelIdRef.current,
+      canEdit: () => canEditRef.current,
+      dispatch: (c) => onCommandRef.current(c),
+      setSelectedIds: (ids) => onSelectedIdsChangeRef.current(ids),
+      setEditingId: (id) => setEditingLabelId(id),
+      clientToBoard: (cx, cy) => clientToBoardRef.current(cx, cy),
+      hitTestAt: (x, y) => hitTest(docRef.current, x, y),
+      isNativeTextTarget: (t) => isNativeTextTargetRef.current(t),
+      getViewport: () => getViewportAccess(),
+    }),
+    [getViewportAccess]
   )
 
-  /**
-   * Select tool double-click:
-   * - shape (closed) → center label edit
-   * - text → inline text edit
-   * - empty board → place new text
-   * Uses hitTest (not DOM target) so SVG / pointer-events-none children still count.
-   */
-  const onBoardDoubleClick = (e: React.MouseEvent) => {
-    if (!canEdit || tool !== "select") return
-    e.preventDefault()
-    e.stopPropagation()
-    const { x, y } = clientToBoard(e.clientX, e.clientY)
-    const hitId = hitTest(docRef.current, x, y)
-    if (hitId) {
-      const hit = docRef.current.elements[hitId]
-      if (!hit) return
-      if (hit.type === "shape") {
-        const isLineLike =
-          hit.shape === "line" ||
-          hit.shape === "arrow" ||
-          hit.shape === "elbowArrow" ||
-          hit.shape === "divider"
-        if (isLineLike) return
-        onSelectedIdsChange([hitId])
-        setEditingLabelId(hitId)
-        return
-      }
-      if (hit.type === "text") {
-        onSelectedIdsChange([hitId])
-        setEditingLabelId(hitId)
-        return
-      }
-      // sticky has always-on textarea; path/connector have no label editor
-      if (hit.type === "sticky") {
-        onSelectedIdsChange([hitId])
-        return
-      }
-      return
+  const sortedPluginsRef = useRef(sortedPlugins)
+  sortedPluginsRef.current = sortedPlugins
+  const featureCtxRef = useRef(featureCtx)
+  featureCtxRef.current = featureCtx
+
+  const host: InteractionHost = useMemo(
+    () => ({
+      getDocument: () => docRef.current,
+      getTool: () => toolRef.current,
+      getSelectedIds: () => selectedIdsRef.current,
+      getEditingId: () => editingLabelIdRef.current,
+      canEdit: () => canEditRef.current,
+      dispatch: (c) => onCommandRef.current(c),
+      setSelectedIds: (ids) => onSelectedIdsChangeRef.current(ids),
+      setEditingId: (id) => setEditingLabelId(id),
+      clientToBoard: (cx, cy) => clientToBoardRef.current(cx, cy),
+      hitTestAt: (x, y) => hitTest(docRef.current, x, y),
+      getOption: <T,>(key: string, fallback: T): T => {
+        const bag = optionsRef.current as Record<string, unknown>
+        return (key in bag ? bag[key] : fallback) as T
+      },
+      setOverlay,
+      clearOverlays,
+      runSelectDoubleActivate: (elementId, boardX, boardY) =>
+        runPluginSelectDoubleActivate(
+          sortedPluginsRef.current,
+          { elementId, boardX, boardY },
+          featureCtxRef.current
+        ),
+      isNativeTextTarget: (t) => isNativeTextTargetRef.current(t),
+    }),
+    [setOverlay, clearOverlays]
+  )
+
+  // Plugin setup + keydown
+  useEffect(() => {
+    const disposers: Array<void | (() => void)> = []
+    for (const plugin of sortedPlugins) {
+      disposers.push(plugin.setup?.(featureCtx))
     }
-    // Empty board → place text and edit
-    const el = createText({
-      x,
-      y,
-      text: "",
-      z: maxZ(docRef.current) + 1,
-    })
-    onCommand({ type: "upsert", element: el })
-    onSelectedIdsChange([el.id])
-    setEditingLabelId(el.id)
-  }
+    const onKeyDown = (e: KeyboardEvent) => {
+      runPluginKeyDown(sortedPlugins, e, featureCtx)
+    }
+    window.addEventListener("keydown", onKeyDown, true)
+    return () => {
+      window.removeEventListener("keydown", onKeyDown, true)
+      for (const d of disposers) d?.()
+    }
+  }, [sortedPlugins, featureCtx])
 
   useEffect(() => {
     let raf = 0
@@ -392,11 +377,13 @@ export function WhiteboardCanvas({
     return () => cancelAnimationFrame(raf)
   }, [ref, bindGridLayer])
 
-  /**
-   * Capture on the board surface + window listeners so move/up stay wired even when
-   * the gesture started on a port/shape (child capture used to swallow events).
-   */
-  const captureBoard = (e: React.PointerEvent) => {
+  // --- Gesture session (owned by host, data owned by active tool) ---
+  const gestureRef = useRef<{
+    toolId: string
+    data: ToolGesture
+  } | null>(null)
+
+  const captureBoard = (e: { pointerId: number }) => {
     surfaceRef.current?.setPointerCapture?.(e.pointerId)
     const pointerId = e.pointerId
     const onWinMove = (ev: PointerEvent) => {
@@ -415,890 +402,338 @@ export function WhiteboardCanvas({
     window.addEventListener("pointercancel", onWinUp)
   }
 
-  const startStroke = (
-    mode: "pen" | "highlighter" | "smart",
-    x: number,
-    y: number,
-    e: React.PointerEvent
-  ) => {
-    const style =
-      mode === "highlighter"
-        ? highlighterStyle
-        : mode === "smart"
-          ? smartStyle
-          : penStyle
-    const opacity = mode === "highlighter" ? 0.35 : 1
-    // Draft-only until pointerup → one undo step, no double-draw vs ElementView
-    dragRef.current = {
-      kind: "stroke",
-      mode,
-      points: [{ x, y }],
-    }
-    setDraftPath([{ x, y }])
-    setDraftMeta({
-      color: style.color,
-      width: style.width,
-      opacity,
-      highlighter: mode === "highlighter",
-    })
-    captureBoard(e)
-  }
-
-  /** Stroke / eraser / lasso draw through existing elements (they stopPropagation otherwise). */
-  const passThroughElements =
-    tool === "pen" ||
-    tool === "highlighter" ||
-    tool === "smart" ||
-    tool === "eraser" ||
-    tool === "precisionEraser" ||
-    tool === "lasso"
-
   const onBoardPointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0) return
     if (tool === "pan") return
     if (!canEdit && tool !== "select" && tool !== "lasso") return
     if (e.buttons === 4) return
 
-    const { x, y } = clientToBoard(e.clientX, e.clientY)
+    const def = toolRegistry.get(tool)
+    if (!def?.onPointerDown) return
 
-    if (tool === "select") {
-      const hit = hitTest(docRef.current, x, y)
-      if (hit) {
-        e.stopPropagation()
-        const hitEl = docRef.current.elements[hit]
-        // Double-click → edit label/text (do not start move/marquee)
-        if (e.detail >= 2 && canEdit && hitEl) {
-          if (hitEl.type === "shape") {
-            const isLineLike =
-              hitEl.shape === "line" ||
-              hitEl.shape === "arrow" ||
-              hitEl.shape === "elbowArrow" ||
-              hitEl.shape === "divider"
-            if (!isLineLike) {
-              onSelectedIdsChange([hit])
-              setEditingLabelId(hit)
-              return
-            }
-          } else if (hitEl.type === "text") {
-            onSelectedIdsChange([hit])
-            setEditingLabelId(hit)
-            return
-          }
-        }
-        // Keep multi-select when dragging a member of the set
-        const ids =
-          selectedIds.includes(hit) && selectedIds.length > 1
-            ? [...selectedIds]
-            : [hit]
-        onSelectedIdsChange(ids)
-        if (editingLabelId && !ids.includes(editingLabelId)) {
-          setEditingLabelId(null)
-        }
-        // Blur sticky/text fields so board shortcuts (C/X/V/Del) are not swallowed
-        const ae = document.activeElement
-        if (
-          ae instanceof HTMLElement &&
-          (ae.tagName === "TEXTAREA" ||
-            ae.tagName === "INPUT" ||
-            ae.isContentEditable) &&
-          !ids.includes(ae.closest("[data-el-id]")?.getAttribute("data-el-id") ?? "")
-        ) {
-          ae.blur()
-        }
-        dragRef.current = {
-          kind: "move",
-          ids,
-          lastX: x,
-          lastY: y,
-          accDx: 0,
-          accDy: 0,
-        }
-        captureBoard(e)
-      } else {
-        // Empty board: drag → marquee multi-select; pure click clears on up
-        // (double-click empty creates text in onBoardDoubleClick)
-        if (e.detail >= 2) return
-        setEditingLabelId(null)
-        dragRef.current = {
-          kind: "marquee",
-          originX: x,
-          originY: y,
-          x,
-          y,
-          w: 0,
-          h: 0,
-        }
-        setMarqueeRect({ x, y, w: 0, h: 0 })
-        captureBoard(e)
-      }
-      return
-    }
-
-    if (!canEdit && tool !== "lasso") return
-    e.stopPropagation()
-
-    if (tool === "lasso") {
-      dragRef.current = { kind: "lasso", points: [{ x, y }] }
-      setLassoPoints([{ x, y }])
+    const board = clientToBoard(e.clientX, e.clientY)
+    const pointer = pointerFromEvent(e, board)
+    const gesture = def.onPointerDown(pointer, host)
+    if (gesture) {
+      gestureRef.current = { toolId: def.id, data: gesture }
       captureBoard(e)
-      return
-    }
-
-    if (tool === "eraser" || tool === "precisionEraser") {
-      dragRef.current = {
-        kind: "eraser",
-        precision: tool === "precisionEraser",
-      }
-      applyEraser(x, y, tool === "precisionEraser")
-      captureBoard(e)
-      return
-    }
-
-    if (tool === "pen") {
-      startStroke("pen", x, y, e)
-      return
-    }
-    if (tool === "highlighter") {
-      startStroke("highlighter", x, y, e)
-      return
-    }
-    if (tool === "smart") {
-      startStroke("smart", x, y, e)
-      return
-    }
-
-    if (tool === "sticky") {
-      const el = createSticky({
-        x: x - 80,
-        y: y - 70,
-        color: stickyColor,
-        z: maxZ(docRef.current) + 1,
-      })
-      onCommand({ type: "upsert", element: el })
-      onSelectedIdsChange([el.id])
-      return
-    }
-
-    if (tool === "text") {
-      const el = createText({
-        x,
-        y,
-        text: "",
-        z: maxZ(docRef.current) + 1,
-      })
-      onCommand({ type: "upsert", element: el })
-      onSelectedIdsChange([el.id])
-      setEditingLabelId(el.id)
-      return
-    }
-
-    if (tool === "shape") {
-      // Drag-to-size placeholder (like Figma / draw.io)
-      setEditingLabelId(null)
-      onSelectedIdsChange([])
-      dragRef.current = {
-        kind: "createShape",
-        shape: shapeKind,
-        originX: x,
-        originY: y,
-        x,
-        y,
-        w: 0,
-        h: 0,
-      }
-      setDraftShape({ shape: shapeKind, x, y, w: 0, h: 0 })
-      captureBoard(e)
-      return
-    }
-
-    if (tool === "connector") {
-      const hit = hitTest(docRef.current, x, y)
-      const hitEl = hit ? docRef.current.elements[hit] : null
-      // Prefer real N/S/E/W ports; fall back to nearest side of the box
-      const port = hitEl ? closestPort(hitEl, x, y) : null
-      dragRef.current = {
-        kind: "connector",
-        fromId: hit,
-        fromAnchor: port?.anchor ?? (hit ? "c" : null),
-        fromX: port?.x ?? x,
-        fromY: port?.y ?? y,
-      }
-      setDraftLine({
-        x1: port?.x ?? x,
-        y1: port?.y ?? y,
-        x2: x,
-        y2: y,
-      })
-      captureBoard(e)
-    }
-  }
-
-  const applyEraser = (x: number, y: number, precision: boolean) => {
-    const current = docRef.current
-    if (precision) {
-      const next = precisionEraseAt(
-        current,
-        { x, y },
-        precisionEraserRadius,
-        newElementId
-      )
-      // Skip no-op (same element refs) so history/save are not spammed
-      const curIds = Object.keys(current.elements)
-      const nextIds = Object.keys(next.elements)
-      const unchanged =
-        curIds.length === nextIds.length &&
-        curIds.every((id) => current.elements[id] === next.elements[id])
-      if (!unchanged) {
-        onCommand({ type: "setDocument", document: next })
-      }
-    } else {
-      const { next, removedIds } = eraseWholeStrokesAt(
-        current,
-        { x, y },
-        eraserRadius
-      )
-      if (removedIds.length > 0) {
-        onCommand({ type: "setDocument", document: next })
-      }
     }
   }
 
   const onBoardPointerMove = (e: React.PointerEvent) => {
-    const drag = dragRef.current
-    if (!drag) return
-    const { x, y } = clientToBoard(e.clientX, e.clientY)
+    const session = gestureRef.current
+    if (!session) return
+    const board = clientToBoard(e.clientX, e.clientY)
 
-    if (drag.kind === "move" && canEdit) {
-      const dx = x - drag.lastX
-      const dy = y - drag.lastY
-      if (dx !== 0 || dy !== 0) {
-        // Accumulate and apply grid-snapped deltas for architecture layout
-        const accDx = drag.accDx + dx
-        const accDy = drag.accDy + dy
-        const snapDx = snapToGrid(accDx) - snapToGrid(drag.accDx)
-        const snapDy = snapToGrid(accDy) - snapToGrid(drag.accDy)
-        if (snapDx !== 0 || snapDy !== 0) {
-          onCommand({ type: "move", ids: drag.ids, dx: snapDx, dy: snapDy })
-        }
-        dragRef.current = {
-          ...drag,
-          lastX: x,
-          lastY: y,
-          accDx,
-          accDy,
-        }
+    // Element chrome resize (not a tool module)
+    if (session.toolId === "__resize__" && canEdit) {
+      const g = session.data as {
+        type: "resize"
+        id: string
+        handle: ResizeHandle
+        start: { x: number; y: number; w: number; h: number }
       }
-      return
-    }
-
-    if (drag.kind === "resize" && canEdit) {
-      const next = applyResize(drag.start, drag.handle, x, y)
+      const next = applyResize(g.start, g.handle, board.x, board.y)
       onCommand({
         type: "patch",
-        id: drag.id,
+        id: g.id,
         patch: next as Partial<import("../types").WhiteboardElement>,
       })
       return
     }
 
-    if (drag.kind === "stroke") {
-      const last = drag.points[drag.points.length - 1]
-      if (last && Math.hypot(last.x - x, last.y - y) < 2) return
-      const nextPts = [...drag.points, { x, y }]
-      dragRef.current = { ...drag, points: nextPts }
-      setDraftPath(nextPts)
-      return
-    }
-
-    if (drag.kind === "eraser") {
-      applyEraser(x, y, drag.precision)
-      return
-    }
-
-    if (drag.kind === "lasso") {
-      const nextPts = [...drag.points, { x, y }]
-      dragRef.current = { ...drag, points: nextPts }
-      setLassoPoints(nextPts)
-      return
-    }
-
-    if (drag.kind === "marquee") {
-      const x0 = Math.min(drag.originX, x)
-      const y0 = Math.min(drag.originY, y)
-      const w = Math.abs(x - drag.originX)
-      const h = Math.abs(y - drag.originY)
-      dragRef.current = { ...drag, x: x0, y: y0, w, h }
-      setMarqueeRect({ x: x0, y: y0, w, h })
-      // Live highlight like lasso (commit still on pointerup)
-      if (Math.hypot(w, h) >= 6) {
-        onSelectedIdsChange(
-          marqueeSelectIds(docRef.current, { x: x0, y: y0, w, h })
-        )
-      }
-      return
-    }
-
-    if (drag.kind === "connector") {
-      setDraftLine({
-        x1: drag.fromX,
-        y1: drag.fromY,
-        x2: x,
-        y2: y,
-      })
-      return
-    }
-
-    if (drag.kind === "createShape") {
-      const x0 = Math.min(drag.originX, x)
-      const y0 = Math.min(drag.originY, y)
-      const w = Math.abs(x - drag.originX)
-      const h = Math.abs(y - drag.originY)
-      dragRef.current = { ...drag, x: x0, y: y0, w, h }
-      setDraftShape({ shape: drag.shape, x: x0, y: y0, w, h })
-    }
-  }
-
-  const commitCreateShape = (
-    drag: Extract<DragState, { kind: "createShape" }>
-  ) => {
-    const isLineLike =
-      drag.shape === "line" ||
-      drag.shape === "arrow" ||
-      drag.shape === "elbowArrow" ||
-      drag.shape === "divider"
-    const travel = Math.hypot(drag.w, drag.h)
-    let x = drag.x
-    let y = drag.y
-    let w = drag.w
-    let h = drag.h
-
-    // Click without drag → default size centered on origin
-    if (travel < 6) {
-      if (isLineLike) {
-        w = 160
-        h = drag.shape === "elbowArrow" ? 80 : 24
-      } else if (drag.shape === "blockArrow") {
-        w = 160
-        h = 72
-      } else {
-        w = SHAPE_CLICK_DEFAULT.w
-        h = SHAPE_CLICK_DEFAULT.h
-      }
-      x = drag.originX - w / 2
-      y = drag.originY - h / 2
-    } else {
-      // Enforce minimums after drag
-      if (isLineLike) {
-        w = Math.max(w, 40)
-        h = Math.max(h, drag.shape === "elbowArrow" ? 40 : 16)
-      } else {
-        w = Math.max(w, SHAPE_MIN_SIZE)
-        h = Math.max(h, SHAPE_MIN_SIZE)
-      }
-    }
-
-    const el = createShape({
-      x,
-      y,
-      w,
-      h,
-      shape: drag.shape,
-      fill: isLineLike ? "transparent" : "#ffffff",
-      stroke: shapeColor,
-      z: maxZ(docRef.current) + 1,
-    })
-    onCommand({ type: "upsert", element: el })
-    onSelectedIdsChange([el.id])
+    const def = toolRegistry.get(session.toolId)
+    if (!def?.onPointerMove) return
+    const pointer = pointerFromEvent(e, board)
+    const next = def.onPointerMove(pointer, session.data, host)
+    if (next) session.data = next
   }
 
   const onBoardPointerUp = (e: React.PointerEvent) => {
-    const drag = dragRef.current
-    dragRef.current = null
-    setDraftPath(null)
-    setDraftMeta(null)
-    setLassoPoints(null)
-    setMarqueeRect(null)
-    setDraftLine(null)
-    setDraftShape(null)
+    const session = gestureRef.current
+    gestureRef.current = null
+    if (!session) return
 
-    if (!drag) return
+    if (session.toolId === "__resize__") return
 
-    if (drag.kind === "marquee") {
-      const { x, y } = clientToBoard(e.clientX, e.clientY)
-      const x0 = Math.min(drag.originX, x)
-      const y0 = Math.min(drag.originY, y)
-      const w = Math.abs(x - drag.originX)
-      const h = Math.abs(y - drag.originY)
-      // Pure click (no drag) → clear selection
-      if (Math.hypot(w, h) < 6) {
-        clearSelection()
-        return
-      }
-      const ids = marqueeSelectIds(docRef.current, { x: x0, y: y0, w, h })
-      onSelectedIdsChange(ids)
-      setEditingLabelId(null)
+    const def = toolRegistry.get(session.toolId)
+    if (!def?.onPointerUp) {
+      clearOverlays()
       return
     }
-
-    if (drag.kind === "createShape" && canEdit) {
-      const { x, y } = clientToBoard(e.clientX, e.clientY)
-      const x0 = Math.min(drag.originX, x)
-      const y0 = Math.min(drag.originY, y)
-      const w = Math.abs(x - drag.originX)
-      const h = Math.abs(y - drag.originY)
-      commitCreateShape({
-        ...drag,
-        x: x0,
-        y: y0,
-        w,
-        h,
-      })
-      return
-    }
-
-    if (drag.kind === "stroke" && canEdit) {
-      if (drag.points.length < 2) return
-
-      if (drag.mode === "smart") {
-        const classified = classifySmartStroke(drag.points)
-        const style = smartStyle
-
-        if (classified.kind === "line" && classified.points?.length === 2) {
-          const [a, b] = classified.points
-          const el = createPath({
-            points: [a!, b!],
-            stroke: style.color,
-            strokeWidth: style.width,
-            strokeKind: "smart",
-            z: maxZ(docRef.current) + 1,
-          })
-          onCommand({ type: "upsert", element: el })
-          onSelectedIdsChange([el.id])
-          return
-        }
-        if (classified.kind === "rect" && classified.bounds) {
-          const b = classified.bounds
-          const el = createShape({
-            x: b.x,
-            y: b.y,
-            w: b.w,
-            h: b.h,
-            shape: "rect",
-            stroke: style.color,
-            fill: "transparent",
-            z: maxZ(docRef.current) + 1,
-          })
-          onCommand({ type: "upsert", element: el })
-          onSelectedIdsChange([el.id])
-          return
-        }
-        if (classified.kind === "ellipse" && classified.bounds) {
-          const b = classified.bounds
-          const el = createShape({
-            x: b.x,
-            y: b.y,
-            w: b.w,
-            h: b.h,
-            shape: "ellipse",
-            stroke: style.color,
-            fill: "transparent",
-            z: maxZ(docRef.current) + 1,
-          })
-          onCommand({ type: "upsert", element: el })
-          onSelectedIdsChange([el.id])
-          return
-        }
-        if (classified.kind === "triangle" && classified.bounds) {
-          const b = classified.bounds
-          const el = createShape({
-            x: b.x,
-            y: b.y,
-            w: b.w,
-            h: b.h,
-            shape: "triangle",
-            stroke: style.color,
-            fill: "transparent",
-            z: maxZ(docRef.current) + 1,
-          })
-          onCommand({ type: "upsert", element: el })
-          onSelectedIdsChange([el.id])
-          return
-        }
-        // free: simplified path residue
-        const pts = classified.points ?? drag.points
-        if (pts.length >= 2) {
-          const el = createPath({
-            points: pts,
-            stroke: style.color,
-            strokeWidth: style.width,
-            strokeKind: "smart",
-            z: maxZ(docRef.current) + 1,
-          })
-          onCommand({ type: "upsert", element: el })
-          onSelectedIdsChange([el.id])
-        }
-        return
-      }
-
-      // pen / highlighter — single commit
-      const style =
-        drag.mode === "highlighter" ? highlighterStyle : penStyle
-      const opacity = drag.mode === "highlighter" ? 0.35 : 1
-      const el = createPath({
-        points: drag.points,
-        stroke: style.color,
-        strokeWidth: style.width,
-        strokeKind: drag.mode,
-        opacity,
-        z: maxZ(docRef.current) + 1,
-      })
-      onCommand({ type: "upsert", element: el })
-      onSelectedIdsChange([el.id])
-      return
-    }
-
-    if (drag.kind === "lasso") {
-      const ids = lassoSelectIds(docRef.current, drag.points)
-      onSelectedIdsChange(ids)
-      return
-    }
-
-    if (drag.kind !== "connector" || !canEdit) return
-
-    const { x, y } = clientToBoard(e.clientX, e.clientY)
-    const toHit = hitTest(docRef.current, x, y)
-    // Don't self-link when the release lands on the same node
-    const sameAsFrom = Boolean(drag.fromId && toHit === drag.fromId)
-    const toEl =
-      toHit && !sameAsFrom ? docRef.current.elements[toHit] : null
-    const toPort = toEl ? closestPort(toEl, x, y) : null
-    const from =
-      drag.fromId && docRef.current.elements[drag.fromId]
-        ? {
-            kind: "element" as const,
-            elementId: drag.fromId,
-            anchor: (drag.fromAnchor ?? "c") as ConnectorAnchor,
-          }
-        : { kind: "point" as const, x: drag.fromX, y: drag.fromY }
-    const to =
-      toEl && toHit
-        ? {
-            kind: "element" as const,
-            elementId: toHit,
-            anchor: (toPort?.anchor ?? "c") as ConnectorAnchor,
-          }
-        : { kind: "point" as const, x, y }
-
-    const travel = Math.hypot(x - drag.fromX, y - drag.fromY)
-    if (travel < 8) return
-    if (
-      from.kind === "point" &&
-      to.kind === "point" &&
-      Math.hypot(from.x - to.x, from.y - to.y) < 8
-    ) {
-      return
-    }
-    // Same element both ends with no real attach → skip
-    if (
-      from.kind === "element" &&
-      to.kind === "element" &&
-      from.elementId === to.elementId
-    ) {
-      return
-    }
-
-    const el = createConnector({
-      from,
-      to,
-      routing: "elbow",
-      z: maxZ(docRef.current) + 1,
-    })
-    onCommand({ type: "upsert", element: el })
-    onSelectedIdsChange([el.id])
+    const board = clientToBoard(e.clientX, e.clientY)
+    const pointer = pointerFromEvent(e, board)
+    def.onPointerUp(pointer, session.data, host)
   }
 
-  const elements = listElementsSorted(doc)
+  const onBoardDoubleClick = (e: React.MouseEvent) => {
+    if (!canEdit || tool !== "select") return
+    e.preventDefault()
+    e.stopPropagation()
+    const { x, y } = clientToBoard(e.clientX, e.clientY)
+    const hitId = hitTest(docRef.current, x, y)
+    runPluginDoubleClick(
+      sortedPlugins,
+      {
+        clientX: e.clientX,
+        clientY: e.clientY,
+        boardX: x,
+        boardY: y,
+        hitId,
+      },
+      featureCtx
+    )
+  }
+
+  const elements = useMemo(() => listElementsSorted(doc), [doc])
+  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds])
   const isPanTool = tool === "pan"
-  const cursor =
-    isPanTool
-      ? "grab"
-      : tool === "eraser" || tool === "precisionEraser"
-        ? "cell"
-        : tool === "lasso"
-          ? "crosshair"
-          : tool === "pen" || tool === "highlighter" || tool === "smart"
-            ? "crosshair"
-            : tool === "select"
-              ? "default"
-              : "cell"
+
+  const onStartLabelEdit = useCallback((id: string) => {
+    setEditingLabelId(id)
+    onSelectedIdsChangeRef.current([id])
+  }, [])
+  const onEndLabelEdit = useCallback(() => setEditingLabelId(null), [])
+  const onSelectElement = useCallback((id: string) => {
+    onSelectedIdsChangeRef.current([id])
+    if (editingLabelIdRef.current && editingLabelIdRef.current !== id) {
+      setEditingLabelId(null)
+    }
+  }, [])
+
+  const onTextChange = useCallback(
+    (id: string, text: string) => {
+      if (!canEditRef.current) return
+      const existing = docRef.current.elements[id]
+      if (!existing) return
+      if (existing.type === "sticky" || existing.type === "text") {
+        onCommandRef.current({
+          type: "patch",
+          id,
+          patch: { text } as Partial<typeof existing>,
+        })
+      } else if (existing.type === "shape") {
+        onCommandRef.current({
+          type: "patch",
+          id,
+          patch: { label: text } as Partial<typeof existing>,
+        })
+      }
+    },
+    []
+  )
+
+  const onPointerDownElement = useCallback(
+    (id: string, ev: React.PointerEvent) => {
+      const currentTool = toolRef.current
+      if (currentTool === "pan") return
+      const defActive = toolRegistry.get(currentTool)
+      if (defActive?.passThroughElements) return
+      if (editingLabelIdRef.current === id) return
+
+      if (currentTool === "connector" && canEditRef.current) {
+        ev.stopPropagation()
+        ev.preventDefault()
+        const { x, y } = clientToBoardRef.current(ev.clientX, ev.clientY)
+        const hitEl = docRef.current.elements[id]
+        const port = hitEl ? closestPort(hitEl, x, y) : null
+        const def = toolRegistry.get("connector")
+        if (!def?.onPointerDown) return
+        const pointer = pointerFromEvent(ev, {
+          x: port?.x ?? x,
+          y: port?.y ?? y,
+        })
+        const g = def.onPointerDown(
+          {
+            ...pointer,
+            boardX: port?.x ?? x,
+            boardY: port?.y ?? y,
+          },
+          host
+        )
+        if (g) {
+          gestureRef.current = { toolId: "connector", data: g }
+          captureBoard(ev)
+        }
+        return
+      }
+
+      if (currentTool !== "select" || !canEditRef.current) return
+      const def = toolRegistry.get("select")
+      if (!def?.onPointerDown) return
+      const board = clientToBoardRef.current(ev.clientX, ev.clientY)
+      const pointer = pointerFromEvent(ev, board)
+      const g = def.onPointerDown(pointer, host)
+      if (g) {
+        gestureRef.current = { toolId: "select", data: g }
+        captureBoard(ev)
+      }
+    },
+    [host, toolRegistry]
+  )
+
+  const onPortPointerDown = useCallback(
+    (
+      elementId: string,
+      anchor: import("../types").ConnectorAnchor,
+      ev: React.PointerEvent
+    ) => {
+      if (!canEditRef.current) return
+      ev.stopPropagation()
+      ev.preventDefault()
+      const hitEl = docRef.current.elements[elementId]
+      const port = hitEl
+        ? elementPorts(hitEl)?.find((p) => p.anchor === anchor)
+        : null
+      const p = port ?? { x: 0, y: 0, anchor }
+      const def = toolRegistry.get("connector")
+      if (!def?.onPointerDown) return
+      const pointer = pointerFromEvent(ev, { x: p.x, y: p.y })
+      const g = def.onPointerDown(
+        { ...pointer, boardX: p.x, boardY: p.y },
+        host
+      )
+      if (g) {
+        gestureRef.current = { toolId: "connector", data: g }
+        captureBoard(ev)
+      }
+    },
+    [host, toolRegistry]
+  )
+
+  const onResizePointerDown = useCallback(
+    (elementId: string, handle: ResizeHandle, ev: React.PointerEvent) => {
+      if (!canEditRef.current) return
+      ev.stopPropagation()
+      const hitEl = docRef.current.elements[elementId]
+      if (!hitEl || hitEl.type === "path" || hitEl.type === "connector") return
+      gestureRef.current = {
+        toolId: "__resize__",
+        data: {
+          type: "resize",
+          id: elementId,
+          handle,
+          start: {
+            x: hitEl.x,
+            y: hitEl.y,
+            w: hitEl.w,
+            h: hitEl.h,
+          },
+        },
+      }
+      captureBoard(ev)
+    },
+    []
+  )
 
   return (
-    <TransformWrapper
-      ref={ref}
-      initialScale={WHITEBOARD_ZOOM.default}
-      minScale={WHITEBOARD_ZOOM.min}
-      maxScale={WHITEBOARD_ZOOM.max}
-      centerOnInit={false}
-      initialPositionX={0}
-      initialPositionY={0}
-      limitToBounds={false}
-      doubleClick={{ disabled: true }}
-      wheel={{ disabled: true }}
-      panning={{
-        // Empty activationKeys = always allow (non-empty REQUIRES those keys held).
-        // Left-drag pans only with Pan tool; middle-click pans in any tool.
-        excluded: isPanTool ? [] : ["pan-ignore"],
-        allowLeftClickPan: isPanTool,
-        allowMiddleClickPan: true,
-        allowRightClickPan: false,
-      }}
-      onInit={() => {
-        if (didInitCenter.current) return
-        didInitCenter.current = true
-        requestAnimationFrame(() => resetView())
-      }}
-      onTransform={onTransform}
-    >
-      <TransformComponent
-        wrapperClass="!absolute !inset-0 !z-0 !h-full !w-full bg-neutral-100 dark:bg-neutral-950 [--dot:var(--color-neutral-300)] dark:[--dot:var(--color-neutral-600)]"
-        wrapperStyle={{
-          backgroundImage:
-            "radial-gradient(circle, var(--dot) 1px, transparent 1px)",
-          backgroundSize: `${GRID_DOT_FALLBACK}px ${GRID_DOT_FALLBACK}px`,
-          backgroundPosition: "0px 0px",
-          cursor,
+    <div className="relative h-full w-full min-h-0">
+      <TransformWrapper
+        ref={ref}
+        initialScale={WHITEBOARD_ZOOM.default}
+        minScale={WHITEBOARD_ZOOM.min}
+        maxScale={WHITEBOARD_ZOOM.max}
+        centerOnInit={false}
+        initialPositionX={0}
+        initialPositionY={0}
+        limitToBounds={false}
+        doubleClick={{ disabled: true }}
+        wheel={{ disabled: true }}
+        panning={{
+          excluded: isPanTool ? [] : ["pan-ignore"],
+          allowLeftClickPan: isPanTool,
+          allowMiddleClickPan: true,
+          allowRightClickPan: false,
         }}
+        onInit={() => {
+          if (didInitCenter.current) return
+          didInitCenter.current = true
+          requestAnimationFrame(() => resetView())
+        }}
+        onTransform={onTransform}
       >
-        <div
-          ref={surfaceRef}
-          className="relative"
-          style={{
-            width: BOARD_SIZE,
-            height: BOARD_SIZE,
+        <TransformComponent
+          wrapperClass="!absolute !inset-0 !z-0 !h-full !w-full bg-neutral-100 dark:bg-neutral-950 [--dot:var(--color-neutral-300)] dark:[--dot:var(--color-neutral-600)]"
+          wrapperStyle={{
+            backgroundImage:
+              "radial-gradient(circle, var(--dot) 1px, transparent 1px)",
+            backgroundSize: `${GRID_DOT_FALLBACK}px ${GRID_DOT_FALLBACK}px`,
+            backgroundPosition: "0px 0px",
             cursor,
           }}
-          onPointerDown={onBoardPointerDown}
-          onPointerMove={onBoardPointerMove}
-          onPointerUp={onBoardPointerUp}
-          onPointerCancel={onBoardPointerUp}
-          onDoubleClick={onBoardDoubleClick}
         >
-          {elements.map((el) => (
-            <ElementView
-              key={el.id}
-              el={el}
-              doc={doc}
-              selected={selectedIds.includes(el.id)}
-              canEdit={canEdit}
-              showPorts={
-                !editingLabelId &&
-                (tool === "connector" || selectedIds.includes(el.id))
-              }
-              passThrough={passThroughElements}
-              editingLabelId={editingLabelId}
-              shapeLabelLabels={shapeLabelLabels}
-              onStartLabelEdit={(id) => {
-                setEditingLabelId(id)
-                onSelectedIdsChange([id])
-              }}
-              onEndLabelEdit={() => setEditingLabelId(null)}
-              onSelect={(id) => {
-                onSelectedIdsChange([id])
-                if (editingLabelId && editingLabelId !== id) {
-                  setEditingLabelId(null)
+          <div
+            ref={surfaceRef}
+            className="relative"
+            style={{
+              width: BOARD_SIZE,
+              height: BOARD_SIZE,
+              cursor,
+            }}
+            onPointerDown={onBoardPointerDown}
+            onPointerMove={onBoardPointerMove}
+            onPointerUp={onBoardPointerUp}
+            onPointerCancel={onBoardPointerUp}
+            onDoubleClick={onBoardDoubleClick}
+          >
+            {elements.map((el) => (
+              <ElementView
+                key={el.id}
+                el={el}
+                doc={doc}
+                selected={selectedSet.has(el.id)}
+                canEdit={canEdit}
+                renderers={elementRenderers}
+                showPorts={
+                  !editingLabelId &&
+                  (tool === "connector" || selectedSet.has(el.id))
                 }
-              }}
-              onTextChange={(id, text) => {
-                if (!canEdit) return
-                const existing = doc.elements[id]
-                if (!existing) return
-                if (existing.type === "sticky" || existing.type === "text") {
-                  onCommand({
-                    type: "patch",
-                    id,
-                    patch: { text } as Partial<typeof existing>,
-                  })
-                } else if (existing.type === "shape") {
-                  onCommand({
-                    type: "patch",
-                    id,
-                    patch: { label: text } as Partial<typeof existing>,
-                  })
-                }
-              }}
-              onPointerDownElement={(id, ev) => {
-                if (tool === "pan") return
-                if (passThroughElements) return
-                if (editingLabelId === id) return
-                if (tool === "connector" && canEdit) {
-                  // Start connector from this node — capture on board, not the shape
-                  ev.stopPropagation()
-                  ev.preventDefault()
-                  const { x, y } = clientToBoard(ev.clientX, ev.clientY)
-                  const hitEl = docRef.current.elements[id]
-                  const port = hitEl ? closestPort(hitEl, x, y) : null
-                  dragRef.current = {
-                    kind: "connector",
-                    fromId: id,
-                    fromAnchor: port?.anchor ?? "c",
-                    fromX: port?.x ?? x,
-                    fromY: port?.y ?? y,
-                  }
-                  setDraftLine({
-                    x1: port?.x ?? x,
-                    y1: port?.y ?? y,
-                    x2: x,
-                    y2: y,
-                  })
-                  captureBoard(ev)
-                  return
-                }
-                if (tool !== "select" || !canEdit) return
-                ev.stopPropagation()
-                const { x, y } = clientToBoard(ev.clientX, ev.clientY)
-                dragRef.current = {
-                  kind: "move",
-                  ids: selectedIds.includes(id) ? [...selectedIds] : [id],
-                  lastX: x,
-                  lastY: y,
-                  accDx: 0,
-                  accDy: 0,
-                }
-                if (!selectedIds.includes(id)) onSelectedIdsChange([id])
-                captureBoard(ev)
-              }}
-              onPortPointerDown={(elementId, anchor, ev) => {
-                if (!canEdit) return
-                ev.stopPropagation()
-                ev.preventDefault()
-                const hitEl = docRef.current.elements[elementId]
-                const port = hitEl
-                  ? elementPorts(hitEl)?.find((p) => p.anchor === anchor)
-                  : null
-                const p = port ?? { x: 0, y: 0, anchor }
-                dragRef.current = {
-                  kind: "connector",
-                  fromId: elementId,
-                  fromAnchor: anchor,
-                  fromX: p.x,
-                  fromY: p.y,
-                }
-                setDraftLine({ x1: p.x, y1: p.y, x2: p.x, y2: p.y })
-                // Capture on board so move/up fire on board handlers
-                captureBoard(ev)
-              }}
-              onResizePointerDown={(elementId, handle, ev) => {
-                if (!canEdit) return
-                ev.stopPropagation()
-                const hitEl = docRef.current.elements[elementId]
-                if (
-                  !hitEl ||
-                  hitEl.type === "path" ||
-                  hitEl.type === "connector"
-                )
-                  return
-                dragRef.current = {
-                  kind: "resize",
-                  id: elementId,
-                  handle,
-                  start: {
-                    x: hitEl.x,
-                    y: hitEl.y,
-                    w: hitEl.w,
-                    h: hitEl.h,
-                  },
-                }
-                captureBoard(ev)
-              }}
-            />
-          ))}
-
-          {draftPath && draftPath.length > 1 && draftMeta ? (
-            <svg
-              className="pointer-events-none absolute inset-0 overflow-visible"
-              style={{ width: 1, height: 1 }}
-            >
-              <path
-                d={draftPath
-                  .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
-                  .join(" ")}
-                fill="none"
-                stroke={draftMeta.color}
-                strokeWidth={draftMeta.width}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                opacity={draftMeta.opacity}
-                style={{
-                  mixBlendMode: draftMeta.highlighter ? "multiply" : "normal",
-                }}
+                passThrough={passThroughElements}
+                editingLabelId={editingLabelId}
+                shapeLabelLabels={shapeLabelLabels}
+                onStartLabelEdit={onStartLabelEdit}
+                onEndLabelEdit={onEndLabelEdit}
+                onSelect={onSelectElement}
+                onTextChange={onTextChange}
+                onPointerDownElement={onPointerDownElement}
+                onPortPointerDown={onPortPointerDown}
+                onResizePointerDown={onResizePointerDown}
               />
-            </svg>
-          ) : null}
+            ))}
 
-          {lassoPoints && lassoPoints.length > 1 ? (
-            <svg
-              className="pointer-events-none absolute inset-0 overflow-visible"
-              style={{ width: 1, height: 1 }}
-            >
-              <polygon
-                points={lassoPoints.map((p) => `${p.x},${p.y}`).join(" ")}
-                fill="rgba(59,130,246,0.12)"
-                stroke="#3b82f6"
-                strokeWidth={1.5}
-                strokeDasharray="6 4"
-              />
-            </svg>
-          ) : null}
+            {Object.entries(overlays).map(([key, node]) => (
+              <div key={key} data-wb-overlay={key}>
+                {node}
+              </div>
+            ))}
 
-          {marqueeRect && marqueeRect.w + marqueeRect.h > 0 ? (
-            <div
-              className="pointer-events-none absolute border border-dashed border-blue-500 bg-blue-500/10"
-              style={{
-                left: marqueeRect.x,
-                top: marqueeRect.y,
-                width: Math.max(1, marqueeRect.w),
-                height: Math.max(1, marqueeRect.h),
-              }}
-            />
-          ) : null}
+            {sortedPlugins.map((plugin) => {
+              const node = plugin.renderOverlay?.(featureCtx)
+              if (!node) return null
+              return (
+                <div
+                  key={plugin.id}
+                  className="pointer-events-none absolute inset-0"
+                  data-wb-plugin-overlay={plugin.id}
+                >
+                  {node}
+                </div>
+              )
+            })}
+          </div>
+        </TransformComponent>
+      </TransformWrapper>
 
-          {draftLine ? (
-            <svg
-              className="pointer-events-none absolute inset-0 overflow-visible"
-              style={{ width: 1, height: 1 }}
-            >
-              <line
-                x1={draftLine.x1}
-                y1={draftLine.y1}
-                x2={draftLine.x2}
-                y2={draftLine.y2}
-                stroke="#60a5fa"
-                strokeWidth={2}
-                strokeDasharray="6 4"
-              />
-            </svg>
-          ) : null}
-
-          {draftShape && draftShape.w + draftShape.h > 0 ? (
-            <div
-              className="pointer-events-none absolute border-2 border-dashed bg-transparent"
-              style={{
-                left: draftShape.x,
-                top: draftShape.y,
-                width: Math.max(1, draftShape.w),
-                height: Math.max(1, draftShape.h),
-                borderColor: shapeColor,
-                borderRadius:
-                  draftShape.shape === "ellipse"
-                    ? "50%"
-                    : draftShape.shape === "rect"
-                      ? 6
-                      : 0,
-              }}
-            />
-          ) : null}
-        </div>
-      </TransformComponent>
-    </TransformWrapper>
+      {sortedPlugins.map((plugin) => {
+        const node = plugin.renderChrome?.(featureCtx)
+        if (!node) return null
+        return (
+          <div key={`chrome-${plugin.id}`} data-wb-plugin-chrome={plugin.id}>
+            {node}
+          </div>
+        )
+      })}
+    </div>
   )
 }
+
