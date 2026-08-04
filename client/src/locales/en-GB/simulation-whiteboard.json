@@ -3,9 +3,11 @@
   "loading": "Loading whiteboard…",
   "prompt": "Prompt",
   "templates": "Templates",
+  "stencils": "Stencils",
   "rail": {
     "prompt": "Prompt",
     "templates": "Templates",
+    "stencils": "Stencils",
     "collapse": "Collapse panel",
     "resize": "Resize panel"
   },
@@ -16,6 +18,16 @@
   "templatesPanel": {
     "title": "Templates",
     "description": "Start from a layout, then adapt it to your answer."
+  },
+  "stencilsPanel": {
+    "title": "Stencils",
+    "description": "Architecture and diagram icons. Click to place on the board.",
+    "searchPlaceholder": "Search shapes…",
+    "allCategories": "All libraries",
+    "empty": "No shapes match your search.",
+    "loading": "Loading library…",
+    "count": "{{count}} shapes",
+    "attribution": "Icons derived from draw.io / diagrams.net stencils. Brand marks belong to their owners. See package attributions for details."
   },
   "endSession": "End",
   "exportPng": "Export PNG",

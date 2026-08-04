@@ -12,6 +12,7 @@ import type {
   PathElement,
   ShapeElement,
   ShapeLabelEditorLabels,
+  StencilElement,
   StickyElement,
   TextElement,
   WhiteboardDocument,
@@ -722,6 +723,88 @@ export function ConnectorView({
   )
 }
 
+/** Strip outer <svg> so we can re-root with board size (preserve viewBox). */
+function stencilInnerMarkup(svg: string): {
+  viewBox: string
+  inner: string
+} {
+  const vb =
+    svg.match(/viewBox\s*=\s*["']([^"']+)["']/i)?.[1] ?? "0 0 100 100"
+  const open = svg.match(/<svg\b[^>]*>/i)
+  const close = svg.lastIndexOf("</svg>")
+  if (!open || close < 0) {
+    return { viewBox: vb, inner: svg }
+  }
+  const start = open.index! + open[0].length
+  return { viewBox: vb, inner: svg.slice(start, close) }
+}
+
+export function StencilView({
+  el,
+  selected,
+  canEdit,
+  onSelect,
+  onPointerDownElement,
+  showPorts,
+  passThrough,
+  onPortPointerDown,
+  onResizePointerDown,
+}: {
+  readonly el: StencilElement
+  readonly selected: boolean
+  readonly canEdit: boolean
+  readonly onSelect: (id: string) => void
+  readonly onPointerDownElement?: (id: string, e: ReactPointerEvent) => void
+  readonly showPorts?: boolean
+  readonly passThrough?: boolean
+  readonly onPortPointerDown?: ElementViewProps["onPortPointerDown"]
+  readonly onResizePointerDown?: ElementViewProps["onResizePointerDown"]
+}) {
+  const { viewBox, inner } = stencilInnerMarkup(el.svg)
+  return (
+    <div
+      data-el-id={el.id}
+      className={cn(
+        "pan-ignore absolute",
+        passThrough && "pointer-events-none"
+      )}
+      style={{
+        left: el.x,
+        top: el.y,
+        width: el.w,
+        height: el.h,
+        zIndex: el.z,
+      }}
+      title={el.name}
+      onPointerDown={(e) => {
+        if (passThrough) return
+        e.stopPropagation()
+        onSelect(el.id)
+        onPointerDownElement?.(el.id, e)
+      }}
+    >
+      <SelectionRing w={el.w} h={el.h} selected={selected} />
+      <svg
+        width={el.w}
+        height={el.h}
+        viewBox={viewBox}
+        preserveAspectRatio="xMidYMid meet"
+        className="pointer-events-none absolute inset-0 overflow-visible"
+        // Catalog / converted stencil markup only (not free-form user HTML).
+        dangerouslySetInnerHTML={{ __html: inner }}
+      />
+      <BoxChrome
+        el={el}
+        selected={selected}
+        showPorts={showPorts || selected}
+        canEdit={canEdit}
+        onPortPointerDown={onPortPointerDown}
+        onResizePointerDown={onResizePointerDown}
+      />
+    </div>
+  )
+}
+
 /** Built-in renderers (also registered by the elements plugin). */
 export function renderDefaultElement(props: ElementViewProps): ReactNode {
   const { el } = props
@@ -772,6 +855,21 @@ export function renderDefaultElement(props: ElementViewProps): ReactNode {
         onEndLabelEdit={props.onEndLabelEdit}
         onLabelChange={props.onTextChange}
         shapeLabelLabels={props.shapeLabelLabels}
+        onPortPointerDown={props.onPortPointerDown}
+        onResizePointerDown={props.onResizePointerDown}
+      />
+    )
+  }
+  if (el.type === "stencil") {
+    return (
+      <StencilView
+        el={el}
+        selected={props.selected}
+        canEdit={props.canEdit}
+        onSelect={props.onSelect}
+        onPointerDownElement={props.onPointerDownElement}
+        showPorts={props.showPorts}
+        passThrough={props.passThrough}
         onPortPointerDown={props.onPortPointerDown}
         onResizePointerDown={props.onResizePointerDown}
       />

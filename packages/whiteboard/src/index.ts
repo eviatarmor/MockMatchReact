@@ -14,6 +14,7 @@ export type {
   ShapeElement,
   ShapeKind,
   ShapeLabelEditorLabels,
+  StencilElement,
   StickyElement,
   TextElement,
   ToolRailLabels,
@@ -42,9 +43,11 @@ export {
   createEmptyBoard,
   createPath,
   createShape,
+  createStencil,
   createSticky,
   createText,
   elementBounds,
+  stencilDisplaySize,
   hitTest,
   isBoardEmpty,
   lassoSelectIds,
@@ -115,6 +118,36 @@ export {
   type WhiteboardTemplatesPanelLabels,
   type WhiteboardTemplatesPanelProps,
 } from "./templates/templates-panel"
+
+export {
+  STENCIL_CATEGORIES,
+  STENCIL_INDEX,
+  STENCIL_SHAPE_COUNT,
+  getStencilCategory,
+  loadStencilCategory,
+  loadStencilDef,
+  searchStencilIndex,
+  type StencilCategoryFile,
+  type StencilCategoryMeta,
+  type StencilDef,
+  type StencilIndexShape,
+} from "./stencils/catalog"
+
+export {
+  STENCIL_LIBRARY_GROUPS,
+  allLibraryPacks,
+  categoryIdsForPack,
+  categoryMatchesPack,
+  findLibraryPack,
+  type StencilLibraryGroup,
+  type StencilLibraryPack,
+} from "./stencils/library-groups"
+
+export {
+  WhiteboardStencilsPanel,
+  type WhiteboardStencilsPanelLabels,
+  type WhiteboardStencilsPanelProps,
+} from "./stencils/library-panel"
 
 export { exportBoardPng } from "./export-png"
 

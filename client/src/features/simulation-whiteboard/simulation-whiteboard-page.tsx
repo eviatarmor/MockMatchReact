@@ -20,13 +20,16 @@ import {
   applyTemplateDocument,
   createEmptyBoard,
   createHistory,
+  createStencil,
   exportBoardPng,
   isBoardEmpty,
+  maxZ,
   shapeKindFromHotkey,
   toolFromHotkey,
   useWhiteboardViewport,
   type DrawStrokeStyle,
   type ShapeKind,
+  type StencilDef,
   type WhiteboardDocument,
   type WhiteboardTemplate,
   type WhiteboardTemplateId,
@@ -205,6 +208,28 @@ export function SimulationWhiteboardPageContent() {
     [applyTemplate, doc]
   )
 
+  const placeOffsetRef = useRef(0)
+  const onPlaceStencil = useCallback(
+    (stencil: StencilDef) => {
+      const step = placeOffsetRef.current % 12
+      placeOffsetRef.current += 1
+      const el = createStencil({
+        x: 140 + step * 28,
+        y: 140 + step * 28,
+        stencilId: stencil.id,
+        name: stencil.name,
+        svg: stencil.svg,
+        nativeW: stencil.w,
+        nativeH: stencil.h,
+        z: maxZ(doc) + 1,
+      })
+      dispatch({ type: "upsert", element: el })
+      setSelectedIds([el.id])
+      setTool("select")
+    },
+    [dispatch, doc]
+  )
+
   const undo = useCallback(() => {
     const next = historyRef.current.undo()
     setDoc(next)
@@ -339,6 +364,17 @@ export function SimulationWhiteboardPageContent() {
     [t]
   )
 
+  const stencilLabels = useMemo(
+    () => ({
+      title: "",
+      searchPlaceholder: t("stencilsPanel.searchPlaceholder"),
+      allCategories: t("stencilsPanel.allCategories"),
+      empty: t("stencilsPanel.empty"),
+      loading: t("stencilsPanel.loading"),
+    }),
+    [t]
+  )
+
   const bottomLabels = useMemo(
     () => ({
       undo: t("undo"),
@@ -448,6 +484,8 @@ export function SimulationWhiteboardPageContent() {
         activeTemplateId={activeTemplateId}
         onSelectTemplate={onSelectTemplate}
         templateLabels={templateLabels}
+        stencilLabels={stencilLabels}
+        onPlaceStencil={onPlaceStencil}
       >
         <WhiteboardShell
           topBar={

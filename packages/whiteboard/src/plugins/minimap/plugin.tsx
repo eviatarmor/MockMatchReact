@@ -130,9 +130,15 @@ const MinimapContent = memo(function MinimapContent({
               ? el.fill === "transparent"
                 ? "none"
                 : el.fill
-              : "#a3a3a3"
+              : el.type === "stencil"
+                ? "#e5e5e5"
+                : "#a3a3a3"
         const stroke =
-          el.type === "shape" ? el.stroke : "rgba(0,0,0,0.25)"
+          el.type === "shape"
+            ? el.stroke
+            : el.type === "stencil"
+              ? "#737373"
+              : "rgba(0,0,0,0.25)"
         return (
           <rect
             key={el.id}

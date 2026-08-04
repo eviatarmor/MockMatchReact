@@ -67,6 +67,21 @@ const shapeSchema = z.object({
   label: z.string().optional(),
 })
 
+/** draw.io-derived icon; svg embedded for self-contained documents. */
+const stencilSchema = z.object({
+  id: z.string(),
+  type: z.literal("stencil"),
+  stencilId: z.string(),
+  name: z.string(),
+  x: z.number(),
+  y: z.number(),
+  w: z.number(),
+  h: z.number(),
+  z: z.number(),
+  svg: z.string(),
+  label: z.string().optional(),
+})
+
 const pathSchema = z.object({
   id: z.string(),
   type: z.literal("path"),
@@ -95,6 +110,7 @@ export const whiteboardElementSchema = z.union([
   stickySchema,
   textSchema,
   shapeSchema,
+  stencilSchema,
   pathSchema,
   connectorSchema,
 ])

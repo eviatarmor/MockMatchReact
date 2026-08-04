@@ -109,6 +109,26 @@ export type ShapeElement = {
   readonly label?: string
 }
 
+/**
+ * Stencil icon from the draw.io-derived library.
+ * `svg` is embedded so saved boards stay self-contained without the catalog.
+ */
+export type StencilElement = {
+  readonly id: string
+  readonly type: "stencil"
+  /** Stable catalog id, e.g. `aws.compute.ec2`. */
+  readonly stencilId: string
+  readonly name: string
+  readonly x: number
+  readonly y: number
+  readonly w: number
+  readonly h: number
+  readonly z: number
+  /** Full SVG markup (viewBox + paths). */
+  readonly svg: string
+  readonly label?: string
+}
+
 /** Host i18n for in-shape rich text (bold / italic / underline toolbar). */
 export type ShapeLabelEditorLabels = {
   readonly placeholder: string
@@ -154,6 +174,7 @@ export type WhiteboardElement =
   | StickyElement
   | TextElement
   | ShapeElement
+  | StencilElement
   | PathElement
   | ConnectorElement
 

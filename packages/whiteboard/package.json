@@ -26,7 +26,8 @@
     "test": "vitest run --config vitest.config.ts",
     "test:unit": "vitest run --config vitest.config.ts",
     "test:watch": "vitest --config vitest.config.ts",
-    "test:bench": "vitest bench --config vitest.bench.config.ts --run"
+    "test:bench": "vitest bench --config vitest.bench.config.ts --run",
+    "stencils:convert": "node scripts/convert-stencils.mjs"
   },
   "devDependencies": {
     "vitest": "^4.1.10"

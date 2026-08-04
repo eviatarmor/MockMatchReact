@@ -98,6 +98,15 @@ export async function exportBoardPng(
           ctx.textAlign = "start"
         }
       }
+    } else if (el.type === "stencil") {
+      try {
+        const img = await loadSvgImage(el.svg)
+        ctx.drawImage(img, el.x + ox, el.y + oy, el.w, el.h)
+      } catch {
+        // Fallback outline if SVG raster fails
+        ctx.strokeStyle = "#a3a3a3"
+        ctx.strokeRect(el.x + ox, el.y + oy, el.w, el.h)
+      }
     } else if (el.type === "path" && el.points.length > 1) {
       const isHighlighter = el.strokeKind === "highlighter"
       const opacity =
@@ -140,6 +149,23 @@ export async function exportBoardPng(
   return new Promise((resolve) =>
     canvas.toBlob((b) => resolve(b), "image/png")
   )
+}
+
+function loadSvgImage(svg: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      resolve(img)
+    }
+    img.onerror = () => {
+      URL.revokeObjectURL(url)
+      reject(new Error("svg raster failed"))
+    }
+    img.src = url
+  })
 }
 
 function wrapText(

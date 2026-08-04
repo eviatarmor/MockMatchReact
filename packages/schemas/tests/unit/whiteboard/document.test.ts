@@ -72,6 +72,25 @@ describe("whiteboardElementSchema", () => {
     }
   })
 
+  it("parses stencil with embedded svg", () => {
+    const el = whiteboardElementSchema.parse({
+      id: "st1",
+      type: "stencil",
+      stencilId: "basic.4-point-star",
+      name: "4 Point Star",
+      x: 0,
+      y: 0,
+      w: 96,
+      h: 96,
+      z: 1,
+      svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 92 92"></svg>',
+    })
+    expect(el.type).toBe("stencil")
+    if (el.type === "stencil") {
+      expect(el.stencilId).toBe("basic.4-point-star")
+    }
+  })
+
   it("parses path with optional strokeKind/opacity", () => {
     const el = whiteboardElementSchema.parse({
       id: "p1",

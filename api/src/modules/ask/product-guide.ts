@@ -68,6 +68,7 @@ application tracking, practice, and readiness insights.
    - **Dev workspace** (\`/simulations/workspace\`) — freeform multi-file collab IDE.
    - **Spreadsheet** (\`/simulations/spreadsheet\`) — freeform multi-sheet grid (\`@mockmatch/spreadsheet\`): virtualized cells, formula bar (HyperFormula), sheet tabs; durable \`spreadsheet\` workbooks + collab share (\`?id=\` + \`share\`).
    - **Document analysis** (\`/simulations/page\`) — freeform Notion/Docs-like Lexical page (\`@mockmatch/page\`): headings, lists, checklist, quote, code, slash menu; durable \`page\` documents + collab share.
+   - **Whiteboard** — bank practice canvas: stickies, shapes, pen, connectors, templates; right-rail **Stencils** library (search + categories, ~9k SVG icons from draw.io-derived packs) places icons on the board; autosave + collab kind \`whiteboard\`.
 
    - Share URLs include \`id\` + \`share\` query params (owner must stay in room).
    - **Exercise catalog** is Postgres \`practice_exercises\` (slug, domain, difficulty, prompt, tags, embedding-ready). Starter **files** live under S3 prefix \`exercises/<slug>/<version>/\` (dev mirror in \`content_cache\`). Seed: \`npm run db:seed:exercises\` in \`api/\`.

@@ -3,6 +3,7 @@ import type {
   PathElement,
   ShapeElement,
   ShapeKind,
+  StencilElement,
   StickyElement,
   TextElement,
   WhiteboardCommand,
@@ -104,6 +105,53 @@ export function createShape(partial: {
     z: partial.z ?? 1,
     fill: partial.fill ?? "#ffffff",
     stroke: partial.stroke ?? "#525252",
+    label: partial.label,
+  }
+}
+
+/** Default on-board size from stencil native aspect (max edge 96). */
+export function stencilDisplaySize(
+  nativeW: number,
+  nativeH: number,
+  maxEdge = 96
+): { w: number; h: number } {
+  const w0 = Math.max(1, nativeW)
+  const h0 = Math.max(1, nativeH)
+  const scale = maxEdge / Math.max(w0, h0)
+  return {
+    w: Math.max(24, Math.round(w0 * scale)),
+    h: Math.max(24, Math.round(h0 * scale)),
+  }
+}
+
+export function createStencil(partial: {
+  x: number
+  y: number
+  stencilId: string
+  name: string
+  svg: string
+  w?: number
+  h?: number
+  nativeW?: number
+  nativeH?: number
+  z?: number
+  label?: string
+}): StencilElement {
+  const sized =
+    partial.w != null && partial.h != null
+      ? { w: partial.w, h: partial.h }
+      : stencilDisplaySize(partial.nativeW ?? 96, partial.nativeH ?? 96)
+  return {
+    id: newElementId(),
+    type: "stencil",
+    stencilId: partial.stencilId,
+    name: partial.name,
+    x: partial.x,
+    y: partial.y,
+    w: sized.w,
+    h: sized.h,
+    z: partial.z ?? 1,
+    svg: partial.svg,
     label: partial.label,
   }
 }

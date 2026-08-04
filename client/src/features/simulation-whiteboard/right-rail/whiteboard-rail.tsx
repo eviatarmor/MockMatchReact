@@ -4,6 +4,7 @@ import {
   FileText,
   LayoutTemplate,
   PanelRightClose,
+  Shapes,
   type LucideIcon,
 } from "lucide-react"
 import { CollapsibleSidePanel } from "@mockmatch/ui/collapsible-side-panel"
@@ -18,7 +19,10 @@ import {
 import { cn } from "@/lib/utils"
 import { useSidePanelWidth } from "@/hooks/use-side-panel-width"
 import {
+  WhiteboardStencilsPanel,
   WhiteboardTemplatesPanel,
+  type StencilDef,
+  type WhiteboardStencilsPanelLabels,
   type WhiteboardTemplate,
   type WhiteboardTemplateId,
   type WhiteboardTemplatesPanelLabels,
@@ -30,7 +34,7 @@ const PANEL_MIN_PX = 280
 const PANEL_MAX_PX = 720
 const PANEL_WIDTH_STORAGE_KEY = "mockmatch.whiteboard.rail-width"
 
-export type WhiteboardRailPanelId = "prompt" | "templates"
+export type WhiteboardRailPanelId = "prompt" | "templates" | "stencils"
 
 const RAIL_ITEMS: readonly {
   id: WhiteboardRailPanelId
@@ -39,6 +43,7 @@ const RAIL_ITEMS: readonly {
 }[] = [
   { id: "prompt", icon: FileText, labelKey: "rail.prompt" },
   { id: "templates", icon: LayoutTemplate, labelKey: "rail.templates" },
+  { id: "stencils", icon: Shapes, labelKey: "rail.stencils" },
 ]
 
 export type WhiteboardRailProps = {
@@ -46,6 +51,8 @@ export type WhiteboardRailProps = {
   readonly activeTemplateId: WhiteboardTemplateId | null
   readonly onSelectTemplate: (template: WhiteboardTemplate) => void
   readonly templateLabels: WhiteboardTemplatesPanelLabels
+  readonly stencilLabels: WhiteboardStencilsPanelLabels
+  readonly onPlaceStencil: (stencil: StencilDef) => void
   readonly children: ReactNode
 }
 
@@ -57,6 +64,8 @@ export function WhiteboardRail({
   activeTemplateId,
   onSelectTemplate,
   templateLabels,
+  stencilLabels,
+  onPlaceStencil,
   children,
 }: WhiteboardRailProps) {
   const { t } = useTranslation("simulation-whiteboard")
@@ -128,12 +137,23 @@ export function WhiteboardRail({
                       <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
                         {prompt}
                       </p>
-                    ) : (
+                    ) : displayPanel === "templates" ? (
                       <WhiteboardTemplatesPanel
                         activeTemplateId={activeTemplateId}
                         onSelect={onSelectTemplate}
                         labels={templateLabels}
                         className="p-0"
+                      />
+                    ) : (
+                      <WhiteboardStencilsPanel
+                        onPlace={onPlaceStencil}
+                        labels={stencilLabels}
+                        className="p-0"
+                        footer={
+                          <p>
+                            {t("stencilsPanel.attribution")}
+                          </p>
+                        }
                       />
                     )}
                   </div>

@@ -93,8 +93,18 @@ src/
     minimap/
     defaults.ts
     rail-ui.tsx
+  stencils/          # draw.io-derived SVG library + panel
   canvas/            # thin host
 ```
+
+### Stencil library
+
+~9k shapes converted from draw.io mxGraph stencil XML → SVG.
+
+- Attributions: `THIRD_PARTY_STENCILS.md`
+- Re-convert: `npm run stencils:convert -- --src <path-to-drawio/stencils>`
+- UI: `WhiteboardStencilsPanel` (search + categories)
+- Board element: `type: "stencil"` with embedded `svg` (self-contained docs)
 
 ### Adding a plugin
 
