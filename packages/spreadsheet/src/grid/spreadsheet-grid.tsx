@@ -25,6 +25,7 @@ import {
   type SpreadsheetPlugin,
   type SpreadsheetPluginContext,
 } from "../plugin-system"
+import { fillDownFromHandle } from "../plugins/fill/plugin"
 import type {
   DisplayCell,
   SpreadsheetDocument,
@@ -245,6 +246,8 @@ export function SpreadsheetGrid({
   const rangeStart = selection.range?.start ?? selection.active
   const rangeEnd = selection.range?.end ?? selection.active
 
+  const gridFocusRef = useRef<HTMLDivElement>(null)
+
   const onKeyDown = useCallback(
     (e: ReactKeyboardEvent) => {
       runPluginKeyDown(plugins, e.nativeEvent, ctx)
@@ -259,6 +262,11 @@ export function SpreadsheetGrid({
       row?: number,
       col?: number
     ) => {
+      // Keep keyboard shortcuts (Ctrl+Z, Delete, arrows) on the grid host.
+      // Cell/header clicks would otherwise leave focus on body / other chrome.
+      if (target !== "col-resize" && target !== "row-resize") {
+        gridFocusRef.current?.focus({ preventScroll: true })
+      }
       runPluginPointerDown(
         plugins,
         {
@@ -294,6 +302,7 @@ export function SpreadsheetGrid({
 
   return (
     <div
+      ref={gridFocusRef}
       className={cn(
         "relative h-0 min-h-0 min-w-0 w-full flex-1 outline-none",
         className
@@ -479,10 +488,22 @@ export function SpreadsheetGrid({
                       ) : (
                         <span className="truncate">{display.display}</span>
                       )}
-                      {active && !isEdit ? (
-                        <span
-                          aria-hidden
-                          className="pointer-events-none absolute -bottom-0.5 -right-0.5 size-1.5 bg-blue-400 ring-1 ring-background"
+                      {active && !isEdit && ctx.canEdit() ? (
+                        <div
+                          role="button"
+                          tabIndex={-1}
+                          aria-label="Fill handle"
+                          data-fill-handle
+                          className="absolute -bottom-1 -right-1 z-20 size-2.5 cursor-crosshair bg-blue-500 ring-1 ring-background hover:bg-blue-600"
+                          onMouseDown={(e) => {
+                            e.stopPropagation()
+                            firePointerDown("fill-handle", e, r, c)
+                          }}
+                          onDoubleClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            fillDownFromHandle(ctx)
+                          }}
                         />
                       ) : null}
                     </div>

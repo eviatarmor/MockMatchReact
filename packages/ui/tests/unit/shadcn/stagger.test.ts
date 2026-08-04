@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest"
-import { STAGGER, staggerDelay, staggerTransition } from "@/shadcn/stagger"
+import {
+  STAGGER,
+  STAGGER_CHILDREN_CLASS,
+  staggerDelay,
+  staggerListOptions,
+  staggerTransition,
+} from "@/shadcn/stagger"
 
 describe("STAGGER", () => {
   it("exposes cascade defaults used by tables/lists", () => {
@@ -7,6 +13,27 @@ describe("STAGGER", () => {
     expect(STAGGER.delay).toBe(0.04)
     expect(STAGGER.duration).toBe(0.22)
     expect(STAGGER.distance).toBe(10)
+  })
+})
+
+describe("STAGGER_CHILDREN_CLASS", () => {
+  it("exports the host CSS class name", () => {
+    expect(STAGGER_CHILDREN_CLASS).toBe("stagger-children")
+  })
+})
+
+describe("staggerListOptions", () => {
+  it("covers every item in a long list", () => {
+    const { count, delay } = staggerListOptions(48)
+    expect(count).toBe(48)
+    expect(delay).toBeLessThanOrEqual(STAGGER.delay)
+    expect((count - 1) * delay).toBeLessThanOrEqual(1 + 1e-9)
+  })
+
+  it("uses base delay for short lists", () => {
+    const { count, delay } = staggerListOptions(5)
+    expect(count).toBe(5)
+    expect(delay).toBe(STAGGER.delay)
   })
 })
 

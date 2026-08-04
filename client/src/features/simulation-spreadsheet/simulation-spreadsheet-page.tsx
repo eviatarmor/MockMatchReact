@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { ArrowLeft, Share2 } from "lucide-react"
@@ -19,15 +19,18 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@mockmatch/ui/tooltip"
+import { PresenceAvatarStack } from "@mockmatch/collab"
 import { SaveStatusBadge } from "@/components/data/save-status-badge"
 import { ShareDialog } from "@/features/collab/components/share-dialog"
 import { trpc } from "@/lib/trpc"
 import { useSpreadsheetWorkbookSession } from "./hooks/use-spreadsheet-workbook-session"
+import { useCollabSpreadsheetSession } from "./hooks/use-collab-spreadsheet-session"
+import { SpreadsheetRail } from "./right-rail/spreadsheet-rail"
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-/** Freeform spreadsheet practice — durable workbook + optional share. */
+/** Freeform spreadsheet practice — durable workbook + live collab + share. */
 export function SimulationSpreadsheetPageContent() {
   const navigate = useNavigate()
   const { questionId: pathQuestionId } = useParams<{ questionId?: string }>()
@@ -42,6 +45,7 @@ export function SimulationSpreadsheetPageContent() {
     const id = params.get("questionId")
     return id && UUID_RE.test(id) ? id : null
   })()
+  const shareToken = params.get("share") || params.get("token")
 
   const session = useSpreadsheetWorkbookSession({
     title: t("simulation-spreadsheet:title"),
@@ -62,6 +66,23 @@ export function SimulationSpreadsheetPageContent() {
     { enabled: Boolean(workbookId), retry: false }
   )
 
+  const applyRemoteRef = useRef(sheet.applyRemoteDocument)
+  applyRemoteRef.current = sheet.applyRemoteDocument
+  const onRemoteDocument = useCallback((doc: SpreadsheetDocument) => {
+    applyRemoteRef.current(doc)
+  }, [])
+
+  const collabSession = useCollabSpreadsheetSession({
+    workbookId,
+    shareToken,
+    onRemoteDocument,
+    localDocument: seeded ? sheet.document : null,
+    canEdit: collabAccess.data?.role !== "view",
+  })
+
+  const readOnly =
+    collabSession.live && !collabSession.permissions.canEditContent
+
   useEffect(() => {
     if (!session.ready || !session.seedDoc || seeded) return
     sheet.replaceDocument(session.seedDoc)
@@ -70,9 +91,16 @@ export function SimulationSpreadsheetPageContent() {
 
   const scheduleSave = session.scheduleSave
   useEffect(() => {
-    if (!seeded || !workbookId) return
+    // Solo autosave when not in a live collab room (collab persists via WS)
+    if (!seeded || !workbookId || collabSession.live) return
     scheduleSave(sheet.document as SpreadsheetDocument)
-  }, [sheet.document, seeded, workbookId, scheduleSave])
+  }, [
+    sheet.document,
+    seeded,
+    workbookId,
+    scheduleSave,
+    collabSession.live,
+  ])
 
   const labels: SpreadsheetShellLabels = useMemo(
     () => ({
@@ -93,6 +121,10 @@ export function SimulationSpreadsheetPageContent() {
 
   const goSims = useCallback(() => navigate("/simulations"), [navigate])
 
+  const prompt =
+    session.prompt?.trim() ||
+    t("simulation-spreadsheet:emptyPrompt")
+
   if (!session.ready) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3 bg-background p-6 text-sm text-muted-foreground">
@@ -101,6 +133,12 @@ export function SimulationSpreadsheetPageContent() {
       </div>
     )
   }
+
+  const saveStatus = collabSession.live
+    ? collabSession.collab.docSaveStatus === "saving"
+      ? "saving"
+      : "saved"
+    : session.saveStatus
 
   const chrome = (
     <IdeChromeBar
@@ -135,15 +173,17 @@ export function SimulationSpreadsheetPageContent() {
           })}
         </Badge>
       }
-      center={
-        <p className="truncate text-xs text-muted-foreground">
-          {session.prompt ?? t("simulation-spreadsheet:subtitle")}
-        </p>
-      }
       end={
         <div className="flex items-center gap-2">
+          {collabSession.live ? (
+            <PresenceAvatarStack
+              peers={collabSession.peers}
+              self={collabSession.self}
+            />
+          ) : null}
+
           <SaveStatusBadge
-            status={session.saveStatus}
+            status={saveStatus}
             labels={{
               saved: t("simulation-spreadsheet:save.saved"),
               saving: t("simulation-spreadsheet:save.saving"),
@@ -170,18 +210,21 @@ export function SimulationSpreadsheetPageContent() {
 
   return (
     <div className="flex h-full min-h-0 flex-col bg-background">
-      <SpreadsheetShell
-        className="h-full min-h-0"
-        document={sheet.document}
-        selection={sheet.selection}
-        labels={labels}
-        getDisplay={sheet.getDisplay}
-        formulaDraft={sheet.formulaDraft}
-        onFormulaDraftChange={sheet.setFormulaDraft}
-        onSelectionChange={sheet.select}
-        onDispatch={sheet.dispatch}
-        chrome={chrome}
-      />
+      <SpreadsheetRail prompt={prompt}>
+        <SpreadsheetShell
+          className="h-full min-h-0"
+          document={sheet.document}
+          selection={sheet.selection}
+          labels={labels}
+          getDisplay={sheet.getDisplay}
+          formulaDraft={sheet.formulaDraft}
+          onFormulaDraftChange={sheet.setFormulaDraft}
+          onSelectionChange={sheet.select}
+          onDispatch={sheet.dispatch}
+          readOnly={readOnly}
+          chrome={chrome}
+        />
+      </SpreadsheetRail>
       {workbookId ? (
         <ShareDialog
           open={shareOpen}

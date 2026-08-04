@@ -2,7 +2,12 @@
 
 Product-agnostic multi-sheet spreadsheet shell (practice / ops tables):
 
-- **Plugin host** — selection, keyboard, cell edit, resize, formula bar, sheet tabs, clipboard (whiteboard-style `createDefaultPlugins()`)
+- **Plugin host** — history, selection, fill, keyboard, cell edit, resize, formula bar, sheet tabs, format, clipboard
+- **Undo/redo** — **Yjs `UndoManager`** on the workbook Y.Doc (Ctrl/Cmd+Z / Y / Shift+Z)
+- **Collab** — host wires `document_kind: spreadsheet` room; local Y workbook mirrors to shared CRDT
+- **Fill handle** — drag + double-click fill-down; Ctrl+D / Ctrl+R; relative `$` refs
+- **Paste special** — Ctrl+Shift+V pastes values
+- **Number formats** — general / number / % / currency / integer (Ctrl+Shift+1/4/5/`)
 - **Virtualized grid** — sparse cells, frozen headers (native overflow)
 - **Formulas** — HyperFormula (`SUM`, `IF`, ranges, cross-sheet, …)
 - **Optional collab** — Yjs map helpers; host owns room + share UI

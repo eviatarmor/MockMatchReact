@@ -65,14 +65,32 @@ export function setCellRaw(
   sheet: SpreadsheetSheet,
   row: number,
   col: number,
-  raw: string
+  raw: string,
+  opts?: { format?: SpreadsheetCell["format"] | null; clearIfEmpty?: boolean }
 ): SpreadsheetSheet {
   const key = cellKey(row, col)
+  const prev = sheet.cells[key]
   const nextCells = { ...sheet.cells }
-  if (raw === "") {
+  const clearIfEmpty = opts?.clearIfEmpty !== false
+  if (raw === "" && clearIfEmpty && opts?.format == null && !prev?.format) {
+    delete nextCells[key]
+  } else if (raw === "" && clearIfEmpty && opts?.format === null) {
     delete nextCells[key]
   } else {
-    nextCells[key] = { raw } satisfies SpreadsheetCell
+    const format =
+      opts?.format === null
+        ? undefined
+        : opts?.format !== undefined
+          ? opts.format
+          : prev?.format
+    if (raw === "" && !format) {
+      delete nextCells[key]
+    } else {
+      const cell: SpreadsheetCell = format
+        ? { raw, format }
+        : { raw }
+      nextCells[key] = cell
+    }
   }
   // Grow sheet bounds if writing past edge
   const rowCount = Math.min(
@@ -84,6 +102,44 @@ export function setCellRaw(
     Math.max(sheet.colCount, col + 1)
   )
   return { ...sheet, cells: nextCells, rowCount, colCount }
+}
+
+export function setCellFormat(
+  sheet: SpreadsheetSheet,
+  row: number,
+  col: number,
+  format: SpreadsheetCell["format"] | null
+): SpreadsheetSheet {
+  const key = cellKey(row, col)
+  const prev = sheet.cells[key]
+  const raw = prev?.raw ?? ""
+  if (!raw && format == null) {
+    if (!prev) return sheet
+    const nextCells = { ...sheet.cells }
+    delete nextCells[key]
+    return { ...sheet, cells: nextCells }
+  }
+  return setCellRaw(sheet, row, col, raw, { format, clearIfEmpty: false })
+}
+
+/** Apply many cell writes in one sheet pass (single history-friendly mutation). */
+export function setCellsRaw(
+  sheet: SpreadsheetSheet,
+  writes: readonly {
+    row: number
+    col: number
+    raw: string
+    format?: SpreadsheetCell["format"] | null
+  }[]
+): SpreadsheetSheet {
+  let next = sheet
+  for (const w of writes) {
+    next = setCellRaw(next, w.row, w.col, w.raw, {
+      format: w.format,
+      clearIfEmpty: true,
+    })
+  }
+  return next
 }
 
 /**

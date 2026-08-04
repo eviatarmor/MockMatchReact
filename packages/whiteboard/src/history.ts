@@ -1,59 +1,48 @@
+import { createHistoryStack } from "@mockmatch/history"
 import { applyCommand, cloneDocument } from "./document"
 import type { WhiteboardCommand, WhiteboardDocument } from "./types"
 
 const DEFAULT_LIMIT = 100
 
 /**
- * Solo undo/redo stack (snapshots). For live Yjs rooms, host should use
- * Y.UndoManager instead and keep this disabled or empty.
+ * Solo undo/redo stack (snapshots via `@mockmatch/history`).
+ * For live Yjs rooms, host should use Y.UndoManager instead.
  */
-export function createHistory(initial: WhiteboardDocument, limit = DEFAULT_LIMIT) {
-  let past: WhiteboardDocument[] = []
-  let present = cloneDocument(initial)
-  let future: WhiteboardDocument[] = []
+export function createHistory(
+  initial: WhiteboardDocument,
+  limit = DEFAULT_LIMIT
+) {
+  const stack = createHistoryStack(initial, {
+    clone: cloneDocument,
+    limit,
+  })
 
   return {
     get document() {
-      return present
+      return stack.present
     },
     get canUndo() {
-      return past.length > 0
+      return stack.canUndo
     },
     get canRedo() {
-      return future.length > 0
+      return stack.canRedo
     },
     replace(doc: WhiteboardDocument) {
-      present = cloneDocument(doc)
-      past = []
-      future = []
+      stack.replace(doc)
     },
     /** Replace present without clearing history (remote materialize). */
     setPresent(doc: WhiteboardDocument) {
-      present = cloneDocument(doc)
+      stack.setPresent(doc)
     },
     dispatch(command: WhiteboardCommand): WhiteboardDocument {
-      const next = applyCommand(present, command)
-      if (next === present) return present
-      past = [...past.slice(-(limit - 1)), cloneDocument(present)]
-      present = next
-      future = []
-      return present
+      const next = applyCommand(stack.present, command)
+      return stack.commit(next)
     },
     undo(): WhiteboardDocument {
-      if (past.length === 0) return present
-      const prev = past[past.length - 1]!
-      past = past.slice(0, -1)
-      future = [cloneDocument(present), ...future]
-      present = cloneDocument(prev)
-      return present
+      return stack.undo()
     },
     redo(): WhiteboardDocument {
-      if (future.length === 0) return present
-      const next = future[0]!
-      future = future.slice(1)
-      past = [...past, cloneDocument(present)]
-      present = cloneDocument(next)
-      return present
+      return stack.redo()
     },
   }
 }

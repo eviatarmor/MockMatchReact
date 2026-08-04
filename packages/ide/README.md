@@ -9,6 +9,29 @@ Product-agnostic IDE shell for web apps and extensions:
 - **Optional AI panel** — right-side slot next to full screen; host injects chat UI
 - **Theme-aware** — always **auto** (Monaco follows app light/dark; no theme picker)
 
+### Shared icon rail (prompts, tools)
+
+For a resume/whiteboard-style **right icon rail + collapsible panel**, use the shared chrome from `@mockmatch/ui` (not IDE-specific):
+
+```tsx
+import { IconSideRail } from "@mockmatch/ui/icon-side-rail"
+import { Markdown } from "@mockmatch/ui/markdown"
+import { FileText } from "lucide-react"
+
+<IconSideRail
+  items={[{ id: "prompt", icon: FileText, label: "Prompt", title: "Prompt", description: "…" }]}
+  defaultActiveId="prompt"
+  collapseLabel="Collapse"
+  resizeLabel="Resize"
+  storageKey="my-product.rail-width"
+  renderPanel={() => <Markdown>{promptMarkdown}</Markdown>}
+>
+  <IdeShell … />
+</IconSideRail>
+```
+
+Same component powers spreadsheet + whiteboard practice rails.
+
 > **Status:** private monorepo package. Editor chrome only — host owns run/judge/terminal/session/AI transport.
 
 ### Run / Run tests

@@ -1,3 +1,4 @@
+import { normalizeRange } from "../../address"
 import type {
   SpreadsheetPlugin,
   SpreadsheetPluginContext,
@@ -76,8 +77,26 @@ export function createKeyboardPlugin(): SpreadsheetPlugin {
       if (e.key === "Delete" || e.key === "Backspace") {
         if (!ctx.canEdit()) return false
         e.preventDefault()
-        const { row, col } = ctx.getSelection().active
-        ctx.dispatch({ type: "setCell", row, col, raw: "" })
+        const sel = ctx.getSelection()
+        const { start, end } = sel.range
+          ? normalizeRange(sel.range.start, sel.range.end)
+          : { start: sel.active, end: sel.active }
+        const cells: { row: number; col: number; raw: string }[] = []
+        for (let r = start.row; r <= end.row; r++) {
+          for (let c = start.col; c <= end.col; c++) {
+            cells.push({ row: r, col: c, raw: "" })
+          }
+        }
+        if (cells.length === 1) {
+          ctx.dispatch({
+            type: "setCell",
+            row: cells[0]!.row,
+            col: cells[0]!.col,
+            raw: "",
+          })
+        } else if (cells.length > 1) {
+          ctx.dispatch({ type: "setCells", cells })
+        }
         ctx.setFormulaDraft("")
         return true
       }

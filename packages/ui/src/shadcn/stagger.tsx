@@ -13,6 +13,17 @@ export const STAGGER = {
   ease: [0.25, 0.1, 0.25, 1] as const,
 } as const
 
+/**
+ * CSS class: stagger direct children without wrapping each in {@link StaggerItem}.
+ * Keep rules in host CSS (`client/src/index.css`) in sync with {@link STAGGER}.
+ *
+ * @example
+ * ```tsx
+ * <ul className={STAGGER_CHILDREN_CLASS}>{items.map(...)}</ul>
+ * ```
+ */
+export const STAGGER_CHILDREN_CLASS = "stagger-children" as const
+
 export type StaggerDirection = "up" | "down" | "left" | "right"
 
 export type StaggerAs = "div" | "tr" | "li"
@@ -47,6 +58,28 @@ export function staggerDelay(
   { count = STAGGER.count, delay = STAGGER.delay }: Pick<StaggerOptions, "count" | "delay"> = {}
 ): number {
   return index < count ? index * delay : 0
+}
+
+/**
+ * Scale delay so **every** item in a list of `length` participates in the cascade,
+ * while keeping total entrance time near `maxTotalDelay` (default 1s).
+ *
+ * Use for large grids (stencils, template strips) where default {@link STAGGER.count}
+ * (12) would leave later tiles with no visible stagger.
+ */
+export function staggerListOptions(
+  length: number,
+  {
+    maxTotalDelay = 1,
+    baseDelay = STAGGER.delay,
+  }: { maxTotalDelay?: number; baseDelay?: number } = {}
+): Pick<StaggerOptions, "count" | "delay"> {
+  const n = Math.max(0, Math.floor(length))
+  if (n <= 1) return { count: Math.max(n, 1), delay: baseDelay }
+  return {
+    count: n,
+    delay: Math.min(baseDelay, maxTotalDelay / (n - 1)),
+  }
 }
 
 /** Motion transition for a staggered entrance. */

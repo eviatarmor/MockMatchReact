@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@mockmatch/ui/select"
+import { StaggerItem, staggerListOptions } from "@mockmatch/ui/stagger"
 import { cn } from "@mockmatch/ui/utils"
 import {
   STENCIL_CATEGORIES,
@@ -237,25 +238,7 @@ export function WhiteboardStencilsPanel({
       {results.length === 0 ? (
         <p className="text-xs text-muted-foreground">{labels.empty}</p>
       ) : (
-        <ul className="grid grid-cols-3 gap-2">
-          {results.map((item) => (
-            <li key={item.id}>
-              <button
-                type="button"
-                onClick={() => void place(item)}
-                className={cn(
-                  "group w-full rounded-lg border border-transparent p-1 text-left transition-colors",
-                  "hover:border-blue-300 hover:bg-blue-50/50 dark:hover:border-blue-700 dark:hover:bg-blue-950/30"
-                )}
-              >
-                <Thumb svg={svgById[item.id] ?? null} name={item.name} />
-                <p className="mt-1 line-clamp-2 text-[10px] leading-tight text-foreground">
-                  {item.name}
-                </p>
-              </button>
-            </li>
-          ))}
-        </ul>
+        <StencilGrid results={results} svgById={svgById} onPlace={place} />
       )}
 
       {footer ? (
@@ -264,6 +247,50 @@ export function WhiteboardStencilsPanel({
         </div>
       ) : null}
     </div>
+  )
+}
+
+/** Grid with cascade scaled to list length (all tiles animate, not only first 12). */
+function StencilGrid({
+  results,
+  svgById,
+  onPlace,
+}: {
+  readonly results: readonly StencilIndexShape[]
+  readonly svgById: Readonly<Record<string, string>>
+  readonly onPlace: (item: StencilIndexShape) => void
+}) {
+  // Remount when the result set identity changes so entrance re-runs after search
+  const listKey = results.map((r) => r.id).join("|")
+  const { count, delay } = staggerListOptions(results.length)
+
+  return (
+    <ul key={listKey} className="grid grid-cols-3 gap-2">
+      {results.map((item, index) => (
+        <StaggerItem
+          key={item.id}
+          as="li"
+          index={index}
+          direction="up"
+          count={count}
+          delay={delay}
+        >
+          <button
+            type="button"
+            onClick={() => void onPlace(item)}
+            className={cn(
+              "group w-full rounded-lg border border-transparent p-1 text-left transition-colors",
+              "hover:border-blue-300 hover:bg-blue-50/50 dark:hover:border-blue-700 dark:hover:bg-blue-950/30"
+            )}
+          >
+            <Thumb svg={svgById[item.id] ?? null} name={item.name} />
+            <p className="mt-1 line-clamp-2 text-[10px] leading-tight text-foreground">
+              {item.name}
+            </p>
+          </button>
+        </StaggerItem>
+      ))}
+    </ul>
   )
 }
 

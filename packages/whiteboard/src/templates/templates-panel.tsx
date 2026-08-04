@@ -1,4 +1,5 @@
 import { Check } from "lucide-react"
+import { StaggerItem } from "@mockmatch/ui/stagger"
 import { cn } from "@mockmatch/ui/utils"
 import { WHITEBOARD_TEMPLATES } from "./catalog"
 import type { WhiteboardTemplate, WhiteboardTemplateId } from "../types"
@@ -106,10 +107,10 @@ export function WhiteboardTemplatesPanel({
         <h3 className="text-sm font-medium text-foreground">{labels.title}</h3>
       ) : null}
       <ul className="grid grid-cols-1 gap-2">
-        {WHITEBOARD_TEMPLATES.map((template) => {
+        {WHITEBOARD_TEMPLATES.map((template, index) => {
           const active = activeTemplateId === template.id
           return (
-            <li key={template.id}>
+            <StaggerItem key={template.id} as="li" index={index} direction="left">
               <button
                 type="button"
                 onClick={() => onSelect(template)}
@@ -136,7 +137,7 @@ export function WhiteboardTemplatesPanel({
                   ) : null}
                 </div>
               </button>
-            </li>
+            </StaggerItem>
           )
         })}
       </ul>

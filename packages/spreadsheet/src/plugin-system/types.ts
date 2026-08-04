@@ -24,6 +24,7 @@ export type SpreadsheetPointerTarget =
   | "corner"
   | "col-resize"
   | "row-resize"
+  | "fill-handle"
 
 export type SpreadsheetPointerDownEvent = {
   readonly clientX: number

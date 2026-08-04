@@ -83,7 +83,13 @@ export function createSelectionPlugin(): SpreadsheetPlugin {
     id: "selection",
     order: 10,
     onPointerDown(e: SpreadsheetPointerDownEvent, ctx) {
-      if (e.target === "col-resize" || e.target === "row-resize") return false
+      if (
+        e.target === "col-resize" ||
+        e.target === "row-resize" ||
+        e.target === "fill-handle"
+      ) {
+        return false
+      }
 
       if (e.target === "corner") {
         e.preventDefault()

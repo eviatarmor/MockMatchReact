@@ -112,12 +112,15 @@ describe("spreadsheet plugins", () => {
   it("createDefaultPlugins has stable feature ids", () => {
     const ids = createDefaultPlugins().map((p) => p.id)
     expect(ids).toEqual([
+      "history",
       "selection",
+      "fill",
       "keyboard",
       "cell-edit",
       "resize",
       "formula-bar",
       "sheet-tabs",
+      "format",
       "clipboard",
     ])
   })
@@ -177,6 +180,32 @@ describe("spreadsheet plugins", () => {
     )
     expect(handled).toBe(true)
     expect(setSelection).toHaveBeenCalledWith({ row: 1, col: 2 }, null)
+  })
+
+  it("keyboard plugin clears a multi-cell selection on Delete", () => {
+    const dispatch = vi.fn()
+    const ctx = mockCtx({
+      dispatch,
+      selection: {
+        active: { row: 0, col: 0 },
+        range: {
+          start: { row: 0, col: 0 },
+          end: { row: 1, col: 1 },
+        },
+      },
+    })
+    const plugins = [createKeyboardPlugin()]
+    const e = fakeKey("Delete")
+    expect(runPluginKeyDown(plugins, e, ctx)).toBe(true)
+    expect(dispatch).toHaveBeenCalledWith({
+      type: "setCells",
+      cells: [
+        { row: 0, col: 0, raw: "" },
+        { row: 0, col: 1, raw: "" },
+        { row: 1, col: 0, raw: "" },
+        { row: 1, col: 1, raw: "" },
+      ],
+    })
   })
 
   it("selection plugin selects full column on col-header click", () => {

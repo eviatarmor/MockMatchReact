@@ -6,8 +6,17 @@ export const spreadsheetWorkbookStatusSchema = z.enum([
   "archived",
 ])
 
+export const spreadsheetNumberFormatSchema = z.enum([
+  "general",
+  "number",
+  "percent",
+  "currency",
+  "integer",
+])
+
 export const spreadsheetCellSchema = z.object({
   raw: z.string(),
+  format: spreadsheetNumberFormatSchema.optional(),
 })
 
 export const spreadsheetSheetSchema = z.object({

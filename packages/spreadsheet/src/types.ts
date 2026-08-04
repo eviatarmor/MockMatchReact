@@ -1,6 +1,16 @@
+/** Display format for numeric cell values (Excel-ish subset). */
+export type NumberFormatId =
+  | "general"
+  | "number"
+  | "percent"
+  | "currency"
+  | "integer"
+
 export type SpreadsheetCell = {
   /** User-authored content: literal or formula starting with `=`. */
   readonly raw: string
+  /** Optional number display format (does not change stored raw). */
+  readonly format?: NumberFormatId
 }
 
 export type SpreadsheetSheet = {
@@ -42,6 +52,7 @@ export type DisplayCell = {
   readonly display: string
   readonly isFormula: boolean
   readonly error: string | null
+  readonly format?: NumberFormatId
 }
 
 export type SpreadsheetShellLabels = {

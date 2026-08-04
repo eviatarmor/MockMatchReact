@@ -2,6 +2,7 @@
   "documentTitle": "Spreadsheet — MockMatch",
   "title": "Spreadsheet practice",
   "subtitle": "Cells, sheets, and formulas",
+  "emptyPrompt": "Build or refine your workbook. Use formulas, sheets, and formatting as you would in a case or modeling exercise.",
   "header": {
     "back": "Simulations"
   },
@@ -22,5 +23,14 @@
     "saved": "Saved",
     "saving": "Saving…",
     "error": "Save failed"
+  },
+  "rail": {
+    "prompt": "Prompt",
+    "collapse": "Collapse panel",
+    "resize": "Resize panel"
+  },
+  "promptPanel": {
+    "title": "Prompt",
+    "description": "What this spreadsheet exercise asks you to build or analyze."
   }
 }

@@ -74,8 +74,14 @@ export {
 export {
   materializeWorkbook,
   ensureWorkbookYDoc,
+  replaceWorkbookYDoc,
   setCellInYDoc,
+  setCellsInYDoc,
   observeWorkbook,
+  createWorkbookUndoManager,
+  SS_ORIGIN_LOCAL,
+  SS_ORIGIN_REMOTE,
+  SS_ORIGIN_SYSTEM,
 } from "./collab/yjs-workbook"
 export type {
   SpreadsheetCell,
@@ -86,7 +92,13 @@ export type {
   SpreadsheetSelection,
   DisplayCell,
   SpreadsheetShellLabels,
+  NumberFormatId,
 } from "./types"
+export { formatNumberValue } from "./format/number-format"
+export {
+  adjustFormulaRefs,
+  copyCellRawWithOffset,
+} from "./formula/adjust-refs"
 export {
   DEFAULT_ROW_COUNT,
   DEFAULT_COL_COUNT,
@@ -128,11 +140,15 @@ export {
 
 export {
   createDefaultPlugins,
+  createHistoryPlugin,
   createSelectionPlugin,
+  createFillPlugin,
+  fillDownFromHandle,
   createKeyboardPlugin,
   createCellEditPlugin,
   createResizePlugin,
   createFormulaBarPlugin,
   createSheetTabsPlugin,
+  createFormatPlugin,
   createClipboardPlugin,
 } from "./plugins"

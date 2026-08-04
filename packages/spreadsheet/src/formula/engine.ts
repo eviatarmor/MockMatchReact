@@ -4,6 +4,7 @@ import {
   type SimpleCellAddress,
 } from "hyperformula"
 import { cellKey, parseCellKey } from "../address"
+import { formatNumberValue } from "../format/number-format"
 import type { DisplayCell, SpreadsheetDocument, SpreadsheetSheet } from "../types"
 
 /** Build (or rebuild) a HyperFormula instance from a workbook document. */
@@ -66,10 +67,12 @@ export function getDisplayCell(
   row: number,
   col: number
 ): DisplayCell {
-  const raw = sheet.cells[cellKey(row, col)]?.raw ?? ""
+  const cell = sheet.cells[cellKey(row, col)]
+  const raw = cell?.raw ?? ""
+  const format = cell?.format
   const isFormula = raw.startsWith("=")
   if (!raw) {
-    return { raw: "", display: "", isFormula: false, error: null }
+    return { raw: "", display: "", isFormula: false, error: null, format }
   }
 
   const sheetId = hf.getSheetId(sheet.name)
@@ -79,6 +82,7 @@ export function getDisplayCell(
       display: raw,
       isFormula,
       error: isFormula ? "#REF!" : null,
+      format,
     }
   }
 
@@ -91,17 +95,25 @@ export function getDisplayCell(
         display: value.value,
         isFormula,
         error: value.type,
+        format,
       }
     }
     if (value === null || value === undefined) {
-      return { raw, display: isFormula ? "" : raw, isFormula, error: null }
+      return {
+        raw,
+        display: isFormula ? "" : raw,
+        isFormula,
+        error: null,
+        format,
+      }
     }
     if (typeof value === "number") {
       return {
         raw,
-        display: formatNumber(value),
+        display: formatNumberValue(value, format),
         isFormula,
         error: null,
+        format,
       }
     }
     if (typeof value === "boolean") {
@@ -110,25 +122,32 @@ export function getDisplayCell(
         display: value ? "TRUE" : "FALSE",
         isFormula,
         error: null,
+        format,
       }
     }
-    return { raw, display: String(value), isFormula, error: null }
+    // Numeric-looking plain text can still take format
+    if (!isFormula && format && format !== "general") {
+      const n = Number(value)
+      if (Number.isFinite(n) && String(value).trim() !== "") {
+        return {
+          raw,
+          display: formatNumberValue(n, format),
+          isFormula,
+          error: null,
+          format,
+        }
+      }
+    }
+    return { raw, display: String(value), isFormula, error: null, format }
   } catch {
     return {
       raw,
       display: isFormula ? "#ERROR!" : raw,
       isFormula,
       error: "#ERROR!",
+      format,
     }
   }
-}
-
-function formatNumber(n: number): string {
-  if (!Number.isFinite(n)) return String(n)
-  // Prefer short display for integers / short floats
-  if (Number.isInteger(n)) return String(n)
-  const s = n.toPrecision(10)
-  return String(Number(s))
 }
 
 /**
