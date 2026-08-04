@@ -176,23 +176,10 @@ export function SimulationSpreadsheetPageContent() {
         selection={sheet.selection}
         labels={labels}
         getDisplay={sheet.getDisplay}
-        onSelect={sheet.select}
-        onCommitCell={sheet.commitCell}
         formulaDraft={sheet.formulaDraft}
         onFormulaDraftChange={sheet.setFormulaDraft}
-        onFormulaCommit={sheet.commitFormulaBar}
-        onSetActiveSheet={sheet.setActiveSheet}
-        onAddSheet={sheet.addSheet}
-        onRenameSheet={sheet.renameSheet}
-        onDeleteSheet={(id) => {
-          sheet.deleteSheet(id)
-        }}
-        onEnsureBounds={sheet.ensureBounds}
-        onSetColWidth={sheet.setColWidth}
-        onSetRowHeight={sheet.setRowHeight}
-        onSelectColumn={sheet.selectColumn}
-        onSelectRow={sheet.selectRow}
-        onSelectAll={sheet.selectAll}
+        onSelectionChange={sheet.select}
+        onDispatch={sheet.dispatch}
         chrome={chrome}
       />
       {workbookId ? (

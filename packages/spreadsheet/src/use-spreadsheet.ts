@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useRef, useState } from "react"
 import type { HyperFormula } from "hyperformula"
 import { toA1 } from "./address"
+import type { SpreadsheetCommand } from "./commands"
 import {
   cloneDocument,
   createEmptySheet,
@@ -62,6 +63,8 @@ export type UseSpreadsheetApi = {
   readonly activeA1: string
   readonly replaceDocument: (doc: SpreadsheetDocument) => void
   readonly engine: HyperFormula
+  /** Document mutations for plugins / shell. */
+  readonly dispatch: (command: SpreadsheetCommand) => void
 }
 
 export function useSpreadsheet(
@@ -378,6 +381,55 @@ export function useSpreadsheet(
     [selection.active.col, selection.active.row]
   )
 
+  const dispatch = useCallback(
+    (command: SpreadsheetCommand) => {
+      switch (command.type) {
+        case "setCell":
+          commitCell(command.row, command.col, command.raw)
+          break
+        case "setActiveSheet":
+          setActiveSheet(command.sheetId)
+          break
+        case "addSheet":
+          addSheet()
+          break
+        case "renameSheet":
+          renameSheet(command.sheetId, command.name)
+          break
+        case "deleteSheet":
+          deleteSheet(command.sheetId)
+          break
+        case "reorderSheets":
+          reorderSheets([...command.orderedIds])
+          break
+        case "setColWidth":
+          setColWidth(command.col, command.width)
+          break
+        case "setRowHeight":
+          setRowHeight(command.row, command.height)
+          break
+        case "ensureBounds":
+          ensureBounds(command.minRows, command.minCols)
+          break
+        default: {
+          const _exhaustive: never = command
+          void _exhaustive
+        }
+      }
+    },
+    [
+      addSheet,
+      commitCell,
+      deleteSheet,
+      ensureBounds,
+      renameSheet,
+      reorderSheets,
+      setActiveSheet,
+      setColWidth,
+      setRowHeight,
+    ]
+  )
+
   return {
     document,
     selection,
@@ -401,5 +453,6 @@ export function useSpreadsheet(
     activeA1,
     replaceDocument,
     engine: engineRef.current!,
+    dispatch,
   }
 }

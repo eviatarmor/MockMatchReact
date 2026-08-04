@@ -1,8 +1,21 @@
-import type { ReactNode } from "react"
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react"
 import { cn } from "@mockmatch/ui/utils"
-import { FormulaBar } from "./formula-bar"
+import type { SpreadsheetCommand } from "./commands"
 import { SpreadsheetGrid } from "./grid/spreadsheet-grid"
-import { SheetTabs } from "./sheet-tabs"
+import {
+  collectChrome,
+  sortPlugins,
+  type SpreadsheetPlugin,
+  type SpreadsheetPluginContext,
+} from "./plugin-system"
+import { createDefaultPlugins } from "./plugins"
 import type {
   CellCoord,
   DisplayCell,
@@ -10,29 +23,24 @@ import type {
   SpreadsheetSelection,
   SpreadsheetShellLabels,
 } from "./types"
-import { toA1 } from "./address"
 
 export type SpreadsheetShellProps = {
   readonly document: SpreadsheetDocument
   readonly selection: SpreadsheetSelection
   readonly labels: SpreadsheetShellLabels
   readonly getDisplay: (row: number, col: number) => DisplayCell
-  readonly onSelect: (active: CellCoord, rangeEnd?: CellCoord | null) => void
-  readonly onCommitCell: (row: number, col: number, raw: string) => void
   readonly formulaDraft: string
   readonly onFormulaDraftChange: (v: string) => void
-  readonly onFormulaCommit: () => void
-  readonly onSetActiveSheet: (id: string) => void
-  readonly onAddSheet: () => void
-  readonly onRenameSheet: (id: string, name: string) => void
-  readonly onDeleteSheet: (id: string) => void
-  /** Expand active sheet for infinite scroll / keyboard (from useSpreadsheet). */
-  readonly onEnsureBounds?: (minRows: number, minCols: number) => void
-  readonly onSetColWidth?: (col: number, width: number) => void
-  readonly onSetRowHeight?: (row: number, height: number) => void
-  readonly onSelectColumn?: (col: number) => void
-  readonly onSelectRow?: (row: number) => void
-  readonly onSelectAll?: () => void
+  readonly onSelectionChange: (
+    active: CellCoord,
+    rangeEnd?: CellCoord | null
+  ) => void
+  readonly onDispatch: (command: SpreadsheetCommand) => void
+  /**
+   * Unified plugins (selection, keyboard, chrome, …).
+   * Default: createDefaultPlugins(). Pass [] for bare grid core.
+   */
+  readonly plugins?: readonly SpreadsheetPlugin[]
   readonly readOnly?: boolean
   /** Optional top chrome (IdeChromeBar, menubar, …). */
   readonly chrome?: ReactNode
@@ -40,7 +48,8 @@ export type SpreadsheetShellProps = {
 }
 
 /**
- * Full-height spreadsheet surface: chrome → formula bar → virtualized grid → sheet tabs.
+ * Full-height spreadsheet surface: host chrome → plugin top chrome →
+ * virtualized grid → plugin bottom chrome.
  * Host owns session transport, collab room, and AI panel.
  */
 export function SpreadsheetShell({
@@ -48,82 +57,155 @@ export function SpreadsheetShell({
   selection,
   labels,
   getDisplay,
-  onSelect,
-  onCommitCell,
   formulaDraft,
   onFormulaDraftChange,
-  onFormulaCommit,
-  onSetActiveSheet,
-  onAddSheet,
-  onRenameSheet,
-  onDeleteSheet,
-  onEnsureBounds,
-  onSetColWidth,
-  onSetRowHeight,
-  onSelectColumn,
-  onSelectRow,
-  onSelectAll,
+  onSelectionChange,
+  onDispatch,
+  plugins: pluginsProp,
   readOnly = false,
   chrome,
   className,
 }: SpreadsheetShellProps) {
-  const a1 = toA1(selection.active.row, selection.active.col)
+  const defaultPluginsRef = useRef<SpreadsheetPlugin[] | null>(null)
+  if (!defaultPluginsRef.current) {
+    defaultPluginsRef.current = createDefaultPlugins()
+  }
+  const plugins = pluginsProp ?? defaultPluginsRef.current
+  const sortedPlugins = useMemo(() => sortPlugins(plugins), [plugins])
+
+  const [editing, setEditing] = useState(false)
+
+  // End edit when switching sheets
+  useEffect(() => {
+    setEditing(false)
+  }, [document.activeSheetId])
+
+  const documentRef = useRef(document)
+  documentRef.current = document
+  const selectionRef = useRef(selection)
+  selectionRef.current = selection
+  const formulaDraftRef = useRef(formulaDraft)
+  formulaDraftRef.current = formulaDraft
+  const editingRef = useRef(editing)
+  editingRef.current = editing
+  const labelsRef = useRef(labels)
+  labelsRef.current = labels
+  const getDisplayRef = useRef(getDisplay)
+  getDisplayRef.current = getDisplay
+  const onDispatchRef = useRef(onDispatch)
+  onDispatchRef.current = onDispatch
+  const onSelectionChangeRef = useRef(onSelectionChange)
+  onSelectionChangeRef.current = onSelectionChange
+  const onFormulaDraftChangeRef = useRef(onFormulaDraftChange)
+  onFormulaDraftChangeRef.current = onFormulaDraftChange
+  const readOnlyRef = useRef(readOnly)
+  readOnlyRef.current = readOnly
+
+  const scrollCellIntoViewRef = useRef<
+    ((coord: CellCoord) => void) | undefined
+  >(undefined)
+  const getActiveCellRectRef = useRef<
+    (() => { left: number; top: number; width: number; height: number } | null) | undefined
+  >(undefined)
+
+  const commitActiveCell = useCallback(() => {
+    const { row, col } = selectionRef.current.active
+    onDispatchRef.current({
+      type: "setCell",
+      row,
+      col,
+      raw: formulaDraftRef.current,
+    })
+  }, [])
+
+  const ctx: SpreadsheetPluginContext = useMemo(
+    () => ({
+      getDocument: () => documentRef.current,
+      getSelection: () => selectionRef.current,
+      getFormulaDraft: () => formulaDraftRef.current,
+      isEditing: () => editingRef.current,
+      canEdit: () => !readOnlyRef.current,
+      getDisplay: (row, col) => getDisplayRef.current(row, col),
+      getLabels: () => labelsRef.current,
+      setSelection: (active, rangeEnd) =>
+        onSelectionChangeRef.current(active, rangeEnd),
+      setFormulaDraft: (v) => onFormulaDraftChangeRef.current(v),
+      setEditing: (v) => {
+        editingRef.current = v
+        setEditing(v)
+      },
+      dispatch: (cmd) => onDispatchRef.current(cmd),
+      scrollCellIntoView: (coord) => scrollCellIntoViewRef.current?.(coord),
+      getActiveCellRect: () => getActiveCellRectRef.current?.() ?? null,
+      commitActiveCell,
+    }),
+    [commitActiveCell]
+  )
+
+  // Plugin setup lifecycle
+  useEffect(() => {
+    const cleanups: Array<void | (() => void)> = []
+    for (const p of sortedPlugins) {
+      cleanups.push(p.setup?.(ctx))
+    }
+    return () => {
+      for (const c of cleanups) {
+        if (typeof c === "function") c()
+      }
+    }
+  }, [sortedPlugins, ctx])
+
+  const topChrome = collectChrome(sortedPlugins, ctx, "top")
+  const bottomChrome = collectChrome(sortedPlugins, ctx, "bottom")
+  const overlayChrome = collectChrome(sortedPlugins, ctx, "overlay")
 
   return (
     <div
       className={cn(
-        "flex h-full min-h-0 w-full flex-col overflow-hidden bg-background",
+        "relative flex h-full min-h-0 w-full flex-col overflow-hidden bg-background",
         className
       )}
     >
       {chrome ? (
         <div className="z-20 shrink-0">{chrome}</div>
       ) : null}
-      <FormulaBar
-        a1={a1}
-        value={formulaDraft}
-        onChange={onFormulaDraftChange}
-        onCommit={onFormulaCommit}
-        readOnly={readOnly}
-        nameBoxAria={labels.nameBoxAria}
-        formulaBarAria={labels.formulaBarAria}
-        className="z-10"
-      />
+      {topChrome.map((node, i) => (
+        <div key={`top-${i}`} className="shrink-0">
+          {node}
+        </div>
+      ))}
       {/* h-0 + flex-1: take remaining column height (absolute grid needs definite size) */}
       <SpreadsheetGrid
         className="h-0 min-h-0 flex-1"
         document={document}
         selection={selection}
         getDisplay={getDisplay}
-        onSelect={onSelect}
-        onCommitCell={onCommitCell}
         formulaDraft={formulaDraft}
-        onFormulaDraftChange={onFormulaDraftChange}
-        onEnsureBounds={onEnsureBounds}
-        onSetColWidth={onSetColWidth}
-        onSetRowHeight={onSetRowHeight}
-        onSelectColumn={onSelectColumn}
-        onSelectRow={onSelectRow}
-        onSelectAll={onSelectAll}
-        readOnly={readOnly}
+        plugins={sortedPlugins}
+        ctx={ctx}
+        editing={editing}
         ariaLabel={labels.gridAria}
-      />
-      <SheetTabs
-        sheets={document.sheets}
-        activeSheetId={document.activeSheetId}
-        onSelect={onSetActiveSheet}
-        onAdd={onAddSheet}
-        onRename={onRenameSheet}
-        onDelete={onDeleteSheet}
-        readOnly={readOnly}
-        labels={{
-          sheetTabsAria: labels.sheetTabsAria,
-          addSheet: labels.addSheet,
-          renameSheet: labels.renameSheet,
-          deleteSheet: labels.deleteSheet,
-          cannotDeleteLastSheet: labels.cannotDeleteLastSheet,
+        bindScrollCellIntoView={(fn) => {
+          scrollCellIntoViewRef.current = fn
+        }}
+        bindGetActiveCellRect={(fn) => {
+          getActiveCellRectRef.current = fn
         }}
       />
+      {bottomChrome.map((node, i) => (
+        <div key={`bottom-${i}`} className="shrink-0">
+          {node}
+        </div>
+      ))}
+      {overlayChrome.length > 0 ? (
+        <div className="pointer-events-none absolute inset-0 z-30">
+          {overlayChrome.map((node, i) => (
+            <div key={`overlay-${i}`} className="pointer-events-auto">
+              {node}
+            </div>
+          ))}
+        </div>
+      ) : null}
     </div>
   )
 }

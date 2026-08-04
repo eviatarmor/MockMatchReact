@@ -17,8 +17,15 @@ import {
   getRowHeight,
   visibleRange,
 } from "../layout"
+import {
+  runPluginKeyDown,
+  runPluginPointerDown,
+  runPluginPointerMove,
+  runPluginPointerUp,
+  type SpreadsheetPlugin,
+  type SpreadsheetPluginContext,
+} from "../plugin-system"
 import type {
-  CellCoord,
   DisplayCell,
   SpreadsheetDocument,
   SpreadsheetSelection,
@@ -27,10 +34,6 @@ import {
   COL_HEADER_HEIGHT,
   DEFAULT_COL_WIDTH,
   DEFAULT_ROW_HEIGHT,
-  MAX_COL_WIDTH,
-  MAX_ROW_HEIGHT,
-  MIN_COL_WIDTH,
-  MIN_ROW_HEIGHT,
   ROW_HEADER_WIDTH,
   SHEET_GROW_BUFFER_COLS,
   SHEET_GROW_BUFFER_ROWS,
@@ -40,51 +43,44 @@ import {
 
 const OVERSCAN = 4
 
-/** Text highlight inside the cell editor (matches resume / whiteboard blue). */
-const CELL_TEXT_SELECTION =
-  "caret-blue-500 selection:bg-blue-400/40 selection:text-neutral-900 dark:selection:text-neutral-50"
-
-type ResizeDrag =
-  | { kind: "col"; index: number; startX: number; startSize: number }
-  | { kind: "row"; index: number; startY: number; startSize: number }
-
 export type SpreadsheetGridProps = {
   readonly document: SpreadsheetDocument
   readonly selection: SpreadsheetSelection
   readonly getDisplay: (row: number, col: number) => DisplayCell
-  readonly onSelect: (active: CellCoord, rangeEnd?: CellCoord | null) => void
-  readonly onCommitCell: (row: number, col: number, raw: string) => void
   readonly formulaDraft: string
-  readonly onFormulaDraftChange: (v: string) => void
-  /** Expand sheet so scroll / keyboard can keep going (infinite grid). */
-  readonly onEnsureBounds?: (minRows: number, minCols: number) => void
-  readonly onSetColWidth?: (col: number, width: number) => void
-  readonly onSetRowHeight?: (row: number, height: number) => void
-  readonly onSelectColumn?: (col: number) => void
-  readonly onSelectRow?: (row: number) => void
-  readonly onSelectAll?: () => void
-  readonly readOnly?: boolean
+  readonly plugins: readonly SpreadsheetPlugin[]
+  readonly ctx: SpreadsheetPluginContext
+  readonly editing: boolean
   readonly ariaLabel: string
   readonly className?: string
+  readonly bindScrollCellIntoView?: (
+    fn: (coord: { row: number; col: number }) => void
+  ) => void
+  readonly bindGetActiveCellRect?: (
+    fn: () => {
+      left: number
+      top: number
+      width: number
+      height: number
+    } | null
+  ) => void
 }
 
+/**
+ * Thin virtualized grid host. Interaction comes from `plugins` via `ctx`.
+ */
 export function SpreadsheetGrid({
   document,
   selection,
   getDisplay,
-  onSelect,
-  onCommitCell,
   formulaDraft,
-  onFormulaDraftChange,
-  onEnsureBounds,
-  onSetColWidth,
-  onSetRowHeight,
-  onSelectColumn,
-  onSelectRow,
-  onSelectAll,
-  readOnly = false,
+  plugins,
+  ctx,
+  editing,
   ariaLabel,
   className,
+  bindScrollCellIntoView,
+  bindGetActiveCellRect,
 }: SpreadsheetGridProps) {
   const sheet = getActiveSheet(document)
   const rowCount = sheet?.rowCount ?? 0
@@ -93,20 +89,16 @@ export function SpreadsheetGrid({
   const scrollerRef = useRef<HTMLDivElement>(null)
   const [scroll, setScroll] = useState({ top: 0, left: 0 })
   const [viewport, setViewport] = useState({ w: 800, h: 600 })
-  const [editing, setEditing] = useState(false)
-  const editRef = useRef<HTMLInputElement>(null)
-  const dragAnchor = useRef<CellCoord | null>(null)
-  const resizeDrag = useRef<ResizeDrag | null>(null)
-  const [resizeTick, setResizeTick] = useState(0)
+  const [layoutTick, setLayoutTick] = useState(0)
 
   const colLayout = useMemo(
     () =>
       sheet
         ? buildColLayout(sheet)
         : { offsets: [0], total: 0 },
-    // resizeTick forces recompute during drag when sheet sizes update
+    // layoutTick forces recompute during resize drag
     // eslint-disable-next-line react-hooks/exhaustive-deps -- sheet identity + sizes
-    [sheet, sheet?.colCount, sheet?.colWidths, resizeTick]
+    [sheet, sheet?.colCount, sheet?.colWidths, layoutTick]
   )
   const rowLayout = useMemo(
     () =>
@@ -114,23 +106,22 @@ export function SpreadsheetGrid({
         ? buildRowLayout(sheet)
         : { offsets: [0], total: 0 },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [sheet, sheet?.rowCount, sheet?.rowHeights, resizeTick]
+    [sheet, sheet?.rowCount, sheet?.rowHeights, layoutTick]
   )
 
   const growToCover = useCallback(
     (scrollTop: number, scrollLeft: number, vw: number, vh: number) => {
-      if (!onEnsureBounds) return
-      // Approximate with defaults (variable sizes still grow past viewport).
       const rowsNeeded =
         Math.ceil((scrollTop + vh) / DEFAULT_ROW_HEIGHT) + SHEET_GROW_BUFFER_ROWS
       const colsNeeded =
         Math.ceil((scrollLeft + vw) / DEFAULT_COL_WIDTH) + SHEET_GROW_BUFFER_COLS
-      onEnsureBounds(
-        Math.min(SHEET_MAX_ROWS, Math.max(rowsNeeded, 1)),
-        Math.min(SHEET_MAX_COLS, Math.max(colsNeeded, 1))
-      )
+      ctx.dispatch({
+        type: "ensureBounds",
+        minRows: Math.min(SHEET_MAX_ROWS, Math.max(rowsNeeded, 1)),
+        minCols: Math.min(SHEET_MAX_COLS, Math.max(colsNeeded, 1)),
+      })
     },
-    [onEnsureBounds]
+    [ctx]
   )
 
   useEffect(() => {
@@ -148,45 +139,72 @@ export function SpreadsheetGrid({
     return () => ro.disconnect()
   }, [growToCover])
 
+  // Focus editor when entering edit mode
   useEffect(() => {
-    if (editing) {
-      editRef.current?.focus()
-      editRef.current?.select()
-    }
+    if (!editing) return
+    const input = scrollerRef.current?.querySelector<HTMLInputElement>(
+      "[data-spreadsheet-cell-editor]"
+    )
+    input?.focus()
+    input?.select()
   }, [editing, selection.active.row, selection.active.col])
 
-  useEffect(() => {
-    setEditing(false)
-  }, [document.activeSheetId])
+  const scrollCellIntoView = useCallback(
+    (next: { row: number; col: number }) => {
+      const el = scrollerRef.current
+      if (!el || !sheet) return
+      const x = colLayout.offsets[next.col] ?? 0
+      const y = rowLayout.offsets[next.row] ?? 0
+      const cw = getColWidth(sheet, next.col)
+      const rh = getRowHeight(sheet, next.row)
+      if (x < el.scrollLeft) el.scrollLeft = x
+      if (x + cw > el.scrollLeft + el.clientWidth - ROW_HEADER_WIDTH) {
+        el.scrollLeft = x - (el.clientWidth - ROW_HEADER_WIDTH - cw)
+      }
+      if (y < el.scrollTop) el.scrollTop = y
+      if (y + rh > el.scrollTop + el.clientHeight - COL_HEADER_HEIGHT) {
+        el.scrollTop = y - (el.clientHeight - COL_HEADER_HEIGHT - rh)
+      }
+    },
+    [colLayout.offsets, rowLayout.offsets, sheet]
+  )
 
-  // Column / row resize drag
+  const getActiveCellRect = useCallback(() => {
+    if (!sheet) return null
+    const { row, col } = selection.active
+    return {
+      left: ROW_HEADER_WIDTH + (colLayout.offsets[col] ?? 0),
+      top: COL_HEADER_HEIGHT + (rowLayout.offsets[row] ?? 0),
+      width: getColWidth(sheet, col),
+      height: getRowHeight(sheet, row),
+    }
+  }, [colLayout.offsets, rowLayout.offsets, selection.active, sheet])
+
+  useEffect(() => {
+    bindScrollCellIntoView?.(scrollCellIntoView)
+  }, [bindScrollCellIntoView, scrollCellIntoView])
+
+  useEffect(() => {
+    bindGetActiveCellRect?.(getActiveCellRect)
+  }, [bindGetActiveCellRect, getActiveCellRect])
+
+  // Window-level move/up for drag (selection + resize)
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
-      const drag = resizeDrag.current
-      if (!drag) return
-      if (drag.kind === "col" && onSetColWidth) {
-        const next = Math.min(
-          MAX_COL_WIDTH,
-          Math.max(MIN_COL_WIDTH, drag.startSize + (e.clientX - drag.startX))
-        )
-        onSetColWidth(drag.index, next)
-        setResizeTick((t) => t + 1)
-      } else if (drag.kind === "row" && onSetRowHeight) {
-        const next = Math.min(
-          MAX_ROW_HEIGHT,
-          Math.max(MIN_ROW_HEIGHT, drag.startSize + (e.clientY - drag.startY))
-        )
-        onSetRowHeight(drag.index, next)
-        setResizeTick((t) => t + 1)
-      }
+      const handled = runPluginPointerMove(
+        plugins,
+        { clientX: e.clientX, clientY: e.clientY },
+        ctx
+      )
+      // Resize updates col/row sizes — recompute layouts
+      if (handled) setLayoutTick((t) => t + 1)
     }
-    const onUp = () => {
-      if (resizeDrag.current) {
-        resizeDrag.current = null
-        globalThis.document.body.style.cursor = ""
-        globalThis.document.body.style.userSelect = ""
-      }
-      dragAnchor.current = null
+    const onUp = (e: MouseEvent) => {
+      runPluginPointerUp(
+        plugins,
+        { clientX: e.clientX, clientY: e.clientY },
+        ctx
+      )
     }
     window.addEventListener("mousemove", onMove)
     window.addEventListener("mouseup", onUp)
@@ -194,7 +212,7 @@ export function SpreadsheetGrid({
       window.removeEventListener("mousemove", onMove)
       window.removeEventListener("mouseup", onUp)
     }
-  }, [onSetColWidth, onSetRowHeight])
+  }, [ctx, plugins])
 
   const totalWidth = ROW_HEADER_WIDTH + colLayout.total
   const totalHeight = COL_HEADER_HEIGHT + rowLayout.total
@@ -227,214 +245,52 @@ export function SpreadsheetGrid({
   const rangeStart = selection.range?.start ?? selection.active
   const rangeEnd = selection.range?.end ?? selection.active
 
-  const commitEdit = useCallback(() => {
-    if (!editing || readOnly) {
-      setEditing(false)
-      return
-    }
-    onCommitCell(selection.active.row, selection.active.col, formulaDraft)
-    setEditing(false)
-  }, [
-    editing,
-    formulaDraft,
-    onCommitCell,
-    readOnly,
-    selection.active.col,
-    selection.active.row,
-  ])
-
-  const startEdit = useCallback(
-    (seed?: string) => {
-      if (readOnly) return
-      if (seed !== undefined) onFormulaDraftChange(seed)
-      setEditing(true)
-    },
-    [onFormulaDraftChange, readOnly]
-  )
-
-  const scrollCellIntoView = useCallback(
-    (next: CellCoord) => {
-      const el = scrollerRef.current
-      if (!el || !sheet) return
-      const x = colLayout.offsets[next.col] ?? 0
-      const y = rowLayout.offsets[next.row] ?? 0
-      const cw = getColWidth(sheet, next.col)
-      const rh = getRowHeight(sheet, next.row)
-      if (x < el.scrollLeft) el.scrollLeft = x
-      if (x + cw > el.scrollLeft + el.clientWidth - ROW_HEADER_WIDTH) {
-        el.scrollLeft = x - (el.clientWidth - ROW_HEADER_WIDTH - cw)
-      }
-      if (y < el.scrollTop) el.scrollTop = y
-      if (y + rh > el.scrollTop + el.clientHeight - COL_HEADER_HEIGHT) {
-        el.scrollTop = y - (el.clientHeight - COL_HEADER_HEIGHT - rh)
-      }
-    },
-    [colLayout.offsets, rowLayout.offsets, sheet]
-  )
-
-  const moveActive = useCallback(
-    (dRow: number, dCol: number, extend: boolean) => {
-      const next = {
-        row: Math.max(
-          0,
-          Math.min(SHEET_MAX_ROWS - 1, selection.active.row + dRow)
-        ),
-        col: Math.max(
-          0,
-          Math.min(SHEET_MAX_COLS - 1, selection.active.col + dCol)
-        ),
-      }
-      onEnsureBounds?.(
-        next.row + 1 + SHEET_GROW_BUFFER_ROWS,
-        next.col + 1 + SHEET_GROW_BUFFER_COLS
-      )
-      if (extend) {
-        const a = selection.range?.start ?? selection.active
-        onSelect(next, a)
-      } else {
-        onSelect(next, null)
-      }
-      scrollCellIntoView(next)
-    },
-    [onEnsureBounds, onSelect, scrollCellIntoView, selection]
-  )
-
   const onKeyDown = useCallback(
     (e: ReactKeyboardEvent) => {
-      if (editing) {
-        if (e.key === "Enter") {
-          e.preventDefault()
-          commitEdit()
-          moveActive(e.shiftKey ? -1 : 1, 0, false)
-        } else if (e.key === "Tab") {
-          e.preventDefault()
-          commitEdit()
-          moveActive(0, e.shiftKey ? -1 : 1, false)
-        } else if (e.key === "Escape") {
-          e.preventDefault()
-          const d = getDisplay(selection.active.row, selection.active.col)
-          onFormulaDraftChange(d.raw)
-          setEditing(false)
-        }
-        return
-      }
-
-      if (e.key === "Enter" || e.key === "F2") {
-        e.preventDefault()
-        startEdit()
-        return
-      }
-      if (e.key === "Delete" || e.key === "Backspace") {
-        if (readOnly) return
-        e.preventDefault()
-        onCommitCell(selection.active.row, selection.active.col, "")
-        onFormulaDraftChange("")
-        return
-      }
-      if (e.key === "ArrowUp") {
-        e.preventDefault()
-        moveActive(-1, 0, e.shiftKey)
-        return
-      }
-      if (e.key === "ArrowDown") {
-        e.preventDefault()
-        moveActive(1, 0, e.shiftKey)
-        return
-      }
-      if (e.key === "ArrowLeft") {
-        e.preventDefault()
-        moveActive(0, -1, e.shiftKey)
-        return
-      }
-      if (e.key === "ArrowRight") {
-        e.preventDefault()
-        moveActive(0, 1, e.shiftKey)
-        return
-      }
-      if (e.key === "Tab") {
-        e.preventDefault()
-        moveActive(0, e.shiftKey ? -1 : 1, false)
-        return
-      }
-      if (
-        !readOnly &&
-        e.key.length === 1 &&
-        !e.ctrlKey &&
-        !e.metaKey &&
-        !e.altKey
-      ) {
-        e.preventDefault()
-        startEdit(e.key)
-      }
+      runPluginKeyDown(plugins, e.nativeEvent, ctx)
     },
-    [
-      commitEdit,
-      editing,
-      getDisplay,
-      moveActive,
-      onCommitCell,
-      onFormulaDraftChange,
-      readOnly,
-      selection.active.col,
-      selection.active.row,
-      startEdit,
-    ]
+    [ctx, plugins]
   )
 
-  const onCellMouseDown = useCallback(
-    (row: number, col: number, e: ReactMouseEvent) => {
-      if (editing) commitEdit()
-      dragAnchor.current = { row, col }
-      if (e.shiftKey) {
-        onSelect({ row, col }, selection.active)
-      } else {
-        onSelect({ row, col }, null)
-      }
+  const firePointerDown = useCallback(
+    (
+      target: Parameters<typeof runPluginPointerDown>[1]["target"],
+      e: ReactMouseEvent,
+      row?: number,
+      col?: number
+    ) => {
+      runPluginPointerDown(
+        plugins,
+        {
+          clientX: e.clientX,
+          clientY: e.clientY,
+          shiftKey: e.shiftKey,
+          target,
+          row,
+          col,
+          preventDefault: () => e.preventDefault(),
+          stopPropagation: () => e.stopPropagation(),
+        },
+        ctx
+      )
     },
-    [commitEdit, editing, onSelect, selection.active]
+    [ctx, plugins]
   )
 
-  const onCellMouseEnter = useCallback(
-    (row: number, col: number) => {
-      if (!dragAnchor.current || resizeDrag.current) return
-      onSelect({ row, col }, dragAnchor.current)
-    },
-    [onSelect]
-  )
+  const cellEditor = useMemo(() => {
+    if (!editing) return null
+    for (const p of plugins) {
+      const rect = getActiveCellRect()
+      if (!rect) continue
+      const node = p.renderCellEditor?.(ctx, rect)
+      if (node != null) return node
+    }
+    return null
+  }, [ctx, editing, getActiveCellRect, plugins])
 
-  const startColResize = useCallback(
-    (col: number, e: ReactMouseEvent) => {
-      if (readOnly || !sheet || !onSetColWidth) return
-      e.preventDefault()
-      e.stopPropagation()
-      resizeDrag.current = {
-        kind: "col",
-        index: col,
-        startX: e.clientX,
-        startSize: getColWidth(sheet, col),
-      }
-      globalThis.document.body.style.cursor = "col-resize"
-      globalThis.document.body.style.userSelect = "none"
-    },
-    [onSetColWidth, readOnly, sheet]
-  )
-
-  const startRowResize = useCallback(
-    (row: number, e: ReactMouseEvent) => {
-      if (readOnly || !sheet || !onSetRowHeight) return
-      e.preventDefault()
-      e.stopPropagation()
-      resizeDrag.current = {
-        kind: "row",
-        index: row,
-        startY: e.clientY,
-        startSize: getRowHeight(sheet, row),
-      }
-      globalThis.document.body.style.cursor = "row-resize"
-      globalThis.document.body.style.userSelect = "none"
-    },
-    [onSetRowHeight, readOnly, sheet]
-  )
+  void formulaDraft
+  void rowCount
+  void colCount
 
   return (
     <div
@@ -447,7 +303,6 @@ export function SpreadsheetGrid({
       aria-label={ariaLabel}
       onKeyDown={onKeyDown}
     >
-      {/* Native overflow — theme.css styles the scrollbar globally. */}
       <div
         ref={scrollerRef}
         className="absolute inset-0 overflow-auto bg-background"
@@ -474,11 +329,7 @@ export function SpreadsheetGrid({
               width: ROW_HEADER_WIDTH,
               height: COL_HEADER_HEIGHT,
             }}
-            onMouseDown={(e) => {
-              e.preventDefault()
-              if (editing) commitEdit()
-              onSelectAll?.()
-            }}
+            onMouseDown={(e) => firePointerDown("corner", e)}
           />
 
           {/* Column headers */}
@@ -504,22 +355,19 @@ export function SpreadsheetGrid({
                   height: COL_HEADER_HEIGHT,
                 }}
                 onMouseDown={(e) => {
-                  // Resize handle owns the right edge
                   if ((e.target as HTMLElement).dataset.resize === "col") return
-                  e.preventDefault()
-                  if (editing) commitEdit()
-                  onSelectColumn?.(c)
+                  firePointerDown("col-header", e, undefined, c)
                 }}
               >
                 <span>{colToLetter(c)}</span>
-                {!readOnly ? (
+                {ctx.canEdit() ? (
                   <div
                     data-resize="col"
                     role="separator"
                     aria-orientation="vertical"
                     aria-label={`Resize column ${colToLetter(c)}`}
                     className="absolute top-0 right-0 z-10 h-full w-1.5 cursor-col-resize hover:bg-blue-400/50"
-                    onMouseDown={(e) => startColResize(c, e)}
+                    onMouseDown={(e) => firePointerDown("col-resize", e, undefined, c)}
                   />
                 ) : null}
               </div>
@@ -550,20 +398,18 @@ export function SpreadsheetGrid({
                   }}
                   onMouseDown={(e) => {
                     if ((e.target as HTMLElement).dataset.resize === "row") return
-                    e.preventDefault()
-                    if (editing) commitEdit()
-                    onSelectRow?.(r)
+                    firePointerDown("row-header", e, r, undefined)
                   }}
                 >
                   {r + 1}
-                  {!readOnly ? (
+                  {ctx.canEdit() ? (
                     <div
                       data-resize="row"
                       role="separator"
                       aria-orientation="horizontal"
                       aria-label={`Resize row ${r + 1}`}
                       className="absolute right-0 bottom-0 left-0 z-10 h-1.5 cursor-row-resize hover:bg-blue-400/50"
-                      onMouseDown={(e) => startRowResize(r, e)}
+                      onMouseDown={(e) => firePointerDown("row-resize", e, r, undefined)}
                     />
                   ) : null}
                 </div>
@@ -611,22 +457,25 @@ export function SpreadsheetGrid({
                         width,
                         height,
                       }}
-                      onMouseDown={(e) => onCellMouseDown(r, c, e)}
-                      onMouseEnter={() => onCellMouseEnter(r, c)}
-                      onDoubleClick={() => startEdit()}
+                      onMouseDown={(e) => firePointerDown("cell", e, r, c)}
+                      onMouseEnter={() => {
+                        runPluginPointerMove(
+                          plugins,
+                          {
+                            clientX: 0,
+                            clientY: 0,
+                            row: r,
+                            col: c,
+                          },
+                          ctx
+                        )
+                      }}
+                      onDoubleClick={() => {
+                        if (ctx.canEdit()) ctx.setEditing(true)
+                      }}
                     >
                       {isEdit ? (
-                        <input
-                          ref={editRef}
-                          className={cn(
-                            "h-full w-full bg-transparent px-0.5 text-xs outline-none",
-                            CELL_TEXT_SELECTION
-                          )}
-                          value={formulaDraft}
-                          onChange={(e) => onFormulaDraftChange(e.target.value)}
-                          onBlur={commitEdit}
-                          onMouseDown={(e) => e.stopPropagation()}
-                        />
+                        cellEditor
                       ) : (
                         <span className="truncate">{display.display}</span>
                       )}

@@ -87,3 +87,36 @@ export {
   SHEET_MAX_ROWS,
   SHEET_MAX_COLS,
 } from "./types"
+
+export type { SpreadsheetCommand } from "./commands"
+
+export type {
+  CellRect,
+  SpreadsheetChromeSlot,
+  SpreadsheetPlugin,
+  SpreadsheetPluginContext,
+  SpreadsheetPointerDownEvent,
+  SpreadsheetPointerMoveEvent,
+  SpreadsheetPointerTarget,
+  SpreadsheetPointerUpEvent,
+} from "./plugin-system"
+
+export {
+  collectChrome,
+  runPluginKeyDown,
+  runPluginPointerDown,
+  runPluginPointerMove,
+  runPluginPointerUp,
+  sortPlugins,
+} from "./plugin-system"
+
+export {
+  createDefaultPlugins,
+  createSelectionPlugin,
+  createKeyboardPlugin,
+  createCellEditPlugin,
+  createResizePlugin,
+  createFormulaBarPlugin,
+  createSheetTabsPlugin,
+  createClipboardPlugin,
+} from "./plugins"
