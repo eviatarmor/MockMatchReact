@@ -437,7 +437,7 @@ export function SpreadsheetGrid({
                       role="gridcell"
                       aria-selected={active || Boolean(ranged)}
                       className={cn(
-                        "absolute flex items-center border-b border-r border-border/80 px-1.5 text-xs",
+                        "absolute flex cursor-default select-none items-center border-b border-r border-border/80 px-1.5 text-xs",
                         ranged && !active && "bg-blue-400/15 dark:bg-blue-400/20",
                         active &&
                           "z-10 bg-background ring-2 ring-inset ring-blue-400",

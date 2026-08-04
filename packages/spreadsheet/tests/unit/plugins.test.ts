@@ -179,6 +179,111 @@ describe("spreadsheet plugins", () => {
     expect(setSelection).toHaveBeenCalledWith({ row: 1, col: 2 }, null)
   })
 
+  it("selection plugin selects full column on col-header click", () => {
+    const setSelection = vi.fn()
+    const doc = createEmptyWorkbook()
+    const sheet = doc.sheets[0]!
+    // rowCount/colCount come from createEmptyWorkbook defaults
+    const ctx = mockCtx({
+      setSelection,
+      document: doc,
+      selection: { active: { row: 0, col: 0 }, range: null },
+    })
+    const plugins = [createSelectionPlugin()]
+    const handled = runPluginPointerDown(
+      plugins,
+      {
+        clientX: 0,
+        clientY: 0,
+        shiftKey: false,
+        target: "col-header",
+        col: 2,
+        preventDefault: vi.fn(),
+        stopPropagation: vi.fn(),
+      },
+      ctx
+    )
+    expect(handled).toBe(true)
+    expect(setSelection).toHaveBeenCalledWith(
+      { row: 0, col: 2 },
+      { row: Math.max(0, sheet.rowCount - 1), col: 2 }
+    )
+  })
+
+  it("selection plugin shift+col-header extends column range", () => {
+    const setSelection = vi.fn()
+    const doc = createEmptyWorkbook()
+    const sheet = doc.sheets[0]!
+    const lastRow = Math.max(0, sheet.rowCount - 1)
+    const ctx = mockCtx({
+      setSelection,
+      document: doc,
+      selection: {
+        active: { row: 0, col: 1 },
+        range: {
+          start: { row: 0, col: 1 },
+          end: { row: lastRow, col: 1 },
+        },
+      },
+    })
+    const plugins = [createSelectionPlugin()]
+    const handled = runPluginPointerDown(
+      plugins,
+      {
+        clientX: 0,
+        clientY: 0,
+        shiftKey: true,
+        target: "col-header",
+        col: 4,
+        preventDefault: vi.fn(),
+        stopPropagation: vi.fn(),
+      },
+      ctx
+    )
+    expect(handled).toBe(true)
+    expect(setSelection).toHaveBeenCalledWith(
+      { row: 0, col: 4 },
+      { row: lastRow, col: 1 }
+    )
+  })
+
+  it("selection plugin shift+row-header extends row range", () => {
+    const setSelection = vi.fn()
+    const doc = createEmptyWorkbook()
+    const sheet = doc.sheets[0]!
+    const lastCol = Math.max(0, sheet.colCount - 1)
+    const ctx = mockCtx({
+      setSelection,
+      document: doc,
+      selection: {
+        active: { row: 2, col: 0 },
+        range: {
+          start: { row: 2, col: 0 },
+          end: { row: 2, col: lastCol },
+        },
+      },
+    })
+    const plugins = [createSelectionPlugin()]
+    const handled = runPluginPointerDown(
+      plugins,
+      {
+        clientX: 0,
+        clientY: 0,
+        shiftKey: true,
+        target: "row-header",
+        row: 6,
+        preventDefault: vi.fn(),
+        stopPropagation: vi.fn(),
+      },
+      ctx
+    )
+    expect(handled).toBe(true)
+    expect(setSelection).toHaveBeenCalledWith(
+      { row: 6, col: 0 },
+      { row: 2, col: lastCol }
+    )
+  })
+
   it("collectChrome gathers top slot nodes", () => {
     const plugins = createDefaultPlugins()
     const ctx = mockCtx()
