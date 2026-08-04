@@ -184,5 +184,6 @@ Practice formats use this package at:
 - `/simulations/code-run/js-sum` — single-file JS; client-side Run via browser-runner
 - `/simulations/code-run/ts-sum` — single-file TS (esbuild-wasm)
 - `/simulations/code-run/py-hello` — single-file Python (Pyodide)
+- `/simulations/:questionId` — bank `code_run` questions (UUID; host loads starter + tests from API)
 - `/simulations/terminal-lab` — multi-tab shell lab + collab presence
 - `/simulations/workspace` — freeform multi-file collab IDE

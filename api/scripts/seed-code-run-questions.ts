@@ -1,18 +1,20 @@
 /**
- * Seed spreadsheet + page bank questions for local practice testing.
+ * Seed code_run bank questions for local practice testing.
+ * Practice URL: /simulations/:questionId (no format slug).
  *
- *   cd api && npx tsx scripts/seed-spreadsheet-page-questions.ts
+ *   cd api && npx tsx scripts/seed-code-run-questions.ts
+ *   # or: npm run db:seed:code-run
  */
 import { config as loadDotenv } from "dotenv"
 loadDotenv()
 
 import { db, closeDb } from "../src/db/client.js"
-import { seedSpreadsheetPageQuestions } from "../src/modules/questions/seed-spreadsheet-page.js"
+import { seedCodeRunQuestions } from "../src/modules/questions/seed-code-run.js"
 
 async function main() {
-  const result = await seedSpreadsheetPageQuestions(db)
+  const result = await seedCodeRunQuestions(db)
   console.log(
-    `Spreadsheet/page seed: inserted=${result.inserted} skipped=${result.skipped}`
+    `Code-run seed: inserted=${result.inserted} skipped=${result.skipped}`
   )
   for (const row of result.rows) {
     console.log(`  [${row.format}] ${row.title}`)

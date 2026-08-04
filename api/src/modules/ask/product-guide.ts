@@ -61,6 +61,7 @@ application tracking, practice, and readiness insights.
      - **cpp-sort** — **single-file** Monaco only (no tree); **tabs cannot be closed**. C++ browser runtime planned (WASI/clang).
      - **js-sum / ts-sum / py-hello** — sum integers (JS/TS/Python); **Run** + **Run tests** (I/O cases).
      - **js-fizzbuzz / js-reverse / py-factorial / ts-palindrome / py-vowels** — more code-run labs with tests.
+     - Bank **code_run** questions (e.g. Two Sum) open at \`/simulations/:questionId\` — no format slug; IDE loads from \`questions\` + \`content_cache\`.
      - **cpp-sort** — C++ sort via client-side clang++ (Runno); **Run** / **Run tests**.
      - **react** · **shell** · **workspace** — multi-file / terminal / freeform.
    - **Conversation** — bank questions: \`/simulations/:questionId\`. Catalog tracks: \`/simulations/conversation/:trackId\` (behavioral-core, product-sense, system-design-talk). Live agent interview (robot + chat). Setup dialog → \`voice.createSession\` (credits → \`mockInterviews\`, sticky worker URL, ICE/TURN, SSE events URL + WebRTC ticket). Pipecat \`voice/\` workers: STT → OpenRouter LLM → TTS; publish \`agent_state\` + transcript via Redis; flush turns to Postgres. Client SSE drives robot/chat (mock pipeline only if voice fails). Scale: worker pool, **task per session**. Camera analysis UI-only.
