@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest"
 import {
+  connectorPolyline,
+  createConnector,
   createEmptyBoard,
   createShape,
   createSticky,
+  elementBounds,
   isBoardEmpty,
   listElementsSorted,
   marqueeSelectIds,
@@ -39,6 +42,62 @@ describe("whiteboard document helpers", () => {
     expect(sorted[0]?.id).toBe(b.id)
     expect(sorted[1]?.id).toBe(a.id)
     expect(maxZ(doc)).toBe(2)
+  })
+})
+
+describe("connectorPolyline / elementBounds with anchors", () => {
+  it("resolves element-to-element elbow polyline", () => {
+    const a = createShape({ x: 0, y: 0, w: 100, h: 60 })
+    const b = createShape({ x: 200, y: 100, w: 100, h: 60 })
+    const c = createConnector({
+      from: { kind: "element", elementId: a.id, anchor: "e" },
+      to: { kind: "element", elementId: b.id, anchor: "w" },
+      routing: "elbow",
+    })
+    const doc = {
+      version: 1 as const,
+      elements: { [a.id]: a, [b.id]: b, [c.id]: c },
+    }
+    const pts = connectorPolyline(c, doc)
+    // East of A: (100, 30); west of B: (200, 130) → elbow via midX
+    expect(pts[0]).toEqual({ x: 100, y: 30 })
+    expect(pts[pts.length - 1]).toEqual({ x: 200, y: 130 })
+    expect(pts.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it("elementBounds for attached connector needs doc", () => {
+    const a = createShape({ x: 50, y: 50, w: 80, h: 40 })
+    const b = createShape({ x: 250, y: 50, w: 80, h: 40 })
+    const c = createConnector({
+      from: { kind: "element", elementId: a.id, anchor: "e" },
+      to: { kind: "element", elementId: b.id, anchor: "w" },
+    })
+    const doc = {
+      version: 1 as const,
+      elements: { [a.id]: a, [b.id]: b, [c.id]: c },
+    }
+    // Without doc: free points only → empty-ish
+    const bare = elementBounds(c)
+    expect(bare.w).toBe(0)
+    expect(bare.h).toBe(0)
+
+    const withDoc = elementBounds(c, doc)
+    expect(withDoc.x).toBe(130) // a.x + a.w
+    expect(withDoc.w).toBeGreaterThan(0)
+    expect(withDoc.x + withDoc.w).toBe(250) // b.x
+  })
+
+  it("straight routing is two points", () => {
+    const c = createConnector({
+      from: { kind: "point", x: 0, y: 0 },
+      to: { kind: "point", x: 40, y: 20 },
+      routing: "straight",
+    })
+    const doc = { version: 1 as const, elements: { [c.id]: c } }
+    expect(connectorPolyline(c, doc)).toEqual([
+      { x: 0, y: 0 },
+      { x: 40, y: 20 },
+    ])
   })
 })
 

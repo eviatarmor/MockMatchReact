@@ -21,10 +21,9 @@ import type {
 import type { ElementViewProps } from "./element-types"
 
 export type { ElementViewProps } from "./element-types"
-import { resolveConnectorPoint } from "../document"
+import { connectorPolyline } from "../document"
 import {
   elementPorts,
-  elbowPolyline,
   resizeHandlePoints,
 } from "../lib/flowchart"
 import { isBlankHtml } from "../lib/html"
@@ -686,11 +685,9 @@ export function ConnectorView({
   readonly onPointerDownElement?: (id: string, e: ReactPointerEvent) => void
   readonly passThrough?: boolean
 }) {
-  const a = resolveConnectorPoint(el.from, doc)
-  const b = resolveConnectorPoint(el.to, doc)
-  const routing = el.routing ?? "elbow"
-  const pts =
-    routing === "elbow" ? elbowPolyline(a.x, a.y, b.x, b.y) : [a, b]
+  const pts = connectorPolyline(el, doc)
+  const a = pts[0] ?? { x: 0, y: 0 }
+  const b = pts[pts.length - 1] ?? a
   const line = pts
     .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
     .join(" ")

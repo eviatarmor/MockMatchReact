@@ -46,6 +46,7 @@ export {
   createStencil,
   createSticky,
   createText,
+  connectorPolyline,
   elementBounds,
   stencilDisplaySize,
   hitTest,

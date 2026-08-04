@@ -10,6 +10,7 @@ import type {
   WhiteboardDocument,
   WhiteboardElement,
 } from "./types"
+import { elbowPolyline } from "./lib/flowchart"
 import { distToSegment, pointInPolygon } from "./lib/geometry"
 
 export function createEmptyBoard(): WhiteboardDocument {
@@ -466,47 +467,53 @@ export function preparePaste(
 
 export { PASTE_OFFSET }
 
-export function elementBounds(el: WhiteboardElement): {
+function boundsFromPoints(
+  pts: readonly { x: number; y: number }[]
+): { x: number; y: number; w: number; h: number } {
+  if (pts.length === 0) return { x: 0, y: 0, w: 0, h: 0 }
+  let minX = Infinity
+  let minY = Infinity
+  let maxX = -Infinity
+  let maxY = -Infinity
+  for (const p of pts) {
+    minX = Math.min(minX, p.x)
+    minY = Math.min(minY, p.y)
+    maxX = Math.max(maxX, p.x)
+    maxY = Math.max(maxY, p.y)
+  }
+  return {
+    x: minX,
+    y: minY,
+    w: Math.max(1, maxX - minX),
+    h: Math.max(1, maxY - minY),
+  }
+}
+
+/**
+ * World bounds of an element. Pass `doc` so connectors resolve element anchors
+ * (required for accurate minimap / export framing).
+ */
+export function elementBounds(
+  el: WhiteboardElement,
+  doc?: WhiteboardDocument
+): {
   x: number
   y: number
   w: number
   h: number
 } {
   if (el.type === "path") {
-    if (el.points.length === 0) return { x: 0, y: 0, w: 0, h: 0 }
-    let minX = Infinity
-    let minY = Infinity
-    let maxX = -Infinity
-    let maxY = -Infinity
-    for (const p of el.points) {
-      minX = Math.min(minX, p.x)
-      minY = Math.min(minY, p.y)
-      maxX = Math.max(maxX, p.x)
-      maxY = Math.max(maxY, p.y)
-    }
-    return {
-      x: minX,
-      y: minY,
-      w: Math.max(1, maxX - minX),
-      h: Math.max(1, maxY - minY),
-    }
+    return boundsFromPoints(el.points)
   }
   if (el.type === "connector") {
-    // Approximate from free points only; host may recompute with anchors
+    if (doc) {
+      return boundsFromPoints(connectorPolyline(el, doc))
+    }
+    // Free points only when doc unavailable
     const pts: { x: number; y: number }[] = []
     if (el.from.kind === "point") pts.push(el.from)
     if (el.to.kind === "point") pts.push(el.to)
-    if (pts.length === 0) return { x: 0, y: 0, w: 0, h: 0 }
-    const xs = pts.map((p) => p.x)
-    const ys = pts.map((p) => p.y)
-    const minX = Math.min(...xs)
-    const minY = Math.min(...ys)
-    return {
-      x: minX,
-      y: minY,
-      w: Math.max(1, Math.max(...xs) - minX),
-      h: Math.max(1, Math.max(...ys) - minY),
-    }
+    return boundsFromPoints(pts)
   }
   return { x: el.x, y: el.y, w: el.w, h: el.h }
 }
@@ -535,6 +542,17 @@ export function resolveConnectorPoint(
     default:
       return { x: cx, y: cy }
   }
+}
+
+/** Resolved world polyline for a connector (straight or elbow). */
+export function connectorPolyline(
+  el: ConnectorElement,
+  doc: WhiteboardDocument
+): { x: number; y: number }[] {
+  const a = resolveConnectorPoint(el.from, doc)
+  const b = resolveConnectorPoint(el.to, doc)
+  const routing = el.routing ?? "elbow"
+  return routing === "elbow" ? elbowPolyline(a.x, a.y, b.x, b.y) : [a, b]
 }
 
 /** Select element ids whose center (or path points) lie inside lasso polygon. */

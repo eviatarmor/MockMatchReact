@@ -1,5 +1,9 @@
 import { memo, useCallback, useEffect, useMemo, useRef } from "react"
-import { elementBounds, listElementsSorted } from "../../document"
+import {
+  connectorPolyline,
+  elementBounds,
+  listElementsSorted,
+} from "../../document"
 import type { WhiteboardDocument } from "../../types"
 import type { WhiteboardPlugin, WhiteboardPluginContext } from "../../plugin-system"
 
@@ -27,8 +31,7 @@ function contentBounds(doc: WhiteboardDocument): WorldBox {
   let maxX = -Infinity
   let maxY = -Infinity
   for (const el of els) {
-    if (el.type === "connector") continue
-    const b = elementBounds(el)
+    const b = elementBounds(el, doc)
     minX = Math.min(minX, b.x)
     minY = Math.min(minY, b.y)
     maxX = Math.max(maxX, b.x + b.w)
@@ -100,7 +103,26 @@ const MinimapContent = memo(function MinimapContent({
     <>
       <rect width={MAP_W} height={MAP_H} className="fill-muted/40" />
       {els.map((el) => {
-        if (el.type === "connector") return null
+        if (el.type === "connector") {
+          const pts = connectorPolyline(el, doc)
+          if (pts.length < 2) return null
+          const d = pts
+            .map((p, i) => {
+              const m = toMap(p.x, p.y)
+              return `${i === 0 ? "M" : "L"} ${m.x} ${m.y}`
+            })
+            .join(" ")
+          return (
+            <path
+              key={el.id}
+              d={d}
+              fill="none"
+              stroke={el.stroke}
+              strokeWidth={1}
+              opacity={0.75}
+            />
+          )
+        }
         if (el.type === "path") {
           const pts = samplePath(el.points)
           if (pts.length < 2) return null
@@ -121,7 +143,7 @@ const MinimapContent = memo(function MinimapContent({
             />
           )
         }
-        const b = elementBounds(el)
+        const b = elementBounds(el, doc)
         const p = toMap(b.x, b.y)
         const fill =
           el.type === "sticky"

@@ -1,4 +1,8 @@
-import { elementBounds, listElementsSorted } from "./document"
+import {
+  connectorPolyline,
+  elementBounds,
+  listElementsSorted,
+} from "./document"
 import type { WhiteboardDocument } from "./types"
 
 /**
@@ -29,7 +33,7 @@ export async function exportBoardPng(
   let maxX = -Infinity
   let maxY = -Infinity
   for (const el of elements) {
-    const b = elementBounds(el)
+    const b = elementBounds(el, doc)
     minX = Math.min(minX, b.x)
     minY = Math.min(minY, b.y)
     maxX = Math.max(maxX, b.x + b.w)
@@ -126,29 +130,56 @@ export async function exportBoardPng(
       ctx.stroke()
       ctx.restore()
     } else if (el.type === "connector") {
-      // Free points only in export approximation
-      const a =
-        el.from.kind === "point"
-          ? el.from
-          : { x: minX, y: minY }
-      const b =
-        el.to.kind === "point" ? el.to : { x: maxX, y: maxY }
-      if (el.from.kind === "point" || el.to.kind === "point") {
-        ctx.strokeStyle = el.stroke
-        ctx.lineWidth = el.strokeWidth
-        ctx.beginPath()
-        if (el.from.kind === "point" && el.to.kind === "point") {
-          ctx.moveTo(a.x + ox, a.y + oy)
-          ctx.lineTo(b.x + ox, b.y + oy)
-        }
-        ctx.stroke()
+      const pts = connectorPolyline(el, doc)
+      if (pts.length < 2) continue
+      ctx.strokeStyle = el.stroke
+      ctx.lineWidth = el.strokeWidth
+      ctx.lineCap = "round"
+      ctx.lineJoin = "round"
+      ctx.beginPath()
+      ctx.moveTo(pts[0]!.x + ox, pts[0]!.y + oy)
+      for (let i = 1; i < pts.length; i++) {
+        ctx.lineTo(pts[i]!.x + ox, pts[i]!.y + oy)
       }
+      // Arrow heads (match canvas approximation)
+      if (el.endArrow) {
+        const prev = pts[pts.length - 2]!
+        const tip = pts[pts.length - 1]!
+        strokeArrowHead(ctx, prev, tip, ox, oy)
+      }
+      if (el.startArrow) {
+        const next = pts[1]!
+        const tip = pts[0]!
+        strokeArrowHead(ctx, next, tip, ox, oy)
+      }
+      ctx.stroke()
     }
   }
 
   return new Promise((resolve) =>
     canvas.toBlob((b) => resolve(b), "image/png")
   )
+}
+
+function strokeArrowHead(
+  ctx: CanvasRenderingContext2D,
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  ox: number,
+  oy: number,
+  size = 10
+) {
+  const angle = Math.atan2(to.y - from.y, to.x - from.x)
+  const a1 = angle + Math.PI * 0.85
+  const a2 = angle - Math.PI * 0.85
+  const p1x = to.x + size * Math.cos(a1)
+  const p1y = to.y + size * Math.sin(a1)
+  const p2x = to.x + size * Math.cos(a2)
+  const p2y = to.y + size * Math.sin(a2)
+  ctx.moveTo(to.x + ox, to.y + oy)
+  ctx.lineTo(p1x + ox, p1y + oy)
+  ctx.moveTo(to.x + ox, to.y + oy)
+  ctx.lineTo(p2x + ox, p2y + oy)
 }
 
 function loadSvgImage(svg: string): Promise<HTMLImageElement> {
