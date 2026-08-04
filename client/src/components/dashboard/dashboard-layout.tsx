@@ -7,7 +7,6 @@ import { DetailPanel, DetailPanelProvider } from "@/components/dashboard/detail-
 import { useActiveSection } from "@/components/dashboard/use-active-section"
 import { useNavCollapsed } from "@/components/dashboard/use-nav-collapsed"
 import { TooltipProvider } from "@mockmatch/ui/tooltip"
-import { ScrollArea } from "@mockmatch/ui/scroll-area"
 import { AskProvider } from "@/features/ask/ask-provider"
 import { AskPanel } from "@/features/ask/components/ask-panel"
 import { useAskPanel } from "@/features/ask/ask-context"
@@ -67,11 +66,11 @@ function DashboardShell() {
               <Outlet />
             </div>
           ) : (
-            <ScrollArea className="min-h-0 flex-1">
+            <div className="min-h-0 flex-1 overflow-y-auto">
               <div className="flex min-w-0 flex-col px-6 py-6">
                 <Outlet />
               </div>
-            </ScrollArea>
+            </div>
           )}
         </main>
 

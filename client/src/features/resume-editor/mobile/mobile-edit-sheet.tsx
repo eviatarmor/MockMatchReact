@@ -7,7 +7,7 @@ import {
   SheetTitle,
   SheetFooter,
 } from "@mockmatch/ui/sheet"
-import { ScrollArea } from "@mockmatch/ui/scroll-area"
+
 import { Input } from "@mockmatch/ui/input"
 import { Label } from "@mockmatch/ui/label"
 import { Button } from "@mockmatch/ui/button"
@@ -99,12 +99,12 @@ export function MobileEditSheet({ row, document, style, handlers, onClose }: Mob
           <SheetTitle>{title}</SheetTitle>
         </SheetHeader>
 
-        <ScrollArea className="min-h-0">
+        <div className="min-h-0 overflow-y-auto">
           <div className="p-4">
             {row?.kind === "header" && <HeaderBody document={document} handlers={handlers} />}
             {section && <SectionBody section={section} style={style} handlers={handlers} />}
           </div>
-        </ScrollArea>
+        </div>
 
         {section && (
           <SheetFooter className="border-t">

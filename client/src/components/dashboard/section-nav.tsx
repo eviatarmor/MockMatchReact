@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom"
 import { ExternalLink, PanelLeftClose } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@mockmatch/ui/button"
-import { ScrollArea } from "@mockmatch/ui/scroll-area"
 import { NAV_SECTIONS } from "@/components/dashboard/constants"
 import type { NavItem, NavSection } from "@/components/dashboard/types"
 
@@ -82,7 +81,7 @@ export function SectionNav({ section, collapsed, onToggle }: SectionNavProps) {
           </Button>
         </div>
 
-        <ScrollArea className="min-h-0 flex-1">
+        <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="flex flex-col gap-5 px-3 pb-4">
             {NAV_SECTIONS.map((group) => (
               <div key={group.id} className="flex flex-col gap-1">
@@ -99,7 +98,7 @@ export function SectionNav({ section, collapsed, onToggle }: SectionNavProps) {
               </div>
             ))}
           </div>
-        </ScrollArea>
+        </div>
       </div>
     </div>
   )

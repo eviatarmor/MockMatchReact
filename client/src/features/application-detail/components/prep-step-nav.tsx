@@ -3,7 +3,6 @@ import { useRef } from "react"
 import { ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@mockmatch/ui/button"
-import { ScrollArea, ScrollBar } from "@mockmatch/ui/scroll-area"
 import type { PrepStep } from "../types"
 
 interface PrepStepNavProps {
@@ -19,8 +18,8 @@ export function PrepStepNav({ steps, activeStepId, onSelectStep }: PrepStepNavPr
 
   return (
     <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-card p-2 shadow-sm">
-      <ScrollArea className="flex-1">
-        <div ref={scrollRef} className="flex items-center gap-2 px-1 py-1">
+      <div ref={scrollRef} className="min-w-0 flex-1 overflow-x-auto">
+        <div className="flex items-center gap-2 px-1 py-1">
           {steps.map((step, index) => {
             const isActive = index === activeIndex
             const isCompleted = index < activeIndex
@@ -56,8 +55,7 @@ export function PrepStepNav({ steps, activeStepId, onSelectStep }: PrepStepNavPr
             )
           })}
         </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+      </div>
       <Button
         variant="ghost"
         size="icon"

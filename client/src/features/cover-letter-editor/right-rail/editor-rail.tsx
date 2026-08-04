@@ -4,7 +4,7 @@ import { PanelRightClose } from "lucide-react"
 import { CollapsibleSidePanel } from "@mockmatch/ui/collapsible-side-panel"
 import { cn } from "@/lib/utils"
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@mockmatch/ui/tooltip"
-import { ScrollArea } from "@mockmatch/ui/scroll-area"
+
 import { Button } from "@mockmatch/ui/button"
 import { SidePanelResizeHandle } from "@mockmatch/ui/side-panel-resize-handle"
 import { useSidePanelWidth } from "@/hooks/use-side-panel-width"
@@ -204,7 +204,7 @@ export function EditorRail({
                     <AiPanel />
                   </div>
                 ) : (
-                  <ScrollArea className="min-h-0 flex-1">
+                  <div className="min-h-0 flex-1 overflow-y-auto">
                     <div key={displayPanel} className="px-4 py-4">
                       <PanelBody
                         panel={displayPanel}
@@ -219,7 +219,7 @@ export function EditorRail({
                         onHistoryRestored={onHistoryRestored}
                       />
                     </div>
-                  </ScrollArea>
+                  </div>
                 )}
               </>
             ) : null}

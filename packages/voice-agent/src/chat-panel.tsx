@@ -3,7 +3,7 @@ import {
   Transcription,
   TranscriptionSegment,
 } from "@mockmatch/ai-chat/ai-elements/transcription"
-import { ScrollArea } from "@mockmatch/ui/scroll-area"
+
 import { cn } from "@mockmatch/ui/utils"
 import { ConversationInput } from "./conversation-input"
 import type { ChatPanelLabels, TranscriptTurn } from "./types"
@@ -57,7 +57,7 @@ export function ChatPanel({
       )}
       aria-label={labels.title}
     >
-      <ScrollArea className="min-h-0 flex-1">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="flex flex-col gap-3 p-4">
           {turns.length === 0 ? (
             <p className="text-sm text-muted-foreground">{labels.empty}</p>
@@ -133,7 +133,7 @@ export function ChatPanel({
           )}
           <div ref={bottomRef} />
         </div>
-      </ScrollArea>
+      </div>
 
       {!phaseEnded ? (
         <ConversationInput

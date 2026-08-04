@@ -180,3 +180,34 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(1 0 0 / 30%);
 }
+
+/*
+ * Native scrollbars — match former ScrollArea chrome:
+ * thin track (~w-2.5 / h-2.5), rounded-full thumb, bg-border on transparent track.
+ * Opt out with `.no-scrollbar` / `.scrollbar-none` (shadcn utilities).
+ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 0.625rem; /* 10px ≈ w-2.5 */
+  height: 0.625rem;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 9999px;
+  /* approximate ScrollArea p-px gutter around the thumb */
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}

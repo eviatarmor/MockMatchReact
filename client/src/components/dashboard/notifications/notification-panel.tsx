@@ -1,7 +1,6 @@
 import { BellOff } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { StaggerItem } from "@mockmatch/ui/stagger"
-import { ScrollArea } from "@mockmatch/ui/scroll-area"
 import { Button } from "@mockmatch/ui/button"
 import { NotificationItem } from "./notification-item"
 import type { AppNotification } from "./types"
@@ -70,7 +69,7 @@ export function NotificationPanel({
           </div>
         </div>
       ) : (
-        <ScrollArea className="h-[min(24rem,70vh)] w-full">
+        <div className="h-[min(24rem,70vh)] w-full overflow-y-auto">
           <ul key={openKey} className="flex flex-col gap-0.5 pr-2">
             {items.map((notification, index) => (
               <StaggerItem
@@ -87,7 +86,7 @@ export function NotificationPanel({
               </StaggerItem>
             ))}
           </ul>
-        </ScrollArea>
+        </div>
       )}
 
       <div className="border-t border-border/60 pt-2">

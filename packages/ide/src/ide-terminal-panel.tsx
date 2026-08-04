@@ -237,9 +237,7 @@ export function IdeTerminalPanel({
           aria-label="Terminals"
           className={cn(
             "flex min-w-0 flex-1 items-stretch overflow-x-auto overflow-y-hidden",
-            fill
-              ? "[scrollbar-width:thin] [scrollbar-color:var(--border)_transparent]"
-              : "items-center gap-0.5"
+            !fill && "items-center gap-0.5"
           )}
         >
           {ordered.map((s) => {

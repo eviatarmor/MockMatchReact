@@ -6,8 +6,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@mockmatch/ui/dialog"
-import { ScrollArea } from "@mockmatch/ui/scroll-area"
-
 interface DocumentPreviewDialogProps {
   readonly open: boolean
   readonly onOpenChange: (open: boolean) => void
@@ -53,12 +51,12 @@ export function DocumentPreviewDialog({
           </DialogDescription>
         </DialogHeader>
         {/*
-          h-0 + flex-1: force a bounded height so ScrollArea's size-full viewport
-          actually overflows (flex-1 alone lets the root grow with content → no scroll).
+          h-0 + flex-1: force a bounded height so overflow-y-auto actually scrolls
+          (flex-1 alone lets the root grow with content → no scroll).
         */}
-        <ScrollArea className="h-0 min-h-0 w-full flex-1">
+        <div className="h-0 min-h-0 w-full flex-1 overflow-y-auto">
           {children}
-        </ScrollArea>
+        </div>
         {footer != null && (
           <div className="shrink-0 border-t border-border/60 px-4 py-3">
             {footer}

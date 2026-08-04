@@ -1,5 +1,4 @@
 import { useTranslation } from "react-i18next"
-import { ScrollArea } from "@mockmatch/ui/scroll-area"
 import type { SessionHistoryRow } from "../types"
 
 interface ReadinessSessionHistoryProps {
@@ -16,7 +15,7 @@ export function ReadinessSessionHistory({ rows }: ReadinessSessionHistoryProps) 
         <p className="text-sm text-muted-foreground">{t("readiness.history.description")}</p>
       </div>
 
-      <ScrollArea className="w-full">
+      <div className="w-full overflow-x-auto">
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="border-b border-border text-xs text-muted-foreground select-none">
@@ -47,7 +46,7 @@ export function ReadinessSessionHistory({ rows }: ReadinessSessionHistoryProps) 
             ))}
           </tbody>
         </table>
-      </ScrollArea>
+      </div>
     </div>
   )
 }

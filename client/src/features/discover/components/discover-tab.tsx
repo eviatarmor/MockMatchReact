@@ -62,7 +62,7 @@ export function DiscoverTab({ state }: DiscoverTabProps) {
     [isDesktop, open, close]
   )
 
-  // Page-level scroll: observer uses default root (dashboard ScrollArea).
+  // Page-level scroll: observer uses default root (dashboard main pane).
   const { ref: loadMoreRef, inView } = useInView({
     rootMargin: "240px",
     threshold: 0,

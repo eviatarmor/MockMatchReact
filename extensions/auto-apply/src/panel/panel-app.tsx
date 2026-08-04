@@ -1,4 +1,3 @@
-import { ScrollArea } from "@mockmatch/ui/scroll-area"
 import { PanelHeader } from "../components/panel-header"
 import { Banner } from "../components/banner"
 import { LoggedOutScreen } from "../screens/logged-out-screen"
@@ -14,13 +13,13 @@ export function PanelApp() {
       <PanelHeader />
       <Banner />
       {!signedIn ? (
-        <ScrollArea className="min-h-0 flex-1">
+        <div className="min-h-0 flex-1 overflow-y-auto">
           <LoggedOutScreen />
-        </ScrollArea>
+        </div>
       ) : route === "settings" ? (
-        <ScrollArea className="min-h-0 flex-1">
+        <div className="min-h-0 flex-1 overflow-y-auto">
           <SettingsScreen />
-        </ScrollArea>
+        </div>
       ) : (
         <ApplyScreen />
       )}

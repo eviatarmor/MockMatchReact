@@ -128,12 +128,7 @@ export function IdeTabs({
       <div
         role="tablist"
         aria-label="Open editors"
-        className={cn(
-          "flex min-w-0 flex-1 items-stretch overflow-x-auto overflow-y-hidden",
-          "[scrollbar-width:thin] [scrollbar-color:var(--border)_transparent]",
-          "[&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:w-0",
-          "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border"
-        )}
+        className="flex min-w-0 flex-1 items-stretch overflow-x-auto overflow-y-hidden"
         data-slot="ide-tabs"
       >
         {ordered.map((tab) => {

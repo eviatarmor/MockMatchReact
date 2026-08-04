@@ -22,7 +22,7 @@ Designed for **MockMatch web + future browser extensions**. Product copy, auth, 
 | Peer | Role |
 |------|------|
 | `react` / `react-dom` | UI |
-| `@mockmatch/ui` | Button, ScrollArea, Alert, etc. |
+| `@mockmatch/ui` | Button, Alert, etc. |
 | Host CSS | Tailwind v4 + shadcn CSS variables (`bg-primary`, …) |
 
 Also ensure Tailwind scans this package:

@@ -11,7 +11,6 @@ import { Textarea } from "@mockmatch/ui/textarea"
 import { Label } from "@mockmatch/ui/label"
 import { RobotLoader } from "@mockmatch/ui/robot-loader"
 import { Spinner } from "@mockmatch/ui/spinner"
-import { ScrollArea } from "@mockmatch/ui/scroll-area"
 import { cn } from "@mockmatch/ui/utils"
 import { SiteChip } from "../components/site-chip"
 import { DocumentSelect } from "../components/document-select"
@@ -55,7 +54,7 @@ export function ApplyScreen() {
 
   if (resumes.length === 0) {
     return (
-      <ScrollArea className="min-h-0 flex-1">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 px-4 py-10 text-center">
           <RobotLoader size="md" label="No resumes" />
           <div>
@@ -74,13 +73,13 @@ export function ApplyScreen() {
             <ExternalLink className="size-3.5" />
           </a>
         </div>
-      </ScrollArea>
+      </div>
     )
   }
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
-      <ScrollArea className="min-h-0 flex-1">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="flex flex-col gap-4 p-4 pb-2">
           <SiteChip />
 
@@ -228,7 +227,7 @@ export function ApplyScreen() {
                 ) : null}
 
                 <div className="overflow-hidden rounded-lg border border-border/60 bg-background">
-                  <ScrollArea className="h-40 w-full">
+                  <div className="h-40 w-full overflow-y-auto">
                     <ul className="divide-y divide-border/60">
                       {reviewFields.map((f) => (
                         <li
@@ -269,7 +268,7 @@ export function ApplyScreen() {
                         </li>
                       ))}
                     </ul>
-                  </ScrollArea>
+                  </div>
                 </div>
 
                 <Button
@@ -285,7 +284,7 @@ export function ApplyScreen() {
             </Card>
           ) : null}
         </div>
-      </ScrollArea>
+      </div>
 
       <div className="shrink-0 space-y-2 border-t border-border/60 bg-muted px-4 pt-3 pb-3">
         <Button

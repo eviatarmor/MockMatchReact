@@ -18,7 +18,17 @@ export function useStepScrollspy(stepIds: string[]) {
       .filter((el): el is HTMLDivElement => Boolean(el))
     if (elements.length === 0) return
 
-    const root = elements[0].closest('[data-slot="scroll-area-viewport"]')
+    // Nearest ancestor with overflow-y scroll/auto (dashboard main pane).
+    let root: Element | null = null
+    let node: HTMLElement | null = elements[0].parentElement
+    while (node) {
+      const overflowY = getComputedStyle(node).overflowY
+      if (overflowY === "auto" || overflowY === "scroll") {
+        root = node
+        break
+      }
+      node = node.parentElement
+    }
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -31,7 +41,7 @@ export function useStepScrollspy(stepIds: string[]) {
         }
       },
       {
-        root: root instanceof Element ? root : null,
+        root,
         rootMargin: "-15% 0px -70% 0px",
         threshold: 0,
       }

@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@mockmatch/ui/sheet"
-import { ScrollArea } from "@mockmatch/ui/scroll-area"
+
 import { TemplatesPanel } from "../right-rail/templates-panel"
 import { StylePanel } from "../right-rail/style-panel"
 import { GeneralAnalysisPanel } from "../right-rail/general-analysis-panel"
@@ -50,7 +50,7 @@ export function MobileCustomizeSheet({
             </div>
           </div>
         ) : (
-          <ScrollArea className="min-h-0">
+          <div className="min-h-0 overflow-y-auto">
             <div className="p-4">
               {panel === "templates" && (
                 <TemplatesPanel
@@ -65,7 +65,7 @@ export function MobileCustomizeSheet({
                 <GeneralAnalysisPanel document={document} />
               )}
             </div>
-          </ScrollArea>
+          </div>
         )}
       </SheetContent>
     </Sheet>

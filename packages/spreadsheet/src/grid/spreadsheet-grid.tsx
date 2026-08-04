@@ -447,19 +447,10 @@ export function SpreadsheetGrid({
       aria-label={ariaLabel}
       onKeyDown={onKeyDown}
     >
-      {/*
-        Native overflow only — do NOT use ScrollArea here.
-        Base UI ScrollArea remeasures thumbs/overflow on every scroll against
-        a multi-million-px virtual canvas → unusable frame rates.
-      */}
+      {/* Native overflow — theme.css styles the scrollbar globally. */}
       <div
         ref={scrollerRef}
-        className={cn(
-          "absolute inset-0 overflow-auto bg-background",
-          "[scrollbar-width:thin] [scrollbar-color:var(--border)_transparent]",
-          "[&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar]:w-2",
-          "[&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border"
-        )}
+        className="absolute inset-0 overflow-auto bg-background"
         onScroll={(e) => {
           const t = e.currentTarget
           setScroll({ top: t.scrollTop, left: t.scrollLeft })

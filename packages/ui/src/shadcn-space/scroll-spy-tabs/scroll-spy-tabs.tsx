@@ -18,7 +18,7 @@ interface ScrollSpyTabsProps {
   readonly className?: string
 }
 
-// Nearest ancestor that actually scrolls (the dashboard ScrollArea viewport).
+// Nearest ancestor that actually scrolls (e.g. dashboard main overflow pane).
 // Skips scroll containers that aren't currently overflowing so we don't latch
 // onto a redundant, non-scrolling wrapper.
 function getScrollRoot(el: HTMLElement | null): HTMLElement | null {
@@ -26,10 +26,7 @@ function getScrollRoot(el: HTMLElement | null): HTMLElement | null {
   let firstScrollable: HTMLElement | null = null
   while (node) {
     const overflowY = getComputedStyle(node).overflowY
-    const isScrollContainer =
-      node.matches("[data-slot=scroll-area-viewport]") ||
-      overflowY === "auto" ||
-      overflowY === "scroll"
+    const isScrollContainer = overflowY === "auto" || overflowY === "scroll"
     if (isScrollContainer) {
       if (node.scrollHeight > node.clientHeight + 1) return node
       firstScrollable ??= node
@@ -70,8 +67,8 @@ export function ScrollSpyTabs({
       if (current) setActiveTab(current)
     }
 
-    // Bind once a genuinely-scrollable root exists (nested ScrollAreas can
-    // resolve their height a frame or two after mount).
+    // Bind once a genuinely-scrollable root exists (layout can resolve height
+    // a frame or two after mount).
     const bind = () => {
       const found = getScrollRoot(containerRef.current)
       if (found && found.scrollHeight > found.clientHeight + 1) {

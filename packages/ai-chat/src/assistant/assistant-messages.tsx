@@ -10,7 +10,6 @@ import {
   ReasoningContent,
   ReasoningTrigger,
 } from "../ai-elements/reasoning"
-import { ScrollArea } from "@mockmatch/ui/scroll-area"
 import { cn } from "@mockmatch/ui/utils"
 import {
   ASSISTANT_USER_TEXT_CLASS,
@@ -189,7 +188,7 @@ export function AssistantMessages({
   }, [messages, status])
 
   return (
-    <ScrollArea className="min-h-0 flex-1">
+    <div className="min-h-0 flex-1 overflow-y-auto">
       <div
         className={cn(
           "flex flex-col gap-5 px-4",
@@ -243,6 +242,6 @@ export function AssistantMessages({
 
         <div ref={bottomRef} aria-hidden className="h-px w-full shrink-0" />
       </div>
-    </ScrollArea>
+    </div>
   )
 }

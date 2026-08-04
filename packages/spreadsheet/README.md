@@ -2,7 +2,7 @@
 
 Product-agnostic multi-sheet spreadsheet shell (practice / ops tables):
 
-- **Virtualized grid** — sparse cells, frozen headers, keyboard nav (native overflow; not ScrollArea)
+- **Virtualized grid** — sparse cells, frozen headers, keyboard nav (native overflow)
 - **Sheet tabs** — IDE-style tab chrome (add / rename / switch / delete)
 - **Formulas** — HyperFormula (`SUM`, `IF`, ranges, cross-sheet, …)
 - **Formula bar** — resizable name box + editor (`ResizablePanelGroup`)

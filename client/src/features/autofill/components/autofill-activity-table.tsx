@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next"
 import { History } from "lucide-react"
 import { Badge } from "@mockmatch/ui/badge"
-import { ScrollArea } from "@mockmatch/ui/scroll-area"
 import type { ActivityRow, ActivityStatus } from "../types"
 
 function statusVariant(status: ActivityStatus): "default" | "secondary" | "outline" {
@@ -33,7 +32,7 @@ export function AutofillActivityTable({ rows }: AutofillActivityTableProps) {
         </button>
       </div>
 
-      <ScrollArea className="w-full">
+      <div className="w-full overflow-x-auto">
         <table className="w-full border-collapse text-left">
           <thead>
             <tr className="border-b border-border bg-muted/5 text-2xs font-medium text-muted-foreground select-none">
@@ -62,7 +61,7 @@ export function AutofillActivityTable({ rows }: AutofillActivityTableProps) {
             ))}
           </tbody>
         </table>
-      </ScrollArea>
+      </div>
     </div>
   )
 }

@@ -19,7 +19,7 @@ export function DashboardPageShell({
     ) : null,
   })
 
-  // No own ScrollArea: DashboardLayout already wraps the outlet in one.
+  // No own overflow scroller: DashboardLayout already scrolls the outlet.
   // A second (unbounded) scroller here breaks position:sticky and scroll-spy.
   return (
     <div className="flex flex-1 flex-col gap-4 min-h-0">

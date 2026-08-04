@@ -23,8 +23,17 @@ export function KanbanStatusBar({ counts, className }: KanbanStatusBarProps) {
     const sentinel = sentinelRef.current
     if (!sentinel) return
 
-    const root =
-      sentinel.closest('[data-slot="scroll-area-viewport"]') ?? null
+    // Nearest ancestor with overflow-y scroll/auto (dashboard main pane).
+    let root: Element | null = null
+    let node: HTMLElement | null = sentinel.parentElement
+    while (node) {
+      const overflowY = getComputedStyle(node).overflowY
+      if (overflowY === "auto" || overflowY === "scroll") {
+        root = node
+        break
+      }
+      node = node.parentElement
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {

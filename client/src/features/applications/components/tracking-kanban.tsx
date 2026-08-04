@@ -78,8 +78,8 @@ export function TrackingKanban({
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2">
       {/*
-        Sticky secondary bar sits in the page ScrollArea (not a nested overflow
-        scroller) so position:sticky pins under the main dashboard navbar when
+        Sticky secondary bar sits in the page scroller (not a nested overflow
+        pane) so position:sticky pins under the main dashboard navbar when
         the page header / toolbar scroll away.
       */}
       <KanbanStatusBar counts={counts} />

@@ -64,7 +64,7 @@ export function HistoryPanel({
     [list.data?.pages]
   )
 
-  // Nested ScrollArea in editor rail clips the list — observer still works
+  // Nested overflow in editor rail clips the list — observer still works
   // (overflow ancestors clip intersection vs viewport root).
   const { ref: loadMoreRef, inView } = useInView({
     rootMargin: "120px",
