@@ -64,7 +64,7 @@ html > body[data-scroll-locked] {
 }
 
 /* Lucide SVGs from serialized page-tree icons */
-#nd-sidebar svg {
+#nd-sidebar a svg {
   width: 1rem;
   height: 1rem;
   flex-shrink: 0;
@@ -82,6 +82,19 @@ html > body[data-scroll-locked] {
   background-color: oklch(1 0 0 / 8%);
   border-color: oklch(1 0 0 / 12%);
   color: oklch(0.97 0 0);
+}
+
+/*
+ * Sidebar footer: open-app icon + theme toggle.
+ * Fumadocs wraps them in border + bg-fd-secondary/50 rounded card — strip it.
+ * Match p-0.5 pe-0 (footer chrome only; not the tabs dropdown p-2 card).
+ */
+#nd-sidebar .p-0\.5.pe-0.rounded-lg.border {
+  border-width: 0;
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+  gap: 0.25rem;
 }
 
 #nd-sidebar input::placeholder {
@@ -102,4 +115,19 @@ html > body[data-scroll-locked] {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+}
+
+/* Magic UI animated theme toggler — View Transitions (match client) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-group(root) {
+  animation-duration: var(--magicui-theme-toggle-vt-duration, 400ms);
+}
+
+html[data-magicui-theme-vt='active']::view-transition-new(root) {
+  clip-path: var(--magicui-theme-vt-clip-from);
 }

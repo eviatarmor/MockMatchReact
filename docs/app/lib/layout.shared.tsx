@@ -1,3 +1,4 @@
+import { DocsThemeToggle } from '@/components/docs-theme-toggle'
 import type { BaseLayoutProps } from 'fumadocs-ui/layouts/shared'
 import { ExternalLink } from 'lucide-react'
 import { appName, appUrl } from './shared'
@@ -31,5 +32,9 @@ export function baseOptions(): BaseLayoutProps {
         icon: <ExternalLink className="size-4" aria-hidden />,
       },
     ],
+    // Single sun/moon icon (Fumadocs default stacks both icons and looks broken).
+    themeSwitch: {
+      component: <DocsThemeToggle />,
+    },
   }
 }
