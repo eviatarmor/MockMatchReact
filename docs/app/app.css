@@ -4,6 +4,10 @@
 @import 'fumadocs-ui/css/shadcn.css';
 @import 'fumadocs-ui/css/preset.css';
 
+/* Scan package components used by docs (site notice, shared UI). */
+@source '../../packages/ui/src/**/*.{ts,tsx}';
+@source '../../packages/site-prefs/src/**/*.{ts,tsx}';
+
 html {
   scrollbar-gutter: stable;
   font-family: var(--font-sans);

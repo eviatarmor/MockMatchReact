@@ -10,6 +10,7 @@
     "typecheck": "react-router typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@mockmatch/site-prefs": "*",
     "@mockmatch/ui": "*",
     "@react-router/node": "^7.18.2",
     "cnfast": "^0.1.0",

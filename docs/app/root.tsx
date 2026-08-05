@@ -1,4 +1,5 @@
 import SearchDialog from '@/components/search'
+import { SitePrefsHost } from '@/components/site-prefs-host'
 import { RootProvider } from 'fumadocs-ui/provider/react-router'
 import {
   isRouteErrorResponse,
@@ -35,6 +36,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           }}
         >
           {children}
+          <SitePrefsHost />
         </RootProvider>
         <ScrollRestoration />
         <Scripts />

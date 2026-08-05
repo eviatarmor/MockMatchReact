@@ -86,7 +86,7 @@ application tracking, practice, and readiness insights.
 ### Account
 - **Account Settings** — profile (name + optional profile photo via click-on-avatar crop), preferences, and account access. Photo shows in the sidebar user menu when set.
 - **Billing** — plan, credit packs (Stripe when configured), usage.
-- **Privacy** — privacy toggles / data preferences.
+- **Privacy** — privacy toggles / data preferences. Public docs/marketing may show a separate site preference notice for optional analytics (not shown inside the signed-in app).
 ### Help & support area
 11. **Help & support** (\`/help\`) — topic-based support request (billing, bug, account, feature request, general info). Optional screenshots. Follow-up uses the signed-in account email. Also in the user menu (avatar).
 12. **Docs** — external link in the Help & support nav group to the public product docs site (\`https://docs.mockmatch.ai\`). Opens in a new tab (external-link icon). Complements in-app Help and this Ask chat; does not replace them.

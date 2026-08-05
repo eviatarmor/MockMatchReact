@@ -1,0 +1,35 @@
+{
+  "name": "@mockmatch/site-prefs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "peerDependencies": {
+    "@mockmatch/ui": "*",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "scripts": {
+    "test": "vitest run --config vitest.config.ts",
+    "test:unit": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.5",
+    "jsdom": "^29.1.1",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "vitest": "^4.1.10"
+  }
+}
