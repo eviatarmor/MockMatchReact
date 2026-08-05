@@ -34,7 +34,7 @@ export function SimulationPagePageContent() {
   const { questionId: pathQuestionId } = useParams<{ questionId?: string }>()
   const [params] = useSearchParams()
   const { t } = useTranslation(["simulation-page", "common"])
-  const existingId = (() => {
+  const legacyId = (() => {
     const id = params.get("id")
     return id && UUID_RE.test(id) ? id : null
   })()
@@ -43,13 +43,46 @@ export function SimulationPagePageContent() {
     const id = params.get("questionId")
     return id && UUID_RE.test(id) ? id : null
   })()
+  const shareToken = params.get("share") || params.get("token")
+
+  const shareResolve = trpc.collab.resolveShare.useQuery(
+    {
+      shareToken: shareToken!,
+      questionId: questionId ?? undefined,
+    },
+    {
+      enabled: Boolean(shareToken),
+      retry: false,
+    }
+  )
+  const resolvedId =
+    shareResolve.data?.kind === "page" ? shareResolve.data.documentId : null
+  const existingId = legacyId ?? resolvedId
+
+  const shareClaim = trpc.collab.getAccess.useQuery(
+    {
+      kind: "page",
+      id: existingId!,
+      shareToken: shareToken || undefined,
+    },
+    {
+      enabled: Boolean(existingId && shareToken),
+      retry: false,
+    }
+  )
+  const shareReady =
+    !shareToken ||
+    ((shareResolve.isSuccess || shareResolve.isError) &&
+      (!existingId || shareClaim.isSuccess || shareClaim.isError))
+  const canOpenSession =
+    shareReady && (!shareToken || Boolean(existingId))
 
   const session = usePageDocumentSession({
     title: t("simulation-page:title"),
-    enabled: true,
+    enabled: canOpenSession,
     seedHtml: SEED_HTML,
     existingId,
-    questionId,
+    questionId: shareToken ? null : questionId,
   })
 
   const [html, setHtml] = useState(SEED_HTML)
@@ -57,9 +90,14 @@ export function SimulationPagePageContent() {
   const [shareOpen, setShareOpen] = useState(false)
 
   const pageId = session.pageId
+  const accessDocId = pageId ?? existingId
   const collabAccess = trpc.collab.getAccess.useQuery(
-    { kind: "page", id: pageId! },
-    { enabled: Boolean(pageId), retry: false }
+    {
+      kind: "page",
+      id: accessDocId!,
+      shareToken: shareToken || undefined,
+    },
+    { enabled: Boolean(accessDocId), retry: false }
   )
 
   useEffect(() => {

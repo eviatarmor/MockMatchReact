@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server"
-import { and, eq } from "drizzle-orm"
+import { and, desc, eq } from "drizzle-orm"
 import type {
   WhiteboardBoardCreateInput,
   WhiteboardBoardUpdateInput,
@@ -47,11 +47,65 @@ export async function getWhiteboardBoard(
   return toDetail(row)
 }
 
+/**
+ * One durable board per (user, bank question). Reopen always continues that board.
+ */
+export async function openWhiteboardForQuestion(
+  db: Database,
+  userId: string,
+  input: { questionId: string; title?: string }
+) {
+  const [existing] = await db
+    .select()
+    .from(whiteboardBoards)
+    .where(
+      and(
+        eq(whiteboardBoards.userId, userId),
+        eq(whiteboardBoards.questionId, input.questionId)
+      )
+    )
+    .orderBy(desc(whiteboardBoards.updatedAt))
+    .limit(1)
+
+  if (existing) {
+    if (input.title?.trim() && input.title.trim() !== existing.title) {
+      const [updated] = await db
+        .update(whiteboardBoards)
+        .set({ title: input.title.trim(), updatedAt: new Date() })
+        .where(eq(whiteboardBoards.id, existing.id))
+        .returning()
+      return toDetail(updated ?? existing)
+    }
+    return toDetail(existing)
+  }
+
+  return createWhiteboardBoard(db, userId, {
+    title: input.title,
+    questionId: input.questionId,
+  })
+}
+
 export async function createWhiteboardBoard(
   db: Database,
   userId: string,
   input: WhiteboardBoardCreateInput
 ) {
+  // Bank questions: prefer the single existing board over spawning retakes.
+  if (input.questionId) {
+    const [existing] = await db
+      .select()
+      .from(whiteboardBoards)
+      .where(
+        and(
+          eq(whiteboardBoards.userId, userId),
+          eq(whiteboardBoards.questionId, input.questionId)
+        )
+      )
+      .orderBy(desc(whiteboardBoards.updatedAt))
+      .limit(1)
+    if (existing) return toDetail(existing)
+  }
+
   const [row] = await db
     .insert(whiteboardBoards)
     .values({

@@ -53,6 +53,16 @@ export const getAccessInputSchema = collabDocInputSchema.extend({
   shareToken: z.string().min(16).max(128).optional(),
 })
 
+/**
+ * Resolve a raw share token → document id (for bank URLs that only carry
+ * `?share=` without embedding board/workspace id).
+ */
+export const resolveShareInputSchema = z.object({
+  shareToken: z.string().min(16).max(128),
+  /** Optional bank question path segment — rejects token for a different question. */
+  questionId: z.string().uuid().optional(),
+})
+
 export const grantDevCreditsInputSchema = z.object({
   amount: z.number().int().positive().max(10_000).default(100),
 })

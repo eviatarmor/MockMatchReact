@@ -34,13 +34,22 @@ export function SessionTableRow({
       navigate("/simulations/tracks")
       return
     }
+    // Bank practice is always `/simulations/:questionId` — reopen reuses the
+    // durable board/workspace server-side. Do not put boardId/id in the URL.
+    const bankPractice = /^\/simulations\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      path
+    )
+    if (bankPractice) {
+      navigate(path)
+      return
+    }
+    // Catalog freeform (workspace / code-run slug): keep workspace id for direct open.
     const workspaceId = session._workspaceId ?? session.workspaceId
-    const boardId = session.boardId
-    const params = new URLSearchParams()
-    if (workspaceId) params.set("id", workspaceId)
-    if (boardId) params.set("boardId", boardId)
-    const qs = params.toString()
-    navigate(qs ? `${path}?${qs}` : path)
+    if (workspaceId) {
+      navigate(`${path}?id=${workspaceId}`)
+      return
+    }
+    navigate(path)
   }
 
   return (

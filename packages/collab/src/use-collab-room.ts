@@ -290,6 +290,7 @@ export function useCollabRoom({
             name: msg.name,
             color: msg.color,
             role: "edit" as const,
+            avatarUrl: null,
             cursor: nextCursor,
           },
         ]

@@ -15,7 +15,7 @@ import type { ElementViewProps } from "../canvas/element-types"
 
 // ─── Host context ───────────────────────────────────────────────
 
-/** Live viewport snapshot for chrome plugins (minimap, …). */
+/** Live viewport snapshot for chrome plugins. */
 export type ViewportAccess = {
   readonly scale: number
   readonly positionX: number
@@ -119,14 +119,14 @@ export type ElementTypeContribution = {
 // ─── Unified plugin ─────────────────────────────────────────────
 
 /**
- * One plugin model for everything: select, draw, connector, clipboard, minimap…
+ * One plugin model for everything: select, draw, connector, clipboard, …
  *
  * Contribute any subset of:
  * - `tools` — pointer interaction
  * - `rail` — left bar
  * - keydown / double-click hooks
  * - `renderOverlay` — board-space layer
- * - `renderChrome` — screen-space chrome (minimap)
+ * - `renderChrome` — screen-space chrome
  * - `elements` — element type renderers
  */
 export type WhiteboardPlugin = {
@@ -152,7 +152,7 @@ export type WhiteboardPlugin = {
   /** Board-space overlay (world coordinates). */
   readonly renderOverlay?: (ctx: WhiteboardPluginContext) => ReactNode
   /**
-   * Screen-space chrome (fixed UI, e.g. minimap).
+   * Screen-space chrome (fixed UI overlays).
    * Host places these outside the transform layer.
    */
   readonly renderChrome?: (ctx: WhiteboardPluginContext) => ReactNode

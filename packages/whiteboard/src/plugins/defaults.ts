@@ -3,7 +3,6 @@ import { createClipboardPlugin } from "./clipboard/plugin"
 import { createConnectorPlugin } from "./connector/plugin"
 import { createDrawPlugin } from "./draw/plugin"
 import { createElementsPlugin } from "./elements/plugin"
-import { createMinimapPlugin } from "./minimap/plugin"
 import { createPanPlugin } from "./pan/plugin"
 import { createSelectPlugin } from "./select/plugin"
 import { createShapePlugin } from "./shape/plugin"
@@ -13,7 +12,7 @@ import { createTextPlugin } from "./text/plugin"
 import { createTextEditPlugin } from "./text-edit/plugin"
 
 /**
- * Full product plugin set: elements, tools, clipboard, label/text edit, minimap.
+ * Full product plugin set: elements, tools, clipboard, label/text edit.
  * Fresh instances each call (clipboard state not shared).
  */
 export function createDefaultPlugins(): WhiteboardPlugin[] {
@@ -29,7 +28,6 @@ export function createDefaultPlugins(): WhiteboardPlugin[] {
     createClipboardPlugin(),
     createShapeLabelPlugin(),
     createTextEditPlugin(),
-    createMinimapPlugin(),
   ]
 }
 

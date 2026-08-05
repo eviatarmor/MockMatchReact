@@ -9,6 +9,7 @@ import {
   getAccessInputSchema,
   grantDevCreditsInputSchema,
   removeCollaboratorInputSchema,
+  resolveShareInputSchema,
   revokeShareLinkInputSchema,
   updateCollaboratorRoleInputSchema,
   wsTicketInputSchema,
@@ -146,6 +147,23 @@ describe("wsTicket / getAccess", () => {
         id: UUID,
         shareToken: "x".repeat(129),
       })
+    ).toThrow()
+  })
+})
+
+describe("resolveShareInputSchema", () => {
+  it("requires shareToken; optional questionId", () => {
+    expect(resolveShareInputSchema.parse({ shareToken: TOKEN }).shareToken).toBe(
+      TOKEN
+    )
+    expect(
+      resolveShareInputSchema.parse({
+        shareToken: TOKEN,
+        questionId: UUID,
+      }).questionId
+    ).toBe(UUID)
+    expect(() =>
+      resolveShareInputSchema.parse({ shareToken: "short" })
     ).toThrow()
   })
 })

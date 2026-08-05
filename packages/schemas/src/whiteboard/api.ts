@@ -7,6 +7,12 @@ import {
 
 export const whiteboardBoardIdInputSchema = entityIdInputSchema
 
+/** Open the single durable board for a bank question (create if missing). */
+export const whiteboardOpenForQuestionInputSchema = z.object({
+  questionId: z.string().uuid(),
+  title: z.string().trim().min(1).max(200).optional(),
+})
+
 export const whiteboardBoardCreateInputSchema = z.object({
   title: z.string().trim().min(1).max(200).optional(),
   questionId: z.string().uuid().optional(),

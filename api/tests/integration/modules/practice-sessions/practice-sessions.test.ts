@@ -16,7 +16,6 @@ describeIntegration("practiceSessions (integration)", () => {
     const trackId = `freeform-${Date.now()}`
     const started = await caller.practiceSessions.startNew({
       trackId,
-      abandonOpen: true,
     })
     expect(started.session.id).toBeTruthy()
     expect(started.session.trackId).toBe(trackId)
@@ -42,6 +41,23 @@ describeIntegration("practiceSessions (integration)", () => {
     expect(del.ok).toBe(true)
   })
 
+  it("startNew reuses same session + workspace (no retakes)", async () => {
+    const caller = await signupAuthedCaller()
+    const trackId = `reuse-${Date.now()}`
+
+    const first = await caller.practiceSessions.startNew({ trackId })
+    const second = await caller.practiceSessions.startNew({ trackId })
+
+    expect(second.session.id).toBe(first.session.id)
+    expect(second.workspaceId).toBe(first.workspaceId)
+
+    const listed = await caller.practiceSessions.list({ page: 1, pageSize: 50 })
+    const rows = listed.items.filter((s) => s.trackId === trackId)
+    expect(rows).toHaveLength(1)
+
+    await caller.practiceSessions.delete({ sessionId: first.session.id })
+  })
+
   it("abandon ends in_progress session", async () => {
     const caller = await signupAuthedCaller()
     const trackId = `abandon-${Date.now()}`
@@ -51,6 +67,12 @@ describeIntegration("practiceSessions (integration)", () => {
       sessionId: started.session.id,
     })
     expect(abandoned.status).toBe("abandoned")
+
+    // Reopen still reuses the same history row + workspace.
+    const again = await caller.practiceSessions.startNew({ trackId })
+    expect(again.session.id).toBe(started.session.id)
+    expect(again.workspaceId).toBe(started.workspaceId)
+    expect(again.session.status).toBe("in_progress")
 
     await caller.practiceSessions.delete({ sessionId: started.session.id })
   })

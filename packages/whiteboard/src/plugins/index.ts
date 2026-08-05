@@ -17,7 +17,6 @@ export {
 } from "./shape-label/plugin"
 export { createTextEditPlugin, textEditPlugin } from "./text-edit/plugin"
 export { createElementsPlugin } from "./elements/plugin"
-export { createMinimapPlugin } from "./minimap/plugin"
 
 export {
   createDefaultPlugins,

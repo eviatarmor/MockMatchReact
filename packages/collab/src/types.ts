@@ -40,6 +40,8 @@ export type CollabPeer = {
   name: string
   color: string
   role: CollabEffectiveRole
+  /** Public profile photo URL (account avatar); optional. */
+  avatarUrl?: string | null
   /** x/y are 0–1 of the **document surface** (paper), not the viewport. */
   cursor?: CollabCursor
 }

@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   type ReactNode,
+  type Ref,
 } from "react"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 import { hitTest, listElementsSorted } from "../document"
@@ -63,13 +64,20 @@ export type WhiteboardCanvasProps = {
   readonly precisionEraserRadius?: number
   readonly shapeLabelLabels?: ShapeLabelEditorLabels
   /**
-   * Unified plugins (tools, rail, clipboard, elements, minimap, …).
+   * Unified plugins (tools, rail, clipboard, elements, …).
    * Default: createDefaultPlugins(). Pass [] for bare core.
    * Prefer the same list on WhiteboardToolRail.
    */
   readonly plugins?: readonly WhiteboardPlugin[]
   /** @deprecated Use `plugins` only. */
   readonly toolPlugins?: readonly WhiteboardPlugin[]
+  /**
+   * Optional ref to the board plane (layout px = BOARD_SIZE).
+   * Host uses this for collab cursor mapping under pan/zoom.
+   */
+  readonly surfaceRef?: Ref<HTMLDivElement | null>
+  /** Drawn in board space under the same transform (e.g. remote cursors). */
+  readonly boardOverlay?: ReactNode
 }
 
 /**
@@ -95,9 +103,22 @@ export function WhiteboardCanvas({
   shapeLabelLabels,
   plugins: pluginsProp,
   toolPlugins,
+  surfaceRef: surfaceRefProp,
+  boardOverlay,
 }: WhiteboardCanvasProps) {
   const { ref, scale, onTransform, bindGridLayer, resetView } = viewport
-  const surfaceRef = useRef<HTMLDivElement>(null)
+  const surfaceInnerRef = useRef<HTMLDivElement>(null)
+  const surfaceRef = surfaceInnerRef
+  const setSurfaceRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      surfaceInnerRef.current = el
+      const ext = surfaceRefProp
+      if (!ext) return
+      if (typeof ext === "function") ext(el)
+      else (ext as { current: HTMLDivElement | null }).current = el
+    },
+    [surfaceRefProp]
+  )
   const docRef = useRef(doc)
   docRef.current = doc
 
@@ -183,22 +204,28 @@ export function WhiteboardCanvas({
     return () => ro.disconnect()
   }, [])
 
-  const clientToBoard = useCallback(
-    (clientX: number, clientY: number) => {
-      const surface = surfaceRef.current
-      if (!surface) return { x: 0, y: 0 }
-      let rect = surfaceRectCacheRef.current
-      if (!rect) {
-        rect = surface.getBoundingClientRect()
-        surfaceRectCacheRef.current = rect
-      }
-      return {
-        x: (clientX - rect.left) / scale,
-        y: (clientY - rect.top) / scale,
-      }
-    },
-    [scale]
-  )
+  /**
+   * Client (screen) → board layout coords under pan/zoom.
+   * Use visual rect vs layout size (offsetWidth/Height) — same approach as
+   * resume collab surface. Do **not** divide by React `scale` alone: that
+   * desyncs mid-zoom and breaks drag/resize hit testing when zoomed.
+   */
+  const clientToBoard = useCallback((clientX: number, clientY: number) => {
+    const surface = surfaceRef.current
+    if (!surface) return { x: 0, y: 0 }
+    let rect = surfaceRectCacheRef.current
+    if (!rect) {
+      rect = surface.getBoundingClientRect()
+      surfaceRectCacheRef.current = rect
+    }
+    const layoutW = surface.offsetWidth || BOARD_SIZE
+    const layoutH = surface.offsetHeight || BOARD_SIZE
+    if (rect.width <= 0 || rect.height <= 0) return { x: 0, y: 0 }
+    return {
+      x: ((clientX - rect.left) * layoutW) / rect.width,
+      y: ((clientY - rect.top) * layoutH) / rect.height,
+    }
+  }, [])
   const clientToBoardRef = useRef(clientToBoard)
   clientToBoardRef.current = clientToBoard
 
@@ -663,7 +690,7 @@ export function WhiteboardCanvas({
           }}
         >
           <div
-            ref={surfaceRef}
+            ref={setSurfaceRef}
             className="relative"
             style={{
               width: BOARD_SIZE,
@@ -720,6 +747,8 @@ export function WhiteboardCanvas({
                 </div>
               )
             })}
+
+            {boardOverlay}
           </div>
         </TransformComponent>
       </TransformWrapper>

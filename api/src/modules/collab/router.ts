@@ -5,6 +5,7 @@ import {
   listCollaboratorsInputSchema,
   collabDocInputSchema,
   removeCollaboratorInputSchema,
+  resolveShareInputSchema,
   revokeShareLinkInputSchema,
   updateCollaboratorRoleInputSchema,
   wsTicketInputSchema,
@@ -18,6 +19,7 @@ import {
   listActiveShareLinks,
   listCollaborators,
   removeCollaborator,
+  resolveShareToken,
   revokeShareLink,
   updateCollaboratorRole,
 } from "./service.js"
@@ -33,6 +35,13 @@ export const collabRouter = router({
         input.id,
         input.shareToken
       )
+    }),
+
+  /** Token → document id (bank share URLs only carry `?share=`). */
+  resolveShare: protectedProcedure
+    .input(resolveShareInputSchema)
+    .query(async ({ ctx, input }) => {
+      return resolveShareToken(ctx.db, input.shareToken, input.questionId)
     }),
 
   createShareLink: protectedProcedure

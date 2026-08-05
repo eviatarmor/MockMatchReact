@@ -30,6 +30,9 @@ import { getRedis } from "./lib/redis.js"
 import { isPaidUser } from "./modules/billing/credits.js"
 import { loadDocumentSnapshot } from "./modules/collab/service.js"
 import { canApplyPath } from "./modules/collab/permissions.js"
+import { buildAvatarPublicUrl } from "./modules/account/avatar-url.js"
+import { users } from "./db/schema/users.js"
+import { eq } from "drizzle-orm"
 
 type ClientState = {
   ws: WebSocket
@@ -42,8 +45,26 @@ type ClientState = {
   ownerUserId: string
   color: string
   roomKey: string
+  /** Public profile photo URL for presence stack. */
+  avatarUrl?: string | null
   /** Prevent double handleLeave (leave msg + socket close). */
   left?: boolean
+}
+
+async function resolveAvatarUrl(userId: string): Promise<string | null> {
+  try {
+    const row = await db.query.users.findFirst({
+      where: eq(users.id, userId),
+      columns: { avatarKey: true, updatedAt: true },
+    })
+    return buildAvatarPublicUrl(
+      userId,
+      row?.avatarKey ?? null,
+      row?.updatedAt ?? null
+    )
+  } catch {
+    return null
+  }
 }
 
 const clients = new Set<ClientState>()
@@ -249,12 +270,15 @@ async function handleJoin(state: ClientState): Promise<void> {
 
   const color = await assignColor(kind, documentId, userId)
   state.color = color
+  const avatarUrl = state.avatarUrl ?? (await resolveAvatarUrl(userId))
+  state.avatarUrl = avatarUrl
 
   const presence: PresenceRecord = {
     userId,
     name,
     color,
     role,
+    avatarUrl: avatarUrl ?? null,
     lastSeen: Date.now(),
   }
   await setPresence(kind, documentId, presence)
@@ -272,8 +296,14 @@ async function handleJoin(state: ClientState): Promise<void> {
     document: snapshot.document,
     role,
     color,
-    self: { userId, name, color, role },
-    peers,
+    self: { userId, name, color, role, avatarUrl: avatarUrl ?? null },
+    peers: peers.map((p) => ({
+      userId: p.userId,
+      name: p.name,
+      color: p.color,
+      role: p.role,
+      avatarUrl: p.avatarUrl ?? null,
+    })),
   })
 
   // Yjs full state for CRDT sync (seeded from JSON snapshot when empty)
@@ -376,6 +406,7 @@ async function handleMessage(state: ClientState, raw: string): Promise<void> {
       name,
       color,
       role,
+      avatarUrl: state.avatarUrl ?? null,
       lastSeen: Date.now(),
     })
     return
@@ -388,6 +419,7 @@ async function handleMessage(state: ClientState, raw: string): Promise<void> {
         name,
         color,
         role,
+        avatarUrl: state.avatarUrl ?? null,
         lastSeen: Date.now(),
       })
       await fanout(
@@ -434,6 +466,7 @@ async function handleMessage(state: ClientState, raw: string): Promise<void> {
       name,
       color,
       role,
+      avatarUrl: state.avatarUrl ?? null,
       lastSeen: Date.now(),
       cursor: cursorPayload,
     })

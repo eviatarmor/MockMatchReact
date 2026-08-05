@@ -14,7 +14,6 @@ import {
 import {
   createClipboardPlugin,
   createDefaultPlugins,
-  createMinimapPlugin,
   createSelectPlugin,
   createShapeLabelPlugin,
   createTextEditPlugin,
@@ -102,7 +101,7 @@ function mockCtx(options: {
 }
 
 describe("unified plugins", () => {
-  it("createDefaultPlugins includes tools + features + minimap + elements", () => {
+  it("createDefaultPlugins includes tools + features + elements", () => {
     const ids = createDefaultPlugins().map((p) => p.id)
     expect(ids).toContain("select")
     expect(ids).toContain("draw")
@@ -110,8 +109,8 @@ describe("unified plugins", () => {
     expect(ids).toContain("clipboard")
     expect(ids).toContain("shape-label")
     expect(ids).toContain("text-edit")
-    expect(ids).toContain("minimap")
     expect(ids).toContain("elements")
+    expect(ids).not.toContain("minimap")
   })
 
   it("collectTools registers pen and connector", () => {
@@ -134,12 +133,6 @@ describe("unified plugins", () => {
     expect(rail[0]).toBe("select")
     expect(rail).toContain("draw")
     expect(rail).not.toContain("clipboard")
-    expect(rail).not.toContain("minimap")
-  })
-
-  it("minimap plugin exposes renderChrome", () => {
-    const p = createMinimapPlugin()
-    expect(p.renderChrome).toBeTypeOf("function")
   })
 
   it("select plugin contributes rail + tools", () => {

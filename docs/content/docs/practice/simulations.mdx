@@ -48,21 +48,25 @@ MCQ sessions run a same-domain sequence. Variants: **single**, **multi** (select
 
 ### Whiteboard notes
 
-Whiteboard practice uses a canvas shell with templates, autosave, and collab kind `whiteboard`.
+Whiteboard practice uses a canvas shell with templates, autosave, and collab kind `whiteboard`. Practice opens at `/simulations/:questionId`. **Share** links use the same path with a `share` token only (the board id is resolved from the token).
 
 The right rail includes a **Stencils** library (search + categories): architecture and diagram icons you place on the board. Icons are SVG stencils derived from open draw.io libraries; brand marks stay owned by their vendors and are for diagram use.
 
 ### Spreadsheet notes
 
-Spreadsheet practice is a multi-sheet workbook: editable cells, formula bar, and sheet tabs. Freeform: `/simulations/spreadsheet`. From the question bank, Practice opens `/simulations/:questionId` with the case prompt and optional starter workbook from generation. Workbooks autosave; **Share** uses collab kind `spreadsheet` (`?id=` + `share`).
+Spreadsheet practice is a multi-sheet workbook: editable cells, formula bar, and sheet tabs. Freeform: `/simulations/spreadsheet`. From the question bank, Practice opens `/simulations/:questionId` with the case prompt and optional starter workbook from generation. Workbooks autosave; **Share** uses collab kind `spreadsheet` (`?share=` on the bank or freeform path).
 
 ### Document analysis notes
 
 Document analysis is a freeform Lexical page (headings, lists, checklist, quote, code, slash menu). Freeform: `/simulations/page`. Bank Practice opens `/simulations/:questionId` with the prompt and optional starter outline HTML. Separate from Resume Lab sectioned editors. Collab kind `page`.
 
+## History
+
+Simulations history keeps **one row per exercise** (bank question or catalog track). Reopening the same practice continues the same workspace or board; there are no separate retake sessions for the same item.
+
 ## Collaboration on practice rooms
 
-For IDE-style rooms, share URLs include `id` and `share` query params. The owner must stay in the room; leaving ends the live session for collaborators the same way document share works. See [Templates, import, export, collab](/docs/documents/templates-import-export).
+Bank practice share links land on `/simulations/:questionId?share=<token>` — no document id in the URL. Freeform spreadsheet, page, workspace, and terminal lab use their path plus `?share=`. The owner must stay in the room; leaving ends the live session for collaborators the same way document share works. See [Templates, import, export, collab](/docs/documents/templates-import-export).
 
 ## Exercise catalog
 

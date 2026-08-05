@@ -57,15 +57,6 @@ import {
   isPracticeExerciseSlug,
   type IdeFormatSlug,
 } from "./types"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@mockmatch/ui/dialog"
-
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
@@ -141,7 +132,7 @@ export function SimulationIdePageContent() {
  * Ensure a durable collab workspace id for any practice format.
  * - Bank: `/simulations/:questionId` loads from `questions` only
  * - Catalog: seed exercise slug
- * - `?id=` + optional `?share=` for join
+ * - `?share=` join (token resolves workspace id); optional legacy `?id=`
  * - else check open attempt → Continue / Start new dialog
  */
 function ExerciseCollabBootstrap({
@@ -157,14 +148,34 @@ function ExerciseCollabBootstrap({
   const [searchParams] = useSearchParams()
   const idParam = searchParams.get("id")
   const shareToken = searchParams.get("share")
-  const forceNew = searchParams.get("new") === "1"
   const queryQuestionId = searchParams.get("questionId")
   const questionId =
     bankQuestionId ||
     (queryQuestionId && UUID_RE.test(queryQuestionId) ? queryQuestionId : null)
   const isBank = format === "bank" || Boolean(bankQuestionId)
   const trackKey = isBank && questionId ? `q:${questionId}` : format
-  const isValidId = typeof idParam === "string" && UUID_RE.test(idParam)
+  const legacyValidId = typeof idParam === "string" && UUID_RE.test(idParam)
+
+  // Bank share URLs: `/simulations/:questionId?share=` only — resolve workspace id.
+  const shareResolve = trpc.collab.resolveShare.useQuery(
+    {
+      shareToken: shareToken!,
+      questionId: questionId ?? undefined,
+    },
+    {
+      enabled: Boolean(shareToken) && !legacyValidId,
+      retry: false,
+    }
+  )
+  const resolvedWorkspaceId =
+    shareResolve.data?.kind === "workspace"
+      ? shareResolve.data.documentId
+      : null
+  const workspaceIdFromUrl = legacyValidId
+    ? idParam
+    : resolvedWorkspaceId
+  const isValidId =
+    typeof workspaceIdFromUrl === "string" && UUID_RE.test(workspaceIdFromUrl)
   const knownPreset = isIdeFormatSlug(format)
     ? IDE_FORMAT_PRESETS[format]
     : null
@@ -208,47 +219,7 @@ function ExerciseCollabBootstrap({
       ? `/simulations/${questionId}`
       : pathForFormat(format === "bank" ? "js-sum" : format)
 
-  const [resumePrompt, setResumePrompt] = useState<{
-    sessionId: string
-    workspaceId: string
-    title: string
-  } | null>(null)
-  const [resumeChecked, setResumeChecked] = useState(
-    forceNew || isValidId || Boolean(shareToken)
-  )
-
-  const openQuery = trpc.practiceSessions.openForTrack.useQuery(
-    { trackId: trackKey },
-    {
-      enabled:
-        bankReadyForIde &&
-        !isValidId &&
-        !shareToken &&
-        !forceNew &&
-        Boolean(trackKey),
-      retry: false,
-      staleTime: 5_000,
-    }
-  )
-
-  useEffect(() => {
-    if (isValidId || shareToken || forceNew) {
-      setResumeChecked(true)
-      return
-    }
-    if (openQuery.isLoading) return
-    if (openQuery.data?.session?.workspaceId) {
-      setResumePrompt({
-        sessionId: openQuery.data.session.id,
-        workspaceId: openQuery.data.session.workspaceId,
-        title: openQuery.data.session.title,
-      })
-      setResumeChecked(true)
-      return
-    }
-    setResumeChecked(true)
-  }, [isValidId, shareToken, forceNew, openQuery.isLoading, openQuery.data])
-
+  // One workspace per track/question — startNew reuses; no retake / continue dialog.
   const startNew = trpc.practiceSessions.startNew.useMutation({
     onSuccess: (result) => {
       const path =
@@ -282,7 +253,6 @@ function ExerciseCollabBootstrap({
   const createOnce = useRef(false)
   useEffect(() => {
     if (isValidId || shareToken) return
-    if (!resumeChecked || resumePrompt) return
     if (isBank && !bankReadyForIde) return
     if (bankNeedsRedirect) return
     if (
@@ -296,20 +266,14 @@ function ExerciseCollabBootstrap({
     if (isBank) {
       if (!questionId) return
       createOnce.current = true
-      startNew.mutate({
-        questionId,
-        abandonOpen: true,
-      })
+      startNew.mutate({ questionId })
       return
     }
 
-    // Seed catalog — startNew loads exercise server-side
+    // Seed catalog — startNew loads exercise server-side (reuses same workspace).
     if (isCatalog) {
       createOnce.current = true
-      startNew.mutate({
-        trackId: format,
-        abandonOpen: true,
-      })
+      startNew.mutate({ trackId: format })
       return
     }
 
@@ -324,8 +288,6 @@ function ExerciseCollabBootstrap({
   }, [
     isValidId,
     shareToken,
-    resumeChecked,
-    resumePrompt,
     create,
     startNew,
     t,
@@ -358,6 +320,14 @@ function ExerciseCollabBootstrap({
   }
 
   if (shareToken && !isValidId) {
+    if (shareResolve.isLoading) {
+      return (
+        <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-sm text-muted-foreground">
+          <RobotLoader size="md" label={t("collab.preparing")} />
+          {t("collab.preparing")}
+        </div>
+      )
+    }
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 p-8 text-sm text-muted-foreground">
         {t("collab.badShareLink")}
@@ -369,55 +339,6 @@ function ExerciseCollabBootstrap({
           {t("collab.backToSimulations")}
         </Button>
       </div>
-    )
-  }
-
-  if (resumePrompt && !isValidId) {
-    return (
-      <Dialog open>
-        <DialogContent className="max-w-md" showCloseButton={false}>
-          <DialogHeader>
-            <DialogTitle>
-              {t("resume.title", { defaultValue: "Continue previous session?" })}
-            </DialogTitle>
-            <DialogDescription>
-              {t("resume.description", {
-                title: resumePrompt.title,
-                defaultValue:
-                  "You have an unfinished attempt for this exercise. Continue where you left off, or start a new attempt.",
-              })}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button
-              variant="outline"
-              className="cursor-pointer"
-              onClick={() => {
-                setResumePrompt(null)
-                createOnce.current = false
-                startNew.mutate(
-                  isBank && questionId
-                    ? { questionId, abandonOpen: true }
-                    : { trackId: format, abandonOpen: true }
-                )
-              }}
-              disabled={startNew.isPending}
-            >
-              {t("resume.startNew", { defaultValue: "Start new" })}
-            </Button>
-            <Button
-              className="cursor-pointer"
-              onClick={() => {
-                navigate(`${basePath}?id=${resumePrompt.workspaceId}`, {
-                  replace: true,
-                })
-              }}
-            >
-              {t("resume.continue", { defaultValue: "Continue" })}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     )
   }
 
@@ -451,7 +372,7 @@ function ExerciseCollabBootstrap({
       format={isBank ? "js-sum" : format}
       catalogSlug={isBank ? undefined : format}
       bankQuestionId={isBank ? questionId : null}
-      workspaceId={idParam}
+      workspaceId={workspaceIdFromUrl!}
       shareToken={shareToken}
     />
   )

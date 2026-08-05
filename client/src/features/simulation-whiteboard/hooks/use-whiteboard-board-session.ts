@@ -8,8 +8,8 @@ import { trpc } from "@/lib/trpc"
 type SaveStatus = "idle" | "saving" | "saved" | "error"
 
 /**
- * Creates a durable board for a bank question and debounced-autosaves document.
- * Pass `existingBoardId` (e.g. from session `?boardId=`) to resume instead of create.
+ * One durable board per bank question (openForQuestion) + debounced autosave.
+ * `existingBoardId` only for share-link join / legacy `?boardId=`.
  */
 export function useWhiteboardBoardSession(opts: {
   readonly questionId: string | null
@@ -22,7 +22,7 @@ export function useWhiteboardBoardSession(opts: {
   const [seedDoc, setSeedDoc] = useState<WhiteboardDocument | null>(null)
   const [ready, setReady] = useState(false)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle")
-  const create = trpc.whiteboard.create.useMutation()
+  const openForQuestion = trpc.whiteboard.openForQuestion.useMutation()
   const update = trpc.whiteboard.update.useMutation()
   const utils = trpc.useUtils()
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -33,7 +33,9 @@ export function useWhiteboardBoardSession(opts: {
   }, [boardId])
 
   useEffect(() => {
-    if (!enabled || !questionId) return
+    if (!enabled) return
+    // Share join: board id known, question may still be present for routing.
+    if (!existingBoardId && !questionId) return
     let cancelled = false
     setReady(false)
     setBoardId(null)
@@ -49,10 +51,9 @@ export function useWhiteboardBoardSession(opts: {
           setReady(true)
           return
         }
-        const row = await create.mutateAsync({
+        const row = await openForQuestion.mutateAsync({
+          questionId: questionId!,
           title,
-          questionId,
-          document: createEmptyBoard() as never,
         })
         if (cancelled) return
         setBoardId(row.id)
@@ -70,7 +71,7 @@ export function useWhiteboardBoardSession(opts: {
     return () => {
       cancelled = true
     }
-    // create/load once per question + board open
+    // open/load once per question + share board open
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, questionId, existingBoardId])
 

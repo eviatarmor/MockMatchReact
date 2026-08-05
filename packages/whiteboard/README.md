@@ -4,7 +4,7 @@ Product-agnostic infinite whiteboard.
 
 ## Architecture
 
-**One plugin model.** Select, draw, connector, clipboard, minimap, element renderers — all the same type: `WhiteboardPlugin`.
+**One plugin model.** Select, draw, connector, clipboard, element renderers — all the same type: `WhiteboardPlugin`.
 
 There is no separate “tools vs features” split. Everything lives under `src/plugins/<name>/`.
 
@@ -18,11 +18,11 @@ There is no separate “tools vs features” split. Everything lives under `src/
                      │ plugins[]
      ┌───────────────┼───────────────┬──────────────┐
      ▼               ▼               ▼              ▼
-  select          draw           connector       minimap
-  tools+rail      tools+rail     tools+rail      renderChrome
+  select          draw           connector       elements
+  tools+rail      tools+rail     tools+rail      renderers
      ▼               ▼               ▼
-  clipboard      shape-label      elements
-  onKeyDown      onDoubleClick    element renderers
+  clipboard      shape-label      text-edit
+  onKeyDown      onDoubleClick    onDoubleClick
 ```
 
 ### `WhiteboardPlugin`
@@ -36,7 +36,7 @@ There is no separate “tools vs features” split. Everything lives under `src/
   elements?: { type, render }[]      // element type views
   onKeyDown? / onDoubleClick? / onSelectDoubleActivate?
   renderOverlay?                     // board-space
-  renderChrome?                      // screen-space (minimap)
+  renderChrome?                      // screen-space chrome
   setup?
 }
 ```
@@ -55,7 +55,6 @@ There is no separate “tools vs features” split. Everything lives under `src/
 | `sticky` / `text` / `connector` | tools + rail |
 | `clipboard` | Ctrl/Cmd+C/X/V |
 | `shape-label` / `text-edit` | double-click edit |
-| `minimap` | overview chrome + click-to-pan |
 
 ### Usage
 
@@ -67,9 +66,6 @@ const plugins = useMemo(() => createDefaultPlugins(), [])
 
 // Bare core
 plugins={[]}
-
-// No minimap
-plugins={createDefaultPlugins().filter(p => p.id !== "minimap")}
 ```
 
 ### Layout
@@ -90,7 +86,6 @@ src/
     shape-label/
     text-edit/
     elements/
-    minimap/
     defaults.ts
     rail-ui.tsx
   stencils/          # draw.io-derived SVG library + panel

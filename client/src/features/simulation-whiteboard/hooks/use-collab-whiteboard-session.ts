@@ -1,29 +1,38 @@
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import {
   setCollabDocument,
   useCollabYDoc,
   type CollabYSnapshot,
 } from "@mockmatch/collab"
-import type { SpreadsheetDocument } from "@mockmatch/spreadsheet"
+import type { WhiteboardDocument } from "@mockmatch/whiteboard"
 import { useCollabRoom } from "@/features/collab/hooks/use-collab-room"
 import type { CollabPermissions } from "@/features/collab/types"
 
 type Args = {
-  readonly workbookId: string | null
+  readonly boardId: string | null
   readonly shareToken?: string | null
-  /** Called when remote peers change the workbook. */
-  readonly onRemoteDocument: (doc: SpreadsheetDocument) => void
+  /** Apply remote whiteboard document (replace local seed). */
+  readonly onRemoteDocument: (doc: WhiteboardDocument) => void
   /** Current local document for outbound CRDT mirror. */
-  readonly localDocument: SpreadsheetDocument | null
+  readonly localDocument: WhiteboardDocument | null
   readonly canEdit: boolean
 }
 
+function isWhiteboardDoc(v: unknown): v is WhiteboardDocument {
+  return (
+    Boolean(v) &&
+    typeof v === "object" &&
+    (v as WhiteboardDocument).version === 1 &&
+    typeof (v as WhiteboardDocument).elements === "object"
+  )
+}
+
 /**
- * Live collab for spreadsheet workbooks (`document_kind: spreadsheet`).
- * Mirrors local workbook JSON into the shared Y.Doc and applies remote snaps.
+ * Live collab for whiteboard boards (`document_kind: whiteboard`).
+ * Presence avatars + remote cursors via room; document via Yjs.
  */
-export function useCollabSpreadsheetSession({
-  workbookId,
+export function useCollabWhiteboardSession({
+  boardId,
   shareToken,
   onRemoteDocument,
   localDocument,
@@ -31,17 +40,13 @@ export function useCollabSpreadsheetSession({
 }: Args) {
   const skipOutbound = useRef(false)
   const sendYUpdateRef = useRef<(u: string) => void>(() => {})
-
   const liveRef = useRef(false)
 
   const onRemoteMaterialize = useCallback(
     (snap: CollabYSnapshot) => {
-      // Only merge peer CRDT materializations while the room is live.
-      // Applying snapshot JSON into the local workbook Y.Doc mid-edit rebuilds
-      // Y types and breaks UndoManager (undo restores keys, not text).
       if (!liveRef.current) return
-      const doc = snap.document as SpreadsheetDocument | null
-      if (!doc || !doc.sheets?.length) return
+      const doc = snap.document
+      if (!isWhiteboardDoc(doc)) return
       skipOutbound.current = true
       onRemoteDocument(doc)
     },
@@ -49,7 +54,7 @@ export function useCollabSpreadsheetSession({
   )
 
   const yjs = useCollabYDoc({
-    enabled: Boolean(workbookId),
+    enabled: Boolean(boardId),
     sendUpdate: (u) => sendYUpdateRef.current(u),
     onRemoteMaterialize,
   })
@@ -68,8 +73,6 @@ export function useCollabSpreadsheetSession({
       style: Record<string, unknown>
       document: unknown
     }) => {
-      // Keep for safety seed only — do not push into local workbook undo CRDT.
-      // Content sync is via yjs.sync / yjs.update once live.
       lastSnapRef.current = {
         title: snap.title,
         templateId: snap.templateId,
@@ -81,9 +84,9 @@ export function useCollabSpreadsheetSession({
   )
 
   const collab = useCollabRoom({
-    kind: "spreadsheet",
-    documentId: workbookId ?? "",
-    enabled: Boolean(workbookId),
+    kind: "whiteboard",
+    documentId: boardId ?? "",
+    enabled: Boolean(boardId),
     shareToken,
     onSnapshot,
     onYjsSync: (u) => applyRemoteUpdateRef.current(u),
@@ -102,7 +105,7 @@ export function useCollabSpreadsheetSession({
     seedFromSnapshotRef.current(lastSnapRef.current)
   }, [collab.live, yjs.ydoc])
 
-  // Local → collab CRDT
+  // Local → collab CRDT (debounced lightly by effect batching)
   useEffect(() => {
     if (!collab.live || !canEdit || !localDocument) return
     if (skipOutbound.current) {
@@ -119,11 +122,6 @@ export function useCollabSpreadsheetSession({
     yjs.ydoc,
   ])
 
-  const [peerCount, setPeerCount] = useState(0)
-  useEffect(() => {
-    setPeerCount(collab.peers.length)
-  }, [collab.peers.length])
-
   return {
     collab,
     permissions,
@@ -132,8 +130,8 @@ export function useCollabSpreadsheetSession({
     status: collab.status,
     live: collab.live,
     connected: collab.connected,
-    peerCount,
     roomError: collab.roomError,
-    ydoc: yjs.ydoc,
+    sendCursor: collab.sendCursor,
+    clearCursor: collab.clearCursor,
   }
 }

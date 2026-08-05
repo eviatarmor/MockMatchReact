@@ -19,7 +19,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@mockmatch/ui/tooltip"
-import { PresenceAvatarStack } from "@mockmatch/collab"
+import { PresenceAvatarStack, RoomFullGate } from "@mockmatch/collab"
 import { SaveStatusBadge } from "@/components/data/save-status-badge"
 import { ShareDialog } from "@/features/collab/components/share-dialog"
 import { trpc } from "@/lib/trpc"
@@ -36,7 +36,7 @@ export function SimulationSpreadsheetPageContent() {
   const { questionId: pathQuestionId } = useParams<{ questionId?: string }>()
   const [params] = useSearchParams()
   const { t } = useTranslation(["simulation-spreadsheet", "common"])
-  const existingId = (() => {
+  const legacyId = (() => {
     const id = params.get("id")
     return id && UUID_RE.test(id) ? id : null
   })()
@@ -47,11 +47,48 @@ export function SimulationSpreadsheetPageContent() {
   })()
   const shareToken = params.get("share") || params.get("token")
 
+  // Token → workbook id (bank share URLs only carry `?share=`).
+  const shareResolve = trpc.collab.resolveShare.useQuery(
+    {
+      shareToken: shareToken!,
+      questionId: questionId ?? undefined,
+    },
+    {
+      enabled: Boolean(shareToken),
+      retry: false,
+    }
+  )
+  const resolvedId =
+    shareResolve.data?.kind === "spreadsheet"
+      ? shareResolve.data.documentId
+      : null
+  const existingId = legacyId ?? resolvedId
+
+  // Claim share before workbook get (guest must become collaborator first).
+  const shareClaim = trpc.collab.getAccess.useQuery(
+    {
+      kind: "spreadsheet",
+      id: existingId!,
+      shareToken: shareToken || undefined,
+    },
+    {
+      enabled: Boolean(existingId && shareToken),
+      retry: false,
+    }
+  )
+  const shareReady =
+    !shareToken ||
+    ((shareResolve.isSuccess || shareResolve.isError) &&
+      (!existingId || shareClaim.isSuccess || shareClaim.isError))
+  // Guest share: only open resolved workbook — never create a new one.
+  const canOpenSession =
+    shareReady && (!shareToken || Boolean(existingId))
+
   const session = useSpreadsheetWorkbookSession({
     title: t("simulation-spreadsheet:title"),
-    enabled: true,
+    enabled: canOpenSession,
     existingId,
-    questionId,
+    questionId: shareToken ? null : questionId,
   })
 
   const sheet = useSpreadsheet({
@@ -61,9 +98,14 @@ export function SimulationSpreadsheetPageContent() {
   const [shareOpen, setShareOpen] = useState(false)
 
   const workbookId = session.workbookId
+  const accessDocId = workbookId ?? existingId
   const collabAccess = trpc.collab.getAccess.useQuery(
-    { kind: "spreadsheet", id: workbookId! },
-    { enabled: Boolean(workbookId), retry: false }
+    {
+      kind: "spreadsheet",
+      id: accessDocId!,
+      shareToken: shareToken || undefined,
+    },
+    { enabled: Boolean(accessDocId), retry: false }
   )
 
   const applyRemoteRef = useRef(sheet.applyRemoteDocument)
@@ -134,11 +176,34 @@ export function SimulationSpreadsheetPageContent() {
     )
   }
 
+  if (collabSession.status === "room_full") {
+    return (
+      <RoomFullGate
+        backHref="/simulations"
+        message={collabSession.roomError}
+      />
+    )
+  }
+  if (collabSession.status === "room_closed") {
+    return (
+      <RoomFullGate
+        backHref="/simulations"
+        message={collabSession.roomError}
+        variant="closed"
+      />
+    )
+  }
+
   const saveStatus = collabSession.live
     ? collabSession.collab.docSaveStatus === "saving"
       ? "saving"
       : "saved"
     : session.saveStatus
+
+  const showPresence =
+    collabSession.connected ||
+    Boolean(collabSession.self) ||
+    collabSession.peers.length > 0
 
   const chrome = (
     <IdeChromeBar
@@ -175,7 +240,7 @@ export function SimulationSpreadsheetPageContent() {
       }
       end={
         <div className="flex items-center gap-2">
-          {collabSession.live ? (
+          {showPresence ? (
             <PresenceAvatarStack
               peers={collabSession.peers}
               self={collabSession.self}

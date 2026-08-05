@@ -491,7 +491,7 @@ function boundsFromPoints(
 
 /**
  * World bounds of an element. Pass `doc` so connectors resolve element anchors
- * (required for accurate minimap / export framing).
+ * (required for accurate export framing).
  */
 export function elementBounds(
   el: WhiteboardElement,

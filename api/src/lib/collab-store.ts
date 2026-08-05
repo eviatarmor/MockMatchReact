@@ -28,6 +28,8 @@ export type PresenceRecord = {
   name: string
   color: string
   role: CollabEffectiveRole
+  /** Public account avatar URL when the user has a profile photo. */
+  avatarUrl?: string | null
   lastSeen: number
   cursor?: {
     x: number

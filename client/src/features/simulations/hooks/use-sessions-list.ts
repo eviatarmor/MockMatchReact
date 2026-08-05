@@ -42,8 +42,8 @@ function formatLabel(
 }
 
 /**
- * Merged history: voice sessions + IDE practice attempts.
- * Retakes appear as separate rows.
+ * Merged history: voice sessions + practice attempts.
+ * Practice is one row per exercise track (no retakes).
  */
 export function useSessionsList() {
   const { t } = useTranslation("common")

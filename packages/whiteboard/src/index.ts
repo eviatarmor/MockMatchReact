@@ -221,7 +221,6 @@ export {
   createDrawPlugin,
   createDrawToolPlugin,
   createElementsPlugin,
-  createMinimapPlugin,
   createPanPlugin,
   createPanToolPlugin,
   createSelectPlugin,

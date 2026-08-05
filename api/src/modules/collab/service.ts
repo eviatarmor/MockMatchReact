@@ -28,6 +28,7 @@ import {
   resolveDocumentAccess,
 } from "./access.js"
 import { permissionsForRole } from "./permissions.js"
+import { buildShareUrl, parseWorkspaceQuestionId } from "./share-url.js"
 
 /** Redis control plane for live collab WS (api → ws pods). */
 async function publishRoomControl(
@@ -50,49 +51,87 @@ async function publishRoomControl(
  */
 const SHARE_SENTINEL_EXPIRES = new Date("9999-12-31T23:59:59.000Z")
 
-function shareUrl(
+async function questionIdForDocument(
+  db: Database,
   kind: DocumentKind,
-  documentId: string,
-  rawToken: string,
-  /** IDE practice format slug when kind is workspace. */
-  workspaceFormat = "workspace"
-): string {
-  if (kind === "workspace") {
-    const format = workspaceFormat.trim() || "workspace"
-    // Routes: workspace + terminal-lab are dedicated; exercises under code-run.
-    const path =
-      format === "workspace"
-        ? "/simulations/workspace"
-        : format === "shell" || format === "terminal-lab"
-          ? "/simulations/terminal-lab"
-          : `/simulations/code-run/${format}`
-    const url = new URL(path, env.APP_URL)
-    url.searchParams.set("id", documentId)
-    url.searchParams.set("share", rawToken)
-    return url.toString()
-  }
+  documentId: string
+): Promise<string | null> {
   if (kind === "whiteboard") {
-    const url = new URL(`/simulations/whiteboard/board/${documentId}`, env.APP_URL)
-    url.searchParams.set("share", rawToken)
-    return url.toString()
+    const row = await db.query.whiteboardBoards.findFirst({
+      where: eq(whiteboardBoards.id, documentId),
+      columns: { questionId: true },
+    })
+    return row?.questionId ?? null
   }
   if (kind === "spreadsheet") {
-    const url = new URL("/simulations/spreadsheet", env.APP_URL)
-    url.searchParams.set("id", documentId)
-    url.searchParams.set("share", rawToken)
-    return url.toString()
+    const row = await db.query.spreadsheetWorkbooks.findFirst({
+      where: eq(spreadsheetWorkbooks.id, documentId),
+      columns: { questionId: true },
+    })
+    return row?.questionId ?? null
   }
   if (kind === "page") {
-    const url = new URL("/simulations/page", env.APP_URL)
-    url.searchParams.set("id", documentId)
-    url.searchParams.set("share", rawToken)
-    return url.toString()
+    const row = await db.query.pageDocuments.findFirst({
+      where: eq(pageDocuments.id, documentId),
+      columns: { questionId: true },
+    })
+    return row?.questionId ?? null
   }
-  const path =
-    kind === "resume" ? `/resumes/${documentId}` : `/cover-letters/${documentId}`
-  const url = new URL(path, env.APP_URL)
-  url.searchParams.set("share", rawToken)
-  return url.toString()
+  if (kind === "workspace") {
+    const row = await db.query.ideWorkspaces.findFirst({
+      where: eq(ideWorkspaces.id, documentId),
+      columns: { templateId: true },
+    })
+    return parseWorkspaceQuestionId(row?.templateId) ?? null
+  }
+  return null
+}
+
+/**
+ * Map raw share token → document identity so clients can open
+ * `/simulations/:questionId?share=` without embedding the board/workspace id.
+ * Does not join the room (owner-online check happens on getAccess / wsTicket).
+ */
+export async function resolveShareToken(
+  db: Database,
+  shareToken: string,
+  expectedQuestionId?: string
+) {
+  const tokenHash = hashToken(shareToken)
+  const share = await db.query.documentShares.findFirst({
+    where: and(
+      eq(documentShares.tokenHash, tokenHash),
+      isNull(documentShares.revokedAt)
+    ),
+  })
+  if (!share) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Share link not found.",
+    })
+  }
+
+  const kind = share.documentKind as DocumentKind
+  const documentId = share.documentId
+  const questionId = await questionIdForDocument(db, kind, documentId)
+
+  if (
+    expectedQuestionId &&
+    questionId &&
+    expectedQuestionId !== questionId
+  ) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Share link not found.",
+    })
+  }
+
+  return {
+    kind,
+    documentId,
+    role: share.role as CollabRole,
+    questionId,
+  }
 }
 
 export async function getAccess(
@@ -166,17 +205,43 @@ export async function createShareLink(
   }
 
   let workspaceFormat = "workspace"
+  let questionId: string | null = null
+
   if (kind === "workspace") {
     const ws = await db.query.ideWorkspaces.findFirst({
       where: eq(ideWorkspaces.id, documentId),
       columns: { templateId: true },
     })
-    if (ws?.templateId) workspaceFormat = ws.templateId
+    if (ws?.templateId) {
+      workspaceFormat = ws.templateId
+      questionId = parseWorkspaceQuestionId(ws.templateId)
+    }
+  } else if (kind === "whiteboard") {
+    const board = await db.query.whiteboardBoards.findFirst({
+      where: eq(whiteboardBoards.id, documentId),
+      columns: { questionId: true },
+    })
+    questionId = board?.questionId ?? null
+  } else if (kind === "spreadsheet") {
+    const book = await db.query.spreadsheetWorkbooks.findFirst({
+      where: eq(spreadsheetWorkbooks.id, documentId),
+      columns: { questionId: true },
+    })
+    questionId = book?.questionId ?? null
+  } else if (kind === "page") {
+    const page = await db.query.pageDocuments.findFirst({
+      where: eq(pageDocuments.id, documentId),
+      columns: { questionId: true },
+    })
+    questionId = page?.questionId ?? null
   }
 
   return {
     shareId: row.id,
-    url: shareUrl(kind, documentId, rawToken, workspaceFormat),
+    url: buildShareUrl(env.APP_URL, kind, documentId, rawToken, {
+      workspaceFormat,
+      questionId,
+    }),
     role: row.role,
     /** Null — links expire when the owner leaves the room, not by clock. */
     expiresAt: null as string | null,

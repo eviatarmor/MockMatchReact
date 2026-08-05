@@ -11,6 +11,12 @@ import { useTranslation } from "react-i18next"
 import { ArrowLeft, Download, Share2 } from "lucide-react"
 import { IdeChromeBar } from "@mockmatch/ide"
 import {
+  PresenceAvatarStack,
+  RemoteCursors,
+  RoomFullGate,
+  useCollabSurface,
+} from "@mockmatch/collab"
+import {
   DEFAULT_HIGHLIGHTER_STYLE,
   DEFAULT_PEN_STYLE,
   WhiteboardBottomBar,
@@ -56,6 +62,7 @@ import { SaveStatusBadge } from "@/components/data/save-status-badge"
 import { ShareDialog } from "@/features/collab/components/share-dialog"
 import { trpc } from "@/lib/trpc"
 import { practicePathForBankQuestion } from "@/features/simulations/lib/practice-path"
+import { useCollabWhiteboardSession } from "./hooks/use-collab-whiteboard-session"
 import { useWhiteboardBoardSession } from "./hooks/use-whiteboard-board-session"
 import { WhiteboardRail } from "./right-rail/whiteboard-rail"
 
@@ -71,16 +78,22 @@ function templateI18nKey(key: string): string {
 
 export function SimulationWhiteboardPageContent() {
   const { questionId: questionIdParam } = useParams<{ questionId: string }>()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const navigate = useNavigate()
   const { t } = useTranslation(["simulation-whiteboard", "common"])
 
   const seedId =
     questionIdParam && UUID_RE.test(questionIdParam) ? questionIdParam : null
-  const existingBoardId = (() => {
-    const id = searchParams.get("boardId")
-    return id && UUID_RE.test(id) ? id : null
-  })()
+  const shareToken =
+    searchParams.get("share") || searchParams.get("token") || null
+
+  // Strip legacy boardId from URL (history no longer writes it).
+  useEffect(() => {
+    if (!searchParams.has("boardId")) return
+    const next = new URLSearchParams(searchParams)
+    next.delete("boardId")
+    setSearchParams(next, { replace: true })
+  }, [searchParams, setSearchParams])
 
   const summaryQuery = trpc.questions.get.useQuery(
     { id: seedId! },
@@ -100,10 +113,48 @@ export function SimulationWhiteboardPageContent() {
   const isWhiteboard =
     summaryQuery.data?.format === "whiteboard" && Boolean(seedId)
 
+  // Token → board id (bank share URLs are `/simulations/:questionId?share=` only).
+  const shareResolve = trpc.collab.resolveShare.useQuery(
+    {
+      shareToken: shareToken!,
+      questionId: seedId ?? undefined,
+    },
+    {
+      enabled: Boolean(shareToken),
+      retry: false,
+    }
+  )
+  const resolvedBoardId =
+    shareResolve.data?.kind === "whiteboard"
+      ? shareResolve.data.documentId
+      : null
+  // Share join only — owner always uses openForQuestion (one board per question).
+  const existingBoardId = shareToken ? resolvedBoardId : null
+
+  // Claim share before board get (guest must become collaborator first).
+  const shareClaim = trpc.collab.getAccess.useQuery(
+    {
+      kind: "whiteboard",
+      id: existingBoardId!,
+      shareToken: shareToken || undefined,
+    },
+    {
+      enabled: Boolean(existingBoardId && shareToken),
+      retry: false,
+    }
+  )
+  const shareReady =
+    !shareToken ||
+    ((shareResolve.isSuccess || shareResolve.isError) &&
+      (!existingBoardId || shareClaim.isSuccess || shareClaim.isError))
+  // Guest share: only open the resolved board — never create a new one.
+  const canOpenBoard =
+    isWhiteboard && shareReady && (!shareToken || Boolean(existingBoardId))
+
   const boardSession = useWhiteboardBoardSession({
     questionId: seedId,
     title: summaryQuery.data?.title ?? "Whiteboard",
-    enabled: isWhiteboard,
+    enabled: canOpenBoard,
     existingBoardId,
   })
 
@@ -132,13 +183,59 @@ export function SimulationWhiteboardPageContent() {
   const selectedIdsRef = useRef(selectedIds)
   selectedIdsRef.current = selectedIds
 
+  const accessDocId = boardSession.boardId ?? existingBoardId
   const collabAccess = trpc.collab.getAccess.useQuery(
     {
       kind: "whiteboard",
-      id: boardSession.boardId!,
+      id: accessDocId!,
+      shareToken: shareToken || undefined,
     },
-    { enabled: Boolean(boardSession.boardId), retry: false }
+    { enabled: Boolean(accessDocId), retry: false }
   )
+
+  const onRemoteDocument = useCallback((remote: WhiteboardDocument) => {
+    historyRef.current.replace(remote)
+    setDoc(remote)
+    setSelectedIds([])
+    seededRef.current = true
+  }, [])
+
+  const collabSession = useCollabWhiteboardSession({
+    boardId: boardSession.boardId,
+    shareToken,
+    onRemoteDocument,
+    localDocument: boardSession.ready ? doc : null,
+    canEdit: collabAccess.data?.role !== "view",
+  })
+
+  const canEditBoard =
+    collabAccess.data?.role !== "view" &&
+    (!collabSession.live || collabSession.permissions.canEditContent)
+
+  const collabSurface = useCollabSurface(
+    collabSession.sendCursor,
+    collabSession.clearCursor
+  )
+
+  // Bind pointer tracking on the pan/zoom wrapper (same pattern as resume canvas).
+  useEffect(() => {
+    if (!collabSession.live) return
+    let raf = 0
+    let cleanup: (() => void) | undefined
+    const tryBind = () => {
+      const wrapper = viewport.ref.current?.instance?.wrapperComponent ?? null
+      if (wrapper) {
+        cleanup = collabSurface.bindViewport(wrapper)
+        return
+      }
+      raf = requestAnimationFrame(tryBind)
+    }
+    tryBind()
+    return () => {
+      cancelAnimationFrame(raf)
+      cleanup?.()
+    }
+  }, [collabSession.live, collabSurface.bindViewport, viewport.ref])
 
   useEffect(() => {
     if (!boardSession.ready || !boardSession.seedDoc || seededRef.current) return
@@ -157,9 +254,10 @@ export function SimulationWhiteboardPageContent() {
       const next = historyRef.current.dispatch(command)
       setDoc(next)
       syncHistoryFlags()
-      boardSession.scheduleSave(next)
+      // Solo autosave; collab persists via Yjs flush when live.
+      if (!collabSession.live) boardSession.scheduleSave(next)
     },
-    [boardSession, syncHistoryFlags]
+    [boardSession, syncHistoryFlags, collabSession.live]
   )
 
   const applyTemplate = useCallback(
@@ -474,8 +572,31 @@ export function SimulationWhiteboardPageContent() {
     )
   }
 
+  // Guest: owner left / access revoked (same gates as resume editor).
+  if (collabSession.status === "room_full") {
+    return (
+      <RoomFullGate
+        backHref="/simulations"
+        message={collabSession.roomError}
+      />
+    )
+  }
+  if (collabSession.status === "room_closed") {
+    return (
+      <RoomFullGate
+        backHref="/simulations"
+        message={collabSession.roomError}
+        variant="closed"
+      />
+    )
+  }
+
   const title = summaryQuery.data.title
   const prompt = summaryQuery.data.body?.trim() || t("emptyPrompt")
+  const showPresence =
+    collabSession.connected ||
+    Boolean(collabSession.self) ||
+    collabSession.peers.length > 0
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -521,6 +642,12 @@ export function SimulationWhiteboardPageContent() {
               }
               end={
                 <>
+                  {showPresence ? (
+                    <PresenceAvatarStack
+                      peers={collabSession.peers}
+                      self={collabSession.self}
+                    />
+                  ) : null}
                   <SaveStatusBadge
                     status={
                       boardSession.saveStatus === "saving"
@@ -637,7 +764,7 @@ export function SimulationWhiteboardPageContent() {
             selectedIds={selectedIds}
             onSelectedIdsChange={setSelectedIds}
             onCommand={dispatch}
-            canEdit
+            canEdit={canEditBoard}
             shapeKind={shapeKind}
             penStyle={penStyle}
             highlighterStyle={highlighterStyle}
@@ -645,6 +772,24 @@ export function SimulationWhiteboardPageContent() {
             stickyColor={stickyColor}
             shapeColor={shapeColor}
             shapeLabelLabels={shapeLabelLabels}
+            surfaceRef={collabSurface.surfaceRef}
+            boardOverlay={
+              collabSession.live || collabSession.connected ? (
+                <RemoteCursors
+                  peers={collabSession.peers}
+                  surfaceWidth={
+                    collabSurface.surfaceSize.w > 1
+                      ? collabSurface.surfaceSize.w
+                      : 3000
+                  }
+                  surfaceHeight={
+                    collabSurface.surfaceSize.h > 1
+                      ? collabSurface.surfaceSize.h
+                      : 3000
+                  }
+                />
+              ) : null
+            }
           />
         </WhiteboardShell>
       </WhiteboardRail>

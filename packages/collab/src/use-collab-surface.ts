@@ -38,7 +38,9 @@ export type UseCollabSurfaceOptions = {
  * (origin = paper top-left; 1 = paper width/height). Values may be outside
  * [0,1] when the pointer is on the surrounding canvas grid.
  *
- * - `surfaceRef` → paper (size + caret space)
+ * - `surfaceRef` → callback or object ref to the paper plane (size + caret space).
+ *   Prefer the callback form so late-mounted surfaces (whiteboard board) still
+ *   measure correctly for remote cursor scaling.
  * - `bindViewport` → full canvas/grid layer that receives pointer moves
  */
 export function useCollabSurface(
@@ -47,7 +49,8 @@ export function useCollabSurface(
   options?: UseCollabSurfaceOptions
 ) {
   const clamp = options?.clamp ?? false
-  const surfaceRef = useRef<HTMLDivElement>(null)
+  const surfaceRef = useRef<HTMLDivElement | null>(null)
+  const [surfaceEl, setSurfaceEl] = useState<HTMLDivElement | null>(null)
   const [surfaceSize, setSurfaceSize] = useState({ w: 1, h: 1 })
   const sizeRef = useRef(surfaceSize)
   sizeRef.current = surfaceSize
@@ -56,8 +59,14 @@ export function useCollabSurface(
   const sendCursorRef = useRef(sendCursor)
   sendCursorRef.current = sendCursor
 
+  /** Callback ref — hosts that mount the paper later (TransformWrapper) attach here. */
+  const setSurfaceRef = useCallback((el: HTMLDivElement | null) => {
+    surfaceRef.current = el
+    setSurfaceEl(el)
+  }, [])
+
   useEffect(() => {
-    const el = surfaceRef.current
+    const el = surfaceEl
     if (!el) return
     // Always use offsetWidth/Height (layout border-box). contentRect can differ
     // slightly and desync paper Y from clientToPaper (which uses border-box).
@@ -70,7 +79,7 @@ export function useCollabSurface(
     ro.observe(el)
     measure()
     return () => ro.disconnect()
-  }, [])
+  }, [surfaceEl])
 
   const clientToPaper = useCallback((clientX: number, clientY: number) => {
     const el = surfaceRef.current
@@ -253,7 +262,10 @@ export function useCollabSurface(
   }, [clientRectToNorm, clientCaretToPaper])
 
   return {
-    surfaceRef,
+    /** Prefer this callback ref so late-mounted papers measure for cursor scale. */
+    surfaceRef: setSurfaceRef,
+    /** Raw object ref (same node as setSurfaceRef). */
+    surfaceObjectRef: surfaceRef,
     surfaceSize,
     onPointerMove,
     onPointerLeave,

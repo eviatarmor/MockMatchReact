@@ -66,7 +66,7 @@ export function useWhiteboardViewport() {
       setScale((prev) =>
         Math.abs(prev - next.scale) < 1e-6 ? prev : next.scale
       )
-      // rAF-coalesce listener fan-out (minimap view-rect, etc.)
+      // rAF-coalesce listener fan-out
       if (notifyRafRef.current) return
       notifyRafRef.current = requestAnimationFrame(() => {
         notifyRafRef.current = 0
