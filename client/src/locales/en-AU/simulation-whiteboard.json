@@ -1,6 +1,6 @@
 ﻿{
   "title": "Whiteboard",
-  "loading": "Loading whiteboardâ€¦",
+  "loading": "Loading whiteboard…",
   "prompt": "Prompt",
   "templates": "Templates",
   "stencils": "Stencils",
@@ -22,10 +22,10 @@
   "stencilsPanel": {
     "title": "Stencils",
     "description": "Architecture and diagram icons. Click to place on the board.",
-    "searchPlaceholder": "Search shapesâ€¦",
+    "searchPlaceholder": "Search shapes…",
     "allCategories": "All libraries",
     "empty": "No shapes match your search.",
-    "loading": "Loading libraryâ€¦",
+    "loading": "Loading library…",
     "count": "{{count}} shapes",
     "attribution": "Icons derived from draw.io / diagrams.net stencils. Brand marks belong to their owners. See package attributions for details."
   },
@@ -133,7 +133,7 @@
   "apply": "Apply",
   "cancel": "Cancel",
   "saved": "Saved",
-  "saving": "Savingâ€¦",
+  "saving": "Saving…",
   "ended": "Session ended",
   "errors": {
     "invalidId": {
