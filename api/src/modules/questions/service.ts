@@ -25,6 +25,7 @@ import {
   type SpreadsheetQuestionPayload,
 } from "../../db/schema/questions.js"
 import { userQuestionProgress } from "../../db/schema/user-question-progress.js"
+import { assertQuestionReadable, bankListVisibilityFilter } from "./custom.js"
 
 export type ListQuestionsInput = {
   search?: string
@@ -32,6 +33,8 @@ export type ListQuestionsInput = {
   difficulties?: QuestionDifficulty[]
   formats?: QuestionFormat[]
   userStatuses?: QuestionUserStatus[]
+  /** Only the caller's self-deployed custom questions. */
+  customOnly?: boolean
   page?: number
   pageSize?: number
 }
@@ -71,7 +74,11 @@ export function resolveConversationTrackId(
   return "behavioral-core"
 }
 
-export async function getQuestionSummary(db: Database, questionId: string) {
+export async function getQuestionSummary(
+  db: Database,
+  questionId: string,
+  userId: string
+) {
   const [row] = await db
     .select({
       id: questions.id,
@@ -82,6 +89,8 @@ export async function getQuestionSummary(db: Database, questionId: string) {
       body: questions.body,
       payload: questions.payload,
       status: questions.status,
+      visibility: questions.visibility,
+      ownerUserId: questions.ownerUserId,
     })
     .from(questions)
     .where(eq(questions.id, questionId))
@@ -93,13 +102,10 @@ export async function getQuestionSummary(db: Database, questionId: string) {
       message: "Question not found",
     })
   }
-  // Allow draft/published so freshly generated items still open
-  if (row.status === "archived") {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Question not found",
-    })
-  }
+  // Global drafts still openable; self drafts require deploy for practice hosts
+  assertQuestionReadable(row, userId, {
+    allowDraftForOwner: row.visibility === "global",
+  })
   const payload = (row.payload ?? {}) as { trackHint?: string }
   const trackHint = payload.trackHint ?? null
   return {
@@ -126,7 +132,9 @@ export async function listQuestions(
   const pageSize = input.pageSize ?? 50
   const offset = (page - 1) * pageSize
 
-  const filters = [eq(questions.status, "published")]
+  const filters = [
+    bankListVisibilityFilter(userId, input.customOnly)!,
+  ]
 
   if (input.domains && input.domains.length > 0) {
     filters.push(inArray(questions.domain, input.domains))
@@ -157,6 +165,8 @@ export async function listQuestions(
       language: questions.language,
       body: questions.body,
       payload: questions.payload,
+      visibility: questions.visibility,
+      ownerUserId: questions.ownerUserId,
       userStatus: userQuestionProgress.status,
     })
     .from(questions)
@@ -174,6 +184,7 @@ export async function listQuestions(
 
   let items: BankQuestionDto[] = rows.map((r) => {
     const payload = (r.payload ?? {}) as { trackHint?: string }
+    const isCustom = r.visibility === "self" && r.ownerUserId === userId
     return {
       id: r.id,
       title: r.title,
@@ -185,6 +196,8 @@ export async function listQuestions(
       body: r.body,
       status: (r.userStatus ?? "new") as QuestionUserStatus,
       trackHint: payload.trackHint ?? null,
+      isCustom,
+      visibility: r.visibility as BankQuestionDto["visibility"],
     }
   })
 
@@ -471,17 +484,19 @@ function arraysEqual(a: number[], b: number[]): boolean {
  */
 export async function getQuestionForMcq(
   db: Database,
-  questionId: string
+  questionId: string,
+  userId: string
 ): Promise<QuestionMcqDetail> {
   const row = await db.query.questions.findFirst({
     where: eq(questions.id, questionId),
   })
-  if (!row || row.status === "archived") {
+  if (!row) {
     throw new TRPCError({
       code: "NOT_FOUND",
       message: "Question not found",
     })
   }
+  assertQuestionReadable(row, userId)
   if (row.format !== "mcq") {
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -494,17 +509,19 @@ export async function getQuestionForMcq(
 /** Bank spreadsheet → prompt + starter workbook for practice host. */
 export async function getQuestionForSpreadsheet(
   db: Database,
-  questionId: string
+  questionId: string,
+  userId: string
 ): Promise<QuestionSpreadsheetDetail> {
   const row = await db.query.questions.findFirst({
     where: eq(questions.id, questionId),
   })
-  if (!row || row.status === "archived") {
+  if (!row) {
     throw new TRPCError({
       code: "NOT_FOUND",
       message: "Question not found",
     })
   }
+  assertQuestionReadable(row, userId)
   if (row.format !== "spreadsheet") {
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -529,17 +546,19 @@ export async function getQuestionForSpreadsheet(
 /** Bank freeform page → prompt + starter HTML for practice host. */
 export async function getQuestionForPage(
   db: Database,
-  questionId: string
+  questionId: string,
+  userId: string
 ): Promise<QuestionPageDetail> {
   const row = await db.query.questions.findFirst({
     where: eq(questions.id, questionId),
   })
-  if (!row || row.status === "archived") {
+  if (!row) {
     throw new TRPCError({
       code: "NOT_FOUND",
       message: "Question not found",
     })
   }
+  assertQuestionReadable(row, userId)
   if (row.format !== "page") {
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -567,17 +586,19 @@ export async function getQuestionForPage(
 export async function getMcqSession(
   db: Database,
   seedId: string,
+  userId: string,
   limit = 8
 ): Promise<McqSession> {
   const seed = await db.query.questions.findFirst({
     where: eq(questions.id, seedId),
   })
-  if (!seed || seed.status === "archived") {
+  if (!seed) {
     throw new TRPCError({
       code: "NOT_FOUND",
       message: "Question not found",
     })
   }
+  assertQuestionReadable(seed, userId)
   if (seed.format !== "mcq") {
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -601,7 +622,7 @@ export async function getMcqSession(
       and(
         eq(questions.format, "mcq"),
         eq(questions.domain, seed.domain),
-        eq(questions.status, "published"),
+        bankListVisibilityFilter(userId)!,
         ne(questions.id, seed.id)
       )
     )
@@ -640,12 +661,13 @@ export async function submitMcqAnswer(
   const row = await db.query.questions.findFirst({
     where: eq(questions.id, questionId),
   })
-  if (!row || row.status === "archived") {
+  if (!row) {
     throw new TRPCError({
       code: "NOT_FOUND",
       message: "Question not found",
     })
   }
+  assertQuestionReadable(row, userId)
   if (row.format !== "mcq") {
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -771,12 +793,21 @@ export async function submitMcqAnswer(
  */
 export async function getQuestionForPractice(
   db: Database,
-  questionId: string
+  questionId: string,
+  userId: string
 ): Promise<QuestionPracticeDetail> {
   const row = await db.query.questions.findFirst({
     where: eq(questions.id, questionId),
   })
-  if (!row || row.status !== "published") {
+  if (!row) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Question not found",
+    })
+  }
+  assertQuestionReadable(row, userId)
+  // IDE practice requires published (global or self-deployed)
+  if (row.status !== "published") {
     throw new TRPCError({
       code: "NOT_FOUND",
       message: "Question not found",
