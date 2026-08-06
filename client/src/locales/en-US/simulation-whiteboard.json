@@ -154,7 +154,9 @@
     },
     "wrongFormat": "This question is not a whiteboard exercise",
     "backToQuestionBank": "Back to question bank",
-    "backToSimulations": "Back to simulations"
+    "backToSimulations": "Back to simulations",
+    "historyLinkFailed": "Practice history not linked",
+    "historyLinkFailedDescription": "You can still use the board. This session will not appear in practice history."
   },
   "emptyPrompt": "Use the board to sketch your answer. Tools are on the left; open Prompt or Templates from the right rail."
 }

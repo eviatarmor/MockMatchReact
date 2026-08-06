@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
-import type { PathElement, WhiteboardDocument } from "@/types"
+import type { ConnectorElement, PathElement, WhiteboardDocument } from "@/types"
 import {
+  connectorHitsBrush,
   erasePathPoints,
   eraseWholeStrokesAt,
   pathHitsBrush,
@@ -22,6 +23,26 @@ function path(
   }
 }
 
+function connector(
+  id: string,
+  from: ConnectorElement["from"],
+  to: ConnectorElement["to"],
+  opts?: Partial<Pick<ConnectorElement, "routing" | "strokeWidth">>
+): ConnectorElement {
+  return {
+    id,
+    type: "connector",
+    from,
+    to,
+    z: 1,
+    stroke: "#525252",
+    strokeWidth: opts?.strokeWidth ?? 2,
+    startArrow: false,
+    endArrow: true,
+    routing: opts?.routing ?? "straight",
+  }
+}
+
 describe("pathHitsBrush", () => {
   it("false for empty path", () => {
     expect(pathHitsBrush(path("p", []), { x: 0, y: 0 }, 5)).toBe(false)
@@ -40,6 +61,62 @@ describe("pathHitsBrush", () => {
     ])
     expect(pathHitsBrush(el, { x: 50, y: 2 }, 5)).toBe(true)
     expect(pathHitsBrush(el, { x: 50, y: 50 }, 5)).toBe(false)
+  })
+})
+
+describe("connectorHitsBrush", () => {
+  it("hits straight connector along the segment", () => {
+    const el = connector(
+      "c1",
+      { kind: "point", x: 0, y: 0 },
+      { kind: "point", x: 100, y: 0 }
+    )
+    const doc: WhiteboardDocument = { version: 1, elements: { c1: el } }
+    expect(connectorHitsBrush(el, doc, { x: 50, y: 1 }, 4)).toBe(true)
+    expect(connectorHitsBrush(el, doc, { x: 50, y: 40 }, 4)).toBe(false)
+  })
+
+  it("uses elbow polyline, not A→B diagonal", () => {
+    const a = {
+      id: "a",
+      type: "shape" as const,
+      x: 0,
+      y: 0,
+      w: 100,
+      h: 60,
+      z: 0,
+      shape: "rect" as const,
+      stroke: "#000",
+      fill: "transparent",
+      strokeWidth: 1,
+    }
+    const b = {
+      id: "b",
+      type: "shape" as const,
+      x: 200,
+      y: 100,
+      w: 100,
+      h: 60,
+      z: 0,
+      shape: "rect" as const,
+      stroke: "#000",
+      fill: "transparent",
+      strokeWidth: 1,
+    }
+    const el = connector(
+      "c1",
+      { kind: "element", elementId: "a", anchor: "e" },
+      { kind: "element", elementId: "b", anchor: "w" },
+      { routing: "elbow" }
+    )
+    const doc: WhiteboardDocument = {
+      version: 1,
+      elements: { a, b, c1: el },
+    }
+    // First elbow segment midpoint (same geometry as hitTest coverage)
+    expect(connectorHitsBrush(el, doc, { x: 100, y: 30 }, 6)).toBe(true)
+    // Far from any elbow segment
+    expect(connectorHitsBrush(el, doc, { x: 0, y: 200 }, 4)).toBe(false)
   })
 })
 
@@ -116,6 +193,39 @@ describe("eraseWholeStrokesAt", () => {
     expect(next.elements.miss).toBeDefined()
     expect(next.elements.s1).toBeDefined()
   })
+
+  it("removes hit connectors and keeps non-hit shapes", () => {
+    const hitConn = connector(
+      "c-hit",
+      { kind: "point", x: 0, y: 0 },
+      { kind: "point", x: 100, y: 0 }
+    )
+    const missConn = connector(
+      "c-miss",
+      { kind: "point", x: 0, y: 100 },
+      { kind: "point", x: 100, y: 100 }
+    )
+    const sticky = {
+      id: "s1",
+      type: "sticky" as const,
+      x: 40,
+      y: -5,
+      w: 20,
+      h: 10,
+      z: 0,
+      color: "#fff",
+      text: "hi",
+    }
+    const doc: WhiteboardDocument = {
+      version: 1,
+      elements: { "c-hit": hitConn, "c-miss": missConn, s1: sticky },
+    }
+    const { next, removedIds } = eraseWholeStrokesAt(doc, { x: 50, y: 0 }, 4)
+    expect(removedIds).toEqual(["c-hit"])
+    expect(next.elements["c-hit"]).toBeUndefined()
+    expect(next.elements["c-miss"]).toBeDefined()
+    expect(next.elements.s1).toBeDefined()
+  })
 })
 
 describe("precisionEraseAt", () => {
@@ -170,5 +280,42 @@ describe("precisionEraseAt", () => {
     const doc: WhiteboardDocument = { version: 1, elements: { p1: el } }
     const next = precisionEraseAt(doc, { x: 500, y: 500 }, 2, () => "x")
     expect(next.elements.p1).toEqual(el)
+  })
+
+  it("removes whole connector on precision hit (no fragments)", () => {
+    const conn = connector(
+      "c1",
+      { kind: "point", x: 0, y: 0 },
+      { kind: "point", x: 80, y: 0 }
+    )
+    const sticky = {
+      id: "s1",
+      type: "sticky" as const,
+      x: 0,
+      y: 20,
+      w: 10,
+      h: 10,
+      z: 0,
+      color: "#fff",
+      text: "hi",
+    }
+    const doc: WhiteboardDocument = {
+      version: 1,
+      elements: { c1: conn, s1: sticky },
+    }
+    const next = precisionEraseAt(doc, { x: 40, y: 0 }, 4, () => "unused")
+    expect(next.elements.c1).toBeUndefined()
+    expect(next.elements.s1).toBeDefined()
+  })
+
+  it("keeps connector when precision brush misses", () => {
+    const conn = connector(
+      "c1",
+      { kind: "point", x: 0, y: 0 },
+      { kind: "point", x: 80, y: 0 }
+    )
+    const doc: WhiteboardDocument = { version: 1, elements: { c1: conn } }
+    const next = precisionEraseAt(doc, { x: 40, y: 50 }, 4, () => "unused")
+    expect(next.elements.c1).toEqual(conn)
   })
 })

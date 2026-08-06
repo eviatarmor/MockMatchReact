@@ -18,15 +18,16 @@ export function mergeCellStyle(
       // omit — treated as off
     }
   }
-  // Re-build allowing only true booleans and set fields
-  const out: CellStyle = {}
-  if (next.bold) out.bold = true
-  if (next.italic) out.italic = true
-  if (next.underline) out.underline = true
-  if (next.align) out.align = next.align
-  if (next.fill) out.fill = next.fill
-  if (next.color) out.color = next.color
-  if (next.wrap) out.wrap = true
+  // Re-build allowing only true booleans and set fields (CellStyle props are readonly)
+  const out: CellStyle = {
+    ...(next.bold ? { bold: true as const } : {}),
+    ...(next.italic ? { italic: true as const } : {}),
+    ...(next.underline ? { underline: true as const } : {}),
+    ...(next.align ? { align: next.align } : {}),
+    ...(next.fill ? { fill: next.fill } : {}),
+    ...(next.color ? { color: next.color } : {}),
+    ...(next.wrap ? { wrap: true as const } : {}),
+  }
   return Object.keys(out).length > 0 ? out : undefined
 }
 

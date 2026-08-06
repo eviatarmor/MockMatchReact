@@ -1,6 +1,6 @@
-{
+﻿{
   "title": "Whiteboard",
-  "loading": "Loading whiteboard…",
+  "loading": "Loading whiteboardâ€¦",
   "prompt": "Prompt",
   "templates": "Templates",
   "stencils": "Stencils",
@@ -22,10 +22,10 @@
   "stencilsPanel": {
     "title": "Stencils",
     "description": "Architecture and diagram icons. Click to place on the board.",
-    "searchPlaceholder": "Search shapes…",
+    "searchPlaceholder": "Search shapesâ€¦",
     "allCategories": "All libraries",
     "empty": "No shapes match your search.",
-    "loading": "Loading library…",
+    "loading": "Loading libraryâ€¦",
     "count": "{{count}} shapes",
     "attribution": "Icons derived from draw.io / diagrams.net stencils. Brand marks belong to their owners. See package attributions for details."
   },
@@ -89,10 +89,10 @@
     },
     "systemDesign": {
       "title": "System design",
-      "description": "Client → API → service → DB"
+      "description": "Client â†’ API â†’ service â†’ DB"
     },
     "matrix": {
-      "title": "2×2 matrix",
+      "title": "2Ã—2 matrix",
       "description": "Impact vs effort quadrants"
     },
     "flowchart": {
@@ -109,7 +109,7 @@
     },
     "quickRetrospective": {
       "title": "Quick retrospective",
-      "description": "Went well · To improve · Actions"
+      "description": "Went well Â· To improve Â· Actions"
     },
     "businessModelCanvas": {
       "title": "Business model canvas",
@@ -117,11 +117,11 @@
     },
     "kanban": {
       "title": "Kanban",
-      "description": "Backlog · Doing · Review · Done"
+      "description": "Backlog Â· Doing Â· Review Â· Done"
     },
     "empathyMap": {
       "title": "Empathy map",
-      "description": "Says · Thinks · Does · Feels"
+      "description": "Says Â· Thinks Â· Does Â· Feels"
     },
     "mindMap": {
       "title": "Mind map",
@@ -133,7 +133,7 @@
   "apply": "Apply",
   "cancel": "Cancel",
   "saved": "Saved",
-  "saving": "Saving…",
+  "saving": "Savingâ€¦",
   "ended": "Session ended",
   "errors": {
     "invalidId": {
@@ -154,7 +154,9 @@
     },
     "wrongFormat": "This question is not a whiteboard exercise",
     "backToQuestionBank": "Back to question bank",
-    "backToSimulations": "Back to simulations"
+    "backToSimulations": "Back to simulations",
+    "historyLinkFailed": "Practice history not linked",
+    "historyLinkFailedDescription": "You can still use the board. This session will not appear in practice history."
   },
   "emptyPrompt": "Use the board to sketch your answer. Tools are on the left; open Prompt or Templates from the right rail."
 }
