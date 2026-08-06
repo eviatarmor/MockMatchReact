@@ -1,14 +1,11 @@
-import { Navigate } from "react-router-dom"
+import { useDocumentTitle } from "@uidotdev/usehooks"
+import { useTranslation } from "react-i18next"
+import { LandingPageContent } from "@/features/landing/landing-page"
 
-import { NAV_SECTIONS } from "@/components/dashboard/constants"
-
-/** First sidebar item — default landing after `/`. */
-const DEFAULT_APP_PATH = NAV_SECTIONS[0]?.items[0]?.href ?? "/resume-lab"
-
-/**
- * `/` always redirects into the app. Unauthenticated users hit RequireAuth
- * on the dashboard route and land on `/login`.
- */
+/** Public marketing landing at `/`. Auth lives at `/login` / `/signup`. */
 export function HomePage() {
-  return <Navigate to={DEFAULT_APP_PATH} replace />
+  const { t } = useTranslation("landing")
+  useDocumentTitle(t("documentTitle"))
+
+  return <LandingPageContent />
 }

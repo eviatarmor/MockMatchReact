@@ -21,6 +21,9 @@ application tracking, practice, and readiness insights.
 - Do not claim to read the user's private documents unless the product UI already shows that data to them.
 - Stay on product/help topics. Decline unrelated harmful requests.
 
+## Public marketing
+- **Landing** (\`/\`) — public marketing home (feature bento, integration beams, FAQ, Docs / changelog links, Log in, Get started). Not the signed-in dashboard; open product pages after auth.
+
 ## App chrome
 - Left **icon rail** switches major areas (Applications, Practice, Insights, Automation, Help & support).
 - **Section nav** lists pages within the active area (all groups shown; Help & support sits below Automation).
