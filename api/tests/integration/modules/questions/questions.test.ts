@@ -104,6 +104,89 @@ describeIntegration("questions (integration)", () => {
     expect(types.every((t) => t.createSupported)).toBe(true)
   })
 
+  /**
+   * SEC-001: voice.createSession must ACL conversation customs via assertQuestionReadable.
+   * Isolation runs before worker config so tests need no voice worker.
+   */
+  it("voice createSession: owner OK path / other denied / draft blocked (SEC-001)", async () => {
+    const owner = await signupAuthedCaller("voice-owner")
+    const other = await signupAuthedCaller("voice-other")
+
+    const draft = await owner.questions.createCustom({
+      title: `Voice custom draft ${Date.now()}`,
+      domain: "behavioral",
+      difficulty: "medium",
+      format: "conversation",
+      body: "SECRET_DRAFT_PROMPT_do_not_leak",
+      payload: {
+        interviewerPrompt: "SECRET_DRAFT_PROMPT_do_not_leak",
+        trackHint: "behavioral-core",
+      },
+    })
+
+    // Draft blocked for owner (must deploy first)
+    await expect(
+      owner.voice.createSession({
+        trackId: "behavioral-core",
+        questionId: draft.id,
+      })
+    ).rejects.toMatchObject({ code: "BAD_REQUEST" })
+
+    // Other user cannot probe draft existence via voice
+    await expect(
+      other.voice.createSession({
+        trackId: "behavioral-core",
+        questionId: draft.id,
+      })
+    ).rejects.toMatchObject({ code: "NOT_FOUND" })
+
+    const deployed = await owner.questions.deploy({
+      id: draft.id,
+      scope: "self",
+    })
+    expect(deployed.publishStatus).toBe("published")
+
+    // Other user still denied after self-deploy
+    await expect(
+      other.voice.createSession({
+        trackId: "behavioral-core",
+        questionId: deployed.id,
+      })
+    ).rejects.toMatchObject({ code: "NOT_FOUND" })
+
+    // Owner reaches ACL OK — may still get not_configured without a worker
+    const ownerResult = await owner.voice.createSession({
+      trackId: "behavioral-core",
+      questionId: deployed.id,
+    })
+    if (ownerResult.ok === false) {
+      expect(ownerResult.code).toBe("not_configured")
+    } else {
+      expect(ownerResult.ok).toBe(true)
+      expect(ownerResult.session.id).toBeTruthy()
+    }
+  })
+
+  /** SEC-003: non-owner deploy must not leak as FORBIDDEN. */
+  it("deploy of another user's custom returns NOT_FOUND (SEC-003)", async () => {
+    const owner = await signupAuthedCaller("dep-owner")
+    const other = await signupAuthedCaller("dep-other")
+    const created = await owner.questions.createCustom({
+      title: `Owned only ${Date.now()}`,
+      domain: "coding",
+      difficulty: "easy",
+      format: "mcq",
+      body: "private stem",
+      payload: {
+        options: ["a", "b"],
+        correctIndex: 0,
+      },
+    })
+    await expect(
+      other.questions.deploy({ id: created.id, scope: "self" })
+    ).rejects.toMatchObject({ code: "NOT_FOUND" })
+  })
+
   it("createCustom supports whiteboard / spreadsheet / page / conversation", async () => {
     const caller = await signupAuthedCaller("formats")
     const formats = [

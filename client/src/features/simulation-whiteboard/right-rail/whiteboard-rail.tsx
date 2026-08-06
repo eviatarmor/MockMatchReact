@@ -1,11 +1,6 @@
 import { useMemo, type ReactNode } from "react"
 import { useTranslation } from "react-i18next"
-import { FileText, LayoutTemplate, Shapes } from "lucide-react"
-import {
-  IconSideRail,
-  type IconSideRailItem,
-} from "@mockmatch/ui/icon-side-rail"
-import { StaggerMarkdown } from "@mockmatch/ui/markdown"
+import { LayoutTemplate, Shapes } from "lucide-react"
 import {
   WhiteboardStencilsPanel,
   WhiteboardTemplatesPanel,
@@ -15,10 +10,14 @@ import {
   type WhiteboardTemplateId,
   type WhiteboardTemplatesPanelLabels,
 } from "@mockmatch/whiteboard"
+import {
+  SimulationPromptRail,
+  type SimulationPromptRailExtraItem,
+} from "@/features/simulations/components/simulation-prompt-rail"
 
 const PANEL_WIDTH_STORAGE_KEY = "mockmatch.whiteboard.rail-width"
 
-export type WhiteboardRailPanelId = "prompt" | "templates" | "stencils"
+export type WhiteboardRailPanelId = "templates" | "stencils"
 
 export type WhiteboardRailProps = {
   readonly prompt: string
@@ -31,7 +30,7 @@ export type WhiteboardRailProps = {
 }
 
 /**
- * Right icon rail + collapsible panel — shared {@link IconSideRail} chrome.
+ * Whiteboard right rail — shared simulation prompt rail + templates / stencils.
  */
 export function WhiteboardRail({
   prompt,
@@ -44,21 +43,22 @@ export function WhiteboardRail({
 }: WhiteboardRailProps) {
   const { t } = useTranslation("simulation-whiteboard")
 
-  const items = useMemo(
-    (): IconSideRailItem<WhiteboardRailPanelId>[] => [
-      {
-        id: "prompt",
-        icon: FileText,
-        label: t("rail.prompt"),
-        title: t("promptPanel.title"),
-        description: t("promptPanel.description"),
-      },
+  const extraItems = useMemo(
+    (): SimulationPromptRailExtraItem<WhiteboardRailPanelId>[] => [
       {
         id: "templates",
         icon: LayoutTemplate,
         label: t("rail.templates"),
         title: t("templatesPanel.title"),
         description: t("templatesPanel.description"),
+        render: () => (
+          <WhiteboardTemplatesPanel
+            activeTemplateId={activeTemplateId}
+            onSelect={onSelectTemplate}
+            labels={templateLabels}
+            className="p-0"
+          />
+        ),
       },
       {
         id: "stencils",
@@ -66,41 +66,40 @@ export function WhiteboardRail({
         label: t("rail.stencils"),
         title: t("stencilsPanel.title"),
         description: t("stencilsPanel.description"),
-      },
-    ],
-    [t]
-  )
-
-  return (
-    <IconSideRail
-      items={items}
-      defaultActiveId="prompt"
-      collapseLabel={t("rail.collapse")}
-      resizeLabel={t("rail.resize")}
-      storageKey={PANEL_WIDTH_STORAGE_KEY}
-      slot="whiteboard-side-panel"
-      renderPanel={(id) => {
-        if (id === "prompt") return <StaggerMarkdown>{prompt}</StaggerMarkdown>
-        if (id === "templates") {
-          return (
-            <WhiteboardTemplatesPanel
-              activeTemplateId={activeTemplateId}
-              onSelect={onSelectTemplate}
-              labels={templateLabels}
-              className="p-0"
-            />
-          )
-        }
-        return (
+        render: () => (
           <WhiteboardStencilsPanel
             onPlace={onPlaceStencil}
             labels={stencilLabels}
             className="p-0"
           />
-        )
+        ),
+      },
+    ],
+    [
+      activeTemplateId,
+      onPlaceStencil,
+      onSelectTemplate,
+      stencilLabels,
+      t,
+      templateLabels,
+    ]
+  )
+
+  return (
+    <SimulationPromptRail
+      prompt={prompt}
+      storageKey={PANEL_WIDTH_STORAGE_KEY}
+      slot="whiteboard-side-panel"
+      labels={{
+        prompt: t("rail.prompt"),
+        promptTitle: t("promptPanel.title"),
+        promptDescription: t("promptPanel.description"),
+        collapse: t("rail.collapse"),
+        resize: t("rail.resize"),
       }}
+      extraItems={extraItems}
     >
       {children}
-    </IconSideRail>
+    </SimulationPromptRail>
   )
 }

@@ -110,6 +110,7 @@ export {
   SHAPE_MENU_ITEMS,
   STICKY_COLOR_PRESETS,
   isDrawTool,
+  isViewSafeWhiteboardTool,
   type DrawTool,
 } from "./types"
 

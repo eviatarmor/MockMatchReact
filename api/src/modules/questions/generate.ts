@@ -16,6 +16,7 @@ import {
 } from "./dedupe.js"
 import { chatJsonWithModel } from "./openrouter-json.js"
 import { logger } from "../../lib/logger.js"
+import { filterMcqIndices, normalizeMcqOptions } from "./mcq-options.js"
 import {
   normalizePagePayload,
   normalizeSpreadsheetPayload,
@@ -160,13 +161,7 @@ function normalizeMcqPayload(
   item: z.infer<typeof generatedItemSchema>
 ): McqQuestionPayload | null {
   const fromPayload = (item.payload ?? {}) as Record<string, unknown>
-  const rawOptions = fromPayload.options
-  const options = Array.isArray(rawOptions)
-    ? rawOptions
-        .map((o) => (typeof o === "string" ? o.trim() : String(o ?? "").trim()))
-        .filter((o) => o.length > 0)
-        .slice(0, 6)
-    : []
+  const options = normalizeMcqOptions(fromPayload.options)
   if (options.length < 2) return null
 
   const stem =
@@ -191,11 +186,10 @@ function normalizeMcqPayload(
   }
 
   if (variant === "multi") {
-    let correctIndices = Array.isArray(fromPayload.correctIndices)
-      ? fromPayload.correctIndices
-          .filter((n): n is number => typeof n === "number" && Number.isInteger(n))
-          .filter((n) => n >= 0 && n < options.length)
-      : []
+    let correctIndices = filterMcqIndices(
+      fromPayload.correctIndices,
+      options.length
+    )
     if (correctIndices.length === 0) {
       if (
         typeof fromPayload.correctIndex === "number" &&
@@ -216,11 +210,7 @@ function normalizeMcqPayload(
   }
 
   if (variant === "order") {
-    let correctOrder = Array.isArray(fromPayload.correctOrder)
-      ? fromPayload.correctOrder
-          .filter((n): n is number => typeof n === "number" && Number.isInteger(n))
-          .filter((n) => n >= 0 && n < options.length)
-      : []
+    let correctOrder = filterMcqIndices(fromPayload.correctOrder, options.length)
     if (correctOrder.length !== options.length) {
       // Identity order when model listed steps already sorted
       correctOrder = options.map((_, i) => i)

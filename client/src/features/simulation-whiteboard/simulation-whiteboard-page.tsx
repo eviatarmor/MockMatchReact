@@ -9,7 +9,15 @@ import {
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
-import { ArrowLeft, Download, Share2 } from "lucide-react"
+import {
+  ArrowLeft,
+  CloudOff,
+  Download,
+  Link2Off,
+  SearchX,
+  Share2,
+  type LucideIcon,
+} from "lucide-react"
 import { IdeChromeBar } from "@mockmatch/ide"
 import {
   PresenceAvatarStack,
@@ -31,9 +39,8 @@ import {
   exportBoardPng,
   isBoardEmpty,
   maxZ,
-  shapeKindFromHotkey,
-  toolFromHotkey,
   useWhiteboardViewport,
+  isViewSafeWhiteboardTool,
   type DrawStrokeStyle,
   type ShapeKind,
   type StencilDef,
@@ -42,6 +49,7 @@ import {
   type WhiteboardTemplateId,
   type WhiteboardTool,
 } from "@mockmatch/whiteboard"
+import { handleWhiteboardHotkey } from "./handle-whiteboard-hotkey"
 import { Badge } from "@mockmatch/ui/badge"
 import { Button } from "@mockmatch/ui/button"
 import {
@@ -214,10 +222,23 @@ export function SimulationWhiteboardPageContent() {
     collabAccess.data?.role !== "view" &&
     (!collabSession.live || collabSession.permissions.canEditContent)
 
+  /** Owner/solo default true until access resolves; guests get false once known. */
+  const canExportBoard =
+    collabAccess.data?.permissions.canExport ?? !shareToken
+  /** Share chrome: owners only (dialog still gates paid create-link). Guests never see it. */
+  const canShareBoard =
+    Boolean(boardSession.boardId) && collabAccess.data?.role === "owner"
+
   const collabSurface = useCollabSurface(
     collabSession.sendCursor,
     collabSession.clearCursor
   )
+
+  // View guests: snap off edit tools so rail chrome matches canEdit=false.
+  useEffect(() => {
+    if (canEditBoard) return
+    if (!isViewSafeWhiteboardTool(tool)) setTool("select")
+  }, [canEditBoard, tool])
 
   // Bind pointer tracking on the pan/zoom wrapper (same pattern as resume canvas).
   useEffect(() => {
@@ -253,17 +274,19 @@ export function SimulationWhiteboardPageContent() {
 
   const dispatch = useCallback(
     (command: Parameters<typeof historyRef.current.dispatch>[0]) => {
+      if (!canEditBoard) return
       const next = historyRef.current.dispatch(command)
       setDoc(next)
       syncHistoryFlags()
       // Solo autosave; collab persists via Yjs flush when live.
       if (!collabSession.live) boardSession.scheduleSave(next)
     },
-    [boardSession, syncHistoryFlags, collabSession.live]
+    [boardSession, canEditBoard, syncHistoryFlags, collabSession.live]
   )
 
   const applyTemplate = useCallback(
     (template: WhiteboardTemplate) => {
+      if (!canEditBoard) return
       const nextDoc = applyTemplateDocument(template)
       dispatch({ type: "setDocument", document: nextDoc })
       setActiveTemplateId(template.id)
@@ -294,23 +317,25 @@ export function SimulationWhiteboardPageContent() {
         viewport.centerOnBoardPoint((minX + maxX) / 2, (minY + maxY) / 2)
       })
     },
-    [dispatch, viewport]
+    [canEditBoard, dispatch, viewport]
   )
 
   const onSelectTemplate = useCallback(
     (template: WhiteboardTemplate) => {
+      if (!canEditBoard) return
       if (isBoardEmpty(doc) || template.id === "blank") {
         applyTemplate(template)
         return
       }
       setPendingTemplate(template)
     },
-    [applyTemplate, doc]
+    [applyTemplate, canEditBoard, doc]
   )
 
   const placeOffsetRef = useRef(0)
   const onPlaceStencil = useCallback(
     (stencil: StencilDef) => {
+      if (!canEditBoard) return
       const step = placeOffsetRef.current % 12
       placeOffsetRef.current += 1
       const el = createStencil({
@@ -327,89 +352,43 @@ export function SimulationWhiteboardPageContent() {
       setSelectedIds([el.id])
       setTool("select")
     },
-    [dispatch, doc]
+    [canEditBoard, dispatch, doc]
   )
 
   const undo = useCallback(() => {
+    if (!canEditBoard) return
     const next = historyRef.current.undo()
     setDoc(next)
     syncHistoryFlags()
     // Solo autosave only — collab persists via Yjs flush when live.
     if (!collabSession.live) boardSession.scheduleSave(next)
-  }, [boardSession, collabSession.live, syncHistoryFlags])
+  }, [boardSession, canEditBoard, collabSession.live, syncHistoryFlags])
 
   const redo = useCallback(() => {
+    if (!canEditBoard) return
     const next = historyRef.current.redo()
     setDoc(next)
     syncHistoryFlags()
     if (!collabSession.live) boardSession.scheduleSave(next)
-  }, [boardSession, collabSession.live, syncHistoryFlags])
+  }, [boardSession, canEditBoard, collabSession.live, syncHistoryFlags])
 
   useEffect(() => {
-    const isTypingInField = (target: EventTarget | null) => {
-      if (!(target instanceof HTMLElement)) return false
-      if (target.isContentEditable) return true
-      if (target.closest('[contenteditable="true"]')) return true
-      if (target.tagName !== "TEXTAREA" && target.tagName !== "INPUT") {
-        return false
-      }
-      // Sticky textarea: only block board keys when that sticky is sole selection
-      const elId = target.closest("[data-el-id]")?.getAttribute("data-el-id")
-      const ids = selectedIdsRef.current
-      if (ids.length === 0) return true
-      if (ids.length === 1 && elId && ids[0] === elId) return true
-      return false
-    }
-
     const onKey = (e: KeyboardEvent) => {
-      if (isTypingInField(e.target)) return
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") {
-        e.preventDefault()
-        if (e.shiftKey) redo()
-        else undo()
-        return
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "y") {
-        e.preventDefault()
-        redo()
-        return
-      }
-      // Copy / cut / paste: WhiteboardCanvas (capture phase)
-      if (e.key === "Delete" || e.key === "Backspace") {
-        const ids = selectedIdsRef.current
-        if (ids.length === 0) return
-        e.preventDefault()
-        dispatch({ type: "remove", ids })
-        setSelectedIds([])
-        return
-      }
-      if (!e.metaKey && !e.ctrlKey && !e.altKey) {
-        // Escape → deselect (shape label edit ends via board blur)
-        if (e.key === "Escape") {
-          e.preventDefault()
-          setSelectedIds([])
-          setTool("select")
-          return
-        }
-        // Shape shortcuts when shape tool active (R/O/L)
-        if (tool === "shape") {
-          const sk = shapeKindFromHotkey(e.key)
-          if (sk) {
-            e.preventDefault()
-            setShapeKind(sk)
-            return
-          }
-        }
-        const nextTool = toolFromHotkey(e.key, { shiftKey: e.shiftKey })
-        if (nextTool) {
-          e.preventDefault()
-          setTool(nextTool)
-        }
-      }
+      handleWhiteboardHotkey(e, {
+        canEditBoard,
+        tool,
+        getSelectedIds: () => selectedIdsRef.current,
+        undo,
+        redo,
+        removeSelected: (ids) => dispatch({ type: "remove", ids }),
+        clearSelection: () => setSelectedIds([]),
+        setTool,
+        setShapeKind,
+      })
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [dispatch, redo, tool, undo])
+  }, [canEditBoard, dispatch, redo, tool, undo])
 
   const toolLabels = useMemo(
     () => ({
@@ -488,6 +467,7 @@ export function SimulationWhiteboardPageContent() {
   )
 
   const onExport = useCallback(async () => {
+    if (!canExportBoard) return
     const blob = await exportBoardPng(doc)
     if (!blob) return
     const url = URL.createObjectURL(blob)
@@ -496,7 +476,7 @@ export function SimulationWhiteboardPageContent() {
     a.download = `whiteboard-${seedId ?? "board"}.png`
     a.click()
     URL.revokeObjectURL(url)
-  }, [doc, seedId])
+  }, [canExportBoard, doc, seedId])
 
   const startWbSession = trpc.practiceSessions.startWhiteboard.useMutation()
   const completeMut = trpc.practiceSessions.complete.useMutation()
@@ -547,7 +527,9 @@ export function SimulationWhiteboardPageContent() {
   if (!seedId) {
     return (
       <ErrorPane
-        message={t("errors.invalidId")}
+        icon={Link2Off}
+        title={t("errors.invalidId.title")}
+        message={t("errors.invalidId.description")}
         backLabel={t("errors.backToQuestionBank")}
         onBack={() => navigate("/question-bank")}
       />
@@ -566,7 +548,9 @@ export function SimulationWhiteboardPageContent() {
   if (summaryQuery.isError || !summaryQuery.data) {
     return (
       <ErrorPane
-        message={t("errors.notFound")}
+        icon={SearchX}
+        title={t("errors.notFound.title")}
+        message={t("errors.notFound.description")}
         backLabel={t("errors.backToQuestionBank")}
         onBack={() => navigate("/question-bank")}
       />
@@ -589,7 +573,9 @@ export function SimulationWhiteboardPageContent() {
   ) {
     return (
       <ErrorPane
-        message={t("errors.shareInvalid")}
+        icon={Link2Off}
+        title={t("errors.shareInvalid.title")}
+        message={t("errors.shareInvalid.description")}
         backLabel={t("errors.backToSimulations")}
         onBack={() => navigate("/simulations")}
       />
@@ -599,7 +585,9 @@ export function SimulationWhiteboardPageContent() {
   if (boardSession.loadError) {
     return (
       <ErrorPane
-        message={t("errors.openFailed")}
+        icon={CloudOff}
+        title={t("errors.openFailed.title")}
+        message={t("errors.openFailed.description")}
         backLabel={t("errors.backToSimulations")}
         onBack={() => navigate("/simulations")}
       />
@@ -712,13 +700,15 @@ export function SimulationWhiteboardPageContent() {
                   />
                   <TooltipProvider delay={200}>
                     <div className="flex shrink-0 items-center gap-1.5">
-                      <IconBtn
-                        label={t("exportPng")}
-                        onClick={() => void onExport()}
-                      >
-                        <Download className="size-4" />
-                      </IconBtn>
-                      {boardSession.boardId ? (
+                      {canExportBoard ? (
+                        <IconBtn
+                          label={t("exportPng")}
+                          onClick={() => void onExport()}
+                        >
+                          <Download className="size-4" />
+                        </IconBtn>
+                      ) : null}
+                      {canShareBoard ? (
                         <IconBtn
                           label={t("share")}
                           onClick={() => setShareOpen(true)}
@@ -744,6 +734,7 @@ export function SimulationWhiteboardPageContent() {
             <WhiteboardToolRail
               tool={tool}
               onToolChange={setTool}
+              canEdit={canEditBoard}
               labels={toolLabels}
               drawStyleLabels={drawStyleLabels}
               shapeKind={shapeKind}
@@ -756,6 +747,7 @@ export function SimulationWhiteboardPageContent() {
               onSmartStyleChange={setSmartStyle}
               stickyColor={stickyColor}
               onStickyColorChange={(color) => {
+                if (!canEditBoard) return
                 setStickyColor(color)
                 // Recolor selected stickies in one history step
                 const stickyIds = selectedIds.filter(
@@ -776,6 +768,7 @@ export function SimulationWhiteboardPageContent() {
               }}
               shapeColor={shapeColor}
               onShapeColorChange={(color) => {
+                if (!canEditBoard) return
                 setShapeColor(color)
                 // Recolor selected shapes (stroke) in one history step
                 const shapeIds = selectedIds.filter(
@@ -799,8 +792,8 @@ export function SimulationWhiteboardPageContent() {
           bottomBar={
             <WhiteboardBottomBar
               viewport={viewport}
-              canUndo={canUndo}
-              canRedo={canRedo}
+              canUndo={canEditBoard && canUndo}
+              canRedo={canEditBoard && canRedo}
               onUndo={undo}
               onRedo={redo}
               labels={bottomLabels}
@@ -923,19 +916,28 @@ function IconBtn({
   )
 }
 
+/** Full-pane error family — layout matches collab `RoomFullGate` (session ended). */
 function ErrorPane({
+  icon: Icon,
+  title,
   message,
   backLabel,
   onBack,
 }: {
+  readonly icon: LucideIcon
+  readonly title: string
   readonly message: string
   readonly backLabel: string
   readonly onBack: () => void
 }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 p-6">
-      <p className="text-sm text-muted-foreground">{message}</p>
-      <Button type="button" variant="outline" onClick={onBack}>
+    <div className="flex h-full min-h-[50vh] flex-col items-center justify-center gap-4 p-8 text-center">
+      <Icon className="size-10 text-muted-foreground" aria-hidden />
+      <div className="space-y-1">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        <p className="max-w-sm text-sm text-muted-foreground">{message}</p>
+      </div>
+      <Button type="button" variant="outline" size="sm" onClick={onBack}>
         {backLabel}
       </Button>
     </div>
