@@ -267,17 +267,19 @@ export function SimulationWhiteboardPageContent() {
 
   const dispatch = useCallback(
     (command: Parameters<typeof historyRef.current.dispatch>[0]) => {
+      if (!canEditBoard) return
       const next = historyRef.current.dispatch(command)
       setDoc(next)
       syncHistoryFlags()
       // Solo autosave; collab persists via Yjs flush when live.
       if (!collabSession.live) boardSession.scheduleSave(next)
     },
-    [boardSession, syncHistoryFlags, collabSession.live]
+    [boardSession, canEditBoard, syncHistoryFlags, collabSession.live]
   )
 
   const applyTemplate = useCallback(
     (template: WhiteboardTemplate) => {
+      if (!canEditBoard) return
       const nextDoc = applyTemplateDocument(template)
       dispatch({ type: "setDocument", document: nextDoc })
       setActiveTemplateId(template.id)
@@ -308,23 +310,25 @@ export function SimulationWhiteboardPageContent() {
         viewport.centerOnBoardPoint((minX + maxX) / 2, (minY + maxY) / 2)
       })
     },
-    [dispatch, viewport]
+    [canEditBoard, dispatch, viewport]
   )
 
   const onSelectTemplate = useCallback(
     (template: WhiteboardTemplate) => {
+      if (!canEditBoard) return
       if (isBoardEmpty(doc) || template.id === "blank") {
         applyTemplate(template)
         return
       }
       setPendingTemplate(template)
     },
-    [applyTemplate, doc]
+    [applyTemplate, canEditBoard, doc]
   )
 
   const placeOffsetRef = useRef(0)
   const onPlaceStencil = useCallback(
     (stencil: StencilDef) => {
+      if (!canEditBoard) return
       const step = placeOffsetRef.current % 12
       placeOffsetRef.current += 1
       const el = createStencil({
@@ -341,23 +345,25 @@ export function SimulationWhiteboardPageContent() {
       setSelectedIds([el.id])
       setTool("select")
     },
-    [dispatch, doc]
+    [canEditBoard, dispatch, doc]
   )
 
   const undo = useCallback(() => {
+    if (!canEditBoard) return
     const next = historyRef.current.undo()
     setDoc(next)
     syncHistoryFlags()
     // Solo autosave only — collab persists via Yjs flush when live.
     if (!collabSession.live) boardSession.scheduleSave(next)
-  }, [boardSession, collabSession.live, syncHistoryFlags])
+  }, [boardSession, canEditBoard, collabSession.live, syncHistoryFlags])
 
   const redo = useCallback(() => {
+    if (!canEditBoard) return
     const next = historyRef.current.redo()
     setDoc(next)
     syncHistoryFlags()
     if (!collabSession.live) boardSession.scheduleSave(next)
-  }, [boardSession, collabSession.live, syncHistoryFlags])
+  }, [boardSession, canEditBoard, collabSession.live, syncHistoryFlags])
 
   useEffect(() => {
     const isTypingInField = (target: EventTarget | null) => {
