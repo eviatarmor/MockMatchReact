@@ -110,53 +110,68 @@ function emitHtmlChange(
   editor.read(() => onChange($generateHtmlFromNodes(editor, null)))
 }
 
-/**
- * Lightweight Lexical rich-text input for resume fields, cover letters,
- * spreadsheet cells, and other hosts that need shared formatting chrome.
- *
- * Host supplies labels + value/onChange (and optional collab transport).
- */
-export function RichTextInput({
-  value: valueProp,
+function buildInitialConfig(
+  namespace: string,
+  readOnly: boolean | undefined,
+  initialHtml: string
+) {
+  return {
+    namespace,
+    editable: !readOnly,
+    theme: richTextTheme,
+    nodes: RICH_TEXT_NODES,
+    onError: (error: Error) => {
+      throw error
+    },
+    editorState: (editor: LexicalEditor) => {
+      $applyHtml(editor, initialHtml)
+    },
+  }
+}
+
+function EditorPlaceholder({
+  text,
+  compact,
+  className,
+}: {
+  readonly text: string
+  readonly compact: boolean
+  readonly className?: string
+}) {
+  return (
+    <div
+      className={cn(
+        "pointer-events-none absolute left-0 top-0 select-none text-neutral-300 dark:text-neutral-600",
+        compact && "text-sm",
+        className
+      )}
+    >
+      {text}
+    </div>
+  )
+}
+
+function EditableShell({
+  value,
   onChange,
   labels,
-  readOnly,
   placeholder,
   className,
   ariaLabel,
-  variant = "default",
+  compact,
   collab,
-  namespace: namespaceProp,
   hideToolbar,
-}: RichTextInputProps) {
-  const value = valueProp ?? ""
-  const reactId = useId()
-  const namespace = resolveNamespace(namespaceProp, collab?.fieldId, reactId)
-  const compact = variant === "compact"
-
-  const initialConfig = useMemo(
-    () => ({
-      namespace,
-      editable: !readOnly,
-      theme: richTextTheme,
-      nodes: RICH_TEXT_NODES,
-      onError: (error: Error) => {
-        throw error
-      },
-      editorState: (editor: LexicalEditor) => {
-        // Runs inside Lexical's initial update — HtmlSyncPlugin owns later sync
-        $applyHtml(editor, value)
-      },
-    }),
-    // value intentionally omitted — HtmlSyncPlugin owns live external updates
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [namespace, readOnly]
-  )
-
-  if (readOnly || !onChange) {
-    return <ReadOnlyHtml value={value} className={className} />
-  }
-
+}: {
+  readonly value: string
+  readonly onChange: (html: string) => void
+  readonly labels: RichTextLabels
+  readonly placeholder?: string
+  readonly className?: string
+  readonly ariaLabel?: string
+  readonly compact: boolean
+  readonly collab?: RichTextCollabCarets
+  readonly hideToolbar?: boolean
+}) {
   const handleChange = (
     _editorState: EditorState,
     editor: LexicalEditor,
@@ -166,44 +181,91 @@ export function RichTextInput({
   }
 
   return (
+    <>
+      <RichTextPlugin
+        contentEditable={
+          <ContentEditable
+            aria-label={ariaLabel}
+            className={cn(
+              "pan-ignore cursor-text whitespace-pre-wrap outline-none",
+              compact && "min-h-[1.25em] text-sm leading-snug",
+              className
+            )}
+          />
+        }
+        placeholder={
+          placeholder ? (
+            <EditorPlaceholder
+              text={placeholder}
+              compact={compact}
+              className={className}
+            />
+          ) : null
+        }
+        ErrorBoundary={LexicalErrorBoundary}
+      />
+      <HistoryPlugin />
+      <ListPlugin />
+      <LinkPlugin />
+      <OnChangePlugin ignoreSelectionChange onChange={handleChange} />
+      <HtmlSyncPlugin html={value} />
+      {!hideToolbar && <FloatingToolbar labels={labels} compact={compact} />}
+      {collab ? <CollabCaretsPlugin collab={collab} /> : null}
+      <BlurOnOutsidePointer />
+    </>
+  )
+}
+
+/**
+ * Lightweight Lexical rich-text input for resume fields, cover letters,
+ * spreadsheet cells, and other hosts that need shared formatting chrome.
+ *
+ * Host supplies labels + value/onChange (and optional collab transport).
+ */
+export function RichTextInput(props: RichTextInputProps) {
+  const {
+    value: valueProp,
+    onChange,
+    labels,
+    readOnly,
+    placeholder,
+    className,
+    ariaLabel,
+    variant = "default",
+    collab,
+    namespace: namespaceProp,
+    hideToolbar,
+  } = props
+  const value = valueProp ?? ""
+  const reactId = useId()
+  const namespace = resolveNamespace(namespaceProp, collab?.fieldId, reactId)
+  const compact = variant === "compact"
+
+  const initialConfig = useMemo(
+    () => buildInitialConfig(namespace, readOnly, value),
+    // value intentionally omitted — HtmlSyncPlugin owns live external updates
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [namespace, readOnly]
+  )
+
+  if (readOnly || !onChange) {
+    return <ReadOnlyHtml value={value} className={className} />
+  }
+
+  return (
     <LexicalComposer initialConfig={initialConfig}>
       <div className="relative" data-rich-text-input data-variant={variant}>
-        <RichTextPlugin
-          contentEditable={
-            <ContentEditable
-              aria-label={ariaLabel}
-              className={cn(
-                "pan-ignore cursor-text whitespace-pre-wrap outline-none",
-                compact && "min-h-[1.25em] text-sm leading-snug",
-                className
-              )}
-            />
-          }
-          placeholder={
-            placeholder ? (
-              <div
-                className={cn(
-                  "pointer-events-none absolute left-0 top-0 select-none text-neutral-300 dark:text-neutral-600",
-                  compact && "text-sm",
-                  className
-                )}
-              >
-                {placeholder}
-              </div>
-            ) : null
-          }
-          ErrorBoundary={LexicalErrorBoundary}
+        <EditableShell
+          value={value}
+          onChange={onChange}
+          labels={labels}
+          placeholder={placeholder}
+          className={className}
+          ariaLabel={ariaLabel}
+          compact={compact}
+          collab={collab}
+          hideToolbar={hideToolbar}
         />
-        <HistoryPlugin />
-        <ListPlugin />
-        <LinkPlugin />
-        <OnChangePlugin ignoreSelectionChange onChange={handleChange} />
-        <HtmlSyncPlugin html={value} />
-        {!hideToolbar && (
-          <FloatingToolbar labels={labels} compact={compact} />
-        )}
-        {collab && <CollabCaretsPlugin collab={collab} />}
-        <BlurOnOutsidePointer />
       </div>
     </LexicalComposer>
   )
