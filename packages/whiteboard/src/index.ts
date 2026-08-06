@@ -163,6 +163,7 @@ export {
   eraseWholeStrokesAt,
   precisionEraseAt,
   pathHitsBrush,
+  connectorHitsBrush,
   erasePathPoints,
 } from "./lib/erase"
 
