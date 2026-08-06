@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
 import {
-  $getSelection,
-  $isElementNode,
-  $isRangeSelection,
-  $createParagraphNode,
   FORMAT_TEXT_COMMAND,
   FORMAT_ELEMENT_COMMAND,
   SELECTION_CHANGE_COMMAND,
@@ -17,24 +13,13 @@ import {
   type TextFormatType,
 } from "lexical"
 import {
-  $isListNode,
   INSERT_ORDERED_LIST_COMMAND,
   INSERT_UNORDERED_LIST_COMMAND,
   INSERT_CHECK_LIST_COMMAND,
-  ListNode,
 } from "@lexical/list"
-import { $setBlocksType } from "@lexical/selection"
-import {
-  $createHeadingNode,
-  $createQuoteNode,
-  $isHeadingNode,
-  $isQuoteNode,
-  type HeadingTagType,
-} from "@lexical/rich-text"
-import { $createCodeNode, $isCodeNode } from "@lexical/code"
 import { INSERT_HORIZONTAL_RULE_COMMAND } from "@lexical/react/LexicalHorizontalRuleNode"
-import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link"
-import { $findMatchingParent, mergeRegister } from "@lexical/utils"
+import { TOGGLE_LINK_COMMAND } from "@lexical/link"
+import { mergeRegister } from "@lexical/utils"
 import {
   AlignCenter,
   AlignJustify,
@@ -73,6 +58,21 @@ import {
 import { cn } from "@mockmatch/ui/utils"
 import type { BlockType, PageEditorLabels } from "../types"
 import { LinkDialog } from "./link-dialog"
+import {
+  alignActiveFlags,
+  buildBlockItems,
+  listActiveFlags,
+  resolveToolbarChromeLabels,
+} from "./toolbar-labels"
+import {
+  applyNonListBlockType,
+  clearSelectionTextFormats,
+  dispatchListBlockCommand,
+  getSelectedLinkUrl,
+  isListBlockType,
+  readToolbarSelectionSnapshot,
+  type ToolbarActiveFormats,
+} from "./toolbar-update-helpers"
 
 function ToolbarIconButton({
   label,
@@ -114,56 +114,13 @@ function ToolbarIconButton({
   )
 }
 
-function getSelectedBlockType(): BlockType {
-  const selection = $getSelection()
-  if (!$isRangeSelection(selection)) return "paragraph"
-
-  const anchor = selection.anchor.getNode()
-  let element =
-    anchor.getKey() === "root"
-      ? anchor
-      : $findMatchingParent(anchor, (n) => {
-          const parent = n.getParent()
-          return parent !== null && parent.getKey() === "root"
-        })
-
-  if (element === null) {
-    element = anchor.getTopLevelElementOrThrow()
-  }
-
-  if ($isHeadingNode(element)) {
-    const tag = element.getTag()
-    if (tag === "h1" || tag === "h2" || tag === "h3") return tag
-  }
-  if ($isQuoteNode(element)) return "quote"
-  if ($isCodeNode(element)) return "code"
-  if ($isListNode(element)) {
-    const list = element as ListNode
-    const listType = list.getListType()
-    if (listType === "number") return "number"
-    if (listType === "check") return "check"
-    return "bullet"
-  }
-
-  const listParent = $findMatchingParent(anchor, $isListNode)
-  if (listParent && $isListNode(listParent)) {
-    const listType = listParent.getListType()
-    if (listType === "number") return "number"
-    if (listType === "check") return "check"
-    return "bullet"
-  }
-
-  return "paragraph"
-}
-
-function getSelectedLinkUrl(): string | null {
-  const selection = $getSelection()
-  if (!$isRangeSelection(selection)) return null
-  const node = selection.anchor.getNode()
-  const parent = node.getParent()
-  if ($isLinkNode(parent)) return parent.getURL()
-  if ($isLinkNode(node)) return node.getURL()
-  return null
+const INITIAL_ACTIVE: ToolbarActiveFormats = {
+  bold: false,
+  italic: false,
+  underline: false,
+  strikethrough: false,
+  code: false,
+  link: false,
 }
 
 export function ToolbarPlugin({
@@ -174,14 +131,7 @@ export function ToolbarPlugin({
   readonly readOnly?: boolean
 }) {
   const [editor] = useLexicalComposerContext()
-  const [active, setActive] = useState({
-    bold: false,
-    italic: false,
-    underline: false,
-    strikethrough: false,
-    code: false,
-    link: false,
-  })
+  const [active, setActive] = useState(INITIAL_ACTIVE)
   const [blockType, setBlockType] = useState<BlockType>("paragraph")
   const [elementFormat, setElementFormat] =
     useState<ElementFormatType>("left")
@@ -190,40 +140,17 @@ export function ToolbarPlugin({
   const [linkOpen, setLinkOpen] = useState(false)
   const [linkUrl, setLinkUrl] = useState("")
 
-  const blockItems = useMemo(
-    () => [
-      { value: "paragraph", label: labels.paragraph },
-      { value: "h1", label: labels.heading1 },
-      { value: "h2", label: labels.heading2 },
-      { value: "h3", label: labels.heading3 },
-      { value: "bullet", label: labels.bulletList },
-      { value: "number", label: labels.numberedList },
-      { value: "check", label: labels.checkList },
-      { value: "quote", label: labels.quote },
-      { value: "code", label: labels.code },
-    ],
-    [labels]
-  )
+  const blockItems = useMemo(() => buildBlockItems(labels), [labels])
+  const chrome = useMemo(() => resolveToolbarChromeLabels(labels), [labels])
+  const listFlags = listActiveFlags(blockType)
+  const alignFlags = alignActiveFlags(elementFormat)
 
   const update = useCallback(() => {
-    const selection = $getSelection()
-    if (!$isRangeSelection(selection)) return
-    setActive({
-      bold: selection.hasFormat("bold"),
-      italic: selection.hasFormat("italic"),
-      underline: selection.hasFormat("underline"),
-      strikethrough: selection.hasFormat("strikethrough"),
-      code: selection.hasFormat("code"),
-      link: getSelectedLinkUrl() !== null,
-    })
-    setBlockType(getSelectedBlockType())
-    const anchor = selection.anchor.getNode()
-    const element = $isElementNode(anchor)
-      ? anchor
-      : $findMatchingParent(anchor, $isElementNode)
-    setElementFormat(
-      $isElementNode(element) ? element.getFormatType() || "left" : "left"
-    )
+    const snap = readToolbarSelectionSnapshot()
+    if (!snap) return
+    setActive(snap.active)
+    setBlockType(snap.blockType)
+    setElementFormat(snap.elementFormat)
   }, [])
 
   useEffect(() => {
@@ -267,52 +194,18 @@ export function ToolbarPlugin({
   }
 
   const applyBlockType = (type: BlockType) => {
-    if (type === "bullet") {
-      editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined)
+    if (isListBlockType(type)) {
+      dispatchListBlockCommand(editor, type)
       return
     }
-    if (type === "number") {
-      editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined)
-      return
-    }
-    if (type === "check") {
-      editor.dispatchCommand(INSERT_CHECK_LIST_COMMAND, undefined)
-      return
-    }
-
     editor.update(() => {
-      const selection = $getSelection()
-      if (!$isRangeSelection(selection)) return
-      if (type === "paragraph") {
-        $setBlocksType(selection, () => $createParagraphNode())
-      } else if (type === "quote") {
-        $setBlocksType(selection, () => $createQuoteNode())
-      } else if (type === "code") {
-        $setBlocksType(selection, () => $createCodeNode())
-      } else {
-        $setBlocksType(selection, () =>
-          $createHeadingNode(type as HeadingTagType)
-        )
-      }
+      applyNonListBlockType(type)
     })
   }
 
   const clearFormatting = () => {
     editor.update(() => {
-      const selection = $getSelection()
-      if (!$isRangeSelection(selection)) return
-      const formats: TextFormatType[] = [
-        "bold",
-        "italic",
-        "underline",
-        "strikethrough",
-        "code",
-      ]
-      for (const f of formats) {
-        if (selection.hasFormat(f)) {
-          selection.toggleFormat(f)
-        }
-      }
+      clearSelectionTextFormats()
     })
   }
 
@@ -325,15 +218,6 @@ export function ToolbarPlugin({
 
   if (readOnly) return null
 
-  const undoLabel = labels.undo ?? "Undo"
-  const redoLabel = labels.redo ?? "Redo"
-  const alignLeft = labels.alignLeft ?? "Align left"
-  const alignCenter = labels.alignCenter ?? "Align center"
-  const alignRight = labels.alignRight ?? "Align right"
-  const alignJustify = labels.alignJustify ?? "Justify"
-  const clearLabel = labels.clearFormatting ?? "Clear formatting"
-  const blockTypeLabel = labels.blockType ?? "Block type"
-
   return (
     <>
       <TooltipProvider delay={300}>
@@ -341,17 +225,17 @@ export function ToolbarPlugin({
           className="sticky top-0 z-10 flex shrink-0 flex-wrap items-center gap-0.5 border-b border-border/60 bg-background/90 px-2 py-1.5 backdrop-blur-md supports-backdrop-filter:bg-background/75"
           data-page-toolbar
           role="toolbar"
-          aria-label={blockTypeLabel}
+          aria-label={chrome.blockType}
         >
           <ToolbarIconButton
-            label={undoLabel}
+            label={chrome.undo}
             disabled={!canUndo}
             onClick={() => editor.dispatchCommand(UNDO_COMMAND, undefined)}
           >
             <Undo2 className="size-3.5" />
           </ToolbarIconButton>
           <ToolbarIconButton
-            label={redoLabel}
+            label={chrome.redo}
             disabled={!canRedo}
             onClick={() => editor.dispatchCommand(REDO_COMMAND, undefined)}
           >
@@ -370,7 +254,7 @@ export function ToolbarPlugin({
             <SelectTrigger
               size="sm"
               className="h-8 min-w-[8.5rem] cursor-pointer gap-1.5 border-border/80 bg-background text-xs"
-              aria-label={blockTypeLabel}
+              aria-label={chrome.blockType}
               onMouseDown={(e) => e.preventDefault()}
             >
               <SelectValue />
@@ -429,7 +313,7 @@ export function ToolbarPlugin({
             <Link className="size-3.5" />
           </ToolbarIconButton>
           <ToolbarIconButton
-            label={clearLabel}
+            label={chrome.clearFormatting}
             onClick={clearFormatting}
           >
             <RemoveFormatting className="size-3.5" />
@@ -439,7 +323,7 @@ export function ToolbarPlugin({
 
           <ToolbarIconButton
             label={labels.bulletList}
-            active={blockType === "bullet"}
+            active={listFlags.bullet}
             onClick={() =>
               editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined)
             }
@@ -448,7 +332,7 @@ export function ToolbarPlugin({
           </ToolbarIconButton>
           <ToolbarIconButton
             label={labels.numberedList}
-            active={blockType === "number"}
+            active={listFlags.number}
             onClick={() =>
               editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined)
             }
@@ -457,7 +341,7 @@ export function ToolbarPlugin({
           </ToolbarIconButton>
           <ToolbarIconButton
             label={labels.checkList}
-            active={blockType === "check"}
+            active={listFlags.check}
             onClick={() =>
               editor.dispatchCommand(INSERT_CHECK_LIST_COMMAND, undefined)
             }
@@ -466,7 +350,7 @@ export function ToolbarPlugin({
           </ToolbarIconButton>
           <ToolbarIconButton
             label={labels.quote}
-            active={blockType === "quote"}
+            active={listFlags.quote}
             onClick={() => applyBlockType("quote")}
           >
             <Quote className="size-3.5" />
@@ -483,29 +367,29 @@ export function ToolbarPlugin({
           <Separator orientation="vertical" className="mx-1 h-5" />
 
           <ToolbarIconButton
-            label={alignLeft}
-            active={elementFormat === "left" || elementFormat === ""}
+            label={chrome.alignLeft}
+            active={alignFlags.left}
             onClick={() => formatAlign("left")}
           >
             <AlignLeft className="size-3.5" />
           </ToolbarIconButton>
           <ToolbarIconButton
-            label={alignCenter}
-            active={elementFormat === "center"}
+            label={chrome.alignCenter}
+            active={alignFlags.center}
             onClick={() => formatAlign("center")}
           >
             <AlignCenter className="size-3.5" />
           </ToolbarIconButton>
           <ToolbarIconButton
-            label={alignRight}
-            active={elementFormat === "right"}
+            label={chrome.alignRight}
+            active={alignFlags.right}
             onClick={() => formatAlign("right")}
           >
             <AlignRight className="size-3.5" />
           </ToolbarIconButton>
           <ToolbarIconButton
-            label={alignJustify}
-            active={elementFormat === "justify"}
+            label={chrome.alignJustify}
+            active={alignFlags.justify}
             onClick={() => formatAlign("justify")}
           >
             <AlignJustify className="size-3.5" />

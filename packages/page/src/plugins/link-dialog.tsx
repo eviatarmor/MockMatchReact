@@ -11,6 +11,12 @@ import {
 import { Input } from "@mockmatch/ui/input"
 import { Label } from "@mockmatch/ui/label"
 import type { PageEditorLabels } from "../types"
+import {
+  canApplyLinkUrl,
+  linkUrlForOpen,
+  resolveLinkDialogLabels,
+  trimmedLinkUrl,
+} from "./link-dialog-labels"
 
 export type LinkDialogProps = {
   readonly open: boolean
@@ -34,28 +40,33 @@ export function LinkDialog({
 }: LinkDialogProps) {
   const inputId = useId()
   const [url, setUrl] = useState(initialUrl)
+  const dialogLabels = resolveLinkDialogLabels(labels)
+  const canApply = canApplyLinkUrl(url)
 
   useEffect(() => {
-    if (open) setUrl(initialUrl || "https://")
+    if (!open) return
+    setUrl(linkUrlForOpen(initialUrl))
   }, [open, initialUrl])
 
-  const title = labels.linkDialogTitle ?? labels.link
-  const description =
-    labels.linkDialogDescription ?? labels.linkPrompt
-  const urlLabel = labels.linkUrlLabel ?? labels.linkPrompt
-  const applyLabel = labels.linkApply ?? "Apply"
-  const removeLabel = labels.linkRemove ?? "Remove"
-  const cancelLabel = labels.linkCancel ?? "Cancel"
+  const submit = () => {
+    if (!canApply) return
+    onApply(trimmedLinkUrl(url))
+  }
+
+  const removeAndClose = () => {
+    onRemove()
+    onOpenChange(false)
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md" showCloseButton>
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
+          <DialogTitle>{dialogLabels.title}</DialogTitle>
+          <DialogDescription>{dialogLabels.description}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-2">
-          <Label htmlFor={inputId}>{urlLabel}</Label>
+          <Label htmlFor={inputId}>{dialogLabels.urlLabel}</Label>
           <Input
             id={inputId}
             type="url"
@@ -64,11 +75,9 @@ export function LinkDialog({
             placeholder="https://"
             autoFocus
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault()
-                const trimmed = url.trim()
-                if (trimmed) onApply(trimmed)
-              }
+              if (e.key !== "Enter") return
+              e.preventDefault()
+              submit()
             }}
           />
         </div>
@@ -77,12 +86,9 @@ export function LinkDialog({
             type="button"
             variant="ghost"
             className="cursor-pointer"
-            onClick={() => {
-              onRemove()
-              onOpenChange(false)
-            }}
+            onClick={removeAndClose}
           >
-            {removeLabel}
+            {dialogLabels.removeLabel}
           </Button>
           <div className="flex gap-2">
             <Button
@@ -91,18 +97,15 @@ export function LinkDialog({
               className="cursor-pointer"
               onClick={() => onOpenChange(false)}
             >
-              {cancelLabel}
+              {dialogLabels.cancelLabel}
             </Button>
             <Button
               type="button"
               className="cursor-pointer"
-              onClick={() => {
-                const trimmed = url.trim()
-                if (trimmed) onApply(trimmed)
-              }}
-              disabled={!url.trim()}
+              onClick={submit}
+              disabled={!canApply}
             >
-              {applyLabel}
+              {dialogLabels.applyLabel}
             </Button>
           </div>
         </DialogFooter>
