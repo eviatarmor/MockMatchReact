@@ -56,6 +56,13 @@
     "table": "Table view",
     "grid": "Grid view"
   },
+  "tableChrome": {
+    "filter": "Filter",
+    "display": "Display",
+    "displayColumns": "Display",
+    "clearFilters": "Clear filters",
+    "actions": "Actions"
+  },
   "documentScore": {
     "notScored": "Not scored yet",
     "bandTitle": "{{band}} · {{score}}",
@@ -145,7 +152,7 @@
       "emptyTitle": "No resumes yet",
       "emptyDescription": "Create your first resume to track general health and tailor for roles in Discover.",
       "emptySearchTitle": "No matching resumes",
-      "emptySearchDescription": "Try a different search term, or clear the search to see all resumes.",
+      "emptySearchDescription": "Try a different search term or filter, or clear them to see all resumes.",
       "loading": "Loading resumes…",
       "loadError": "Could not load resumes. Try again.",
       "deleteConfirm": {
@@ -314,7 +321,7 @@
       "emptyTitle": "No cover letters yet",
       "emptyDescription": "Write your first cover letter and tailor it for each application.",
       "emptySearchTitle": "No matching cover letters",
-      "emptySearchDescription": "Try a different search term, or clear the search to see all cover letters.",
+      "emptySearchDescription": "Try a different search term or filter, or clear them to see all cover letters.",
       "loading": "Loading cover letters…",
       "loadError": "Could not load cover letters. Try again.",
       "deleteConfirm": {
@@ -677,7 +684,7 @@
       "title": "No saved applications yet",
       "description": "Track a role from Discover, or import a job description. Connect an inbox to listen for status emails on specific positions.",
       "noSearchTitle": "No matches",
-      "noSearchDescription": "Try a different search term."
+      "noSearchDescription": "Try a different search term or filter, or clear them to see all applications."
     }
   },
   "applicationDetail": {
@@ -1232,7 +1239,7 @@
       "emptyTitle": "No sessions yet",
       "emptyDescription": "Start a simulation track to practice with an AI interviewer.",
       "emptySearchTitle": "No matching sessions",
-      "emptySearchDescription": "Try a different search term, or clear the search to see all sessions.",
+      "emptySearchDescription": "Try a different search term or filter, or clear them to see all sessions.",
       "loading": "Loading sessions…",
       "loadError": "Could not load sessions. Try again."
     },

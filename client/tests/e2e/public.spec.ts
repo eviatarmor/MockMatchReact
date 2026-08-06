@@ -6,7 +6,7 @@ test.describe("public surfaces", () => {
 
   test("home redirects into app shell (then auth gate)", async ({ page }) => {
     await page.goto("/")
-    // Home → first nav href; unauthenticated → login or loader then login
+    // Marketing lives in monorepo landpage/; client `/` → app shell
     await page.waitForURL(/\/(login|resume-lab|discover)/, { timeout: 20_000 })
     const url = page.url()
     expect(

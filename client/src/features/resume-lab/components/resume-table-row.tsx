@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { DocumentStatusBadge } from "@/components/data/document-status-badge"
 import { EntityRowActions } from "@/components/data/entity-row-actions"
+import { columnCellClass } from "@/lib/column-visibility"
 import { formatRelativeTime } from "@/lib/format-relative-time"
 import { avatarClassFor } from "@/lib/title-avatar"
 import { ResumeScoreBadge } from "./resume-score-badge"
@@ -16,6 +17,7 @@ interface ResumeTableRowProps {
   readonly isDeleting?: boolean
   readonly isExporting?: boolean
   readonly isDuplicating?: boolean
+  readonly isColumnVisible?: (columnId: string) => boolean
 }
 
 export function ResumeTableRow({
@@ -27,6 +29,7 @@ export function ResumeTableRow({
   isDeleting,
   isExporting,
   isDuplicating,
+  isColumnVisible = () => true,
 }: ResumeTableRowProps) {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
@@ -36,7 +39,7 @@ export function ResumeTableRow({
 
   return (
     <tr className="group border-b border-border/40 transition-colors hover:bg-muted/5">
-      <td className="px-4 py-3">
+      <td className={columnCellClass(isColumnVisible("resume"), "px-4 py-3")}>
         <button
           type="button"
           onClick={openEditor}
@@ -56,19 +59,24 @@ export function ResumeTableRow({
         </button>
       </td>
 
-      <td className="px-4 py-3 text-center">
+      <td className={columnCellClass(isColumnVisible("score"), "px-4 py-3 text-center")}>
         <ResumeScoreBadge score={resume.generalScore} />
       </td>
 
-      <td className="px-4 py-3">
+      <td className={columnCellClass(isColumnVisible("status"), "px-4 py-3")}>
         <DocumentStatusBadge status={resume.status} translationPrefix="resumeLab.table.statusLabels" />
       </td>
 
-      <td className="hidden px-4 py-3 text-sm text-muted-foreground sm:table-cell">
+      <td
+        className={columnCellClass(
+          isColumnVisible("updated"),
+          "hidden px-4 py-3 text-sm text-muted-foreground sm:table-cell"
+        )}
+      >
         {formatRelativeTime(resume.updatedAt)}
       </td>
 
-      <td className="px-4 py-3 text-right">
+      <td className={columnCellClass(isColumnVisible("actions"), "px-4 py-3 text-right")}>
         <EntityRowActions
           translationPrefix="resumeLab.table"
           entityTitle={resume.title}

@@ -1,0 +1,174 @@
+{
+  "documentTitle": "MockMatch — Interview prep workspace",
+  "nav": {
+    "features": "Features",
+    "integrations": "Integrations",
+    "faq": "FAQ",
+    "docs": "Docs",
+    "changelog": "Changelog",
+    "login": "Log in",
+    "signup": "Get started",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "demos": "Product"
+  },
+  "hero": {
+    "eyebrow": "Interview prep, end to end",
+    "title": "Practice like it's the real interview.",
+    "description": "Sharpen your resume, run AI mock interviews, and track every application — all in one calm, focused workspace.",
+    "primaryCta": "Start free",
+    "secondaryCta": "Read the docs"
+  },
+  "companies": {
+    "title": "Prep for the companies candidates aim for",
+    "disclaimer": "Logos are for recognition only. Not partnerships or endorsements."
+  },
+  "features": {
+    "eyebrow": "What you get",
+    "title": "One loop from documents to readiness",
+    "description": "Resume and cover letters, job fit, practice formats, and a readiness signal that points to the next useful step.",
+    "items": {
+      "resume": {
+        "name": "Resume Lab",
+        "description": "ATS-aware scoring, templates, import, and fix-it guidance in one editor."
+      },
+      "practice": {
+        "name": "AI simulations",
+        "description": "Code, conversation, whiteboard, and more — practice in interview-like formats."
+      },
+      "jobs": {
+        "name": "Jobs & applications",
+        "description": "Discover roles, score fit, and track stages without juggling spreadsheets."
+      },
+      "readiness": {
+        "name": "Readiness signal",
+        "description": "See what to fix next so prep stays organized from apply to offer."
+      }
+    }
+  },
+  "integrations": {
+    "eyebrow": "Connected prep",
+    "title": "Meet candidates where they already work",
+    "description": "Wire interview calendars, mail, and chat into one prep loop. Integration depth still rolling out by surface.",
+    "centerLabel": "MockMatch",
+    "nodes": {
+      "zoom": "Zoom",
+      "meet": "Meet",
+      "outlook": "Outlook",
+      "gmail": "Gmail",
+      "chat": "Chat",
+      "calendar": "Calendar"
+    }
+  },
+  "ideas": {
+    "title": "Prep ideas candidates work through",
+    "items": [
+      "Tighten the summary to the target role",
+      "Add two missing keywords before apply",
+      "Run a mock behavioral pass tonight",
+      "Score fit on three open roles",
+      "Export a PDF for the recruiter screen",
+      "Practice the system-design opener",
+      "Update application stage after the loop",
+      "Review readiness and pick the next step"
+    ]
+  },
+  "changelog": {
+    "eyebrow": "Changelog",
+    "title": "What is shipping",
+    "description": "Product notes stay honest — no invented metrics or unshipped claims.",
+    "items": {
+      "simulations": {
+        "label": "Practice formats",
+        "body": "Code-run, conversation, whiteboard, and more formats continue to roll out."
+      },
+      "docs": {
+        "label": "Product docs",
+        "body": "Public how-tos live at docs.mockmatch.ai alongside in-app Ask help."
+      },
+      "extension": {
+        "label": "Auto Apply extension",
+        "body": "Browser assist is fill + review first — never silent auto-submit."
+      }
+    }
+  },
+  "faq": {
+    "eyebrow": "FAQ",
+    "title": "Common questions",
+    "items": {
+      "what": {
+        "q": "What is MockMatch?",
+        "a": "An interview-prep workspace: resumes and cover letters, job discovery and tracking, multi-format practice, and a readiness signal so you always know the next high-leverage step."
+      },
+      "free": {
+        "q": "Is there a free tier?",
+        "a": "You can start on a free plan with credits. Some AI and collab actions may use credits; top-up is available when billing is configured."
+      },
+      "practice": {
+        "q": "What practice formats are available?",
+        "a": "Simulations include code-run, workspace, conversation tracks, and more. Some formats are still rolling out depending on environment."
+      },
+      "docs": {
+        "q": "Where can I learn the product?",
+        "a": "Open the public docs site for task-first how-tos, or use in-app Ask after you sign in."
+      },
+      "data": {
+        "q": "Who sees my documents?",
+        "a": "Your account owns your materials. Collab share links stay active while the owner is in the document, with view or edit roles."
+      }
+    }
+  },
+  "cta": {
+    "title": "Ready for a calmer prep loop?",
+    "description": "Create an account, open Resume Lab, and take the first step toward a stronger interview.",
+    "primaryCta": "Create account",
+    "secondaryCta": "Log in"
+  },
+  "footer": {
+    "tagline": "Calm interview prep for serious candidates.",
+    "product": "Product",
+    "resources": "Resources",
+    "company": "Company",
+    "privacy": "Privacy",
+    "help": "Help",
+    "docs": "Docs",
+    "changelog": "Changelog",
+    "login": "Log in",
+    "signup": "Get started",
+    "copyright": "© {{year}} MockMatch. All rights reserved."
+  },
+  "appName": "MockMatch",
+  "demos": {
+    "eyebrow": "See it in action",
+    "title": "Prep that looks like the product, not a brochure.",
+    "description": "Motion demos of Resume Lab, Applications, and simulations. Drop real MP4/WebM into public/demos to replace mocks.",
+    "resume": {
+      "eyebrow": "Documents",
+      "title": "Build a resume that scores and improves.",
+      "body": "Templates, section editing, general health score, and an AI rail that points at the next fix — same flow you get after sign-in.",
+      "bullets": [
+        "ATS-aware scoring with fix-it guidance",
+        "Import PDF or start from a role template",
+        "Export PDF when you are ready to share"
+      ],
+      "cta": "Open Resume Lab"
+    },
+    "apply": {
+      "eyebrow": "Jobs",
+      "title": "Track applications without the spreadsheet.",
+      "body": "Discover roles, score fit, move stages on a kanban, and generate job-specific materials when it counts.",
+      "bullets": [
+        "Fit scores against your profile and resume",
+        "Stage moves from saved to interview",
+        "Import a job description into the board"
+      ],
+      "cta": "Start tracking"
+    },
+    "interview": {
+      "eyebrow": "Practice",
+      "title": "Rehearse in interview-like formats.",
+      "body": "Conversation tracks and multi-format simulations so prep feels like the real loop — not a static quiz bank.",
+      "cta": "Browse simulations"
+    }
+  }
+}

@@ -2,6 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
   "entry": [
     "client/src/main.tsx",
+    "landpage/src/main.tsx",
     "api/src/index.ts",
     "api/src/worker.ts",
     "api/src/ws.ts",
@@ -12,6 +13,7 @@
     "api/tests/**/*.{ts,tsx}",
     "client/tests/**/*.{ts,tsx}",
     "packages/*/tests/**/*.{ts,tsx}",
+    "client/src/features/rich-text-demo/**/*.{ts,tsx}",
     "voice/tests/**/*.py",
     "docs/content/docs/**/*.{mdx,md}"
   ],
@@ -22,8 +24,13 @@
     "@testcontainers/redis"
   ],
   "workspaces": {
-    "packages": ["client", "api", "packages/*"]
+    "packages": ["client", "api", "landpage", "docs", "packages/*"]
   },
+  "ignorePatterns": [
+    "MockMatchReact/**",
+    ".worktrees/**",
+    "attachments/**"
+  ],
   "duplicates": {
     "minOccurrences": 3,
     "ignore": [
@@ -33,7 +40,8 @@
       "**/*.test.ts",
       "**/*.test.tsx",
       "**/*.bench.ts",
-      "**/*.spec.ts"
+      "**/*.spec.ts",
+      "MockMatchReact/**"
     ]
   },
   "rules": {

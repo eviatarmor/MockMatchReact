@@ -17,9 +17,13 @@ You use one workspace to:
 
 Success looks like always knowing the next useful action without juggling separate tools.
 
+## Public landing
+
+Marketing lives in the monorepo **`landpage`** app (not the product client). Locally: `npm run dev:landpage` → port 5175. It links to **Docs**, in-page changelog notes, **Log in**, and **Get started** on the product app. The product client `/` still enters the signed-in shell (or login gate).
+
 ## Sign in
 
-1. Open the MockMatch app.
+1. Open the MockMatch app (or use **Log in** / **Get started** from the landpage).
 2. Sign in with **email one-time password (OTP)**. Enter your email, then the code from the message.
 3. If LinkedIn (or another social provider) is configured for your environment, you can use that path instead. Some environments leave social OAuth stubbed.
 

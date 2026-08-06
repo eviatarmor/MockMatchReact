@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@mockmatch/ui/select"
+import { columnCellClass } from "@/lib/column-visibility"
 import { cn } from "@/lib/utils"
 import { useFitDocument } from "@/features/discover/hooks/use-fit-document"
 import { jobDetailPath, cacheJobSnapshot } from "@/features/discover/lib/job-snapshot"
@@ -46,12 +47,14 @@ interface ApplicationsTableRowProps {
   readonly job: TrackedJob
   readonly onStatusChange: (status: TrackingStatus) => void
   readonly onRemove: () => void
+  readonly isColumnVisible?: (columnId: string) => boolean
 }
 
 export function ApplicationsTableRow({
   job,
   onStatusChange,
   onRemove,
+  isColumnVisible = () => true,
 }: ApplicationsTableRowProps) {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
@@ -79,7 +82,7 @@ export function ApplicationsTableRow({
 
   return (
     <tr className="group border-b border-border/40 transition-colors hover:bg-muted/5">
-      <td className="py-3 px-4">
+      <td className={columnCellClass(isColumnVisible("job"), "py-3 px-4")}>
         <button
           type="button"
           onClick={openDetail}
@@ -102,7 +105,7 @@ export function ApplicationsTableRow({
         </button>
       </td>
 
-      <td className="py-3 px-4">
+      <td className={columnCellClass(isColumnVisible("status"), "py-3 px-4")}>
         <Select
           value={job.status}
           onValueChange={(next) => {
@@ -137,21 +140,31 @@ export function ApplicationsTableRow({
         </Select>
       </td>
 
-      <td className="py-3 px-4 text-center">
+      <td className={columnCellClass(isColumnVisible("match"), "py-3 px-4 text-center")}>
         <ApplicationMatchBadge
           score={job.matchScore > 0 ? job.matchScore : null}
         />
       </td>
 
-      <td className="hidden py-3 px-4 text-sm text-muted-foreground md:table-cell">
+      <td
+        className={columnCellClass(
+          isColumnVisible("location"),
+          "hidden py-3 px-4 text-sm text-muted-foreground md:table-cell"
+        )}
+      >
         <span className="line-clamp-1">{job.location || "—"}</span>
       </td>
 
-      <td className="hidden py-3 px-4 text-sm text-muted-foreground lg:table-cell">
+      <td
+        className={columnCellClass(
+          isColumnVisible("nextStep"),
+          "hidden py-3 px-4 text-sm text-muted-foreground lg:table-cell"
+        )}
+      >
         <span className="line-clamp-1">{job.nextStep || "—"}</span>
       </td>
 
-      <td className="py-3 px-4 text-right">
+      <td className={columnCellClass(isColumnVisible("actions"), "py-3 px-4 text-right")}>
         <Dialog open={removeConfirmOpen} onOpenChange={setRemoveConfirmOpen}>
           <DropdownMenu>
             <DropdownMenuTrigger
