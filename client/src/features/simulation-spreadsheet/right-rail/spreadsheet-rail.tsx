@@ -1,11 +1,6 @@
-import { useMemo, type ReactNode } from "react"
+import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
-import { FileText } from "lucide-react"
-import {
-  IconSideRail,
-  type IconSideRailItem,
-} from "@mockmatch/ui/icon-side-rail"
-import { StaggerMarkdown } from "@mockmatch/ui/markdown"
+import { SimulationPromptRail } from "@/features/simulations/components/simulation-prompt-rail"
 
 const PANEL_WIDTH_STORAGE_KEY = "mockmatch.spreadsheet.rail-width"
 
@@ -15,35 +10,25 @@ export type SpreadsheetRailProps = {
 }
 
 /**
- * Spreadsheet right rail — shared {@link IconSideRail} + markdown prompt.
+ * Spreadsheet right rail — shared simulation prompt rail (prompt only).
  */
 export function SpreadsheetRail({ prompt, children }: SpreadsheetRailProps) {
   const { t } = useTranslation("simulation-spreadsheet")
 
-  const items = useMemo(
-    (): IconSideRailItem<"prompt">[] => [
-      {
-        id: "prompt",
-        icon: FileText,
-        label: t("rail.prompt"),
-        title: t("promptPanel.title"),
-        description: t("promptPanel.description"),
-      },
-    ],
-    [t]
-  )
-
   return (
-    <IconSideRail
-      items={items}
-      defaultActiveId="prompt"
-      collapseLabel={t("rail.collapse")}
-      resizeLabel={t("rail.resize")}
+    <SimulationPromptRail
+      prompt={prompt}
       storageKey={PANEL_WIDTH_STORAGE_KEY}
       slot="spreadsheet-side-panel"
-      renderPanel={() => <StaggerMarkdown>{prompt}</StaggerMarkdown>}
+      labels={{
+        prompt: t("rail.prompt"),
+        promptTitle: t("promptPanel.title"),
+        promptDescription: t("promptPanel.description"),
+        collapse: t("rail.collapse"),
+        resize: t("rail.resize"),
+      }}
     >
       {children}
-    </IconSideRail>
+    </SimulationPromptRail>
   )
 }

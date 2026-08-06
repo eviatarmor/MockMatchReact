@@ -375,7 +375,7 @@ export async function startNewPracticeSession(
   let document: Parameters<typeof createIdeWorkspace>[2]["document"]
 
   if (questionId) {
-    const bank = await getQuestionForPractice(db, questionId)
+    const bank = await getQuestionForPractice(db, questionId, userId)
     title = bank.title
     document = bank.document as NonNullable<typeof document>
     trackId = bank.trackId

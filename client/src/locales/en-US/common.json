@@ -1188,6 +1188,16 @@
       "spreadsheet": "Spreadsheet",
       "page": "Document"
     },
+    "promptRail": {
+      "prompt": "Prompt",
+      "collapse": "Collapse panel",
+      "resize": "Resize panel",
+      "emptyPrompt": "Review the exercise and work through your answer in this workspace.",
+      "promptPanel": {
+        "title": "Prompt",
+        "description": "What this exercise asks you to do."
+      }
+    },
     "recentSessions": {
       "title": "Recent sessions",
       "description": "Your practice runs and how they scored.",
