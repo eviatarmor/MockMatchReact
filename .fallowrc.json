@@ -25,6 +25,11 @@
   "workspaces": {
     "packages": ["client", "api", "packages/*"]
   },
+  "ignorePatterns": [
+    "MockMatchReact/**",
+    ".worktrees/**",
+    "attachments/**"
+  ],
   "duplicates": {
     "minOccurrences": 3,
     "ignore": [
@@ -34,7 +39,8 @@
       "**/*.test.ts",
       "**/*.test.tsx",
       "**/*.bench.ts",
-      "**/*.spec.ts"
+      "**/*.spec.ts",
+      "MockMatchReact/**"
     ]
   },
   "rules": {

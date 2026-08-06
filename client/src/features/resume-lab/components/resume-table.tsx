@@ -1,6 +1,7 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { EntityTable, type EntityTableColumn } from "@/components/data/entity-table"
+import { useVisibleEntityColumns } from "@/hooks/use-visible-entity-columns"
 import { ResumePreviewDialog } from "./resume-preview-dialog"
 import { ResumeTableRow } from "./resume-table-row"
 import type { ResumeItem } from "../types"
@@ -13,6 +14,7 @@ interface ResumeTableProps {
   readonly deletingId?: string | null
   readonly exportingId?: string | null
   readonly duplicatingId?: string | null
+  readonly isColumnVisible?: (columnId: string) => boolean
 }
 
 export function ResumeTable({
@@ -23,17 +25,27 @@ export function ResumeTable({
   deletingId,
   exportingId,
   duplicatingId,
+  isColumnVisible = () => true,
 }: ResumeTableProps) {
   const { t } = useTranslation("common")
   const [preview, setPreview] = useState<{ id: string; title: string } | null>(null)
 
-  const columns: EntityTableColumn[] = [
-    { key: "resume", label: t("resumeLab.table.columns.resume") },
-    { key: "score", label: t("resumeLab.table.columns.score"), className: "text-center" },
-    { key: "status", label: t("resumeLab.table.columns.status") },
-    { key: "updated", label: t("resumeLab.table.columns.updated"), className: "hidden sm:table-cell" },
-    { key: "actions", className: "text-right w-12" },
-  ]
+  const allColumns: EntityTableColumn[] = useMemo(
+    () => [
+      { key: "resume", label: t("resumeLab.table.columns.resume") },
+      { key: "score", label: t("resumeLab.table.columns.score"), className: "text-center" },
+      { key: "status", label: t("resumeLab.table.columns.status") },
+      {
+        key: "updated",
+        label: t("resumeLab.table.columns.updated"),
+        className: "hidden sm:table-cell",
+      },
+      { key: "actions", className: "text-right w-12" },
+    ],
+    [t]
+  )
+
+  const columns = useVisibleEntityColumns(allColumns, isColumnVisible)
 
   return (
     <>
@@ -49,6 +61,7 @@ export function ResumeTable({
             isDeleting={deletingId === resume.id}
             isExporting={exportingId === resume.id}
             isDuplicating={duplicatingId === resume.id}
+            isColumnVisible={isColumnVisible}
           />
         ))}
       </EntityTable>

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { FileText, Plus, Upload } from "lucide-react"
@@ -13,13 +13,19 @@ import { TemplateBrowserSection } from "@/components/templates/template-browser-
 import { EntityEmptyState } from "@/components/data/entity-empty-state"
 import { EntityListStates } from "@/components/data/entity-list-states"
 import { EntityTablePagination } from "@/components/data/entity-table-pagination"
+import { TableChromeControls } from "@/components/data/table-chrome-controls"
 import {
   ViewModeTabs,
   type ListViewMode,
 } from "@/components/data/view-mode-tabs"
 import { useImportDocumentPdf } from "@/hooks/use-import-document-pdf"
 import { useStartFromTemplate } from "@/hooks/use-start-from-template"
+import { useTableColumnVisibility } from "@/hooks/use-table-column-visibility"
+import { useTableFilters } from "@/hooks/use-table-filters"
 import { downloadDocumentPdf, pdfFilename } from "@/lib/export-document-pdf"
+import { listEmptyCopy } from "@/lib/list-empty-copy"
+import { buildLabeledStatusFilterField } from "@/lib/status-table-filter"
+import { useStatusTableQuery } from "@/hooks/use-status-table-query"
 import { trpc } from "@/lib/trpc"
 import { ResumeCardGrid } from "./components/resume-card-grid"
 import { ResumeTable } from "./components/resume-table"
@@ -27,13 +33,45 @@ import { useResumesList } from "./hooks/use-resumes-list"
 import { TEMPLATE_BROWSER_ITEMS } from "./constants"
 import type { ResumeItem } from "./types"
 
+const DOCUMENT_STATUSES = ["active", "draft", "archived"] as const
+
 export function ResumeLabPageContent() {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
   const utils = trpc.useUtils()
   const list = useResumesList()
+  const tableFilters = useTableFilters()
   const [exportingId, setExportingId] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ListViewMode>("table")
+
+  const displayColumns = useMemo(
+    () => [
+      { id: "resume", label: t("resumeLab.table.columns.resume"), locked: true },
+      { id: "score", label: t("resumeLab.table.columns.score") },
+      { id: "status", label: t("resumeLab.table.columns.status") },
+      { id: "updated", label: t("resumeLab.table.columns.updated") },
+      { id: "actions", label: t("tableChrome.actions"), locked: true },
+    ],
+    [t]
+  )
+  const columnVisibility = useTableColumnVisibility(displayColumns)
+
+  const filterFields = useMemo(
+    () => [
+      buildLabeledStatusFilterField(
+        t("resumeLab.table.columns.status"),
+        DOCUMENT_STATUSES,
+        (value) => t(`resumeLab.table.statusLabels.${value}`)
+      ),
+    ],
+    [t]
+  )
+
+  const { filteredItems, hasActiveQuery } = useStatusTableQuery(
+    list.items,
+    tableFilters.filters,
+    list.hasActiveSearch
+  )
 
   const createResume = trpc.resumes.create.useMutation({
     onSuccess: (resume) => {
@@ -89,21 +127,21 @@ export function ResumeLabPageContent() {
     duplicateResume.mutate({ id: resume.id })
   }
 
+  const showEmpty = !list.isLoading && filteredItems.length === 0
+  const emptyCopy = listEmptyCopy(hasActiveQuery, t, {
+    emptyTitle: "resumeLab.table.emptyTitle",
+    emptyDescription: "resumeLab.table.emptyDescription",
+    emptySearchTitle: "resumeLab.table.emptySearchTitle",
+    emptySearchDescription: "resumeLab.table.emptySearchDescription",
+  })
+
   const emptyState = (
     <EntityEmptyState
       icon={FileText}
-      title={
-        list.hasActiveSearch
-          ? t("resumeLab.table.emptySearchTitle")
-          : t("resumeLab.table.emptyTitle")
-      }
-      description={
-        list.hasActiveSearch
-          ? t("resumeLab.table.emptySearchDescription")
-          : t("resumeLab.table.emptyDescription")
-      }
+      title={emptyCopy.title}
+      description={emptyCopy.description}
       action={
-        list.hasActiveSearch
+        hasActiveQuery
           ? undefined
           : {
               label: t("dashboard.actions.newResume"),
@@ -127,7 +165,20 @@ export function ResumeLabPageContent() {
           search={list.search}
           onSearchChange={list.setSearch}
           filters={
-            <ViewModeTabs value={viewMode} onValueChange={setViewMode} />
+            <TableChromeControls
+              filterFields={filterFields}
+              isValueSelected={tableFilters.isValueSelected}
+              onToggleValue={tableFilters.toggleValue}
+              onClearAll={tableFilters.clearAll}
+              activeCount={tableFilters.activeCount}
+              displayColumns={displayColumns}
+              isColumnVisible={columnVisibility.isVisible}
+              onToggleColumn={columnVisibility.toggle}
+              showDisplay={viewMode === "table"}
+              trailing={
+                <ViewModeTabs value={viewMode} onValueChange={setViewMode} />
+              }
+            />
           }
           actions={
             <>
@@ -166,14 +217,14 @@ export function ResumeLabPageContent() {
         <EntityListStates
           isError={list.isError}
           isLoading={list.isLoading}
-          isEmpty={list.isEmpty}
+          isEmpty={showEmpty}
           errorMessage={t("resumeLab.table.loadError")}
           loadingMessage={t("resumeLab.table.loading")}
           emptyState={emptyState}
         >
           {viewMode === "table" ? (
             <ResumeTable
-              resumes={list.items}
+              resumes={filteredItems}
               onDelete={handleDelete}
               onExport={(resume) => void handleExport(resume)}
               onDuplicate={handleDuplicate}
@@ -182,10 +233,11 @@ export function ResumeLabPageContent() {
               duplicatingId={
                 duplicateResume.isPending ? duplicateResume.variables?.id : null
               }
+              isColumnVisible={columnVisibility.isVisible}
             />
           ) : (
             <ResumeCardGrid
-              resumes={list.items}
+              resumes={filteredItems}
               onDelete={handleDelete}
               onExport={(resume) => void handleExport(resume)}
               onDuplicate={handleDuplicate}
