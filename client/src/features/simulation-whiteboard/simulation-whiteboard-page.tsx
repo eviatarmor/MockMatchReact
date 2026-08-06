@@ -31,8 +31,6 @@ import {
   exportBoardPng,
   isBoardEmpty,
   maxZ,
-  shapeKindFromHotkey,
-  toolFromHotkey,
   useWhiteboardViewport,
   isViewSafeWhiteboardTool,
   type DrawStrokeStyle,
@@ -43,6 +41,7 @@ import {
   type WhiteboardTemplateId,
   type WhiteboardTool,
 } from "@mockmatch/whiteboard"
+import { handleWhiteboardHotkey } from "./handle-whiteboard-hotkey"
 import { Badge } from "@mockmatch/ui/badge"
 import { Button } from "@mockmatch/ui/button"
 import {
@@ -366,70 +365,18 @@ export function SimulationWhiteboardPageContent() {
   }, [boardSession, canEditBoard, collabSession.live, syncHistoryFlags])
 
   useEffect(() => {
-    const isTypingInField = (target: EventTarget | null) => {
-      if (!(target instanceof HTMLElement)) return false
-      if (target.isContentEditable) return true
-      if (target.closest('[contenteditable="true"]')) return true
-      if (target.tagName !== "TEXTAREA" && target.tagName !== "INPUT") {
-        return false
-      }
-      // Sticky textarea: only block board keys when that sticky is sole selection
-      const elId = target.closest("[data-el-id]")?.getAttribute("data-el-id")
-      const ids = selectedIdsRef.current
-      if (ids.length === 0) return true
-      if (ids.length === 1 && elId && ids[0] === elId) return true
-      return false
-    }
-
     const onKey = (e: KeyboardEvent) => {
-      if (isTypingInField(e.target)) return
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") {
-        if (!canEditBoard) return
-        e.preventDefault()
-        if (e.shiftKey) redo()
-        else undo()
-        return
-      }
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "y") {
-        if (!canEditBoard) return
-        e.preventDefault()
-        redo()
-        return
-      }
-      // Copy / cut / paste: WhiteboardCanvas (capture phase)
-      if (e.key === "Delete" || e.key === "Backspace") {
-        if (!canEditBoard) return
-        const ids = selectedIdsRef.current
-        if (ids.length === 0) return
-        e.preventDefault()
-        dispatch({ type: "remove", ids })
-        setSelectedIds([])
-        return
-      }
-      if (!e.metaKey && !e.ctrlKey && !e.altKey) {
-        // Escape → deselect (shape label edit ends via board blur)
-        if (e.key === "Escape") {
-          e.preventDefault()
-          setSelectedIds([])
-          setTool("select")
-          return
-        }
-        // Shape shortcuts when shape tool active (R/O/L)
-        if (canEditBoard && tool === "shape") {
-          const sk = shapeKindFromHotkey(e.key)
-          if (sk) {
-            e.preventDefault()
-            setShapeKind(sk)
-            return
-          }
-        }
-        const nextTool = toolFromHotkey(e.key, { shiftKey: e.shiftKey })
-        if (nextTool) {
-          if (!canEditBoard && !isViewSafeWhiteboardTool(nextTool)) return
-          e.preventDefault()
-          setTool(nextTool)
-        }
-      }
+      handleWhiteboardHotkey(e, {
+        canEditBoard,
+        tool,
+        getSelectedIds: () => selectedIdsRef.current,
+        undo,
+        redo,
+        removeSelected: (ids) => dispatch({ type: "remove", ids }),
+        clearSelection: () => setSelectedIds([]),
+        setTool,
+        setShapeKind,
+      })
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
