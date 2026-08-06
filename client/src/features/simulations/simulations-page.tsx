@@ -11,10 +11,15 @@ import { TableToolbar } from "@/components/dashboard/table-toolbar"
 import { EntityEmptyState } from "@/components/data/entity-empty-state"
 import { EntityListStates } from "@/components/data/entity-list-states"
 import { EntityTablePagination } from "@/components/data/entity-table-pagination"
-import { TableDisplayMenu } from "@/components/data/table-display-menu"
-import { TableFilterMenu } from "@/components/data/table-filter-menu"
+import { TableChromeControls } from "@/components/data/table-chrome-controls"
 import { useTableColumnVisibility } from "@/hooks/use-table-column-visibility"
 import { useTableFilters } from "@/hooks/use-table-filters"
+import { listEmptyCopy } from "@/lib/list-empty-copy"
+import {
+  buildStatusFilterField,
+  statusFieldValue,
+} from "@/lib/status-table-filter"
+import { filterByTableFilters } from "@/lib/table-filters"
 import { SessionTable } from "./components/session-table"
 import { TrackBrowserSection } from "./components/track-browser-section"
 import { useSessionsList } from "./hooks/use-sessions-list"
@@ -50,30 +55,30 @@ export function SimulationsPageContent() {
 
   const filterFields = useMemo(
     () => [
-      {
-        id: "status",
-        label: t("simulations.recentSessions.columns.status"),
-        options: SESSION_STATUSES.map((value) => ({
+      buildStatusFilterField(
+        t("simulations.recentSessions.columns.status"),
+        SESSION_STATUSES.map((value) => ({
           value,
           label: t(`simulations.recentSessions.statusLabels.${value}`),
-        })),
-      },
+        }))
+      ),
     ],
     [t]
   )
 
   const filteredItems = useMemo(
-    () =>
-      tableFilters.filterItems(
-        list.items,
-        (item, fieldId) => (fieldId === "status" ? item.status : null)
-      ),
-    [list.items, tableFilters.filterItems]
+    () => filterByTableFilters(list.items, tableFilters.filters, statusFieldValue),
+    [list.items, tableFilters.filters]
   )
 
   const hasActiveQuery = list.hasActiveSearch || tableFilters.hasActive
-  const listEmpty = list.isEmpty && !tableFilters.hasActive
-  const filterEmpty = !list.isLoading && filteredItems.length === 0
+  const showEmpty = !list.isLoading && filteredItems.length === 0
+  const emptyCopy = listEmptyCopy(hasActiveQuery, t, {
+    emptyTitle: "simulations.recentSessions.emptyTitle",
+    emptyDescription: "simulations.recentSessions.emptyDescription",
+    emptySearchTitle: "simulations.recentSessions.emptySearchTitle",
+    emptySearchDescription: "simulations.recentSessions.emptySearchDescription",
+  })
 
   const goToTracks = () => navigate("/simulations/tracks")
 
@@ -85,16 +90,8 @@ export function SimulationsPageContent() {
   const emptyState = (
     <EntityEmptyState
       icon={History}
-      title={
-        hasActiveQuery
-          ? t("simulations.recentSessions.emptySearchTitle")
-          : t("simulations.recentSessions.emptyTitle")
-      }
-      description={
-        hasActiveQuery
-          ? t("simulations.recentSessions.emptySearchDescription")
-          : t("simulations.recentSessions.emptyDescription")
-      }
+      title={emptyCopy.title}
+      description={emptyCopy.description}
       action={
         hasActiveQuery
           ? undefined
@@ -120,20 +117,16 @@ export function SimulationsPageContent() {
           search={list.search}
           onSearchChange={list.setSearch}
           filters={
-            <>
-              <TableFilterMenu
-                fields={filterFields}
-                isValueSelected={tableFilters.isValueSelected}
-                onToggleValue={tableFilters.toggleValue}
-                onClearAll={tableFilters.clearAll}
-                activeCount={tableFilters.activeCount}
-              />
-              <TableDisplayMenu
-                columns={displayColumns}
-                isVisible={columnVisibility.isVisible}
-                onToggle={columnVisibility.toggle}
-              />
-            </>
+            <TableChromeControls
+              filterFields={filterFields}
+              isValueSelected={tableFilters.isValueSelected}
+              onToggleValue={tableFilters.toggleValue}
+              onClearAll={tableFilters.clearAll}
+              activeCount={tableFilters.activeCount}
+              displayColumns={displayColumns}
+              isColumnVisible={columnVisibility.isVisible}
+              onToggleColumn={columnVisibility.toggle}
+            />
           }
           actions={
             <Button
@@ -152,7 +145,7 @@ export function SimulationsPageContent() {
         <EntityListStates
           isError={list.isError}
           isLoading={list.isLoading}
-          isEmpty={listEmpty || filterEmpty}
+          isEmpty={showEmpty}
           errorMessage={t("simulations.recentSessions.loadError")}
           loadingMessage={t("simulations.recentSessions.loading")}
           emptyState={emptyState}

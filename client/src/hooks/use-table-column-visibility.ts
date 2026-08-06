@@ -44,7 +44,8 @@ export function useTableColumnVisibility(
       if (column?.locked) return
       setVisibility((prev) => ({
         ...prev,
-        [columnId]: !(prev[columnId] !== false),
+        // undefined/true = visible → flip to false; false = hidden → flip to true
+        [columnId]: prev[columnId] === false,
       }))
     },
     [columns]

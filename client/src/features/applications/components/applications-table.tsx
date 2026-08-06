@@ -1,6 +1,7 @@
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { EntityTable, type EntityTableColumn } from "@/components/data/entity-table"
+import { useVisibleEntityColumns } from "@/hooks/use-visible-entity-columns"
 import { ApplicationsTableRow } from "./applications-table-row"
 import type { TrackedJob, TrackingStatus } from "../types"
 
@@ -43,10 +44,7 @@ export function ApplicationsTable({
     [t]
   )
 
-  const columns = useMemo(
-    () => allColumns.filter((column) => isColumnVisible(column.key)),
-    [allColumns, isColumnVisible]
-  )
+  const columns = useVisibleEntityColumns(allColumns, isColumnVisible)
 
   return (
     <EntityTable columns={columns} isEmpty={false} emptyMessage="">

@@ -7,14 +7,18 @@ import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
 import { TableToolbar } from "@/components/dashboard/table-toolbar"
 import { EntityEmptyState } from "@/components/data/entity-empty-state"
-import { TableDisplayMenu } from "@/components/data/table-display-menu"
-import { TableFilterMenu } from "@/components/data/table-filter-menu"
+import { TableChromeControls } from "@/components/data/table-chrome-controls"
 import {
   ViewModeTabs,
   type ListViewMode,
 } from "@/components/data/view-mode-tabs"
 import { useTableColumnVisibility } from "@/hooks/use-table-column-visibility"
 import { useTableFilters } from "@/hooks/use-table-filters"
+import {
+  buildStatusFilterField,
+  statusFieldValue,
+} from "@/lib/status-table-filter"
+import { filterByTableFilters } from "@/lib/table-filters"
 import { TrackingKanban } from "./components/tracking-kanban"
 import { ApplicationsTable } from "./components/applications-table"
 import { EmailConnectBar } from "./components/email-connect-bar"
@@ -56,35 +60,29 @@ export function ApplicationsPageContent() {
 
   const filterFields = useMemo(
     () => [
-      {
-        id: "status",
-        label: t("applications.table.columns.status"),
-        options: TRACKING_STATUS_ORDER.map((value) => ({
+      buildStatusFilterField(
+        t("applications.table.columns.status"),
+        TRACKING_STATUS_ORDER.map((value) => ({
           value,
           label: t(`applications.statusLabels.${value}`),
-        })),
-      },
+        }))
+      ),
     ],
     [t]
   )
 
-  const searchedJobs = useMemo(
-    () =>
-      jobs.filter(
-        (job) =>
-          job.title.toLowerCase().includes(search.toLowerCase()) ||
-          job.company.toLowerCase().includes(search.toLowerCase())
-      ),
-    [jobs, search]
-  )
+  const searchedJobs = useMemo(() => {
+    const q = search.toLowerCase()
+    return jobs.filter(
+      (job) =>
+        job.title.toLowerCase().includes(q) ||
+        job.company.toLowerCase().includes(q)
+    )
+  }, [jobs, search])
 
   const filteredJobs = useMemo(
-    () =>
-      tableFilters.filterItems(
-        searchedJobs,
-        (item, fieldId) => (fieldId === "status" ? item.status : null)
-      ),
-    [searchedJobs, tableFilters.filterItems]
+    () => filterByTableFilters(searchedJobs, tableFilters.filters, statusFieldValue),
+    [searchedJobs, tableFilters.filters]
   )
 
   const hasActiveQuery = search.trim() !== "" || tableFilters.hasActive
@@ -134,23 +132,20 @@ export function ApplicationsPageContent() {
           search={search}
           onSearchChange={setSearch}
           filters={
-            <>
-              <TableFilterMenu
-                fields={filterFields}
-                isValueSelected={tableFilters.isValueSelected}
-                onToggleValue={tableFilters.toggleValue}
-                onClearAll={tableFilters.clearAll}
-                activeCount={tableFilters.activeCount}
-              />
-              {viewMode === "table" ? (
-                <TableDisplayMenu
-                  columns={displayColumns}
-                  isVisible={columnVisibility.isVisible}
-                  onToggle={columnVisibility.toggle}
-                />
-              ) : null}
-              <ViewModeTabs value={viewMode} onValueChange={setViewMode} />
-            </>
+            <TableChromeControls
+              filterFields={filterFields}
+              isValueSelected={tableFilters.isValueSelected}
+              onToggleValue={tableFilters.toggleValue}
+              onClearAll={tableFilters.clearAll}
+              activeCount={tableFilters.activeCount}
+              displayColumns={displayColumns}
+              isColumnVisible={columnVisibility.isVisible}
+              onToggleColumn={columnVisibility.toggle}
+              showDisplay={viewMode === "table"}
+              trailing={
+                <ViewModeTabs value={viewMode} onValueChange={setViewMode} />
+              }
+            />
           }
           actions={
             <div id="applications-tour-import">

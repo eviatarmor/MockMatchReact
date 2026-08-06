@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { EntityTable, type EntityTableColumn } from "@/components/data/entity-table"
+import { useVisibleEntityColumns } from "@/hooks/use-visible-entity-columns"
 import { CoverLetterPreviewDialog } from "./cover-letter-preview-dialog"
 import { CoverLetterTableRow } from "./cover-letter-table-row"
 import type { CoverLetterItem } from "../types"
@@ -44,10 +45,7 @@ export function CoverLetterTable({
     [t]
   )
 
-  const columns = useMemo(
-    () => allColumns.filter((column) => isColumnVisible(column.key)),
-    [allColumns, isColumnVisible]
-  )
+  const columns = useVisibleEntityColumns(allColumns, isColumnVisible)
 
   return (
     <>

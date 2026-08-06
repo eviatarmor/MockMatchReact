@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { EntityTable, type EntityTableColumn } from "@/components/data/entity-table"
+import { useVisibleEntityColumns } from "@/hooks/use-visible-entity-columns"
 import { ResumePreviewDialog } from "./resume-preview-dialog"
 import { ResumeTableRow } from "./resume-table-row"
 import type { ResumeItem } from "../types"
@@ -44,10 +45,7 @@ export function ResumeTable({
     [t]
   )
 
-  const columns = useMemo(
-    () => allColumns.filter((column) => isColumnVisible(column.key)),
-    [allColumns, isColumnVisible]
-  )
+  const columns = useVisibleEntityColumns(allColumns, isColumnVisible)
 
   return (
     <>

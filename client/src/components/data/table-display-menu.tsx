@@ -5,6 +5,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@mockmatch/ui/dropdown-menu"
@@ -50,25 +51,25 @@ export function TableDisplayMenu({
         <ChevronDown className="size-3.5 opacity-60" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="min-w-44">
-        <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
-          {t("tableChrome.displayColumns")}
-        </DropdownMenuLabel>
-        {columns.map((column) => (
-          <DropdownMenuCheckboxItem
-            key={column.id}
-            checked={isVisible(column.id)}
-            disabled={column.locked === true}
-            onCheckedChange={() => {
-              if (!column.locked) onToggle(column.id)
-            }}
-            className={cn(
-              "cursor-pointer",
-              column.locked && "opacity-60"
-            )}
-          >
-            {column.label}
-          </DropdownMenuCheckboxItem>
-        ))}
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
+            {t("tableChrome.displayColumns")}
+          </DropdownMenuLabel>
+          {columns.map((column) => (
+            <DropdownMenuCheckboxItem
+              key={column.id}
+              checked={isVisible(column.id)}
+              disabled={column.locked === true}
+              onCheckedChange={() => {
+                if (column.locked) return
+                onToggle(column.id)
+              }}
+              className={cn("cursor-pointer", column.locked && "opacity-60")}
+            >
+              {column.label}
+            </DropdownMenuCheckboxItem>
+          ))}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   )

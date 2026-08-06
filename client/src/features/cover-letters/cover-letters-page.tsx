@@ -13,8 +13,7 @@ import { TemplateBrowserSection } from "@/components/templates/template-browser-
 import { EntityEmptyState } from "@/components/data/entity-empty-state"
 import { EntityListStates } from "@/components/data/entity-list-states"
 import { EntityTablePagination } from "@/components/data/entity-table-pagination"
-import { TableDisplayMenu } from "@/components/data/table-display-menu"
-import { TableFilterMenu } from "@/components/data/table-filter-menu"
+import { TableChromeControls } from "@/components/data/table-chrome-controls"
 import {
   ViewModeTabs,
   type ListViewMode,
@@ -24,6 +23,12 @@ import { useStartFromTemplate } from "@/hooks/use-start-from-template"
 import { useTableColumnVisibility } from "@/hooks/use-table-column-visibility"
 import { useTableFilters } from "@/hooks/use-table-filters"
 import { downloadDocumentPdf, pdfFilename } from "@/lib/export-document-pdf"
+import { listEmptyCopy } from "@/lib/list-empty-copy"
+import {
+  buildStatusFilterField,
+  statusFieldValue,
+} from "@/lib/status-table-filter"
+import { filterByTableFilters } from "@/lib/table-filters"
 import { trpc } from "@/lib/trpc"
 import { CoverLetterCardGrid } from "./components/cover-letter-card-grid"
 import { CoverLetterTable } from "./components/cover-letter-table"
@@ -60,25 +65,20 @@ export function CoverLettersPageContent() {
 
   const filterFields = useMemo(
     () => [
-      {
-        id: "status",
-        label: t("coverLetters.table.columns.status"),
-        options: DOCUMENT_STATUSES.map((value) => ({
+      buildStatusFilterField(
+        t("coverLetters.table.columns.status"),
+        DOCUMENT_STATUSES.map((value) => ({
           value,
           label: t(`coverLetters.table.statusLabels.${value}`),
-        })),
-      },
+        }))
+      ),
     ],
     [t]
   )
 
   const filteredItems = useMemo(
-    () =>
-      tableFilters.filterItems(
-        list.items,
-        (item, fieldId) => (fieldId === "status" ? item.status : null)
-      ),
-    [list.items, tableFilters.filterItems]
+    () => filterByTableFilters(list.items, tableFilters.filters, statusFieldValue),
+    [list.items, tableFilters.filters]
   )
 
   const hasActiveQuery = list.hasActiveSearch || tableFilters.hasActive
@@ -139,22 +139,19 @@ export function CoverLettersPageContent() {
     duplicateLetter.mutate({ id: letter.id })
   }
 
-  const listEmpty = list.isEmpty && !tableFilters.hasActive
-  const filterEmpty = !list.isLoading && filteredItems.length === 0
+  const showEmpty = !list.isLoading && filteredItems.length === 0
+  const emptyCopy = listEmptyCopy(hasActiveQuery, t, {
+    emptyTitle: "coverLetters.table.emptyTitle",
+    emptyDescription: "coverLetters.table.emptyDescription",
+    emptySearchTitle: "coverLetters.table.emptySearchTitle",
+    emptySearchDescription: "coverLetters.table.emptySearchDescription",
+  })
 
   const emptyState = (
     <EntityEmptyState
       icon={Mail}
-      title={
-        hasActiveQuery
-          ? t("coverLetters.table.emptySearchTitle")
-          : t("coverLetters.table.emptyTitle")
-      }
-      description={
-        hasActiveQuery
-          ? t("coverLetters.table.emptySearchDescription")
-          : t("coverLetters.table.emptyDescription")
-      }
+      title={emptyCopy.title}
+      description={emptyCopy.description}
       action={
         hasActiveQuery
           ? undefined
@@ -180,23 +177,20 @@ export function CoverLettersPageContent() {
           search={list.search}
           onSearchChange={list.setSearch}
           filters={
-            <>
-              <TableFilterMenu
-                fields={filterFields}
-                isValueSelected={tableFilters.isValueSelected}
-                onToggleValue={tableFilters.toggleValue}
-                onClearAll={tableFilters.clearAll}
-                activeCount={tableFilters.activeCount}
-              />
-              {viewMode === "table" ? (
-                <TableDisplayMenu
-                  columns={displayColumns}
-                  isVisible={columnVisibility.isVisible}
-                  onToggle={columnVisibility.toggle}
-                />
-              ) : null}
-              <ViewModeTabs value={viewMode} onValueChange={setViewMode} />
-            </>
+            <TableChromeControls
+              filterFields={filterFields}
+              isValueSelected={tableFilters.isValueSelected}
+              onToggleValue={tableFilters.toggleValue}
+              onClearAll={tableFilters.clearAll}
+              activeCount={tableFilters.activeCount}
+              displayColumns={displayColumns}
+              isColumnVisible={columnVisibility.isVisible}
+              onToggleColumn={columnVisibility.toggle}
+              showDisplay={viewMode === "table"}
+              trailing={
+                <ViewModeTabs value={viewMode} onValueChange={setViewMode} />
+              }
+            />
           }
           actions={
             <>
@@ -235,7 +229,7 @@ export function CoverLettersPageContent() {
         <EntityListStates
           isError={list.isError}
           isLoading={list.isLoading}
-          isEmpty={listEmpty || filterEmpty}
+          isEmpty={showEmpty}
           errorMessage={t("coverLetters.table.loadError")}
           loadingMessage={t("coverLetters.table.loading")}
           emptyState={emptyState}
