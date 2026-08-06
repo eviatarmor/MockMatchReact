@@ -44,8 +44,8 @@ type PanelId<ExtraId extends string> = "prompt" | ExtraId
 
 /**
  * Shared simulation right rail — prompt markdown + optional surface panels.
- * Same {@link IconSideRail} chrome as whiteboard / spreadsheet. Not used by MCQ
- * (MCQ has its own question stem layout).
+ * Same {@link IconSideRail} chrome as whiteboard / spreadsheet.
+ * Not used by MCQ or conversation/voice (interactive surfaces, not prompt workspaces).
  */
 export function SimulationPromptRail<ExtraId extends string = never>({
   prompt,
