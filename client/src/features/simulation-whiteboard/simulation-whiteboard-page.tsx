@@ -8,6 +8,7 @@ import {
 } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
 import { ArrowLeft, Download, Share2 } from "lucide-react"
 import { IdeChromeBar } from "@mockmatch/ide"
 import {
@@ -516,8 +517,13 @@ export function SimulationWhiteboardPageContent() {
         sessionIdRef.current = row.id
       })
       .catch((err) => {
-        // Board still works without a history row; surface for ops (no silent swallow).
+        if (cancelled) return
+        // Board still works without a history row (e.g. guest/share path).
         console.warn("[whiteboard] startWhiteboard practice session failed", err)
+        toast.warning(t("errors.historyLinkFailed"), {
+          id: "wb-start-history-link-failed",
+          description: t("errors.historyLinkFailedDescription"),
+        })
       })
     return () => {
       cancelled = true
