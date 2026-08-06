@@ -85,6 +85,73 @@ async function requireOwnedCustom(
   return row
 }
 
+function isUniqueViolation(err: unknown): boolean {
+  return (
+    !!err &&
+    typeof err === "object" &&
+    "code" in err &&
+    (err as { code?: string }).code === "23505"
+  )
+}
+
+function buildCustomInsertValues(
+  userId: string,
+  input: CreateCustomQuestionInput,
+  normalized: ReturnType<typeof normalizeCustomQuestionPayload>
+) {
+  return {
+    title: input.title,
+    body: normalized.body,
+    domain: input.domain,
+    difficulty: input.difficulty,
+    company: input.company ?? null,
+    format: input.format,
+    payload: normalized.payload,
+    language: normalized.language,
+    roleFamilies: input.roleFamilies ?? [],
+    tags: input.tags ?? [],
+    source: "manual" as const,
+    ownerUserId: userId,
+    visibility: "self" as const,
+    contentCache: normalized.contentCache,
+    contentVersion: "v1",
+    contentPrefix: null,
+    searchDocument: buildSearchDocument({
+      title: input.title,
+      domain: input.domain,
+      format: input.format,
+      language: normalized.language,
+      body: normalized.body,
+      tags: input.tags,
+    }),
+    contentHash: buildContentHash({
+      title: input.title,
+      body: normalized.body,
+      format: input.format,
+      language: normalized.language,
+    }),
+    status: "draft" as const,
+  }
+}
+
+/** Attach contentPrefix after insert when multi-file cache is present. */
+async function maybeSetContentPrefix(
+  db: Database,
+  row: typeof questions.$inferSelect,
+  contentCache: Record<string, string>
+): Promise<CustomQuestionDto> {
+  if (Object.keys(contentCache).length === 0) {
+    return toCustomDto(row)
+  }
+  const contentPrefix = `questions/${row.id}/v1/`
+  const [updated] = await db
+    .update(questions)
+    .set({ contentPrefix, updatedAt: new Date() })
+    .where(eq(questions.id, row.id))
+    .returning()
+  return toCustomDto(updated ?? row)
+}
+
 /**
  * Create a draft custom question owned by the caller (visibility=self).
  * Does not appear in the shared bank until `deployQuestion` with scope self.
@@ -102,45 +169,10 @@ export async function createCustomQuestion(
     payload: input.payload,
   })
 
-  const contentHash = buildContentHash({
-    title: input.title,
-    body: normalized.body,
-    format: input.format,
-    language: normalized.language,
-  })
-  const searchDocument = buildSearchDocument({
-    title: input.title,
-    domain: input.domain,
-    format: input.format,
-    language: normalized.language,
-    body: normalized.body,
-    tags: input.tags,
-  })
-
   try {
     const [row] = await db
       .insert(questions)
-      .values({
-        title: input.title,
-        body: normalized.body,
-        domain: input.domain,
-        difficulty: input.difficulty,
-        company: input.company ?? null,
-        format: input.format,
-        payload: normalized.payload,
-        language: normalized.language,
-        roleFamilies: input.roleFamilies ?? [],
-        tags: input.tags ?? [],
-        source: "manual",
-        ownerUserId: userId,
-        visibility: "self",
-        contentCache: normalized.contentCache,
-        contentVersion: "v1",
-        contentPrefix: null,
-        searchDocument,
-        contentHash,
-        status: "draft",
-      })
+      .values(buildCustomInsertValues(userId, input, normalized))
       .returning()
 
     if (!row) {
@@ -150,26 +182,9 @@ export async function createCustomQuestion(
       })
     }
 
-    // Set content prefix after id is known (matches generate path)
-    if (Object.keys(normalized.contentCache).length > 0) {
-      const contentPrefix = `questions/${row.id}/v1/`
-      const [updated] = await db
-        .update(questions)
-        .set({ contentPrefix, updatedAt: new Date() })
-        .where(eq(questions.id, row.id))
-        .returning()
-      if (updated) return toCustomDto(updated)
-    }
-
-    return toCustomDto(row)
+    return maybeSetContentPrefix(db, row, normalized.contentCache)
   } catch (err) {
-    // Unique (owner, content_hash) collision
-    if (
-      err &&
-      typeof err === "object" &&
-      "code" in err &&
-      (err as { code?: string }).code === "23505"
-    ) {
+    if (isUniqueViolation(err)) {
       throw new TRPCError({
         code: "CONFLICT",
         message: "You already have a custom question with the same content",

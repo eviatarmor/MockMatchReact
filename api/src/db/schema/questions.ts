@@ -237,6 +237,7 @@ export const questions = pgTable(
     embeddingModel: text("embedding_model"),
     embeddingAt: timestamp("embedding_at", { withTimezone: true }),
     status: questionPublishStatusEnum("status").notNull().default("published"),
+    // fallow-ignore-next-line code-duplication
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),

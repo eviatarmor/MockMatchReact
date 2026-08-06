@@ -26,6 +26,7 @@ import {
 } from "../../db/schema/questions.js"
 import { userQuestionProgress } from "../../db/schema/user-question-progress.js"
 import { assertQuestionReadable, bankListVisibilityFilter } from "./custom.js"
+import { normalizeMcqOptions } from "./mcq-options.js"
 
 export type ListQuestionsInput = {
   search?: string
@@ -336,12 +337,7 @@ function parseMcqPayload(
   body: string | null
 ): ParsedMcq {
   const p = (payload ?? {}) as Partial<McqQuestionPayload> & Record<string, unknown>
-  const options = Array.isArray(p.options)
-    ? p.options
-        .map((o) => (typeof o === "string" ? o.trim() : String(o ?? "").trim()))
-        .filter((o) => o.length > 0)
-        .slice(0, 6)
-    : []
+  const options = normalizeMcqOptions(p.options)
   if (options.length < 2) {
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -479,14 +475,14 @@ function arraysEqual(a: number[], b: number[]): boolean {
   return a.every((v, i) => v === b[i])
 }
 
-/**
- * Bank MCQ → stem + options (no answer until submit).
- */
-export async function getQuestionForMcq(
+/** Load bank row, enforce readability, optionally require format. */
+async function requireReadableQuestion(
   db: Database,
   questionId: string,
-  userId: string
-): Promise<QuestionMcqDetail> {
+  userId: string,
+  expectedFormat?: string,
+  formatError?: string
+) {
   const row = await db.query.questions.findFirst({
     where: eq(questions.id, questionId),
   })
@@ -497,12 +493,30 @@ export async function getQuestionForMcq(
     })
   }
   assertQuestionReadable(row, userId)
-  if (row.format !== "mcq") {
+  if (expectedFormat && row.format !== expectedFormat) {
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "Question is not an MCQ",
+      message: formatError ?? `Question is not a ${expectedFormat}`,
     })
   }
+  return row
+}
+
+/**
+ * Bank MCQ → stem + options (no answer until submit).
+ */
+export async function getQuestionForMcq(
+  db: Database,
+  questionId: string,
+  userId: string
+): Promise<QuestionMcqDetail> {
+  const row = await requireReadableQuestion(
+    db,
+    questionId,
+    userId,
+    "mcq",
+    "Question is not an MCQ"
+  )
   return toMcqDetail(row)
 }
 
@@ -512,22 +526,13 @@ export async function getQuestionForSpreadsheet(
   questionId: string,
   userId: string
 ): Promise<QuestionSpreadsheetDetail> {
-  const row = await db.query.questions.findFirst({
-    where: eq(questions.id, questionId),
-  })
-  if (!row) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Question not found",
-    })
-  }
-  assertQuestionReadable(row, userId)
-  if (row.format !== "spreadsheet") {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Question is not a spreadsheet exercise",
-    })
-  }
+  const row = await requireReadableQuestion(
+    db,
+    questionId,
+    userId,
+    "spreadsheet",
+    "Question is not a spreadsheet exercise"
+  )
   const p = (row.payload ?? {}) as SpreadsheetQuestionPayload
   return {
     id: row.id,
@@ -549,22 +554,13 @@ export async function getQuestionForPage(
   questionId: string,
   userId: string
 ): Promise<QuestionPageDetail> {
-  const row = await db.query.questions.findFirst({
-    where: eq(questions.id, questionId),
-  })
-  if (!row) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Question not found",
-    })
-  }
-  assertQuestionReadable(row, userId)
-  if (row.format !== "page") {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Question is not a document analysis exercise",
-    })
-  }
+  const row = await requireReadableQuestion(
+    db,
+    questionId,
+    userId,
+    "page",
+    "Question is not a document analysis exercise"
+  )
   const p = (row.payload ?? {}) as PageQuestionPayload
   return {
     id: row.id,
@@ -645,95 +641,108 @@ export async function getMcqSession(
   }
 }
 
-/**
- * Grade MCQ selection (single / multi / order), update per-user progress.
- * Correct → mastered; incorrect → attempted (never demotes mastered).
- */
-export async function submitMcqAnswer(
-  db: Database,
-  userId: string,
-  questionId: string,
+function gradeMcqSingle(
+  selectedIndex: number | undefined,
+  optionCount: number,
+  correctIndex: number | null
+): boolean {
+  if (
+    selectedIndex === undefined ||
+    selectedIndex < 0 ||
+    selectedIndex >= optionCount
+  ) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Invalid selected option",
+    })
+  }
+  return selectedIndex === correctIndex
+}
+
+function gradeMcqMulti(
+  selected: number[] | undefined,
+  optionCount: number,
+  correctIndices: number[] | null
+): boolean {
+  if (!selected || selected.length === 0) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Select at least one option",
+    })
+  }
+  if (selected.some((i) => i < 0 || i >= optionCount)) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Invalid selected options",
+    })
+  }
+  const a = [...new Set(selected)].sort((x, y) => x - y)
+  return arraysEqual(a, correctIndices ?? [])
+}
+
+function gradeMcqOrder(
+  ordered: number[] | undefined,
+  optionCount: number,
+  correctOrder: number[] | null
+): boolean {
+  if (!ordered || ordered.length !== optionCount) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Ordered answer must include every option once",
+    })
+  }
+  if (ordered.some((i) => i < 0 || i >= optionCount)) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Invalid ordered indices",
+    })
+  }
+  const sorted = [...ordered].sort((x, y) => x - y)
+  const identity = Array.from({ length: optionCount }, (_, i) => i)
+  if (!arraysEqual(sorted, identity)) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Ordered answer must be a full permutation",
+    })
+  }
+  return arraysEqual(ordered, correctOrder ?? identity)
+}
+
+function gradeMcqAnswer(
+  parsed: ParsedMcq,
   answer: Pick<
     SubmitMcqInput,
     "selectedIndex" | "selectedIndices" | "orderedIndices"
   >
-): Promise<SubmitMcqResult> {
-  const row = await db.query.questions.findFirst({
-    where: eq(questions.id, questionId),
-  })
-  if (!row) {
-    throw new TRPCError({
-      code: "NOT_FOUND",
-      message: "Question not found",
-    })
-  }
-  assertQuestionReadable(row, userId)
-  if (row.format !== "mcq") {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "Question is not an MCQ",
-    })
-  }
-
-  const parsed = parseMcqPayload(row.payload, row.body)
-  const { options, variant, explanation } = parsed
-  let correct = false
-
+): boolean {
+  const { options, variant } = parsed
   if (variant === "single") {
-    const selectedIndex = answer.selectedIndex
-    if (
-      selectedIndex === undefined ||
-      selectedIndex < 0 ||
-      selectedIndex >= options.length
-    ) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Invalid selected option",
-      })
-    }
-    correct = selectedIndex === parsed.correctIndex
-  } else if (variant === "multi") {
-    const selected = answer.selectedIndices
-    if (!selected || selected.length === 0) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Select at least one option",
-      })
-    }
-    if (selected.some((i) => i < 0 || i >= options.length)) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Invalid selected options",
-      })
-    }
-    const a = [...new Set(selected)].sort((x, y) => x - y)
-    const b = parsed.correctIndices ?? []
-    correct = arraysEqual(a, b)
-  } else {
-    const ordered = answer.orderedIndices
-    if (!ordered || ordered.length !== options.length) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Ordered answer must include every option once",
-      })
-    }
-    if (ordered.some((i) => i < 0 || i >= options.length)) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Invalid ordered indices",
-      })
-    }
-    const sorted = [...ordered].sort((x, y) => x - y)
-    const identity = options.map((_, i) => i)
-    if (!arraysEqual(sorted, identity)) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Ordered answer must be a full permutation",
-      })
-    }
-    correct = arraysEqual(ordered, parsed.correctOrder ?? identity)
+    return gradeMcqSingle(
+      answer.selectedIndex,
+      options.length,
+      parsed.correctIndex
+    )
   }
+  if (variant === "multi") {
+    return gradeMcqMulti(
+      answer.selectedIndices,
+      options.length,
+      parsed.correctIndices
+    )
+  }
+  return gradeMcqOrder(
+    answer.orderedIndices,
+    options.length,
+    parsed.correctOrder
+  )
+}
 
+async function upsertMcqProgress(
+  db: Database,
+  userId: string,
+  questionId: string,
+  correct: boolean
+): Promise<QuestionUserStatus> {
   const nextStatus: QuestionUserStatus = correct ? "mastered" : "attempted"
   const now = new Date()
 
@@ -776,13 +785,41 @@ export async function submitMcqAnswer(
       },
     })
 
+  return status
+}
+
+/**
+ * Grade MCQ selection (single / multi / order), update per-user progress.
+ * Correct → mastered; incorrect → attempted (never demotes mastered).
+ */
+export async function submitMcqAnswer(
+  db: Database,
+  userId: string,
+  questionId: string,
+  answer: Pick<
+    SubmitMcqInput,
+    "selectedIndex" | "selectedIndices" | "orderedIndices"
+  >
+): Promise<SubmitMcqResult> {
+  const row = await requireReadableQuestion(
+    db,
+    questionId,
+    userId,
+    "mcq",
+    "Question is not an MCQ"
+  )
+
+  const parsed = parseMcqPayload(row.payload, row.body)
+  const correct = gradeMcqAnswer(parsed, answer)
+  const status = await upsertMcqProgress(db, userId, questionId, correct)
+
   return {
     correct,
-    variant,
+    variant: parsed.variant,
     correctIndex: parsed.correctIndex,
     correctIndices: parsed.correctIndices,
     correctOrder: parsed.correctOrder,
-    explanation,
+    explanation: parsed.explanation,
     status,
   }
 }
