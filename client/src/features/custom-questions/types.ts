@@ -46,6 +46,20 @@ export interface CreateCustomFormState {
   starterCode: string
 }
 
+/** Shared form field handlers used by create form sections. */
+export interface CreateFormFieldHandlers {
+  readonly form: CreateCustomFormState
+  readonly isPending: boolean
+  readonly onField: <K extends keyof CreateCustomFormState>(
+    key: K,
+    value: CreateCustomFormState[K]
+  ) => void
+  readonly onOption: (index: number, value: string) => void
+  readonly onAddOption: () => void
+  readonly onRemoveOption: (index: number) => void
+  readonly onToggleCorrect: (index: number) => void
+}
+
 export interface SimulationTypeCard {
   readonly id: string
   readonly format: QuestionFormat

@@ -18,6 +18,13 @@ import type {
   QuestionFormat,
 } from "./types"
 
+export {
+  buildCreatePayload,
+  buildCreateInputFields,
+  canSubmitCreate,
+  isCodeLikeFormat,
+} from "./lib/build-create-payload"
+
 export const DEFAULT_FORMAT: QuestionFormat = "mcq"
 
 export const CODE_LANGUAGES = [
@@ -65,27 +72,19 @@ export function formatLabelKey(format: QuestionFormat): string {
   return format
 }
 
+const FORMAT_ICONS: Record<QuestionFormat, LucideIcon> = {
+  mcq: ListChecks,
+  code_run: Code2,
+  workspace: Monitor,
+  terminal: Terminal,
+  whiteboard: PenTool,
+  spreadsheet: FileSpreadsheet,
+  page: FileText,
+  conversation: MessageSquare,
+}
+
 export function formatIcon(format: QuestionFormat): LucideIcon {
-  switch (format) {
-    case "mcq":
-      return ListChecks
-    case "code_run":
-      return Code2
-    case "workspace":
-      return Monitor
-    case "terminal":
-      return Terminal
-    case "whiteboard":
-      return PenTool
-    case "spreadsheet":
-      return FileSpreadsheet
-    case "page":
-      return FileText
-    case "conversation":
-      return MessageSquare
-    default:
-      return LayoutGrid
-  }
+  return FORMAT_ICONS[format] ?? LayoutGrid
 }
 
 export function defaultFormState(
@@ -106,88 +105,4 @@ export function defaultFormState(
     trackHint: "auto",
     starterCode: "",
   }
-}
-
-/** Build format-specific payload for `questions.createCustom`. */
-export function buildCreatePayload(
-  state: CreateCustomFormState
-): Record<string, unknown> {
-  const prompt = state.prompt.trim()
-
-  switch (state.format) {
-    case "mcq": {
-      const options = state.options.map((o) => o.trim()).filter(Boolean)
-      const payload: Record<string, unknown> = {
-        stem: prompt,
-        options,
-        variant: state.mcqVariant,
-      }
-      if (state.mcqVariant === "multi") {
-        payload.correctIndices =
-          state.correctIndices.length > 0
-            ? state.correctIndices
-            : [state.correctIndex]
-      } else if (state.mcqVariant === "order") {
-        payload.correctOrder = options.map((_, i) => i)
-      } else {
-        payload.correctIndex = state.correctIndex
-      }
-      return payload
-    }
-    case "conversation":
-      return {
-        interviewerPrompt: prompt,
-        ...(state.trackHint && state.trackHint !== "auto"
-          ? { trackHint: state.trackHint }
-          : {}),
-      }
-    case "code_run":
-    case "terminal":
-      return {
-        prompt,
-        ...(state.starterCode.trim()
-          ? { starterCode: state.starterCode }
-          : {}),
-      }
-    case "workspace":
-      return {
-        prompt,
-        ...(state.starterCode.trim()
-          ? {
-              files: {
-                [state.language.includes("py")
-                  ? "main.py"
-                  : state.language.includes("ts")
-                    ? "main.ts"
-                    : "main.js"]: state.starterCode,
-              },
-            }
-          : {}),
-      }
-    case "whiteboard":
-    case "spreadsheet":
-    case "page":
-      return { prompt }
-    default:
-      return { prompt }
-  }
-}
-
-export function canSubmitCreate(state: CreateCustomFormState): boolean {
-  if (!state.title.trim() || !state.prompt.trim()) return false
-  if (state.format === "mcq") {
-    const options = state.options.map((o) => o.trim()).filter(Boolean)
-    if (options.length < 2) return false
-    if (state.mcqVariant === "single") {
-      return (
-        state.correctIndex >= 0 && state.correctIndex < options.length
-      )
-    }
-    if (state.mcqVariant === "multi") {
-      return state.correctIndices.some(
-        (i) => i >= 0 && i < options.length
-      )
-    }
-  }
-  return true
 }
