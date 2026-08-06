@@ -19,7 +19,6 @@ import {
   BarChart3,
   Bot,
   BookOpen,
-  PencilRuler,
 } from "lucide-react"
 import type { NavItem, NavSection, DashboardUser, UserMenuAction } from "@/components/dashboard/types"
 
@@ -49,11 +48,6 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       { title: "navItems.simulations", icon: MonitorPlay, href: "/simulations" },
       { title: "navItems.questionBank", icon: HelpCircle, href: "/question-bank" },
-      {
-        title: "navItems.customQuestions",
-        icon: PencilRuler,
-        href: "/custom-questions",
-      },
     ],
   },
   {

@@ -10,7 +10,6 @@ import { PrivacyPage } from "@/pages/dashboard/privacy-page"
 import { HelpPage } from "@/pages/dashboard/help-page"
 import { SimulationsPage } from "@/pages/dashboard/simulations-page"
 import { QuestionBankPage } from "@/pages/dashboard/question-bank-page"
-import { CustomQuestionsPage } from "@/pages/dashboard/custom-questions-page"
 import { ReadinessPage } from "@/pages/dashboard/readiness-page"
 import { PerformancePage } from "@/pages/dashboard/performance-page"
 import { AutofillPage } from "@/pages/dashboard/autofill-page"
@@ -27,7 +26,6 @@ export const DASHBOARD_SECTION_PAGES: Record<string, ComponentType> = {
   billing: BillingPage,
   simulations: SimulationsPage,
   "question-bank": QuestionBankPage,
-  "custom-questions": CustomQuestionsPage,
   readiness: ReadinessPage,
   performance: PerformancePage,
   autofill: AutofillPage,

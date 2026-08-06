@@ -24,7 +24,6 @@
     "jobWorkflow": "Job Workflow",
     "simulations": "Simulations",
     "questionBank": "Question Bank",
-    "customQuestions": "Custom questions",
     "readiness": "Readiness",
     "performance": "Performance",
     "autofill": "Autofill",
@@ -1143,132 +1142,13 @@
       "saved": "Saved",
       "newPracticeSet": "New practice set",
       "save": "Save to set",
-      "practice": "Practice",
-      "myCustom": "My custom"
+      "practice": "Practice"
     },
-    "customBadge": "Custom",
     "emptyTitle": "No questions yet",
     "emptyDescription": "Apply to a job in Discover or import a job in Applications — questions generate automatically into this bank.",
     "emptySearchDescription": "Try different filters or search terms.",
     "loading": "Loading questions…",
     "loadError": "Could not load questions."
-  },
-  "customQuestions": {
-    "documentTitle": "Custom questions — MockMatch",
-    "title": "Custom questions",
-    "description": "Author practice items for every simulation format, then deploy them into your own question bank. Deploys are private to you — not shared with a team or the global bank.",
-    "types": {
-      "heading": "Simulation types",
-      "description": "Pick a format to start a draft. Every surface below supports create and self-deploy.",
-      "loadError": "Could not load simulation types."
-    },
-    "formats": {
-      "mcq": {
-        "hint": "Single, multi, or order multiple-choice items"
-      },
-      "codeRun": {
-        "hint": "Single-file IDE practice with optional tests"
-      },
-      "workspace": {
-        "hint": "Multi-file IDE workspace"
-      },
-      "terminal": {
-        "hint": "Terminal-oriented coding lab"
-      },
-      "whiteboard": {
-        "hint": "Canvas system-design style prompt"
-      },
-      "spreadsheet": {
-        "hint": "Case tables and formula practice"
-      },
-      "page": {
-        "hint": "Document analysis writeup"
-      },
-      "conversation": {
-        "hint": "Voice interview track prompt"
-      }
-    },
-    "create": {
-      "heading": "Create custom question",
-      "title": "New {{format}} question",
-      "description": "Saves as a private draft. Deploy to your bank when you are ready to practice.",
-      "deployNote": "After create, use Deploy to my bank on the draft. Team and global publish are not available."
-    },
-    "fields": {
-      "title": "Title",
-      "titlePlaceholder": "Short name for this question",
-      "domain": "Domain",
-      "difficulty": "Difficulty",
-      "company": "Company (optional)",
-      "companyPlaceholder": "e.g. Acme",
-      "prompt": "Prompt",
-      "stem": "Question stem",
-      "interviewerPrompt": "Interviewer prompt",
-      "promptPlaceholder": "What should the candidate answer or solve?",
-      "language": "Language",
-      "starterCode": "Starter code (optional)",
-      "starterCodePlaceholder": "Optional starting file contents…",
-      "trackHint": "Conversation track",
-      "trackHintAuto": "Auto from domain",
-      "mcqVariant": "MCQ type",
-      "options": "Options",
-      "optionPlaceholder": "Option {{n}}",
-      "addOption": "Add option",
-      "removeOption": "Remove option",
-      "markCorrect": "Mark option {{n}} as correct",
-      "correctHint": "Check the correct answer(s).",
-      "orderHint": "List options in the correct top-to-bottom order."
-    },
-    "mcqVariant": {
-      "single": "Single answer",
-      "multi": "Multiple answers",
-      "order": "Order"
-    },
-    "languages": {
-      "javascript": "JavaScript",
-      "typescript": "TypeScript",
-      "python": "Python",
-      "cpp": "C++"
-    },
-    "tracks": {
-      "behavioral-core": "Behavioral · Core stories",
-      "product-sense": "Product sense",
-      "system-design-talk": "System design talk"
-    },
-    "actions": {
-      "createDraft": "Save draft",
-      "creating": "Saving…",
-      "deploySelf": "Deploy to my bank",
-      "practice": "Practice"
-    },
-    "columns": {
-      "question": "Question",
-      "format": "Format",
-      "domain": "Domain",
-      "difficulty": "Difficulty",
-      "status": "Status",
-      "action": "Action"
-    },
-    "publishStatus": {
-      "draft": "Draft",
-      "published": "In my bank",
-      "archived": "Archived"
-    },
-    "mine": {
-      "heading": "Your drafts and deployed items",
-      "description": "Drafts stay private until you deploy. Deployed customs appear in Question Bank for you only.",
-      "loading": "Loading your questions…",
-      "loadError": "Could not load your custom questions.",
-      "emptyTitle": "No custom questions yet",
-      "emptyDescription": "Pick a simulation type above, fill in the form, and save a draft.",
-      "selfOnlyNote": "Deploy is self-only. There is no team or global publish option."
-    },
-    "toast": {
-      "created": "Draft saved",
-      "createFailed": "Could not save draft",
-      "deployed": "Deployed to your bank",
-      "deployFailed": "Could not deploy"
-    }
   },
   "simulations": {
     "documentTitle": "Simulations — MockMatch",

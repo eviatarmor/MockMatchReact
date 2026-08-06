@@ -16,7 +16,6 @@ const DASHBOARD_PATHS = [
   "/applications",
   "/simulations",
   "/question-bank",
-  "/custom-questions",
   "/readiness",
   "/performance",
   "/autofill",
