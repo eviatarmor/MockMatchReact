@@ -94,13 +94,14 @@ function clearFill(ctx: SpreadsheetPluginContext) {
         })
         continue
       }
-      const next: CellStyle = {}
-      if (s.bold) next.bold = true
-      if (s.italic) next.italic = true
-      if (s.underline) next.underline = true
-      if (s.align) next.align = s.align
-      if (s.color) next.color = s.color
-      if (s.wrap) next.wrap = true
+      const next: CellStyle = {
+        ...(s.bold ? { bold: true as const } : {}),
+        ...(s.italic ? { italic: true as const } : {}),
+        ...(s.underline ? { underline: true as const } : {}),
+        ...(s.align ? { align: s.align } : {}),
+        ...(s.color ? { color: s.color } : {}),
+        ...(s.wrap ? { wrap: true as const } : {}),
+      }
       writes.push({
         row: r,
         col: c,
