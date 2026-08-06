@@ -11,28 +11,28 @@ import {
 async function insertSelfQuestion(opts: {
   ownerUserId: string
   title: string
-  domain?: "coding" | "behavioral"
-  format?: "mcq" | "conversation"
-  status?: "draft" | "published"
-  body?: string
-  payload?: Record<string, unknown>
+  domain: "coding" | "behavioral"
+  format: "mcq" | "conversation"
+  status: "draft" | "published"
+  body: string
+  payload: Record<string, unknown>
   contentHash: string
 }) {
   const [row] = await db
     .insert(questions)
     .values({
       title: opts.title,
-      body: opts.body ?? opts.title,
-      domain: opts.domain ?? "coding",
+      body: opts.body,
+      domain: opts.domain,
       difficulty: "easy",
-      format: opts.format ?? "mcq",
-      payload: opts.payload ?? {},
+      format: opts.format,
+      payload: opts.payload,
       source: "manual",
       ownerUserId: opts.ownerUserId,
       visibility: "self",
       contentHash: opts.contentHash,
       searchDocument: opts.title,
-      status: opts.status ?? "published",
+      status: opts.status,
     })
     .returning()
   if (!row) throw new Error("insertSelfQuestion failed")
@@ -73,6 +73,7 @@ describeIntegration("questions (integration)", () => {
     const row = await insertSelfQuestion({
       ownerUserId: ownerUser.id,
       title: `Residual self MCQ ${stamp}`,
+      domain: "coding",
       format: "mcq",
       status: "published",
       body: "Pick the even number.",
