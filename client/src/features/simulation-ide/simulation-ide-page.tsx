@@ -37,6 +37,7 @@ import { RoomFullGate } from "@/features/collab/components/room-full-gate"
 import { ShareDialog } from "@/features/collab/components/share-dialog"
 import { useTheme } from "@/components/theme-provider"
 import { AskChatSurface } from "@/features/ask/components/ask-chat-surface"
+import { SimulationPromptRail } from "@/features/simulations/components/simulation-prompt-rail"
 import { trpc } from "@/lib/trpc"
 import {
   IDE_FORMAT_PRESETS,
@@ -656,6 +657,14 @@ function EditorCollabSession({
     runtimeOverride,
   })
 
+  const { t: tCommon } = useTranslation("common")
+  const prompt =
+    bankQuery.data?.prompt?.trim() ||
+    bankQuery.data?.body?.trim() ||
+    exerciseQuery.data?.description?.trim() ||
+    t(preset.descriptionKey) ||
+    tCommon("simulations.promptRail.emptyPrompt")
+
   return (
     <CollabRoomGates
       status={session.collab.status}
@@ -785,56 +794,62 @@ function EditorCollabSession({
           }
         />
         <div className="min-h-0 flex-1">
-          <IdeShell
-            className="h-full min-h-0"
-            hideMenubar
-            fullscreen={fullscreen}
-            onFullscreenChange={setFullscreen}
-            fullscreenTargetRef={pageRef}
-            tree={treeEnabled ? session.tree : undefined}
-            showTree={treeEnabled ? session.showTree : false}
-            onShowTreeChange={treeEnabled ? session.setShowTree : undefined}
-            treeToggleable={treeEnabled}
-            selectedTreeId={treeEnabled ? session.selectedTreeId : undefined}
-            onTreeSelectionChange={
-              treeEnabled ? session.onTreeSelectionChange : undefined
-            }
-            onCreateFile={treeEnabled ? session.onCreateFile : undefined}
-            onCreateFolder={treeEnabled ? session.onCreateFolder : undefined}
-            onDeleteNode={treeEnabled ? session.onDeleteNode : undefined}
-            onRenameNode={treeEnabled ? session.onRenameNode : undefined}
-            createRequest={treeEnabled ? session.createRequest : undefined}
-            onFilePreview={treeEnabled ? session.onFilePreview : undefined}
-            onFileOpen={treeEnabled ? session.onFileOpen : undefined}
-            tabs={session.tabs}
-            activeTabId={session.activeTabId}
-            onActiveTabChange={session.onActiveTabChange}
-            onTabChange={session.onTabChange}
-            onTabClose={tabsClosable ? session.onTabClose : undefined}
-            tabsClosable={tabsClosable}
-            colorScheme={resolvedTheme}
-            settings={settings}
-            onSettingsChange={setSettings}
-            showTerminal={showTerminal}
-            onShowTerminalChange={setShowTerminal}
-            terminalFeed={run.terminalFeed}
-            showAi={showAi}
-            onShowAiChange={setShowAi}
-            aiPanel={({ close }) => (
-              <AskChatSurface
-                chrome="surface"
-                onClose={close}
-                showSuggestions={false}
-              />
-            )}
-            onRun={run.onRun}
-            onRunTests={run.onRunTests}
-            runBusy={run.runBusy}
-            runTestsBusy={run.runTestsBusy}
-            runActionsPlacement="none"
-            labels={labels}
-            collab={session.collabProps}
-          />
+          <SimulationPromptRail
+            prompt={prompt}
+            storageKey="mockmatch.ide.rail-width"
+            slot="ide-side-panel"
+          >
+            <IdeShell
+              className="h-full min-h-0"
+              hideMenubar
+              fullscreen={fullscreen}
+              onFullscreenChange={setFullscreen}
+              fullscreenTargetRef={pageRef}
+              tree={treeEnabled ? session.tree : undefined}
+              showTree={treeEnabled ? session.showTree : false}
+              onShowTreeChange={treeEnabled ? session.setShowTree : undefined}
+              treeToggleable={treeEnabled}
+              selectedTreeId={treeEnabled ? session.selectedTreeId : undefined}
+              onTreeSelectionChange={
+                treeEnabled ? session.onTreeSelectionChange : undefined
+              }
+              onCreateFile={treeEnabled ? session.onCreateFile : undefined}
+              onCreateFolder={treeEnabled ? session.onCreateFolder : undefined}
+              onDeleteNode={treeEnabled ? session.onDeleteNode : undefined}
+              onRenameNode={treeEnabled ? session.onRenameNode : undefined}
+              createRequest={treeEnabled ? session.createRequest : undefined}
+              onFilePreview={treeEnabled ? session.onFilePreview : undefined}
+              onFileOpen={treeEnabled ? session.onFileOpen : undefined}
+              tabs={session.tabs}
+              activeTabId={session.activeTabId}
+              onActiveTabChange={session.onActiveTabChange}
+              onTabChange={session.onTabChange}
+              onTabClose={tabsClosable ? session.onTabClose : undefined}
+              tabsClosable={tabsClosable}
+              colorScheme={resolvedTheme}
+              settings={settings}
+              onSettingsChange={setSettings}
+              showTerminal={showTerminal}
+              onShowTerminalChange={setShowTerminal}
+              terminalFeed={run.terminalFeed}
+              showAi={showAi}
+              onShowAiChange={setShowAi}
+              aiPanel={({ close }) => (
+                <AskChatSurface
+                  chrome="surface"
+                  onClose={close}
+                  showSuggestions={false}
+                />
+              )}
+              onRun={run.onRun}
+              onRunTests={run.onRunTests}
+              runBusy={run.runBusy}
+              runTestsBusy={run.runTestsBusy}
+              runActionsPlacement="none"
+              labels={labels}
+              collab={session.collabProps}
+            />
+          </SimulationPromptRail>
         </div>
         {isOwner && (
           <ShareDialog
@@ -929,6 +944,12 @@ function ShellCollabSession({
     [shellCwd, shellFiles]
   )
 
+  const { t: tCommon } = useTranslation("common")
+  const prompt =
+    exerciseQuery.data?.description?.trim() ||
+    t(preset.descriptionKey) ||
+    tCommon("simulations.promptRail.emptyPrompt")
+
   return (
     <CollabRoomGates
       status={session.collab.status}
@@ -947,11 +968,6 @@ function ShellCollabSession({
             <Badge variant="secondary" className="shrink-0 text-xs font-normal">
               {t(preset.badgeKey)}
             </Badge>
-          }
-          center={
-            <p className="min-w-0 flex-1 truncate text-xs text-muted-foreground">
-              {exerciseQuery.data?.description || t(preset.descriptionKey)}
-            </p>
           }
           end={
             <>
@@ -987,23 +1003,29 @@ function ShellCollabSession({
           }
         />
         <div className="min-h-0 flex-1 bg-background p-0">
-          <IdeTerminalPanel
-            layout="fill"
-            open
-            onOpenChange={() => {}}
-            colorScheme={scheme}
-            welcome={shellWelcome}
-            defaultCwd={shellCwd}
-            onCommand={onCommand}
-            labels={{
-              newTerminal: t("actions.newTerminal"),
-              closeTerminal: t("actions.closeTerminal"),
-              close: t("actions.close"),
-              closeOthers: t("actions.closeOthers"),
-              pinTab: t("actions.pinTab"),
-              unpinTab: t("actions.unpinTab"),
-            }}
-          />
+          <SimulationPromptRail
+            prompt={prompt}
+            storageKey="mockmatch.ide-shell.rail-width"
+            slot="ide-shell-side-panel"
+          >
+            <IdeTerminalPanel
+              layout="fill"
+              open
+              onOpenChange={() => {}}
+              colorScheme={scheme}
+              welcome={shellWelcome}
+              defaultCwd={shellCwd}
+              onCommand={onCommand}
+              labels={{
+                newTerminal: t("actions.newTerminal"),
+                closeTerminal: t("actions.closeTerminal"),
+                close: t("actions.close"),
+                closeOthers: t("actions.closeOthers"),
+                pinTab: t("actions.pinTab"),
+                unpinTab: t("actions.unpinTab"),
+              }}
+            />
+          </SimulationPromptRail>
         </div>
         {isOwner && (
           <ShareDialog

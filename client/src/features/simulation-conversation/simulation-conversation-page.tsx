@@ -11,6 +11,7 @@ import {
   type SessionPhase,
   type TranscriptTurn,
 } from "@mockmatch/voice-agent"
+import { SimulationPromptRail } from "@/features/simulations/components/simulation-prompt-rail"
 import { INTERVIEW_TRACKS } from "@/features/simulations/constants"
 import { trpc } from "@/lib/trpc"
 import {
@@ -36,11 +37,14 @@ function ConversationSession({
   trackId,
   questionId,
   questionTitle,
+  questionPrompt,
 }: {
   readonly trackId: ConversationTrackId
   /** Bank question UUID — seeds interviewer prompt; also used as URL identity. */
   readonly questionId?: string
   readonly questionTitle?: string | null
+  /** Bank question body / prompt for the shared right rail. */
+  readonly questionPrompt?: string | null
 }) {
   const navigate = useNavigate()
   const { t } = useTranslation(["simulation-conversation", "common"])
@@ -68,6 +72,12 @@ function ConversationSession({
   const title =
     questionTitle?.trim() ||
     (track ? t(track.titleKey, { ns: "common" }) : trackId)
+
+  const prompt =
+    questionPrompt?.trim() ||
+    (track
+      ? t(track.descriptionKey, { ns: "common" })
+      : t("common:simulations.promptRail.emptyPrompt"))
 
   const agentState: AgentPresenceState = liveActive
     ? liveVoice.agentState
@@ -149,85 +159,91 @@ function ConversationSession({
         onStart={handleStart}
       />
 
-      <VoiceAgentShell
-        chrome={
-          <ConversationSessionBar
-            title={title}
-            phase={phase}
-            muted={muted}
-            voice={voice}
-            onMuteToggle={onMuteToggle}
-            onVoiceChange={handleVoiceChange}
-            onEnd={handleEnd}
-            onRestart={handleRestart}
-            onBack={goSimulations}
-          />
-        }
-        agentPanel={
-          <AgentStage
-            agentState={agentState}
-            statusLabel={statusLabel}
-            phase={phase}
-            muted={muted}
-            phaseEnded={phaseEnded}
-            onMuteToggle={onMuteToggle}
-            onEnd={handleEnd}
-            onRestart={handleRestart}
-            onBack={goSimulations}
-            onOpenSetup={() => setSetupOpen(true)}
-            labels={{
-              agentName: t("simulation-conversation:agent.name"),
-              agentLabel: (state) =>
-                t("simulation-conversation:agent.label", { state }),
-              waitingHint: t("simulation-conversation:setup.waitingHint"),
-              openSetup: t("simulation-conversation:setup.openAgain"),
-              restart: t("simulation-conversation:controls.restart"),
-              back: t("simulation-conversation:controls.backToSimulations"),
-              hint: t("simulation-conversation:hint"),
-              controls: controlsLabels,
-            }}
-          />
-        }
-        chatPanel={
-          <ChatPanel
-            turns={turns}
-            liveTurnId={liveTurnId}
-            playbackTime={playbackTime}
-            canSend={canSend}
-            isBusy={isBusy}
-            phaseEnded={phaseEnded}
-            inputResetKey={`${trackId}-${inputKey}`}
-            onSend={session.sendMessage}
-            onListeningChange={session.setListening}
-            className="h-full border-0"
-          />
-        }
-        mobileAgent={{
-          agentState,
-          statusLabel,
-          agentName: t("simulation-conversation:agent.name"),
-          agentAriaLabel: t("simulation-conversation:agent.label", {
-            state: statusLabel,
-          }),
-          phase,
-          muted,
-          onMuteToggle,
-          onEnd: handleEnd,
-          controlsLabels,
-        }}
-        mobileFooter={
-          phaseEnded && phase !== "setup" ? (
-            <VoiceAgentMobileEndedActions
-              restartLabel={t("simulation-conversation:controls.restart")}
-              backLabel={t(
-                "simulation-conversation:controls.backToSimulations"
-              )}
+      <SimulationPromptRail
+        prompt={prompt}
+        storageKey="mockmatch.conversation.rail-width"
+        slot="conversation-side-panel"
+      >
+        <VoiceAgentShell
+          chrome={
+            <ConversationSessionBar
+              title={title}
+              phase={phase}
+              muted={muted}
+              voice={voice}
+              onMuteToggle={onMuteToggle}
+              onVoiceChange={handleVoiceChange}
+              onEnd={handleEnd}
               onRestart={handleRestart}
               onBack={goSimulations}
             />
-          ) : null
-        }
-      />
+          }
+          agentPanel={
+            <AgentStage
+              agentState={agentState}
+              statusLabel={statusLabel}
+              phase={phase}
+              muted={muted}
+              phaseEnded={phaseEnded}
+              onMuteToggle={onMuteToggle}
+              onEnd={handleEnd}
+              onRestart={handleRestart}
+              onBack={goSimulations}
+              onOpenSetup={() => setSetupOpen(true)}
+              labels={{
+                agentName: t("simulation-conversation:agent.name"),
+                agentLabel: (state) =>
+                  t("simulation-conversation:agent.label", { state }),
+                waitingHint: t("simulation-conversation:setup.waitingHint"),
+                openSetup: t("simulation-conversation:setup.openAgain"),
+                restart: t("simulation-conversation:controls.restart"),
+                back: t("simulation-conversation:controls.backToSimulations"),
+                hint: t("simulation-conversation:hint"),
+                controls: controlsLabels,
+              }}
+            />
+          }
+          chatPanel={
+            <ChatPanel
+              turns={turns}
+              liveTurnId={liveTurnId}
+              playbackTime={playbackTime}
+              canSend={canSend}
+              isBusy={isBusy}
+              phaseEnded={phaseEnded}
+              inputResetKey={`${trackId}-${inputKey}`}
+              onSend={session.sendMessage}
+              onListeningChange={session.setListening}
+              className="h-full border-0"
+            />
+          }
+          mobileAgent={{
+            agentState,
+            statusLabel,
+            agentName: t("simulation-conversation:agent.name"),
+            agentAriaLabel: t("simulation-conversation:agent.label", {
+              state: statusLabel,
+            }),
+            phase,
+            muted,
+            onMuteToggle,
+            onEnd: handleEnd,
+            controlsLabels,
+          }}
+          mobileFooter={
+            phaseEnded && phase !== "setup" ? (
+              <VoiceAgentMobileEndedActions
+                restartLabel={t("simulation-conversation:controls.restart")}
+                backLabel={t(
+                  "simulation-conversation:controls.backToSimulations"
+                )}
+                onRestart={handleRestart}
+                onBack={goSimulations}
+              />
+            ) : null
+          }
+        />
+      </SimulationPromptRail>
     </>
   )
 }
@@ -324,6 +340,7 @@ export function SimulationConversationPageContent() {
         trackId={trackId}
         questionId={q.id}
         questionTitle={q.title}
+        questionPrompt={q.body}
       />
     )
   }
