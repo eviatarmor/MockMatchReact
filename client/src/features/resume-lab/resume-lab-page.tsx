@@ -24,11 +24,8 @@ import { useTableColumnVisibility } from "@/hooks/use-table-column-visibility"
 import { useTableFilters } from "@/hooks/use-table-filters"
 import { downloadDocumentPdf, pdfFilename } from "@/lib/export-document-pdf"
 import { listEmptyCopy } from "@/lib/list-empty-copy"
-import {
-  buildStatusFilterField,
-  statusFieldValue,
-} from "@/lib/status-table-filter"
-import { filterByTableFilters } from "@/lib/table-filters"
+import { buildLabeledStatusFilterField } from "@/lib/status-table-filter"
+import { useStatusTableQuery } from "@/hooks/use-status-table-query"
 import { trpc } from "@/lib/trpc"
 import { ResumeCardGrid } from "./components/resume-card-grid"
 import { ResumeTable } from "./components/resume-table"
@@ -61,23 +58,20 @@ export function ResumeLabPageContent() {
 
   const filterFields = useMemo(
     () => [
-      buildStatusFilterField(
+      buildLabeledStatusFilterField(
         t("resumeLab.table.columns.status"),
-        DOCUMENT_STATUSES.map((value) => ({
-          value,
-          label: t(`resumeLab.table.statusLabels.${value}`),
-        }))
+        DOCUMENT_STATUSES,
+        (value) => t(`resumeLab.table.statusLabels.${value}`)
       ),
     ],
     [t]
   )
 
-  const filteredItems = useMemo(
-    () => filterByTableFilters(list.items, tableFilters.filters, statusFieldValue),
-    [list.items, tableFilters.filters]
+  const { filteredItems, hasActiveQuery } = useStatusTableQuery(
+    list.items,
+    tableFilters.filters,
+    list.hasActiveSearch
   )
-
-  const hasActiveQuery = list.hasActiveSearch || tableFilters.hasActive
 
   const createResume = trpc.resumes.create.useMutation({
     onSuccess: (resume) => {

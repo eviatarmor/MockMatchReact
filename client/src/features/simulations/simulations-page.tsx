@@ -15,11 +15,8 @@ import { TableChromeControls } from "@/components/data/table-chrome-controls"
 import { useTableColumnVisibility } from "@/hooks/use-table-column-visibility"
 import { useTableFilters } from "@/hooks/use-table-filters"
 import { listEmptyCopy } from "@/lib/list-empty-copy"
-import {
-  buildStatusFilterField,
-  statusFieldValue,
-} from "@/lib/status-table-filter"
-import { filterByTableFilters } from "@/lib/table-filters"
+import { buildLabeledStatusFilterField } from "@/lib/status-table-filter"
+import { useStatusTableQuery } from "@/hooks/use-status-table-query"
 import { SessionTable } from "./components/session-table"
 import { TrackBrowserSection } from "./components/track-browser-section"
 import { useSessionsList } from "./hooks/use-sessions-list"
@@ -55,23 +52,20 @@ export function SimulationsPageContent() {
 
   const filterFields = useMemo(
     () => [
-      buildStatusFilterField(
+      buildLabeledStatusFilterField(
         t("simulations.recentSessions.columns.status"),
-        SESSION_STATUSES.map((value) => ({
-          value,
-          label: t(`simulations.recentSessions.statusLabels.${value}`),
-        }))
+        SESSION_STATUSES,
+        (value) => t(`simulations.recentSessions.statusLabels.${value}`)
       ),
     ],
     [t]
   )
 
-  const filteredItems = useMemo(
-    () => filterByTableFilters(list.items, tableFilters.filters, statusFieldValue),
-    [list.items, tableFilters.filters]
+  const { filteredItems, hasActiveQuery } = useStatusTableQuery(
+    list.items,
+    tableFilters.filters,
+    list.hasActiveSearch
   )
-
-  const hasActiveQuery = list.hasActiveSearch || tableFilters.hasActive
   const showEmpty = !list.isLoading && filteredItems.length === 0
   const emptyCopy = listEmptyCopy(hasActiveQuery, t, {
     emptyTitle: "simulations.recentSessions.emptyTitle",

@@ -14,11 +14,8 @@ import {
 } from "@/components/data/view-mode-tabs"
 import { useTableColumnVisibility } from "@/hooks/use-table-column-visibility"
 import { useTableFilters } from "@/hooks/use-table-filters"
-import {
-  buildStatusFilterField,
-  statusFieldValue,
-} from "@/lib/status-table-filter"
-import { filterByTableFilters } from "@/lib/table-filters"
+import { useStatusTableQuery } from "@/hooks/use-status-table-query"
+import { buildLabeledStatusFilterField } from "@/lib/status-table-filter"
 import { TrackingKanban } from "./components/tracking-kanban"
 import { ApplicationsTable } from "./components/applications-table"
 import { EmailConnectBar } from "./components/email-connect-bar"
@@ -28,22 +25,88 @@ import { AddJobDialog } from "@/features/discover/components/add-job-dialog"
 import { useTrackedJobs, useEmailConnect } from "./hooks/use-tracked-jobs"
 import { useApplicationsOnboarding } from "./hooks/use-applications-onboarding"
 import { TRACKING_STATUS_ORDER } from "./constants"
-import type { EmailProvider } from "./types"
+import type { EmailProvider, TrackedJob, TrackingStatus } from "./types"
+
+function filterJobsBySearch(jobs: readonly TrackedJob[], search: string) {
+  const q = search.toLowerCase().trim()
+  if (!q) return [...jobs]
+  return jobs.filter(
+    (job) =>
+      job.title.toLowerCase().includes(q) ||
+      job.company.toLowerCase().includes(q)
+  )
+}
+
+function ApplicationsBoard({
+  isEmpty,
+  noQueryHits,
+  viewMode,
+  jobs,
+  onStatusChange,
+  onStatusesChange,
+  onRemove,
+  isColumnVisible,
+}: {
+  isEmpty: boolean
+  noQueryHits: boolean
+  viewMode: ListViewMode
+  jobs: TrackedJob[]
+  onStatusChange: (id: string, status: TrackingStatus) => void
+  onStatusesChange: (
+    updates: ReadonlyArray<{ id: string; status: TrackingStatus }>
+  ) => void
+  onRemove: (id: string) => void
+  isColumnVisible: (id: string) => boolean
+}) {
+  const { t } = useTranslation("common")
+
+  if (isEmpty) {
+    return (
+      <EntityEmptyState
+        icon={Bookmark}
+        title={t("applications.empty.title")}
+        description={t("applications.empty.description")}
+      />
+    )
+  }
+  if (noQueryHits) {
+    return (
+      <EntityEmptyState
+        icon={Bookmark}
+        title={t("applications.empty.noSearchTitle")}
+        description={t("applications.empty.noSearchDescription")}
+      />
+    )
+  }
+  if (viewMode === "table") {
+    return (
+      <ApplicationsTable
+        jobs={jobs}
+        onStatusChange={onStatusChange}
+        onRemove={onRemove}
+        isColumnVisible={isColumnVisible}
+      />
+    )
+  }
+  return (
+    <TrackingKanban
+      jobs={jobs}
+      onStatusesChange={onStatusesChange}
+      onRemove={onRemove}
+    />
+  )
+}
 
 export function ApplicationsPageContent() {
   const { t } = useTranslation("common")
   const [search, setSearch] = useState("")
   const [viewMode, setViewMode] = useState<ListViewMode>("table")
   const tableFilters = useTableFilters()
-  const { jobs, addFromPaste, untrack, replaceStatuses, updateStatus } = useTrackedJobs()
+  const { jobs, addFromPaste, untrack, replaceStatuses, updateStatus } =
+    useTrackedJobs()
   const { connectedProvider, connect, disconnect } = useEmailConnect()
-  const {
-    welcomeOpen,
-    tourOpen,
-    startTour,
-    skipWelcome,
-    setTourOpen,
-  } = useApplicationsOnboarding()
+  const { welcomeOpen, tourOpen, startTour, skipWelcome, setTourOpen } =
+    useApplicationsOnboarding()
 
   const displayColumns = useMemo(
     () => [
@@ -60,32 +123,24 @@ export function ApplicationsPageContent() {
 
   const filterFields = useMemo(
     () => [
-      buildStatusFilterField(
+      buildLabeledStatusFilterField(
         t("applications.table.columns.status"),
-        TRACKING_STATUS_ORDER.map((value) => ({
-          value,
-          label: t(`applications.statusLabels.${value}`),
-        }))
+        TRACKING_STATUS_ORDER,
+        (value) => t(`applications.statusLabels.${value}`)
       ),
     ],
     [t]
   )
 
-  const searchedJobs = useMemo(() => {
-    const q = search.toLowerCase()
-    return jobs.filter(
-      (job) =>
-        job.title.toLowerCase().includes(q) ||
-        job.company.toLowerCase().includes(q)
-    )
-  }, [jobs, search])
-
-  const filteredJobs = useMemo(
-    () => filterByTableFilters(searchedJobs, tableFilters.filters, statusFieldValue),
-    [searchedJobs, tableFilters.filters]
+  const searchedJobs = useMemo(
+    () => filterJobsBySearch(jobs, search),
+    [jobs, search]
   )
-
-  const hasActiveQuery = search.trim() !== "" || tableFilters.hasActive
+  const { filteredItems: filteredJobs, hasActiveQuery } = useStatusTableQuery(
+    searchedJobs,
+    tableFilters.filters,
+    search.trim() !== ""
+  )
   const isEmpty = filteredJobs.length === 0 && !hasActiveQuery
   const noQueryHits = filteredJobs.length === 0 && hasActiveQuery
 
@@ -167,33 +222,20 @@ export function ApplicationsPageContent() {
           }
         />
 
-        <div id="applications-tour-board" className="flex min-h-0 flex-1 flex-col">
-          {isEmpty ? (
-            <EntityEmptyState
-              icon={Bookmark}
-              title={t("applications.empty.title")}
-              description={t("applications.empty.description")}
-            />
-          ) : noQueryHits ? (
-            <EntityEmptyState
-              icon={Bookmark}
-              title={t("applications.empty.noSearchTitle")}
-              description={t("applications.empty.noSearchDescription")}
-            />
-          ) : viewMode === "table" ? (
-            <ApplicationsTable
-              jobs={filteredJobs}
-              onStatusChange={updateStatus}
-              onRemove={untrack}
-              isColumnVisible={columnVisibility.isVisible}
-            />
-          ) : (
-            <TrackingKanban
-              jobs={filteredJobs}
-              onStatusesChange={replaceStatuses}
-              onRemove={untrack}
-            />
-          )}
+        <div
+          id="applications-tour-board"
+          className="flex min-h-0 flex-1 flex-col"
+        >
+          <ApplicationsBoard
+            isEmpty={isEmpty}
+            noQueryHits={noQueryHits}
+            viewMode={viewMode}
+            jobs={[...filteredJobs]}
+            onStatusChange={updateStatus}
+            onStatusesChange={replaceStatuses}
+            onRemove={untrack}
+            isColumnVisible={columnVisibility.isVisible}
+          />
         </div>
       </div>
 
