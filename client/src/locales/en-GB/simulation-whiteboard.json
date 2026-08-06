@@ -142,7 +142,9 @@
     "backToSimulations": "Back to simulations",
     "wrongFormat": "This question is not a whiteboard exercise",
     "shareInvalid": "This share link is invalid or has expired.",
-    "openFailed": "Could not open the whiteboard. Check your connection and try again."
+    "openFailed": "Could not open the whiteboard. Check your connection and try again.",
+    "historyLinkFailed": "Practice history not linked",
+    "historyLinkFailedDescription": "You can still use the board. This session will not appear in practice history."
   },
   "emptyPrompt": "Use the board to sketch your answer. Tools are on the left; open Prompt or Templates from the right rail."
 }

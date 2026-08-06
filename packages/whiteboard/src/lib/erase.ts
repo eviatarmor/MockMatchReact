@@ -1,4 +1,10 @@
-import type { PathElement, WhiteboardDocument, WhiteboardElement } from "../types"
+import { connectorPolyline } from "../document"
+import type {
+  ConnectorElement,
+  PathElement,
+  WhiteboardDocument,
+  WhiteboardElement,
+} from "../types"
 import { dist, distToSegment, type Point } from "./geometry"
 
 /** Whole-stroke eraser: hit path if brush center is near any segment. */
@@ -16,6 +22,30 @@ export function pathHitsBrush(
       distToSegment(brush, el.points[i - 1]!, el.points[i]!) <=
       radius + el.strokeWidth / 2
     ) {
+      return true
+    }
+  }
+  return false
+}
+
+/**
+ * Eraser hit for connectors: brush near resolved polyline (straight or elbow),
+ * matching hitTest geometry rather than the A→B diagonal.
+ */
+export function connectorHitsBrush(
+  el: ConnectorElement,
+  doc: WhiteboardDocument,
+  brush: Point,
+  radius: number
+): boolean {
+  const pts = connectorPolyline(el, doc)
+  if (pts.length === 0) return false
+  const threshold = radius + el.strokeWidth / 2
+  if (pts.length === 1) {
+    return dist(brush, pts[0]!) <= threshold
+  }
+  for (let i = 1; i < pts.length; i++) {
+    if (distToSegment(brush, pts[i - 1]!, pts[i]!) <= threshold) {
       return true
     }
   }
@@ -68,7 +98,7 @@ export function erasePathPoints(
   return fragments
 }
 
-/** Apply whole-stroke eraser brush at point → document without hit paths. */
+/** Apply whole-stroke eraser brush at point → document without hit paths/connectors. */
 export function eraseWholeStrokesAt(
   doc: WhiteboardDocument,
   brush: Point,
@@ -81,6 +111,10 @@ export function eraseWholeStrokesAt(
       removedIds.push(id)
       continue
     }
+    if (el.type === "connector" && connectorHitsBrush(el, doc, brush, radius)) {
+      removedIds.push(id)
+      continue
+    }
     elements[id] = el
   }
   return { next: { version: 1, elements }, removedIds }
@@ -88,6 +122,7 @@ export function eraseWholeStrokesAt(
 
 /**
  * Precision erase at brush → replace paths with fragments (caller assigns new ids).
+ * Connectors have no point-fragment model: a hit removes the whole connector.
  */
 export function precisionEraseAt(
   doc: WhiteboardDocument,
@@ -97,6 +132,12 @@ export function precisionEraseAt(
 ): WhiteboardDocument {
   const elements: Record<string, WhiteboardElement> = {}
   for (const [id, el] of Object.entries(doc.elements)) {
+    if (el.type === "connector") {
+      if (!connectorHitsBrush(el, doc, brush, radius)) {
+        elements[id] = el
+      }
+      continue
+    }
     if (el.type !== "path") {
       elements[id] = el
       continue
