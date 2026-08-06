@@ -46,6 +46,25 @@ import { ElementView } from "./elements"
 const GRID_DOT_FALLBACK = 24
 const BOARD_SIZE = 3000
 
+/**
+ * Map a client (screen) point to board layout coords using the board plane’s
+ * visual rect and layout size. Pure helper — unit-tested; canvas remeasures
+ * getBoundingClientRect each call so pan/zoom after template apply stays aligned.
+ */
+export function mapClientToBoard(
+  clientX: number,
+  clientY: number,
+  rect: { left: number; top: number; width: number; height: number },
+  layoutW: number,
+  layoutH: number
+): { x: number; y: number } {
+  if (rect.width <= 0 || rect.height <= 0) return { x: 0, y: 0 }
+  return {
+    x: ((clientX - rect.left) * layoutW) / rect.width,
+    y: ((clientY - rect.top) * layoutH) / rect.height,
+  }
+}
+
 export type WhiteboardCanvasProps = {
   readonly document: WhiteboardDocument
   readonly tool: WhiteboardTool
@@ -209,22 +228,23 @@ export function WhiteboardCanvas({
    * Use visual rect vs layout size (offsetWidth/Height) — same approach as
    * resume collab surface. Do **not** divide by React `scale` alone: that
    * desyncs mid-zoom and breaks drag/resize hit testing when zoomed.
+   *
+   * Remeasure every call: a stale rect after setTransform/centerOnBoardPoint
+   * maps clicks to the wrong board region (feels like “only bottom-right works”
+   * once a template is panned into view).
    */
   const clientToBoard = useCallback((clientX: number, clientY: number) => {
     const surface = surfaceRef.current
     if (!surface) return { x: 0, y: 0 }
-    let rect = surfaceRectCacheRef.current
-    if (!rect) {
-      rect = surface.getBoundingClientRect()
-      surfaceRectCacheRef.current = rect
-    }
-    const layoutW = surface.offsetWidth || BOARD_SIZE
-    const layoutH = surface.offsetHeight || BOARD_SIZE
-    if (rect.width <= 0 || rect.height <= 0) return { x: 0, y: 0 }
-    return {
-      x: ((clientX - rect.left) * layoutW) / rect.width,
-      y: ((clientY - rect.top) * layoutH) / rect.height,
-    }
+    const rect = surface.getBoundingClientRect()
+    surfaceRectCacheRef.current = rect
+    return mapClientToBoard(
+      clientX,
+      clientY,
+      rect,
+      surface.offsetWidth || BOARD_SIZE,
+      surface.offsetHeight || BOARD_SIZE
+    )
   }, [])
   const clientToBoardRef = useRef(clientToBoard)
   clientToBoardRef.current = clientToBoard
@@ -429,23 +449,70 @@ export function WhiteboardCanvas({
     window.addEventListener("pointercancel", onWinUp)
   }
 
-  const onBoardPointerDown = (e: React.PointerEvent) => {
+  const onBoardPointerDown = (e: React.PointerEvent | PointerEvent) => {
     if (e.button !== 0) return
-    if (tool === "pan") return
-    if (!canEdit && tool !== "select" && tool !== "lasso") return
-    if (e.buttons === 4) return
+    if (toolRef.current === "pan") return
+    if (
+      !canEditRef.current &&
+      toolRef.current !== "select" &&
+      toolRef.current !== "lasso"
+    ) {
+      return
+    }
+    if ("buttons" in e && e.buttons === 4) return
 
-    const def = toolRegistry.get(tool)
+    const def = toolRegistry.get(toolRef.current)
     if (!def?.onPointerDown) return
 
-    const board = clientToBoard(e.clientX, e.clientY)
-    const pointer = pointerFromEvent(e, board)
+    const board = clientToBoardRef.current(e.clientX, e.clientY)
+    const pointer = pointerFromEvent(e as React.PointerEvent, board)
     const gesture = def.onPointerDown(pointer, host)
     if (gesture) {
       gestureRef.current = { toolId: def.id, data: gesture }
       captureBoard(e)
     }
   }
+
+  /**
+   * After centerOnBoardPoint (template apply), the board plane's top-left can
+   * sit *inside* the viewport. The transform wrapper still paints the full
+   * grid, but pointer handlers only lived on the 3000² surface — so the
+   * top/left grid looked live and did nothing (classic “only bottom-right
+   * hits”). Forward pointerdown from the wrapper when the event is outside
+   * the board plane.
+   */
+  useEffect(() => {
+    let raf = 0
+    let wrapper: HTMLDivElement | null = null
+
+    const onWrapperPointerDown = (e: PointerEvent) => {
+      if (e.button !== 0) return
+      if (toolRef.current === "pan") return
+      const surface = surfaceRef.current
+      if (!surface) return
+      const target = e.target
+      if (!(target instanceof Node)) return
+      // Element chrome / surface already handled this event.
+      if (surface.contains(target)) return
+      // Outside board plane (visible grid on the wrapper) → board tool.
+      onBoardPointerDown(e)
+    }
+
+    const attach = () => {
+      wrapper = ref.current?.instance?.wrapperComponent ?? null
+      if (!wrapper) {
+        raf = requestAnimationFrame(attach)
+        return
+      }
+      wrapper.addEventListener("pointerdown", onWrapperPointerDown)
+    }
+    attach()
+
+    return () => {
+      cancelAnimationFrame(raf)
+      wrapper?.removeEventListener("pointerdown", onWrapperPointerDown)
+    }
+  }, [ref, host, toolRegistry])
 
   const onBoardPointerMove = (e: React.PointerEvent) => {
     const session = gestureRef.current
@@ -681,6 +748,9 @@ export function WhiteboardCanvas({
       >
         <TransformComponent
           wrapperClass="!absolute !inset-0 !z-0 !h-full !w-full bg-neutral-100 dark:bg-neutral-950 [--dot:var(--color-neutral-300)] dark:[--dot:var(--color-neutral-600)]"
+          // Library default is display:flex; board plane is a fixed box — block avoids
+          // flex fit-content quirks with absolute children under pan/zoom.
+          contentClass="!block"
           wrapperStyle={{
             backgroundImage:
               "radial-gradient(circle, var(--dot) 1px, transparent 1px)",

@@ -354,29 +354,32 @@ export function SimulationWhiteboardPageContent() {
       setActiveTemplateId(template.id)
       setSelectedIds([])
       setPendingTemplate(null)
-      // Template content lives near board origin — pan camera there so it is not off-screen
+      // Template content lives near board origin — pan camera there so it is not off-screen.
+      // Double rAF: wait for surface layout + TransformWrapper to settle after setDocument.
       requestAnimationFrame(() => {
-        const els = Object.values(nextDoc.elements)
-        if (els.length === 0) {
-          viewport.resetView()
-          return
-        }
-        let minX = Infinity
-        let minY = Infinity
-        let maxX = -Infinity
-        let maxY = -Infinity
-        for (const el of els) {
-          if (el.type === "path" || el.type === "connector") continue
-          minX = Math.min(minX, el.x)
-          minY = Math.min(minY, el.y)
-          maxX = Math.max(maxX, el.x + el.w)
-          maxY = Math.max(maxY, el.y + el.h)
-        }
-        if (!Number.isFinite(minX)) {
-          viewport.resetView()
-          return
-        }
-        viewport.centerOnBoardPoint((minX + maxX) / 2, (minY + maxY) / 2)
+        requestAnimationFrame(() => {
+          const els = Object.values(nextDoc.elements)
+          if (els.length === 0) {
+            viewport.resetView()
+            return
+          }
+          let minX = Infinity
+          let minY = Infinity
+          let maxX = -Infinity
+          let maxY = -Infinity
+          for (const el of els) {
+            if (el.type === "path" || el.type === "connector") continue
+            minX = Math.min(minX, el.x)
+            minY = Math.min(minY, el.y)
+            maxX = Math.max(maxX, el.x + el.w)
+            maxY = Math.max(maxY, el.y + el.h)
+          }
+          if (!Number.isFinite(minX)) {
+            viewport.resetView()
+            return
+          }
+          viewport.centerOnBoardPoint((minX + maxX) / 2, (minY + maxY) / 2)
+        })
       })
     },
     [canEditBoard, dispatch, viewport]
