@@ -3,7 +3,7 @@ import { FileText, LayoutTemplate } from "lucide-react"
 import {
   buildPromptRailItems,
   resolvePromptRailLabels,
-} from "@/features/simulations/components/simulation-prompt-rail"
+} from "@/features/simulations/components/simulation-prompt-rail-utils"
 
 describe("resolvePromptRailLabels", () => {
   it("uses common.simulations.promptRail keys when overrides omitted", () => {
