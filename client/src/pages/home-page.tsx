@@ -6,8 +6,9 @@ import { NAV_SECTIONS } from "@/components/dashboard/constants"
 const DEFAULT_APP_PATH = NAV_SECTIONS[0]?.items[0]?.href ?? "/resume-lab"
 
 /**
- * `/` always redirects into the app. Unauthenticated users hit RequireAuth
+ * `/` redirects into the app. Unauthenticated users hit RequireAuth
  * on the dashboard route and land on `/login`.
+ * Public marketing lives in the monorepo `landpage/` workspace.
  */
 export function HomePage() {
   return <Navigate to={DEFAULT_APP_PATH} replace />

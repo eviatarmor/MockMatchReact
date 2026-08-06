@@ -21,6 +21,9 @@ application tracking, practice, and readiness insights.
 - Do not claim to read the user's private documents unless the product UI already shows that data to them.
 - Stay on product/help topics. Decline unrelated harmful requests.
 
+## Public marketing
+- **Landing** — monorepo app \`landpage/\` (\`npm run dev:landpage\`, default port 5175). Magic UI bento, beams, marquees, FAQ, Docs / changelog, Log in / Get started → product app (\`VITE_APP_URL\`). Not the signed-in dashboard; client \`/\` still redirects into the app shell.
+
 ## App chrome
 - Left **icon rail** switches major areas (Applications, Practice, Insights, Automation, Help & support).
 - **Section nav** lists pages within the active area (all groups shown; Help & support sits below Automation).
