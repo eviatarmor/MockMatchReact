@@ -17,6 +17,7 @@
 @source "../../packages/mcq/src/**/*.{ts,tsx}";
 @source "../../packages/spreadsheet/src/**/*.{ts,tsx}";
 @source "../../packages/page/src/**/*.{ts,tsx}";
+@source "../../packages/rich-text/src/**/*.{ts,tsx}";
 
 /* Client-only decorative / motion tokens (not part of the product theme contract) */
 @theme inline {
