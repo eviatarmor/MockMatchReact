@@ -67,29 +67,15 @@ export function QuestionBankPageContent() {
               onSearchChange={list.setSearch}
               searchClassName="max-w-full sm:max-w-xs"
               actions={
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant={list.customOnly ? "default" : "outline"}
-                    className="h-8 cursor-pointer gap-1.5 px-3"
-                    onClick={() => list.setCustomOnly(!list.customOnly)}
-                    aria-pressed={list.customOnly}
-                  >
-                    <span className="text-xs sm:text-sm">
-                      {t("questionBank.actions.myCustom", {
-                        defaultValue: "My custom",
-                      })}
-                    </span>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
-                  >
-                    <Bookmark className="size-4" />
-                    <span className="hidden sm:inline">
-                      {t("questionBank.actions.saved")}
-                    </span>
-                  </Button>
-                </div>
+                <Button
+                  variant="outline"
+                  className="h-8 w-8 sm:w-auto px-0 sm:px-3 gap-1.5 cursor-pointer"
+                >
+                  <Bookmark className="size-4" />
+                  <span className="hidden sm:inline">
+                    {t("questionBank.actions.saved")}
+                  </span>
+                </Button>
               }
             />
             <EntityListStates

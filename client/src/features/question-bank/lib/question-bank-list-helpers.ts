@@ -15,7 +15,6 @@ export type ListQuestionItem = {
   readonly status: QuestionStatus
   readonly format?: BankQuestion["format"]
   readonly trackHint?: string | null
-  readonly isCustom?: boolean
 }
 
 export type QuestionBankListFilters = {
@@ -23,7 +22,6 @@ export type QuestionBankListFilters = {
   readonly selectedDomains: ReadonlySet<QuestionDomain>
   readonly selectedDifficulties: ReadonlySet<QuestionDifficulty>
   readonly selectedStatuses: ReadonlySet<QuestionStatus>
-  readonly customOnly: boolean
 }
 
 export function toggleSet<T>(set: ReadonlySet<T>, value: T): Set<T> {
@@ -55,7 +53,6 @@ export function buildListQueryInput(filters: QuestionBankListFilters) {
     userStatuses: optionalFromSet(filters.selectedStatuses) as
       | QuestionStatus[]
       | undefined,
-    customOnly: filters.customOnly || undefined,
     page: 1 as const,
     pageSize: 100 as const,
   }
@@ -74,7 +71,6 @@ export function mapListItemsToBankQuestions(
     status: q.status,
     format: q.format,
     trackHint: q.trackHint,
-    isCustom: q.isCustom,
   }))
 }
 
@@ -94,6 +90,5 @@ export function computeHasFilters(filters: QuestionBankListFilters): boolean {
   if (filters.selectedDomains.size > 0) return true
   if (filters.selectedDifficulties.size > 0) return true
   if (filters.selectedStatuses.size > 0) return true
-  if (filters.customOnly) return true
   return Boolean(filters.search.trim())
 }

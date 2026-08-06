@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { Plus, Play } from "lucide-react"
 import { Button } from "@mockmatch/ui/button"
-import { Badge } from "@mockmatch/ui/badge"
 import { EntityTable, type EntityTableColumn } from "@/components/data/entity-table"
 import { DifficultyBadge } from "@/components/data/difficulty-badge"
 import { practicePathForBankQuestion } from "@/features/simulations/lib/practice-path"
@@ -43,19 +42,7 @@ export function QuestionBankTable({ questions }: QuestionBankTableProps) {
             className="group border-b border-border/40 transition-colors hover:bg-muted/5"
           >
             <td className="px-4 py-3 text-sm font-medium transition-colors group-hover:text-primary">
-              <div className="flex flex-wrap items-center gap-2">
-                <span>{q.title}</span>
-                {q.isCustom ? (
-                  <Badge
-                    variant="secondary"
-                    className="px-1.5 py-0 text-2xs font-normal"
-                  >
-                    {t("questionBank.customBadge", {
-                      defaultValue: "Custom",
-                    })}
-                  </Badge>
-                ) : null}
-              </div>
+              {q.title}
             </td>
             <td className="px-4 py-3 text-sm text-muted-foreground">
               {t(`questionBank.domains.${q.domain}`)}

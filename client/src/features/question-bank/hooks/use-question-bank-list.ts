@@ -17,7 +17,7 @@ import {
  * Shared list + filter state for Question Bank and Interview tracks browse.
  * Both surfaces read the same global `questions.list` bank.
  */
-export function useQuestionBankList(options?: { customOnly?: boolean }) {
+export function useQuestionBankList() {
   const [search, setSearch] = useState("")
   const [selectedDomains, setSelectedDomains] = useState<Set<QuestionDomain>>(
     new Set()
@@ -28,7 +28,6 @@ export function useQuestionBankList(options?: { customOnly?: boolean }) {
   const [selectedStatuses, setSelectedStatuses] = useState<Set<QuestionStatus>>(
     new Set()
   )
-  const [customOnly, setCustomOnly] = useState(Boolean(options?.customOnly))
 
   const filters = useMemo(
     () => ({
@@ -36,15 +35,8 @@ export function useQuestionBankList(options?: { customOnly?: boolean }) {
       selectedDomains,
       selectedDifficulties,
       selectedStatuses,
-      customOnly,
     }),
-    [
-      search,
-      selectedDomains,
-      selectedDifficulties,
-      selectedStatuses,
-      customOnly,
-    ]
+    [search, selectedDomains, selectedDifficulties, selectedStatuses]
   )
 
   const listQuery = trpc.questions.list.useQuery(buildListQueryInput(filters))
@@ -77,8 +69,6 @@ export function useQuestionBankList(options?: { customOnly?: boolean }) {
     selectedDomains,
     selectedDifficulties,
     selectedStatuses,
-    customOnly,
-    setCustomOnly,
     onDomainToggle: (d: QuestionDomain) =>
       setSelectedDomains((prev) => toggleSet(prev, d)),
     onDifficultyToggle: (d: QuestionDifficulty) =>

@@ -27,7 +27,6 @@ const DASHBOARD_ROUTES = [
   { path: "job-workflow", titleKey: "navItems.jobWorkflow" },
   { path: "simulations", titleKey: "navItems.simulations" },
   { path: "question-bank", titleKey: "navItems.questionBank" },
-  { path: "custom-questions", titleKey: "navItems.customQuestions" },
   { path: "readiness", titleKey: "navItems.readiness" },
   { path: "performance", titleKey: "navItems.performance" },
   { path: "autofill", titleKey: "navItems.autofill" },

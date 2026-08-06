@@ -14,7 +14,6 @@ const emptyFilters = {
   selectedDomains: new Set<BankQuestion["domain"]>(),
   selectedDifficulties: new Set<BankQuestion["difficulty"]>(),
   selectedStatuses: new Set<BankQuestion["status"]>(),
-  customOnly: false,
 }
 
 describe("toggleSet", () => {
@@ -32,27 +31,24 @@ describe("buildListQueryInput", () => {
       domains: undefined,
       difficulties: undefined,
       userStatuses: undefined,
-      customOnly: undefined,
       page: 1,
       pageSize: 100,
     })
   })
 
-  it("passes trimmed search, sets, and customOnly", () => {
+  it("passes trimmed search and sets", () => {
     expect(
       buildListQueryInput({
         search: "  graph  ",
         selectedDomains: new Set(["coding"]),
         selectedDifficulties: new Set(["hard"]),
         selectedStatuses: new Set(["new"]),
-        customOnly: true,
       })
     ).toEqual({
       search: "graph",
       domains: ["coding"],
       difficulties: ["hard"],
       userStatuses: ["new"],
-      customOnly: true,
       page: 1,
       pageSize: 100,
     })
@@ -64,7 +60,7 @@ describe("mapListItemsToBankQuestions", () => {
     expect(mapListItemsToBankQuestions(undefined)).toEqual([])
   })
 
-  it("maps list rows including isCustom", () => {
+  it("maps list rows", () => {
     const items: ListQuestionItem[] = [
       {
         id: "1",
@@ -75,7 +71,6 @@ describe("mapListItemsToBankQuestions", () => {
         status: "new",
         format: "code_run",
         trackHint: "algorithms",
-        isCustom: true,
       },
     ]
     expect(mapListItemsToBankQuestions(items)).toEqual([
@@ -88,7 +83,6 @@ describe("mapListItemsToBankQuestions", () => {
         status: "new",
         format: "code_run",
         trackHint: "algorithms",
-        isCustom: true,
       },
     ])
   })
@@ -134,7 +128,7 @@ describe("computeHasFilters", () => {
     expect(computeHasFilters(emptyFilters)).toBe(false)
   })
 
-  it("is true for search, sets, or customOnly", () => {
+  it("is true for search or sets", () => {
     expect(computeHasFilters({ ...emptyFilters, search: "x" })).toBe(true)
     expect(
       computeHasFilters({
@@ -142,6 +136,5 @@ describe("computeHasFilters", () => {
         selectedDomains: new Set(["coding"]),
       })
     ).toBe(true)
-    expect(computeHasFilters({ ...emptyFilters, customOnly: true })).toBe(true)
   })
 })
