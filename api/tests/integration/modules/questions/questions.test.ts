@@ -1,9 +1,43 @@
 import { expect, it } from "vitest"
+import { db } from "@/db/client.js"
+import { questions } from "@/db/schema/questions.js"
 import {
   createCaller,
   describeIntegration,
   signupAuthedCaller,
 } from "../../../helpers/integration.js"
+
+/** Insert a residual self-scoped row (authoring APIs removed). */
+async function insertSelfQuestion(opts: {
+  ownerUserId: string
+  title: string
+  domain?: "coding" | "behavioral"
+  format?: "mcq" | "conversation"
+  status?: "draft" | "published"
+  body?: string
+  payload?: Record<string, unknown>
+  contentHash: string
+}) {
+  const [row] = await db
+    .insert(questions)
+    .values({
+      title: opts.title,
+      body: opts.body ?? opts.title,
+      domain: opts.domain ?? "coding",
+      difficulty: "easy",
+      format: opts.format ?? "mcq",
+      payload: opts.payload ?? {},
+      source: "manual",
+      ownerUserId: opts.ownerUserId,
+      visibility: "self",
+      contentHash: opts.contentHash,
+      searchDocument: opts.title,
+      status: opts.status ?? "published",
+    })
+    .returning()
+  if (!row) throw new Error("insertSelfQuestion failed")
+  return row
+}
 
 describeIntegration("questions (integration)", () => {
   it("list returns paginated shape (may be empty)", async () => {
@@ -30,15 +64,17 @@ describeIntegration("questions (integration)", () => {
     })
   })
 
-  it("createCustom + deploy self appears in bank; team/global rejected", async () => {
-    const caller = await signupAuthedCaller("custom-q")
-    const other = await signupAuthedCaller("other-q")
+  it("residual self published rows appear for owner only (customOnly)", async () => {
+    const owner = await signupAuthedCaller("self-owner")
+    const other = await signupAuthedCaller("self-other")
+    const ownerUser = await owner.auth.me()
+    const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
-    const created = await caller.questions.createCustom({
-      title: `Custom MCQ ${Date.now()}`,
-      domain: "coding",
-      difficulty: "easy",
+    const row = await insertSelfQuestion({
+      ownerUserId: ownerUser.id,
+      title: `Residual self MCQ ${stamp}`,
       format: "mcq",
+      status: "published",
       body: "Pick the even number.",
       payload: {
         stem: "Pick the even number.",
@@ -46,85 +82,55 @@ describeIntegration("questions (integration)", () => {
         correctIndex: 1,
         variant: "single",
       },
+      contentHash: `self-mcq-${stamp}`,
     })
-    expect(created.publishStatus).toBe("draft")
-    expect(created.visibility).toBe("self")
-    expect(created.isCustom).toBe(true)
 
-    // Draft not in shared bank list
-    const before = await caller.questions.list({
+    const bank = await owner.questions.list({
       customOnly: true,
       page: 1,
       pageSize: 50,
     })
-    expect(before.items.some((i) => i.id === created.id)).toBe(false)
+    expect(bank.items.some((i) => i.id === row.id && i.isCustom)).toBe(true)
 
-    // Non-self deploy rejected
-    await expect(
-      caller.questions.deploy({ id: created.id, scope: "team" })
-    ).rejects.toMatchObject({ code: "FORBIDDEN" })
-    await expect(
-      caller.questions.deploy({ id: created.id, scope: "global" })
-    ).rejects.toMatchObject({ code: "FORBIDDEN" })
-
-    const deployed = await caller.questions.deploy({
-      id: created.id,
-      scope: "self",
-    })
-    expect(deployed.publishStatus).toBe("published")
-    expect(deployed.visibility).toBe("self")
-
-    const bank = await caller.questions.list({
-      customOnly: true,
-      page: 1,
-      pageSize: 50,
-    })
-    expect(bank.items.some((i) => i.id === created.id && i.isCustom)).toBe(true)
-
-    // Other user cannot see or open
     const otherBank = await other.questions.list({
       customOnly: true,
       page: 1,
       pageSize: 50,
     })
-    expect(otherBank.items.some((i) => i.id === created.id)).toBe(false)
-    await expect(other.questions.forMcq({ id: created.id })).rejects.toMatchObject({
+    expect(otherBank.items.some((i) => i.id === row.id)).toBe(false)
+    await expect(other.questions.forMcq({ id: row.id })).rejects.toMatchObject({
       code: "NOT_FOUND",
     })
 
-    // Owner can practice
-    const mcq = await caller.questions.forMcq({ id: created.id })
+    const mcq = await owner.questions.forMcq({ id: row.id })
     expect(mcq.options).toEqual(["1", "2", "3"])
   })
 
-  it("simulationTypes lists all formats", async () => {
-    const caller = await signupAuthedCaller("types")
-    const types = await caller.questions.simulationTypes()
-    expect(types.length).toBeGreaterThanOrEqual(8)
-    expect(types.every((t) => t.createSupported)).toBe(true)
-  })
-
   /**
-   * SEC-001: voice.createSession must ACL conversation customs via assertQuestionReadable.
+   * SEC-001: voice.createSession must ACL conversation self-rows via assertQuestionReadable.
    * Isolation runs before worker config so tests need no voice worker.
    */
   it("voice createSession: owner OK path / other denied / draft blocked (SEC-001)", async () => {
     const owner = await signupAuthedCaller("voice-owner")
     const other = await signupAuthedCaller("voice-other")
+    const ownerUser = await owner.auth.me()
+    const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
-    const draft = await owner.questions.createCustom({
-      title: `Voice custom draft ${Date.now()}`,
+    const draft = await insertSelfQuestion({
+      ownerUserId: ownerUser.id,
+      title: `Voice custom draft ${stamp}`,
       domain: "behavioral",
-      difficulty: "medium",
       format: "conversation",
+      status: "draft",
       body: "SECRET_DRAFT_PROMPT_do_not_leak",
       payload: {
         interviewerPrompt: "SECRET_DRAFT_PROMPT_do_not_leak",
         trackHint: "behavioral-core",
       },
+      contentHash: `voice-draft-${stamp}`,
     })
 
-    // Draft blocked for owner (must deploy first)
+    // Draft blocked for owner (must be published)
     await expect(
       owner.voice.createSession({
         trackId: "behavioral-core",
@@ -140,97 +146,38 @@ describeIntegration("questions (integration)", () => {
       })
     ).rejects.toMatchObject({ code: "NOT_FOUND" })
 
-    const deployed = await owner.questions.deploy({
-      id: draft.id,
-      scope: "self",
+    const published = await insertSelfQuestion({
+      ownerUserId: ownerUser.id,
+      title: `Voice custom published ${stamp}`,
+      domain: "behavioral",
+      format: "conversation",
+      status: "published",
+      body: "Tell me about a conflict.",
+      payload: {
+        interviewerPrompt: "Tell me about a conflict.",
+        trackHint: "behavioral-core",
+      },
+      contentHash: `voice-pub-${stamp}`,
     })
-    expect(deployed.publishStatus).toBe("published")
 
-    // Other user still denied after self-deploy
+    // Other user still denied after self-published
     await expect(
       other.voice.createSession({
         trackId: "behavioral-core",
-        questionId: deployed.id,
+        questionId: published.id,
       })
     ).rejects.toMatchObject({ code: "NOT_FOUND" })
 
     // Owner reaches ACL OK — may still get not_configured without a worker
     const ownerResult = await owner.voice.createSession({
       trackId: "behavioral-core",
-      questionId: deployed.id,
+      questionId: published.id,
     })
     if (ownerResult.ok === false) {
       expect(ownerResult.code).toBe("not_configured")
     } else {
       expect(ownerResult.ok).toBe(true)
       expect(ownerResult.session.id).toBeTruthy()
-    }
-  })
-
-  /** SEC-003: non-owner deploy must not leak as FORBIDDEN. */
-  it("deploy of another user's custom returns NOT_FOUND (SEC-003)", async () => {
-    const owner = await signupAuthedCaller("dep-owner")
-    const other = await signupAuthedCaller("dep-other")
-    const created = await owner.questions.createCustom({
-      title: `Owned only ${Date.now()}`,
-      domain: "coding",
-      difficulty: "easy",
-      format: "mcq",
-      body: "private stem",
-      payload: {
-        options: ["a", "b"],
-        correctIndex: 0,
-      },
-    })
-    await expect(
-      other.questions.deploy({ id: created.id, scope: "self" })
-    ).rejects.toMatchObject({ code: "NOT_FOUND" })
-  })
-
-  it("createCustom supports whiteboard / spreadsheet / page / conversation", async () => {
-    const caller = await signupAuthedCaller("formats")
-    const formats = [
-      {
-        format: "whiteboard" as const,
-        body: "Draw a service diagram.",
-        payload: { prompt: "Draw a service diagram." },
-      },
-      {
-        format: "spreadsheet" as const,
-        body: "Build a 3-year model.",
-        payload: { prompt: "Build a 3-year model." },
-      },
-      {
-        format: "page" as const,
-        body: "Write a product memo.",
-        payload: { prompt: "Write a product memo.", starterHtml: "<h1>Outline</h1>" },
-      },
-      {
-        format: "conversation" as const,
-        body: "Tell me about a conflict.",
-        payload: { interviewerPrompt: "Tell me about a conflict.", trackHint: "behavioral-core" },
-      },
-      {
-        format: "code_run" as const,
-        body: "Implement sum.",
-        language: "javascript",
-        payload: { prompt: "Implement sum.", starterCode: "function sum(a,b){}" },
-      },
-    ]
-
-    for (const f of formats) {
-      const row = await caller.questions.createCustom({
-        title: `Custom ${f.format} ${Date.now()}`,
-        domain: "coding",
-        difficulty: "medium",
-        format: f.format,
-        body: f.body,
-        language: "language" in f ? f.language : undefined,
-        payload: f.payload,
-      })
-      const dep = await caller.questions.deploy({ id: row.id, scope: "self" })
-      expect(dep.publishStatus).toBe("published")
-      expect(dep.format).toBe(f.format)
     }
   })
 })

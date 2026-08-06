@@ -17,7 +17,6 @@ describe("ASK_PRODUCT_GUIDE", () => {
       "/applications",
       "/simulations",
       "/question-bank",
-      "/custom-questions",
       "/readiness",
       "/performance",
       "/autofill",
@@ -32,5 +31,13 @@ describe("ASK_PRODUCT_GUIDE", () => {
   it("includes how-to guidance and honesty constraints", () => {
     expect(ASK_PRODUCT_GUIDE).toMatch(/How-tos/i)
     expect(ASK_PRODUCT_GUIDE).toMatch(/do not invent/i)
+  })
+
+  it("does not document Custom questions authoring", () => {
+    expect(ASK_PRODUCT_GUIDE).not.toContain("/custom-questions")
+    expect(ASK_PRODUCT_GUIDE).not.toMatch(/questions\.createCustom/)
+    expect(ASK_PRODUCT_GUIDE).not.toMatch(/questions\.deploy/)
+    expect(ASK_PRODUCT_GUIDE).not.toMatch(/questions\.listMine/)
+    expect(ASK_PRODUCT_GUIDE).not.toMatch(/questions\.simulationTypes/)
   })
 })

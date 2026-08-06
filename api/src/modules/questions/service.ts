@@ -34,7 +34,7 @@ export type ListQuestionsInput = {
   difficulties?: QuestionDifficulty[]
   formats?: QuestionFormat[]
   userStatuses?: QuestionUserStatus[]
-  /** Only the caller's self-deployed custom questions. */
+  /** Only the caller's residual self-owned published questions. */
   customOnly?: boolean
   page?: number
   pageSize?: number
@@ -843,7 +843,7 @@ export async function getQuestionForPractice(
     })
   }
   assertQuestionReadable(row, userId)
-  // IDE practice requires published (global or self-deployed)
+  // IDE practice requires published (global or residual self-owned)
   if (row.status !== "published") {
     throw new TRPCError({
       code: "NOT_FOUND",

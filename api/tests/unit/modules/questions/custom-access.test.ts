@@ -36,7 +36,7 @@ describe("assertQuestionReadable", () => {
         { status: "draft", visibility: "self", ownerUserId: owner },
         owner
       )
-    ).toThrow(/Deploy/)
+    ).toThrow(/Deploy this custom question/)
     expect(() =>
       assertQuestionReadable(
         { status: "draft", visibility: "self", ownerUserId: owner },
