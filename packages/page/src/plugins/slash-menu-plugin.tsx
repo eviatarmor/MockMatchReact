@@ -24,6 +24,7 @@ import {
 } from "@lexical/rich-text"
 import { $createCodeNode } from "@lexical/code"
 import { INSERT_HORIZONTAL_RULE_COMMAND } from "@lexical/react/LexicalHorizontalRuleNode"
+import { Button } from "@mockmatch/ui/button"
 import { cn } from "@mockmatch/ui/utils"
 import type { PageEditorLabels, SlashItem, SlashItemId } from "../types"
 
@@ -243,27 +244,29 @@ export function SlashMenuPlugin({
     <div
       role="listbox"
       aria-label={labels.slashMenuAria}
-      className="fixed z-50 max-h-64 w-56 overflow-y-auto rounded-lg border border-border bg-popover p-1 shadow-lg"
+      className="fixed z-50 max-h-64 w-56 overflow-y-auto rounded-xl border border-border bg-popover p-1 shadow-lg ring-1 ring-foreground/5"
       style={{ top: pos.top, left: pos.left }}
     >
       {filtered.map((item, i) => (
-        <button
+        <Button
           key={item.id}
           type="button"
+          variant="ghost"
           role="option"
           aria-selected={i === index}
+          size="sm"
           className={cn(
-            "flex w-full cursor-pointer items-center rounded-md px-2 py-1.5 text-left text-sm",
+            "h-auto w-full cursor-pointer justify-start rounded-md px-2 py-1.5 text-left text-sm font-normal",
             i === index
-              ? "bg-primary/10 text-foreground"
-              : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+              ? "bg-accent text-accent-foreground"
+              : "text-muted-foreground"
           )}
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => pick(item.id)}
           onMouseEnter={() => setIndex(i)}
         >
           {item.label}
-        </button>
+        </Button>
       ))}
     </div>
   )
