@@ -33,6 +33,7 @@ import {
   shapeKindFromHotkey,
   toolFromHotkey,
   useWhiteboardViewport,
+  isViewSafeWhiteboardTool,
   type DrawStrokeStyle,
   type ShapeKind,
   type StencilDef,
@@ -213,10 +214,23 @@ export function SimulationWhiteboardPageContent() {
     collabAccess.data?.role !== "view" &&
     (!collabSession.live || collabSession.permissions.canEditContent)
 
+  /** Owner/solo default true until access resolves; guests get false once known. */
+  const canExportBoard =
+    collabAccess.data?.permissions.canExport ?? !shareToken
+  /** Share chrome: owners only (dialog still gates paid create-link). Guests never see it. */
+  const canShareBoard =
+    Boolean(boardSession.boardId) && collabAccess.data?.role === "owner"
+
   const collabSurface = useCollabSurface(
     collabSession.sendCursor,
     collabSession.clearCursor
   )
+
+  // View guests: snap off edit tools so rail chrome matches canEdit=false.
+  useEffect(() => {
+    if (canEditBoard) return
+    if (!isViewSafeWhiteboardTool(tool)) setTool("select")
+  }, [canEditBoard, tool])
 
   // Bind pointer tracking on the pan/zoom wrapper (same pattern as resume canvas).
   useEffect(() => {
@@ -363,18 +377,21 @@ export function SimulationWhiteboardPageContent() {
     const onKey = (e: KeyboardEvent) => {
       if (isTypingInField(e.target)) return
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "z") {
+        if (!canEditBoard) return
         e.preventDefault()
         if (e.shiftKey) redo()
         else undo()
         return
       }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "y") {
+        if (!canEditBoard) return
         e.preventDefault()
         redo()
         return
       }
       // Copy / cut / paste: WhiteboardCanvas (capture phase)
       if (e.key === "Delete" || e.key === "Backspace") {
+        if (!canEditBoard) return
         const ids = selectedIdsRef.current
         if (ids.length === 0) return
         e.preventDefault()
@@ -391,7 +408,7 @@ export function SimulationWhiteboardPageContent() {
           return
         }
         // Shape shortcuts when shape tool active (R/O/L)
-        if (tool === "shape") {
+        if (canEditBoard && tool === "shape") {
           const sk = shapeKindFromHotkey(e.key)
           if (sk) {
             e.preventDefault()
@@ -401,6 +418,7 @@ export function SimulationWhiteboardPageContent() {
         }
         const nextTool = toolFromHotkey(e.key, { shiftKey: e.shiftKey })
         if (nextTool) {
+          if (!canEditBoard && !isViewSafeWhiteboardTool(nextTool)) return
           e.preventDefault()
           setTool(nextTool)
         }
@@ -408,7 +426,7 @@ export function SimulationWhiteboardPageContent() {
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [dispatch, redo, tool, undo])
+  }, [canEditBoard, dispatch, redo, tool, undo])
 
   const toolLabels = useMemo(
     () => ({
@@ -487,6 +505,7 @@ export function SimulationWhiteboardPageContent() {
   )
 
   const onExport = useCallback(async () => {
+    if (!canExportBoard) return
     const blob = await exportBoardPng(doc)
     if (!blob) return
     const url = URL.createObjectURL(blob)
@@ -495,7 +514,7 @@ export function SimulationWhiteboardPageContent() {
     a.download = `whiteboard-${seedId ?? "board"}.png`
     a.click()
     URL.revokeObjectURL(url)
-  }, [doc, seedId])
+  }, [canExportBoard, doc, seedId])
 
   const startWbSession = trpc.practiceSessions.startWhiteboard.useMutation()
   const completeMut = trpc.practiceSessions.complete.useMutation()
@@ -706,13 +725,15 @@ export function SimulationWhiteboardPageContent() {
                   />
                   <TooltipProvider delay={200}>
                     <div className="flex shrink-0 items-center gap-1.5">
-                      <IconBtn
-                        label={t("exportPng")}
-                        onClick={() => void onExport()}
-                      >
-                        <Download className="size-4" />
-                      </IconBtn>
-                      {boardSession.boardId ? (
+                      {canExportBoard ? (
+                        <IconBtn
+                          label={t("exportPng")}
+                          onClick={() => void onExport()}
+                        >
+                          <Download className="size-4" />
+                        </IconBtn>
+                      ) : null}
+                      {canShareBoard ? (
                         <IconBtn
                           label={t("share")}
                           onClick={() => setShareOpen(true)}
@@ -738,6 +759,7 @@ export function SimulationWhiteboardPageContent() {
             <WhiteboardToolRail
               tool={tool}
               onToolChange={setTool}
+              canEdit={canEditBoard}
               labels={toolLabels}
               drawStyleLabels={drawStyleLabels}
               shapeKind={shapeKind}
@@ -750,6 +772,7 @@ export function SimulationWhiteboardPageContent() {
               onSmartStyleChange={setSmartStyle}
               stickyColor={stickyColor}
               onStickyColorChange={(color) => {
+                if (!canEditBoard) return
                 setStickyColor(color)
                 // Recolor selected stickies in one history step
                 const stickyIds = selectedIds.filter(
@@ -770,6 +793,7 @@ export function SimulationWhiteboardPageContent() {
               }}
               shapeColor={shapeColor}
               onShapeColorChange={(color) => {
+                if (!canEditBoard) return
                 setShapeColor(color)
                 // Recolor selected shapes (stroke) in one history step
                 const shapeIds = selectedIds.filter(
@@ -793,8 +817,8 @@ export function SimulationWhiteboardPageContent() {
           bottomBar={
             <WhiteboardBottomBar
               viewport={viewport}
-              canUndo={canUndo}
-              canRedo={canRedo}
+              canUndo={canEditBoard && canUndo}
+              canRedo={canEditBoard && canRedo}
               onUndo={undo}
               onRedo={redo}
               labels={bottomLabels}

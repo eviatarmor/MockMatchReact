@@ -14,7 +14,10 @@ import {
 } from "./plugin-system"
 import type { WhiteboardToolRailLabels } from "./tool-rail-labels"
 import { createDefaultPlugins, RailButton, SecondaryShell } from "./plugins"
-import { isDrawTool } from "./types"
+import { isDrawTool, isViewSafeWhiteboardTool } from "./types"
+
+/** Primary rail button ids that stay usable in view-only sessions. */
+const VIEW_SAFE_PRIMARY_IDS = new Set(["select", "pan"])
 
 export type { WhiteboardToolRailLabels } from "./tool-rail-labels"
 
@@ -35,7 +38,14 @@ export type WhiteboardToolRailProps = {
   readonly onStickyColorChange: (color: string) => void
   readonly shapeColor: string
   readonly onShapeColorChange: (color: string) => void
+  /** Disables the entire rail (including select/pan). Prefer `canEdit` for view guests. */
   readonly disabled?: boolean
+  /**
+   * When false, edit tools (draw, sticky, text, shape, connector, …) are disabled
+   * and secondary panels are hidden. Select/pan stay available for navigation.
+   * Default true.
+   */
+  readonly canEdit?: boolean
   readonly className?: string
   /**
    * Unified plugins (same list as canvas). Rail uses plugins with `rail`.
@@ -83,6 +93,7 @@ export function WhiteboardToolRail({
   shapeColor,
   onShapeColorChange,
   disabled,
+  canEdit = true,
   className,
   plugins: pluginsProp,
   toolPlugins,
@@ -92,7 +103,11 @@ export function WhiteboardToolRail({
   const plugins = pluginsProp ?? toolPlugins ?? defaultRef.current
   const sorted = useMemo(() => sortRailPlugins(plugins), [plugins])
 
+  const editLocked = !canEdit
+  const railDisabled = Boolean(disabled)
+
   const initialSecondary = (): string | null => {
+    if (editLocked || railDisabled) return null
     if (isDrawTool(tool)) return "draw"
     if (tool === "shape") return "shape"
     if (tool === "sticky") return "sticky"
@@ -100,11 +115,16 @@ export function WhiteboardToolRail({
   }
   const [secondary, setSecondary] = useState<string | null>(initialSecondary)
 
+  const setToolGuarded = (next: WhiteboardTool) => {
+    if (editLocked && !isViewSafeWhiteboardTool(next)) return
+    onToolChange(next)
+  }
+
   const api: ToolRailApi = {
     tool,
-    setTool: onToolChange,
-    secondary,
-    setSecondary,
+    setTool: setToolGuarded,
+    secondary: editLocked || railDisabled ? null : secondary,
+    setSecondary: editLocked || railDisabled ? () => {} : setSecondary,
     labels,
     drawStyleLabels,
     shapeKind,
@@ -119,10 +139,11 @@ export function WhiteboardToolRail({
     setStickyColor: onStickyColorChange,
     shapeColor,
     setShapeColor: onShapeColorChange,
-    disabled,
+    disabled: railDisabled || editLocked,
   }
 
-  const openSecondary = pickOpenSecondary(sorted, api)
+  const openSecondary =
+    editLocked || railDisabled ? null : pickOpenSecondary(sorted, api)
 
   return (
     <TooltipProvider delay={300}>
@@ -136,14 +157,20 @@ export function WhiteboardToolRail({
             const primary = plugin.rail?.primary
             if (!primary) return null
             const Icon = primary.icon
+            const viewSafe = VIEW_SAFE_PRIMARY_IDS.has(primary.id)
+            const btnDisabled =
+              railDisabled || (editLocked && !viewSafe)
             return (
               <RailButton
                 key={plugin.id}
                 active={primary.isActive(api)}
-                disabled={disabled}
+                disabled={btnDisabled}
                 label={primary.resolveLabel(labels)}
                 hotkey={primary.hotkey}
-                onClick={() => primary.onClick(api)}
+                onClick={() => {
+                  if (btnDisabled) return
+                  primary.onClick(api)
+                }}
               >
                 <Icon className="size-4" />
               </RailButton>
