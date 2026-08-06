@@ -86,8 +86,16 @@ export function setCollabStyle(
   }, Y_ORIGIN_LOCAL)
 }
 
-/** Merge a full document JSON into the Y tree (structure-preserving). */
-export function setCollabDocument(ydoc: Y.Doc, document: unknown): void {
+/**
+ * Merge a full document JSON into the Y tree (structure-preserving).
+ * Default origin is {@link Y_ORIGIN_LOCAL} so {@link createCollabDocumentUndoManager}
+ * can track host edits; pass {@link Y_ORIGIN_REMOTE} for untracked system writes.
+ */
+export function setCollabDocument(
+  ydoc: Y.Doc,
+  document: unknown,
+  origin: unknown = Y_ORIGIN_LOCAL
+): void {
   ydoc.transact(() => {
     const root = getCollabRoot(ydoc)
     const existing = root.get("document")
@@ -96,7 +104,22 @@ export function setCollabDocument(ydoc: Y.Doc, document: unknown): void {
     } else {
       root.set("document", jsonToY(document))
     }
-  }, Y_ORIGIN_LOCAL)
+  }, origin)
+}
+
+/**
+ * Undo/redo for the collab root map (local origin only).
+ * Remote {@link applyRemoteYUpdate} uses {@link Y_ORIGIN_REMOTE} and is not tracked —
+ * so peer merges do not wipe or pollute the local undo stack.
+ */
+export function createCollabDocumentUndoManager(
+  ydoc: Y.Doc,
+  opts?: { captureTimeout?: number }
+): Y.UndoManager {
+  return new Y.UndoManager([getCollabRoot(ydoc)], {
+    trackedOrigins: new Set([Y_ORIGIN_LOCAL]),
+    captureTimeout: opts?.captureTimeout ?? 300,
+  })
 }
 
 /** Apply a full snapshot (history restore / AI) into the Y.Doc. */

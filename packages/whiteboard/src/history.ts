@@ -6,7 +6,11 @@ const DEFAULT_LIMIT = 100
 
 /**
  * Solo undo/redo stack (snapshots via `@mockmatch/history`).
- * For live Yjs rooms, host should use Y.UndoManager instead.
+ *
+ * Live Yjs rooms must **not** use this stack for undo/redo:
+ * remote materialize used to call {@link WhiteboardHistory.replace} and wipe
+ * past/future. Host should use `@mockmatch/collab` `createCollabDocumentUndoManager`
+ * (tracked local origin) while live and keep this stack for solo only.
  */
 export function createHistory(
   initial: WhiteboardDocument,

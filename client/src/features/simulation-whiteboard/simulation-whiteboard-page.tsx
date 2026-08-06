@@ -23,6 +23,7 @@ import {
   WhiteboardCanvas,
   WhiteboardShell,
   WhiteboardToolRail,
+  applyCommand,
   applyTemplateDocument,
   createEmptyBoard,
   createHistory,
@@ -36,6 +37,7 @@ import {
   type DrawStrokeStyle,
   type ShapeKind,
   type StencilDef,
+  type WhiteboardCommand,
   type WhiteboardDocument,
   type WhiteboardTemplate,
   type WhiteboardTemplateId,
@@ -161,6 +163,8 @@ export function SimulationWhiteboardPageContent() {
 
   const historyRef = useRef(createHistory(createEmptyBoard()))
   const [doc, setDoc] = useState<WhiteboardDocument>(() => createEmptyBoard())
+  const docRef = useRef(doc)
+  docRef.current = doc
   const [tool, setTool] = useState<WhiteboardTool>("select")
   const [shapeKind, setShapeKind] = useState<ShapeKind>("rect")
   const [stickyColor, setStickyColor] = useState("#fef08a")
@@ -194,8 +198,10 @@ export function SimulationWhiteboardPageContent() {
     { enabled: Boolean(accessDocId), retry: false }
   )
 
+  // Peer materialize: update React only. Never history.replace — that wiped
+  // local undo after remote edits. Live undo is Y.UndoManager on the collab Y.Doc.
   const onRemoteDocument = useCallback((remote: WhiteboardDocument) => {
-    historyRef.current.replace(remote)
+    historyRef.current.setPresent(remote)
     setDoc(remote)
     setSelectedIds([])
     seededRef.current = true
@@ -245,18 +251,55 @@ export function SimulationWhiteboardPageContent() {
     setDoc(boardSession.seedDoc)
   }, [boardSession.ready, boardSession.seedDoc])
 
+  // When leaving a live room, re-seed solo snapshot stack from present.
+  const wasLiveRef = useRef(false)
+  useEffect(() => {
+    if (collabSession.live) {
+      wasLiveRef.current = true
+      // Live undo flags come from Y.UndoManager
+      setCanUndo(collabSession.liveCanUndo)
+      setCanRedo(collabSession.liveCanRedo)
+      return
+    }
+    if (wasLiveRef.current) {
+      wasLiveRef.current = false
+      historyRef.current.replace(docRef.current)
+      setCanUndo(false)
+      setCanRedo(false)
+    }
+  }, [
+    collabSession.live,
+    collabSession.liveCanUndo,
+    collabSession.liveCanRedo,
+  ])
+
   const syncHistoryFlags = useCallback(() => {
+    if (collabSession.live) {
+      setCanUndo(collabSession.liveCanUndo)
+      setCanRedo(collabSession.liveCanRedo)
+      return
+    }
     setCanUndo(historyRef.current.canUndo)
     setCanRedo(historyRef.current.canRedo)
-  }, [])
+  }, [collabSession.live, collabSession.liveCanUndo, collabSession.liveCanRedo])
 
   const dispatch = useCallback(
-    (command: Parameters<typeof historyRef.current.dispatch>[0]) => {
+    (command: WhiteboardCommand) => {
+      if (collabSession.live) {
+        // Bypass snapshot stack — Y.UndoManager tracks setCollabDocument mirror.
+        const next = applyCommand(docRef.current, command)
+        if (next === docRef.current) return
+        docRef.current = next
+        historyRef.current.setPresent(next)
+        setDoc(next)
+        // Flags update after outbound mirror + UndoManager stack events.
+        return
+      }
       const next = historyRef.current.dispatch(command)
+      docRef.current = next
       setDoc(next)
       syncHistoryFlags()
-      // Solo autosave; collab persists via Yjs flush when live.
-      if (!collabSession.live) boardSession.scheduleSave(next)
+      boardSession.scheduleSave(next)
     },
     [boardSession, syncHistoryFlags, collabSession.live]
   )
@@ -330,19 +373,37 @@ export function SimulationWhiteboardPageContent() {
   )
 
   const undo = useCallback(() => {
+    if (collabSession.live) {
+      const next = collabSession.undoLive()
+      if (!next) return
+      docRef.current = next
+      historyRef.current.setPresent(next)
+      setDoc(next)
+      // canUndo/canRedo sync via liveCanUndo effect after UndoManager stack events
+      return
+    }
     const next = historyRef.current.undo()
+    docRef.current = next
     setDoc(next)
     syncHistoryFlags()
-    // Solo autosave only — collab persists via Yjs flush when live.
-    if (!collabSession.live) boardSession.scheduleSave(next)
-  }, [boardSession, collabSession.live, syncHistoryFlags])
+    boardSession.scheduleSave(next)
+  }, [boardSession, collabSession.live, collabSession.undoLive, syncHistoryFlags])
 
   const redo = useCallback(() => {
+    if (collabSession.live) {
+      const next = collabSession.redoLive()
+      if (!next) return
+      docRef.current = next
+      historyRef.current.setPresent(next)
+      setDoc(next)
+      return
+    }
     const next = historyRef.current.redo()
+    docRef.current = next
     setDoc(next)
     syncHistoryFlags()
-    if (!collabSession.live) boardSession.scheduleSave(next)
-  }, [boardSession, collabSession.live, syncHistoryFlags])
+    boardSession.scheduleSave(next)
+  }, [boardSession, collabSession.live, collabSession.redoLive, syncHistoryFlags])
 
   useEffect(() => {
     const isTypingInField = (target: EventTarget | null) => {
