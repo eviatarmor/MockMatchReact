@@ -8,6 +8,8 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core"
+import { sql } from "drizzle-orm"
+import { users } from "./users.js"
 import { vector1536 } from "./vector.js"
 
 /**
@@ -67,6 +69,16 @@ export const questionPublishStatusEnum = pgEnum("question_publish_status", [
   "draft",
   "published",
   "archived",
+])
+
+/**
+ * Who can see a bank row.
+ * - global: shared pool (owner_user_id must be null)
+ * - self: private to owner_user_id (team/org publish is not supported)
+ */
+export const questionVisibilityEnum = pgEnum("question_visibility", [
+  "global",
+  "self",
 ])
 
 export type ConversationQuestionPayload = {
@@ -194,6 +206,20 @@ export const questions = pgTable(
     /** Optional fingerprint of JD slice that produced this (analytics). */
     sourceFingerprint: text("source_fingerprint"),
     /**
+     * Owning user for custom / self-scoped rows.
+     * Null for the shared global bank (seed + job-generated).
+     */
+    ownerUserId: uuid("owner_user_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
+    /**
+     * global = shared bank; self = private to ownerUserId.
+     * Team/org visibility is intentionally not modeled.
+     */
+    visibility: questionVisibilityEnum("visibility")
+      .notNull()
+      .default("global"),
+    /**
      * S3 key prefix for multi-file / large assets, e.g. `questions/<id>/v1/`.
      * Empty for pure-text conversation items.
      */
@@ -211,6 +237,7 @@ export const questions = pgTable(
     embeddingModel: text("embedding_model"),
     embeddingAt: timestamp("embedding_at", { withTimezone: true }),
     status: questionPublishStatusEnum("status").notNull().default("published"),
+    // fallow-ignore-next-line code-duplication
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -219,12 +246,22 @@ export const questions = pgTable(
       .notNull(),
   },
   (table) => [
-    uniqueIndex("questions_content_hash_uidx").on(table.contentHash),
+    /** Shared bank: one content_hash globally. */
+    uniqueIndex("questions_global_content_hash_uidx")
+      .on(table.contentHash)
+      .where(sql`${table.ownerUserId} is null`),
+    /** Custom: unique per owner so two users may write the same prompt. */
+    uniqueIndex("questions_self_content_hash_uidx")
+      .on(table.ownerUserId, table.contentHash)
+      .where(sql`${table.ownerUserId} is not null`),
     index("questions_domain_idx").on(table.domain),
     index("questions_difficulty_idx").on(table.difficulty),
     index("questions_company_idx").on(table.company),
     index("questions_format_idx").on(table.format),
     index("questions_status_idx").on(table.status),
+    index("questions_owner_user_id_idx").on(table.ownerUserId),
+    index("questions_visibility_idx").on(table.visibility),
+    index("questions_owner_status_idx").on(table.ownerUserId, table.status),
   ]
 )
 

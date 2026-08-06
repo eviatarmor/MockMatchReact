@@ -33,6 +33,22 @@ export const questionFormatSchema = z.enum([
 
 export const questionUserStatusSchema = z.enum(["new", "attempted", "mastered"])
 
+/** Bank visibility. Team/org is intentionally not modeled. */
+export const questionVisibilitySchema = z.enum(["global", "self"])
+
+/** Publish lifecycle for bank rows (draft → self-deploy → published). */
+export const questionPublishStatusSchema = z.enum([
+  "draft",
+  "published",
+  "archived",
+])
+
+/**
+ * Deploy target for custom questions.
+ * Only `self` is implemented — `team` / `global` are rejected by the API.
+ */
+export const questionDeployScopeSchema = z.enum(["self", "team", "global"])
+
 export const questionListInputSchema = z
   .object({
     search: z.string().trim().max(200).optional(),
@@ -40,6 +56,8 @@ export const questionListInputSchema = z
     difficulties: z.array(questionDifficultySchema).max(3).optional(),
     formats: z.array(questionFormatSchema).max(8).optional(),
     userStatuses: z.array(questionUserStatusSchema).max(3).optional(),
+    /** When true, only the caller's self-owned published customs. */
+    customOnly: z.boolean().optional(),
     page: z.number().int().min(1).default(1),
     pageSize: z.number().int().min(1).max(100).default(50),
   })
@@ -57,6 +75,9 @@ export const bankQuestionDtoSchema = z.object({
   body: z.string().nullable().optional(),
   /** conversation → voice track hint */
   trackHint: z.string().nullable().optional(),
+  /** true when row is self-owned custom (not global seed/generated). */
+  isCustom: z.boolean().optional(),
+  visibility: questionVisibilitySchema.optional(),
 })
 
 /** Loose UUID (zod uuid() can reject some valid ids depending on version). */
@@ -249,10 +270,85 @@ export const mcqSessionSchema = z.object({
   questions: z.array(questionMcqDetailSchema).min(1),
 })
 
+/** Loose payload bag — server normalizes per format. */
+const customPayloadSchema = z.record(z.string(), z.unknown()).default({})
+
+/**
+ * Create a self-owned custom question (draft).
+ * Deploy separately via `questions.deploy` with scope `self`.
+ */
+export const createCustomQuestionInputSchema = z.object({
+  title: z.string().trim().min(1).max(300),
+  domain: questionDomainSchema,
+  difficulty: questionDifficultySchema,
+  format: questionFormatSchema,
+  company: z.string().trim().max(200).nullable().optional(),
+  body: z.string().trim().max(8000).optional(),
+  language: z.string().trim().max(64).nullable().optional(),
+  tags: z.array(z.string().trim().min(1).max(64)).max(20).optional(),
+  roleFamilies: z.array(z.string().trim().min(1).max(64)).max(10).optional(),
+  /** Format-specific fields (prompt, options, starterCode, …). */
+  payload: customPayloadSchema,
+})
+
+export const deployQuestionInputSchema = z.object({
+  id: z
+    .string()
+    .regex(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+      "Invalid question id"
+    ),
+  /**
+   * Deploy target. Default `self`.
+   * `team` and `global` are always rejected (self-only product rule).
+   */
+  scope: questionDeployScopeSchema.default("self"),
+})
+
+export const listMineQuestionsInputSchema = z
+  .object({
+    formats: z.array(questionFormatSchema).max(8).optional(),
+    publishStatuses: z.array(questionPublishStatusSchema).max(3).optional(),
+    page: z.number().int().min(1).default(1),
+    pageSize: z.number().int().min(1).max(100).default(50),
+  })
+  .optional()
+
+export const customQuestionDtoSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string(),
+  domain: questionDomainSchema,
+  difficulty: questionDifficultySchema,
+  company: z.string().nullable(),
+  format: questionFormatSchema,
+  language: z.string().nullable(),
+  body: z.string().nullable(),
+  payload: z.record(z.string(), z.unknown()),
+  tags: z.array(z.string()),
+  roleFamilies: z.array(z.string()),
+  visibility: questionVisibilitySchema,
+  publishStatus: questionPublishStatusSchema,
+  isCustom: z.literal(true),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+})
+
+/** Static catalog of practice surfaces for sidebar / create UI. */
+export const simulationTypeDtoSchema = z.object({
+  format: questionFormatSchema,
+  /** Stable product key (same as format for now). */
+  id: z.string(),
+  createSupported: z.boolean(),
+  notes: z.string().nullable(),
+})
+
 export type QuestionDomain = z.infer<typeof questionDomainSchema>
 export type QuestionDifficulty = z.infer<typeof questionDifficultySchema>
 export type QuestionFormat = z.infer<typeof questionFormatSchema>
 export type QuestionUserStatus = z.infer<typeof questionUserStatusSchema>
+export type QuestionVisibility = z.infer<typeof questionVisibilitySchema>
+export type QuestionPublishStatus = z.infer<typeof questionPublishStatusSchema>
+export type QuestionDeployScope = z.infer<typeof questionDeployScopeSchema>
 export type BankQuestionDto = z.infer<typeof bankQuestionDtoSchema>
 export type QuestionPracticeDetail = z.infer<typeof questionPracticeDetailSchema>
 export type McqVariant = z.infer<typeof mcqVariantSchema>
@@ -262,3 +358,10 @@ export type SubmitMcqResult = z.infer<typeof submitMcqResultSchema>
 export type McqSessionInput = z.infer<typeof mcqSessionInputSchema>
 export type McqSession = z.infer<typeof mcqSessionSchema>
 export type GenerateFromJobsInput = z.infer<typeof generateFromJobsInputSchema>
+export type CreateCustomQuestionInput = z.infer<
+  typeof createCustomQuestionInputSchema
+>
+export type DeployQuestionInput = z.infer<typeof deployQuestionInputSchema>
+export type ListMineQuestionsInput = z.infer<typeof listMineQuestionsInputSchema>
+export type CustomQuestionDto = z.infer<typeof customQuestionDtoSchema>
+export type SimulationTypeDto = z.infer<typeof simulationTypeDtoSchema>

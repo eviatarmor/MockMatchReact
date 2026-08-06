@@ -1,4 +1,5 @@
 import { and, desc, eq, sql } from "drizzle-orm"
+import { TRPCError } from "@trpc/server"
 import { db } from "../../db/client.js"
 import { questions } from "../../db/schema/questions.js"
 import { voiceSessions } from "../../db/schema/voice-sessions.js"
@@ -10,6 +11,7 @@ import {
   storeVoiceTicket,
 } from "../../lib/voice-store.js"
 import { spendCredits } from "../billing/credits.js"
+import { assertQuestionReadable } from "../questions/custom.js"
 
 const TICKET_TTL_SECONDS = 10 * 60
 
@@ -56,6 +58,58 @@ function buildIceServers(): Array<Record<string, unknown>> {
 }
 
 export async function createVoiceSession(input: CreateVoiceSessionInput) {
+  /**
+   * SEC-001: resolve + ACL question bank content *before* worker/credits.
+   * Self-scoped customs must not leak into another user's voice system prompt.
+   */
+  let questionPrompt = ""
+  let resolvedQuestionId: string | null = null
+  if (input.questionId) {
+    const [q] = await db
+      .select({
+        id: questions.id,
+        title: questions.title,
+        body: questions.body,
+        payload: questions.payload,
+        format: questions.format,
+        status: questions.status,
+        visibility: questions.visibility,
+        ownerUserId: questions.ownerUserId,
+      })
+      .from(questions)
+      .where(eq(questions.id, input.questionId))
+      .limit(1)
+
+    if (!q) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Question not found",
+      })
+    }
+
+    // Denies non-owner self rows (NOT_FOUND) and undeployed drafts (BAD_REQUEST)
+    assertQuestionReadable(q, input.userId)
+
+    if (q.format === "conversation") {
+      resolvedQuestionId = q.id
+      const payload = q.payload as {
+        interviewerPrompt?: string
+        followUps?: string[]
+        rubric?: string
+      }
+      questionPrompt = [
+        `Focus question: ${q.title}.`,
+        payload.interviewerPrompt || q.body || "",
+        payload.followUps?.length
+          ? `Suggested follow-ups: ${payload.followUps.join(" | ")}`
+          : "",
+        payload.rubric ? `Rubric notes: ${payload.rubric}` : "",
+      ]
+        .filter(Boolean)
+        .join(" ")
+    }
+  }
+
   const fallbackUrl = (env.VOICE_PUBLIC_URL || env.VOICE_SERVICE_URL || "").replace(
     /\/$/,
     ""
@@ -83,40 +137,6 @@ export async function createVoiceSession(input: CreateVoiceSessionInput) {
         message: `Need ${cost} credits for a live agent session`,
         remaining: spend.remaining,
       }
-    }
-  }
-
-  let questionPrompt = ""
-  let resolvedQuestionId: string | null = null
-  if (input.questionId) {
-    const [q] = await db
-      .select({
-        id: questions.id,
-        title: questions.title,
-        body: questions.body,
-        payload: questions.payload,
-        format: questions.format,
-      })
-      .from(questions)
-      .where(eq(questions.id, input.questionId))
-      .limit(1)
-    if (q && q.format === "conversation") {
-      resolvedQuestionId = q.id
-      const payload = q.payload as {
-        interviewerPrompt?: string
-        followUps?: string[]
-        rubric?: string
-      }
-      questionPrompt = [
-        `Focus question: ${q.title}.`,
-        payload.interviewerPrompt || q.body || "",
-        payload.followUps?.length
-          ? `Suggested follow-ups: ${payload.followUps.join(" | ")}`
-          : "",
-        payload.rubric ? `Rubric notes: ${payload.rubric}` : "",
-      ]
-        .filter(Boolean)
-        .join(" ")
     }
   }
 
