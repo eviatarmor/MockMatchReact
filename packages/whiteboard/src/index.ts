@@ -63,7 +63,12 @@ export {
   sliceDocument,
 } from "./document"
 
-export { createHistory, type WhiteboardHistory } from "./history"
+export {
+  createHistory,
+  isTextTypingPatch,
+  TEXT_TYPING_BATCH_MS,
+  type WhiteboardHistory,
+} from "./history"
 
 export {
   WHITEBOARD_ZOOM,
