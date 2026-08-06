@@ -38,6 +38,7 @@
     "@mockmatch/ide": "*",
     "@mockmatch/mcq": "*",
     "@mockmatch/page": "*",
+    "@mockmatch/rich-text": "*",
     "@mockmatch/schemas": "*",
     "@mockmatch/spreadsheet": "*",
     "@mockmatch/ui": "*",

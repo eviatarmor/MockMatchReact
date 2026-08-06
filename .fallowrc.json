@@ -12,6 +12,7 @@
     "api/tests/**/*.{ts,tsx}",
     "client/tests/**/*.{ts,tsx}",
     "packages/*/tests/**/*.{ts,tsx}",
+    "client/src/features/rich-text-demo/**/*.{ts,tsx}",
     "voice/tests/**/*.py",
     "docs/content/docs/**/*.{mdx,md}"
   ],
