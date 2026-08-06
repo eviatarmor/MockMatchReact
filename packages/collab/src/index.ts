@@ -52,6 +52,7 @@ export {
   setCollabTemplateId,
   setCollabStyle,
   setCollabDocument,
+  createCollabDocumentUndoManager,
   applyCollabYSnapshot,
   encodeYUpdate,
   decodeYUpdate,

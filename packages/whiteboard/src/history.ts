@@ -34,11 +34,16 @@ export function isTextTypingPatch(
 
 /**
  * Solo undo/redo stack (snapshots via `@mockmatch/history`).
- * For live Yjs rooms, host should use Y.UndoManager instead.
+ *
+ * Live Yjs rooms must **not** use this stack for undo/redo:
+ * remote materialize used to call {@link WhiteboardHistory.replace} and wipe
+ * past/future. Host should use `@mockmatch/collab` `createCollabDocumentUndoManager`
+ * (tracked local origin) while live and keep this stack for solo only.
  *
  * Sticky/text typing is batched: the first keystroke of a session pushes one
  * history entry; further patches to the same field(s) within
  * {@link TEXT_TYPING_BATCH_MS} update present without new steps.
+ * Live rooms batch via Y.UndoManager capture policy instead.
  */
 export function createHistory(
   initial: WhiteboardDocument,

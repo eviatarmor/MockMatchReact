@@ -44,12 +44,19 @@ import {
   type DrawStrokeStyle,
   type ShapeKind,
   type StencilDef,
+  type WhiteboardCommand,
   type WhiteboardDocument,
   type WhiteboardTemplate,
   type WhiteboardTemplateId,
   type WhiteboardTool,
 } from "@mockmatch/whiteboard"
 import { handleWhiteboardHotkey } from "./handle-whiteboard-hotkey"
+import {
+  applyLiveCommand,
+  applyLiveHistoryStep,
+  applySoloCommand,
+  applySoloHistoryStep,
+} from "./whiteboard-edit-commands"
 import { Badge } from "@mockmatch/ui/badge"
 import { Button } from "@mockmatch/ui/button"
 import {
@@ -170,6 +177,8 @@ export function SimulationWhiteboardPageContent() {
 
   const historyRef = useRef(createHistory(createEmptyBoard()))
   const [doc, setDoc] = useState<WhiteboardDocument>(() => createEmptyBoard())
+  const docRef = useRef(doc)
+  docRef.current = doc
   const [tool, setTool] = useState<WhiteboardTool>("select")
   const [shapeKind, setShapeKind] = useState<ShapeKind>("rect")
   const [stickyColor, setStickyColor] = useState("#fef08a")
@@ -203,8 +212,10 @@ export function SimulationWhiteboardPageContent() {
     { enabled: Boolean(accessDocId), retry: false }
   )
 
+  // Peer materialize: update React only. Never history.replace — that wiped
+  // local undo after remote edits. Live undo is Y.UndoManager on the collab Y.Doc.
   const onRemoteDocument = useCallback((remote: WhiteboardDocument) => {
-    historyRef.current.replace(remote)
+    historyRef.current.setPresent(remote)
     setDoc(remote)
     setSelectedIds([])
     seededRef.current = true
@@ -267,21 +278,72 @@ export function SimulationWhiteboardPageContent() {
     setDoc(boardSession.seedDoc)
   }, [boardSession.ready, boardSession.seedDoc])
 
+  // When leaving a live room, re-seed solo snapshot stack from present.
+  const wasLiveRef = useRef(false)
+  useEffect(() => {
+    if (collabSession.live) {
+      wasLiveRef.current = true
+      // Live undo flags come from Y.UndoManager
+      setCanUndo(collabSession.liveCanUndo)
+      setCanRedo(collabSession.liveCanRedo)
+      return
+    }
+    if (wasLiveRef.current) {
+      wasLiveRef.current = false
+      historyRef.current.replace(docRef.current)
+      setCanUndo(false)
+      setCanRedo(false)
+    }
+  }, [
+    collabSession.live,
+    collabSession.liveCanUndo,
+    collabSession.liveCanRedo,
+  ])
+
   const syncHistoryFlags = useCallback(() => {
+    if (collabSession.live) {
+      setCanUndo(collabSession.liveCanUndo)
+      setCanRedo(collabSession.liveCanRedo)
+      return
+    }
     setCanUndo(historyRef.current.canUndo)
     setCanRedo(historyRef.current.canRedo)
-  }, [])
+  }, [collabSession.live, collabSession.liveCanUndo, collabSession.liveCanRedo])
+
+  const boardDocSink = useMemo(
+    () => ({
+      setDocRef: (next: WhiteboardDocument) => {
+        docRef.current = next
+      },
+      setDoc,
+    }),
+    []
+  )
+
+  const afterSoloEdit = useCallback(
+    (next: WhiteboardDocument) => {
+      syncHistoryFlags()
+      boardSession.scheduleSave(next)
+    },
+    [boardSession, syncHistoryFlags]
+  )
 
   const dispatch = useCallback(
-    (command: Parameters<typeof historyRef.current.dispatch>[0]) => {
+    (command: WhiteboardCommand) => {
       if (!canEditBoard) return
-      const next = historyRef.current.dispatch(command)
-      setDoc(next)
-      syncHistoryFlags()
-      // Solo autosave; collab persists via Yjs flush when live.
-      if (!collabSession.live) boardSession.scheduleSave(next)
+      if (collabSession.live) {
+        // Bypass snapshot stack — Y.UndoManager tracks setCollabDocument mirror.
+        applyLiveCommand(
+          docRef.current,
+          command,
+          historyRef.current,
+          boardDocSink
+        )
+        return
+      }
+      applySoloCommand(command, historyRef.current, boardDocSink, afterSoloEdit)
     },
-    [boardSession, canEditBoard, syncHistoryFlags, collabSession.live]
+    [afterSoloEdit, boardDocSink, canEditBoard, collabSession.live]
   )
 
   const applyTemplate = useCallback(
@@ -357,20 +419,50 @@ export function SimulationWhiteboardPageContent() {
 
   const undo = useCallback(() => {
     if (!canEditBoard) return
-    const next = historyRef.current.undo()
-    setDoc(next)
-    syncHistoryFlags()
-    // Solo autosave only — collab persists via Yjs flush when live.
-    if (!collabSession.live) boardSession.scheduleSave(next)
-  }, [boardSession, canEditBoard, collabSession.live, syncHistoryFlags])
+    if (collabSession.live) {
+      // canUndo/canRedo sync via liveCanUndo effect after UndoManager stack events
+      applyLiveHistoryStep(
+        collabSession.undoLive(),
+        historyRef.current,
+        boardDocSink
+      )
+      return
+    }
+    applySoloHistoryStep(
+      historyRef.current.undo(),
+      boardDocSink,
+      afterSoloEdit
+    )
+  }, [
+    afterSoloEdit,
+    boardDocSink,
+    canEditBoard,
+    collabSession.live,
+    collabSession.undoLive,
+  ])
 
   const redo = useCallback(() => {
     if (!canEditBoard) return
-    const next = historyRef.current.redo()
-    setDoc(next)
-    syncHistoryFlags()
-    if (!collabSession.live) boardSession.scheduleSave(next)
-  }, [boardSession, canEditBoard, collabSession.live, syncHistoryFlags])
+    if (collabSession.live) {
+      applyLiveHistoryStep(
+        collabSession.redoLive(),
+        historyRef.current,
+        boardDocSink
+      )
+      return
+    }
+    applySoloHistoryStep(
+      historyRef.current.redo(),
+      boardDocSink,
+      afterSoloEdit
+    )
+  }, [
+    afterSoloEdit,
+    boardDocSink,
+    canEditBoard,
+    collabSession.live,
+    collabSession.redoLive,
+  ])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
