@@ -7,6 +7,7 @@ import { AppLogo } from "./app-logo"
 import { appPath, CHANGELOG_HREF, DOCS_URL } from "../constants"
 
 const NAV_LINKS = [
+  { href: "#product-demos", labelKey: "nav.demos" },
   { href: "#features", labelKey: "nav.features" },
   { href: "#integrations", labelKey: "nav.integrations" },
   { href: "#faq", labelKey: "nav.faq" },

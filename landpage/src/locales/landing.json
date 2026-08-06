@@ -9,7 +9,8 @@
     "login": "Log in",
     "signup": "Get started",
     "openMenu": "Open menu",
-    "closeMenu": "Close menu"
+    "closeMenu": "Close menu",
+    "demos": "Product"
   },
   "hero": {
     "eyebrow": "Interview prep, end to end",
@@ -136,5 +137,38 @@
     "signup": "Get started",
     "copyright": "© {{year}} MockMatch. All rights reserved."
   },
-  "appName": "MockMatch"
+  "appName": "MockMatch",
+  "demos": {
+    "eyebrow": "See it in action",
+    "title": "Prep that looks like the product, not a brochure.",
+    "description": "Motion demos of Resume Lab, Applications, and simulations. Drop real MP4/WebM into public/demos to replace mocks.",
+    "resume": {
+      "eyebrow": "Documents",
+      "title": "Build a resume that scores and improves.",
+      "body": "Templates, section editing, general health score, and an AI rail that points at the next fix — same flow you get after sign-in.",
+      "bullets": [
+        "ATS-aware scoring with fix-it guidance",
+        "Import PDF or start from a role template",
+        "Export PDF when you are ready to share"
+      ],
+      "cta": "Open Resume Lab"
+    },
+    "apply": {
+      "eyebrow": "Jobs",
+      "title": "Track applications without the spreadsheet.",
+      "body": "Discover roles, score fit, move stages on a kanban, and generate job-specific materials when it counts.",
+      "bullets": [
+        "Fit scores against your profile and resume",
+        "Stage moves from saved to interview",
+        "Import a job description into the board"
+      ],
+      "cta": "Start tracking"
+    },
+    "interview": {
+      "eyebrow": "Practice",
+      "title": "Rehearse in interview-like formats.",
+      "body": "Conversation tracks and multi-format simulations so prep feels like the real loop — not a static quiz bank.",
+      "cta": "Browse simulations"
+    }
+  }
 }

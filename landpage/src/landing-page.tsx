@@ -1,6 +1,7 @@
 import { LandingHeader } from "./components/landing-header"
 import { LandingHero } from "./components/landing-hero"
 import { LandingCompaniesMarquee } from "./components/landing-companies-marquee"
+import { LandingProductDemos } from "./components/landing-product-demos"
 import { LandingBento } from "./components/landing-bento"
 import { LandingIntegrations } from "./components/landing-integrations"
 import { LandingIdeasMarquee } from "./components/landing-ideas-marquee"
@@ -16,6 +17,7 @@ export function LandingPage() {
       <main>
         <LandingHero />
         <LandingCompaniesMarquee />
+        <LandingProductDemos />
         <LandingBento />
         <LandingIntegrations />
         <LandingIdeasMarquee />
