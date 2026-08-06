@@ -17,6 +17,7 @@ describe("ASK_PRODUCT_GUIDE", () => {
       "/applications",
       "/simulations",
       "/question-bank",
+      "/custom-questions",
       "/readiness",
       "/performance",
       "/autofill",

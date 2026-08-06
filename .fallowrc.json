@@ -12,7 +12,8 @@
     "api/tests/**/*.{ts,tsx}",
     "client/tests/**/*.{ts,tsx}",
     "packages/*/tests/**/*.{ts,tsx}",
-    "voice/tests/**/*.py"
+    "voice/tests/**/*.py",
+    "docs/content/docs/**/*.{mdx,md}"
   ],
   "ignoreDependencies": [
     "ws",

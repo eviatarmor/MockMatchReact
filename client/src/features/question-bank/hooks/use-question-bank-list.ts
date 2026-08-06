@@ -1,27 +1,23 @@
 import { useMemo, useState } from "react"
 import { trpc } from "@/lib/trpc"
 import type {
-  BankQuestion,
   QuestionDomain,
   QuestionDifficulty,
   QuestionStatus,
 } from "../types"
-
-function toggleSet<T>(set: Set<T>, value: T): Set<T> {
-  const next = new Set(set)
-  if (next.has(value)) {
-    next.delete(value)
-  } else {
-    next.add(value)
-  }
-  return next
-}
+import {
+  buildListQueryInput,
+  computeHasFilters,
+  countByField,
+  mapListItemsToBankQuestions,
+  toggleSet,
+} from "../lib/question-bank-list-helpers"
 
 /**
  * Shared list + filter state for Question Bank and Interview tracks browse.
  * Both surfaces read the same global `questions.list` bank.
  */
-export function useQuestionBankList() {
+export function useQuestionBankList(options?: { customOnly?: boolean }) {
   const [search, setSearch] = useState("")
   const [selectedDomains, setSelectedDomains] = useState<Set<QuestionDomain>>(
     new Set()
@@ -32,71 +28,48 @@ export function useQuestionBankList() {
   const [selectedStatuses, setSelectedStatuses] = useState<Set<QuestionStatus>>(
     new Set()
   )
+  const [customOnly, setCustomOnly] = useState(Boolean(options?.customOnly))
 
-  const listQuery = trpc.questions.list.useQuery({
-    search: search.trim() || undefined,
-    domains:
-      selectedDomains.size > 0
-        ? (Array.from(selectedDomains) as QuestionDomain[])
-        : undefined,
-    difficulties:
-      selectedDifficulties.size > 0
-        ? (Array.from(selectedDifficulties) as QuestionDifficulty[])
-        : undefined,
-    userStatuses:
-      selectedStatuses.size > 0
-        ? (Array.from(selectedStatuses) as QuestionStatus[])
-        : undefined,
-    page: 1,
-    pageSize: 100,
-  })
+  const filters = useMemo(
+    () => ({
+      search,
+      selectedDomains,
+      selectedDifficulties,
+      selectedStatuses,
+      customOnly,
+    }),
+    [
+      search,
+      selectedDomains,
+      selectedDifficulties,
+      selectedStatuses,
+      customOnly,
+    ]
+  )
 
-  const questions: BankQuestion[] = useMemo(
-    () =>
-      (listQuery.data?.items ?? []).map((q) => ({
-        id: q.id,
-        title: q.title,
-        domain: q.domain,
-        difficulty: q.difficulty,
-        company: q.company,
-        status: q.status,
-        format: q.format,
-        trackHint: q.trackHint,
-      })),
+  const listQuery = trpc.questions.list.useQuery(buildListQueryInput(filters))
+
+  const questions = useMemo(
+    () => mapListItemsToBankQuestions(listQuery.data?.items),
     [listQuery.data?.items]
   )
 
   const total = listQuery.data?.total ?? questions.length
 
-  const domainCounts = useMemo(() => {
-    const counts: Partial<Record<QuestionDomain, number>> = {}
-    for (const q of questions) {
-      counts[q.domain] = (counts[q.domain] ?? 0) + 1
-    }
-    return counts
-  }, [questions])
+  const domainCounts = useMemo(
+    () => countByField(questions, (q) => q.domain),
+    [questions]
+  )
+  const difficultyCounts = useMemo(
+    () => countByField(questions, (q) => q.difficulty),
+    [questions]
+  )
+  const statusCounts = useMemo(
+    () => countByField(questions, (q) => q.status),
+    [questions]
+  )
 
-  const difficultyCounts = useMemo(() => {
-    const counts: Partial<Record<QuestionDifficulty, number>> = {}
-    for (const q of questions) {
-      counts[q.difficulty] = (counts[q.difficulty] ?? 0) + 1
-    }
-    return counts
-  }, [questions])
-
-  const statusCounts = useMemo(() => {
-    const counts: Partial<Record<QuestionStatus, number>> = {}
-    for (const q of questions) {
-      counts[q.status] = (counts[q.status] ?? 0) + 1
-    }
-    return counts
-  }, [questions])
-
-  const hasFilters =
-    selectedDomains.size > 0 ||
-    selectedDifficulties.size > 0 ||
-    selectedStatuses.size > 0 ||
-    Boolean(search.trim())
+  const hasFilters = computeHasFilters(filters)
 
   return {
     search,
@@ -104,6 +77,8 @@ export function useQuestionBankList() {
     selectedDomains,
     selectedDifficulties,
     selectedStatuses,
+    customOnly,
+    setCustomOnly,
     onDomainToggle: (d: QuestionDomain) =>
       setSelectedDomains((prev) => toggleSet(prev, d)),
     onDifficultyToggle: (d: QuestionDifficulty) =>
