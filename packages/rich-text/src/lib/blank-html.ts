@@ -2,8 +2,7 @@
  * True when HTML (Lexical output) has no visible text.
  * Empty tags, `<br>`, and `&nbsp;` count as blank.
  *
- * Linear scan (no nested-quantifier strip regex) — package-local copy so
- * `@mockmatch/rich-text` stays free of document-editor / whiteboard deps.
+ * Package-local (no document-editor peer) so rich-text stays lightweight.
  */
 export function isBlankHtml(html: string | null | undefined): boolean {
   if (html == null || html === "") return true

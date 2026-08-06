@@ -5,8 +5,8 @@ import {
   isBlankHtml,
   RICH_TEXT_NODES,
 } from "@mockmatch/rich-text"
-// Integration-proof panel (not product-routed) — import keeps fallow entry graph alive
-import { RichTextDemoPanel } from "@/features/rich-text-demo/rich-text-demo-panel"
+// Relative import (not @/) so static analyzers resolve the demo panel as used
+import { RichTextDemoPanel } from "../../../src/features/rich-text-demo/rich-text-demo-panel"
 
 describe("@mockmatch/rich-text host import", () => {
   it("exports labels, nodes, and pure helpers", () => {
