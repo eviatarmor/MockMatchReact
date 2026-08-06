@@ -42,6 +42,61 @@ export type SimulationPromptRailProps<ExtraId extends string = never> = {
 
 type PanelId<ExtraId extends string> = "prompt" | ExtraId
 
+type ResolvedRailLabels = {
+  readonly prompt: string
+  readonly promptTitle: string
+  readonly promptDescription: string
+  readonly collapse: string
+  readonly resize: string
+}
+
+type TranslateFn = (key: string) => string
+
+/** Resolve host overrides against shared `common.simulations.promptRail` keys. */
+export function resolvePromptRailLabels(
+  labels: SimulationPromptRailLabels | undefined,
+  t: TranslateFn
+): ResolvedRailLabels {
+  return {
+    prompt: labels?.prompt ?? t("simulations.promptRail.prompt"),
+    promptTitle:
+      labels?.promptTitle ?? t("simulations.promptRail.promptPanel.title"),
+    promptDescription:
+      labels?.promptDescription ??
+      t("simulations.promptRail.promptPanel.description"),
+    collapse: labels?.collapse ?? t("simulations.promptRail.collapse"),
+    resize: labels?.resize ?? t("simulations.promptRail.resize"),
+  }
+}
+
+/** Build IconSideRail items: Prompt first, then optional extras. */
+export function buildPromptRailItems<ExtraId extends string>(
+  labels: ResolvedRailLabels,
+  extraItems?: readonly SimulationPromptRailExtraItem<ExtraId>[]
+): IconSideRailItem<PanelId<ExtraId>>[] {
+  const items: IconSideRailItem<PanelId<ExtraId>>[] = [
+    {
+      id: "prompt" as PanelId<ExtraId>,
+      icon: FileText,
+      label: labels.prompt,
+      title: labels.promptTitle,
+      description: labels.promptDescription,
+    },
+  ]
+  if (!extraItems) return items
+  for (const item of extraItems) {
+    items.push({
+      id: item.id as PanelId<ExtraId>,
+      icon: item.icon,
+      label: item.label,
+      title: item.title,
+      description: item.description,
+      fill: item.fill,
+    })
+  }
+  return items
+}
+
 /**
  * Shared simulation right rail — prompt markdown + optional surface panels.
  * Same {@link IconSideRail} chrome as whiteboard / spreadsheet.
@@ -58,41 +113,11 @@ export function SimulationPromptRail<ExtraId extends string = never>({
   defaultActiveId = "prompt",
 }: SimulationPromptRailProps<ExtraId>) {
   const { t } = useTranslation("common")
-
-  const promptLabel = labels?.prompt ?? t("simulations.promptRail.prompt")
-  const promptTitle =
-    labels?.promptTitle ?? t("simulations.promptRail.promptPanel.title")
-  const promptDescription =
-    labels?.promptDescription ??
-    t("simulations.promptRail.promptPanel.description")
-  const collapseLabel =
-    labels?.collapse ?? t("simulations.promptRail.collapse")
-  const resizeLabel = labels?.resize ?? t("simulations.promptRail.resize")
-
-  const items = useMemo((): IconSideRailItem<PanelId<ExtraId>>[] => {
-    const base: IconSideRailItem<PanelId<ExtraId>>[] = [
-      {
-        id: "prompt" as PanelId<ExtraId>,
-        icon: FileText,
-        label: promptLabel,
-        title: promptTitle,
-        description: promptDescription,
-      },
-    ]
-    if (!extraItems?.length) return base
-    for (const item of extraItems) {
-      base.push({
-        id: item.id as PanelId<ExtraId>,
-        icon: item.icon,
-        label: item.label,
-        title: item.title,
-        description: item.description,
-        fill: item.fill,
-      })
-    }
-    return base
-  }, [extraItems, promptDescription, promptLabel, promptTitle])
-
+  const resolved = useMemo(() => resolvePromptRailLabels(labels, t), [labels, t])
+  const items = useMemo(
+    () => buildPromptRailItems(resolved, extraItems),
+    [extraItems, resolved]
+  )
   const extraById = useMemo(() => {
     const map = new Map<string, SimulationPromptRailExtraItem<ExtraId>>()
     for (const item of extraItems ?? []) map.set(item.id, item)
@@ -103,15 +128,13 @@ export function SimulationPromptRail<ExtraId extends string = never>({
     <IconSideRail
       items={items}
       defaultActiveId={defaultActiveId}
-      collapseLabel={collapseLabel}
-      resizeLabel={resizeLabel}
+      collapseLabel={resolved.collapse}
+      resizeLabel={resolved.resize}
       storageKey={storageKey}
       slot={slot}
       className={className}
       renderPanel={(id) => {
-        if (id === "prompt") {
-          return <StaggerMarkdown>{prompt}</StaggerMarkdown>
-        }
+        if (id === "prompt") return <StaggerMarkdown>{prompt}</StaggerMarkdown>
         return extraById.get(id)?.render() ?? null
       }}
     >
