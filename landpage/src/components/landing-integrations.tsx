@@ -29,6 +29,16 @@ const NODE_ICONS: Record<
 const LEFT_NODE_IDS = ["zoom", "outlook", "chat"] as const
 const RIGHT_NODE_IDS = ["meet", "gmail", "calendar"] as const
 
+/** Vertical fan for side nodes (top / mid / bottom) — table avoids branchy map callbacks. */
+const BEAM_SPECS = [
+  { id: "zoom" as const, reverse: false, curvature: -40, endYOffset: -6 },
+  { id: "outlook" as const, reverse: false, curvature: 0, endYOffset: 0 },
+  { id: "chat" as const, reverse: false, curvature: 40, endYOffset: 6 },
+  { id: "meet" as const, reverse: true, curvature: -40, endYOffset: -6 },
+  { id: "gmail" as const, reverse: true, curvature: 0, endYOffset: 0 },
+  { id: "calendar" as const, reverse: true, curvature: 40, endYOffset: 6 },
+] as const
+
 function IntegrationCircle({
   className,
   children,
@@ -143,28 +153,15 @@ export function LandingIntegrations() {
               </div>
             </div>
 
-            {LEFT_NODE_IDS.map((id, i) => (
+            {BEAM_SPECS.map((beam) => (
               <AnimatedBeam
-                key={`left-${id}`}
+                key={beam.id}
                 containerRef={containerRef}
-                fromRef={nodeRefs[id]}
+                fromRef={nodeRefs[beam.id]}
                 toRef={centerRef}
-                curvature={i === 0 ? -40 : i === 2 ? 40 : 0}
-                endYOffset={i === 0 ? -6 : i === 2 ? 6 : 0}
-                gradientStartColor={primary}
-                gradientStopColor={primarySoft}
-                pathColor="var(--border)"
-              />
-            ))}
-            {RIGHT_NODE_IDS.map((id, i) => (
-              <AnimatedBeam
-                key={`right-${id}`}
-                containerRef={containerRef}
-                fromRef={nodeRefs[id]}
-                toRef={centerRef}
-                reverse
-                curvature={i === 0 ? -40 : i === 2 ? 40 : 0}
-                endYOffset={i === 0 ? -6 : i === 2 ? 6 : 0}
+                reverse={beam.reverse}
+                curvature={beam.curvature}
+                endYOffset={beam.endYOffset}
                 gradientStartColor={primary}
                 gradientStopColor={primarySoft}
                 pathColor="var(--border)"
