@@ -302,6 +302,14 @@ export function isDrawTool(tool: WhiteboardTool): tool is DrawTool {
   return (DRAW_TOOLS as readonly string[]).includes(tool)
 }
 
+/**
+ * Tools safe for view-only sessions (navigate / inspect).
+ * Edit tools stay available in the rail chrome only when `canEdit` is true.
+ */
+export function isViewSafeWhiteboardTool(tool: WhiteboardTool): boolean {
+  return tool === "select" || tool === "pan"
+}
+
 export const SHAPE_MENU_ITEMS: readonly {
   kind: ShapeKind
   labelKey: string
