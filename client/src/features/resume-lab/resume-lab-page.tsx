@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { FileText, Plus, Upload } from "lucide-react"
@@ -13,12 +13,16 @@ import { TemplateBrowserSection } from "@/components/templates/template-browser-
 import { EntityEmptyState } from "@/components/data/entity-empty-state"
 import { EntityListStates } from "@/components/data/entity-list-states"
 import { EntityTablePagination } from "@/components/data/entity-table-pagination"
+import { TableDisplayMenu } from "@/components/data/table-display-menu"
+import { TableFilterMenu } from "@/components/data/table-filter-menu"
 import {
   ViewModeTabs,
   type ListViewMode,
 } from "@/components/data/view-mode-tabs"
 import { useImportDocumentPdf } from "@/hooks/use-import-document-pdf"
 import { useStartFromTemplate } from "@/hooks/use-start-from-template"
+import { useTableColumnVisibility } from "@/hooks/use-table-column-visibility"
+import { useTableFilters } from "@/hooks/use-table-filters"
 import { downloadDocumentPdf, pdfFilename } from "@/lib/export-document-pdf"
 import { trpc } from "@/lib/trpc"
 import { ResumeCardGrid } from "./components/resume-card-grid"
@@ -27,13 +31,53 @@ import { useResumesList } from "./hooks/use-resumes-list"
 import { TEMPLATE_BROWSER_ITEMS } from "./constants"
 import type { ResumeItem } from "./types"
 
+const DOCUMENT_STATUSES = ["active", "draft", "archived"] as const
+
 export function ResumeLabPageContent() {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
   const utils = trpc.useUtils()
   const list = useResumesList()
+  const tableFilters = useTableFilters()
   const [exportingId, setExportingId] = useState<string | null>(null)
   const [viewMode, setViewMode] = useState<ListViewMode>("table")
+
+  const displayColumns = useMemo(
+    () => [
+      { id: "resume", label: t("resumeLab.table.columns.resume"), locked: true },
+      { id: "score", label: t("resumeLab.table.columns.score") },
+      { id: "status", label: t("resumeLab.table.columns.status") },
+      { id: "updated", label: t("resumeLab.table.columns.updated") },
+      { id: "actions", label: t("tableChrome.actions"), locked: true },
+    ],
+    [t]
+  )
+  const columnVisibility = useTableColumnVisibility(displayColumns)
+
+  const filterFields = useMemo(
+    () => [
+      {
+        id: "status",
+        label: t("resumeLab.table.columns.status"),
+        options: DOCUMENT_STATUSES.map((value) => ({
+          value,
+          label: t(`resumeLab.table.statusLabels.${value}`),
+        })),
+      },
+    ],
+    [t]
+  )
+
+  const filteredItems = useMemo(
+    () =>
+      tableFilters.filterItems(
+        list.items,
+        (item, fieldId) => (fieldId === "status" ? item.status : null)
+      ),
+    [list.items, tableFilters.filterItems]
+  )
+
+  const hasActiveQuery = list.hasActiveSearch || tableFilters.hasActive
 
   const createResume = trpc.resumes.create.useMutation({
     onSuccess: (resume) => {
@@ -89,21 +133,24 @@ export function ResumeLabPageContent() {
     duplicateResume.mutate({ id: resume.id })
   }
 
+  const listEmpty = list.isEmpty && !tableFilters.hasActive
+  const filterEmpty = !list.isLoading && filteredItems.length === 0
+
   const emptyState = (
     <EntityEmptyState
       icon={FileText}
       title={
-        list.hasActiveSearch
+        hasActiveQuery
           ? t("resumeLab.table.emptySearchTitle")
           : t("resumeLab.table.emptyTitle")
       }
       description={
-        list.hasActiveSearch
+        hasActiveQuery
           ? t("resumeLab.table.emptySearchDescription")
           : t("resumeLab.table.emptyDescription")
       }
       action={
-        list.hasActiveSearch
+        hasActiveQuery
           ? undefined
           : {
               label: t("dashboard.actions.newResume"),
@@ -127,7 +174,23 @@ export function ResumeLabPageContent() {
           search={list.search}
           onSearchChange={list.setSearch}
           filters={
-            <ViewModeTabs value={viewMode} onValueChange={setViewMode} />
+            <>
+              <TableFilterMenu
+                fields={filterFields}
+                isValueSelected={tableFilters.isValueSelected}
+                onToggleValue={tableFilters.toggleValue}
+                onClearAll={tableFilters.clearAll}
+                activeCount={tableFilters.activeCount}
+              />
+              {viewMode === "table" ? (
+                <TableDisplayMenu
+                  columns={displayColumns}
+                  isVisible={columnVisibility.isVisible}
+                  onToggle={columnVisibility.toggle}
+                />
+              ) : null}
+              <ViewModeTabs value={viewMode} onValueChange={setViewMode} />
+            </>
           }
           actions={
             <>
@@ -166,14 +229,14 @@ export function ResumeLabPageContent() {
         <EntityListStates
           isError={list.isError}
           isLoading={list.isLoading}
-          isEmpty={list.isEmpty}
+          isEmpty={listEmpty || filterEmpty}
           errorMessage={t("resumeLab.table.loadError")}
           loadingMessage={t("resumeLab.table.loading")}
           emptyState={emptyState}
         >
           {viewMode === "table" ? (
             <ResumeTable
-              resumes={list.items}
+              resumes={filteredItems}
               onDelete={handleDelete}
               onExport={(resume) => void handleExport(resume)}
               onDuplicate={handleDuplicate}
@@ -182,10 +245,11 @@ export function ResumeLabPageContent() {
               duplicatingId={
                 duplicateResume.isPending ? duplicateResume.variables?.id : null
               }
+              isColumnVisible={columnVisibility.isVisible}
             />
           ) : (
             <ResumeCardGrid
-              resumes={list.items}
+              resumes={filteredItems}
               onDelete={handleDelete}
               onExport={(resume) => void handleExport(resume)}
               onDuplicate={handleDuplicate}

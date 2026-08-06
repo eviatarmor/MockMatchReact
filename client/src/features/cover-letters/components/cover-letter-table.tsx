@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { EntityTable, type EntityTableColumn } from "@/components/data/entity-table"
 import { CoverLetterPreviewDialog } from "./cover-letter-preview-dialog"
@@ -13,6 +13,7 @@ interface CoverLetterTableProps {
   readonly deletingId?: string | null
   readonly exportingId?: string | null
   readonly duplicatingId?: string | null
+  readonly isColumnVisible?: (columnId: string) => boolean
 }
 
 export function CoverLetterTable({
@@ -23,17 +24,30 @@ export function CoverLetterTable({
   deletingId,
   exportingId,
   duplicatingId,
+  isColumnVisible = () => true,
 }: CoverLetterTableProps) {
   const { t } = useTranslation("common")
   const [preview, setPreview] = useState<{ id: string; title: string } | null>(null)
 
-  const columns: EntityTableColumn[] = [
-    { key: "coverLetter", label: t("coverLetters.table.columns.coverLetter") },
-    { key: "score", label: t("coverLetters.table.columns.score"), className: "text-center" },
-    { key: "status", label: t("coverLetters.table.columns.status") },
-    { key: "updated", label: t("coverLetters.table.columns.updated"), className: "hidden sm:table-cell" },
-    { key: "actions", className: "text-right w-12" },
-  ]
+  const allColumns: EntityTableColumn[] = useMemo(
+    () => [
+      { key: "coverLetter", label: t("coverLetters.table.columns.coverLetter") },
+      { key: "score", label: t("coverLetters.table.columns.score"), className: "text-center" },
+      { key: "status", label: t("coverLetters.table.columns.status") },
+      {
+        key: "updated",
+        label: t("coverLetters.table.columns.updated"),
+        className: "hidden sm:table-cell",
+      },
+      { key: "actions", className: "text-right w-12" },
+    ],
+    [t]
+  )
+
+  const columns = useMemo(
+    () => allColumns.filter((column) => isColumnVisible(column.key)),
+    [allColumns, isColumnVisible]
+  )
 
   return (
     <>
@@ -45,10 +59,13 @@ export function CoverLetterTable({
             onDelete={() => onDelete(coverLetter)}
             onExport={() => onExport(coverLetter)}
             onDuplicate={() => onDuplicate(coverLetter)}
-            onPreview={() => setPreview({ id: coverLetter.id, title: coverLetter.title })}
+            onPreview={() =>
+              setPreview({ id: coverLetter.id, title: coverLetter.title })
+            }
             isDeleting={deletingId === coverLetter.id}
             isExporting={exportingId === coverLetter.id}
             isDuplicating={duplicatingId === coverLetter.id}
+            isColumnVisible={isColumnVisible}
           />
         ))}
       </EntityTable>

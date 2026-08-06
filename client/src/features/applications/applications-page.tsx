@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
 import { Bookmark, Upload } from "lucide-react"
@@ -7,10 +7,14 @@ import { DashboardPageShell } from "@/components/dashboard/dashboard-page-shell"
 import { DashboardPageHeader } from "@/components/dashboard/dashboard-page-header"
 import { TableToolbar } from "@/components/dashboard/table-toolbar"
 import { EntityEmptyState } from "@/components/data/entity-empty-state"
+import { TableDisplayMenu } from "@/components/data/table-display-menu"
+import { TableFilterMenu } from "@/components/data/table-filter-menu"
 import {
   ViewModeTabs,
   type ListViewMode,
 } from "@/components/data/view-mode-tabs"
+import { useTableColumnVisibility } from "@/hooks/use-table-column-visibility"
+import { useTableFilters } from "@/hooks/use-table-filters"
 import { TrackingKanban } from "./components/tracking-kanban"
 import { ApplicationsTable } from "./components/applications-table"
 import { EmailConnectBar } from "./components/email-connect-bar"
@@ -19,12 +23,14 @@ import { ApplicationsTour } from "./components/applications-tour"
 import { AddJobDialog } from "@/features/discover/components/add-job-dialog"
 import { useTrackedJobs, useEmailConnect } from "./hooks/use-tracked-jobs"
 import { useApplicationsOnboarding } from "./hooks/use-applications-onboarding"
+import { TRACKING_STATUS_ORDER } from "./constants"
 import type { EmailProvider } from "./types"
 
 export function ApplicationsPageContent() {
   const { t } = useTranslation("common")
   const [search, setSearch] = useState("")
   const [viewMode, setViewMode] = useState<ListViewMode>("table")
+  const tableFilters = useTableFilters()
   const { jobs, addFromPaste, untrack, replaceStatuses, updateStatus } = useTrackedJobs()
   const { connectedProvider, connect, disconnect } = useEmailConnect()
   const {
@@ -35,7 +41,34 @@ export function ApplicationsPageContent() {
     setTourOpen,
   } = useApplicationsOnboarding()
 
-  const filteredJobs = useMemo(
+  const displayColumns = useMemo(
+    () => [
+      { id: "job", label: t("applications.table.columns.job"), locked: true },
+      { id: "status", label: t("applications.table.columns.status") },
+      { id: "match", label: t("applications.table.columns.match") },
+      { id: "location", label: t("applications.table.columns.location") },
+      { id: "nextStep", label: t("applications.table.columns.nextStep") },
+      { id: "actions", label: t("tableChrome.actions"), locked: true },
+    ],
+    [t]
+  )
+  const columnVisibility = useTableColumnVisibility(displayColumns)
+
+  const filterFields = useMemo(
+    () => [
+      {
+        id: "status",
+        label: t("applications.table.columns.status"),
+        options: TRACKING_STATUS_ORDER.map((value) => ({
+          value,
+          label: t(`applications.statusLabels.${value}`),
+        })),
+      },
+    ],
+    [t]
+  )
+
+  const searchedJobs = useMemo(
     () =>
       jobs.filter(
         (job) =>
@@ -45,8 +78,18 @@ export function ApplicationsPageContent() {
     [jobs, search]
   )
 
-  const isEmpty = filteredJobs.length === 0 && search.trim() === ""
-  const noSearchHits = filteredJobs.length === 0 && search.trim() !== ""
+  const filteredJobs = useMemo(
+    () =>
+      tableFilters.filterItems(
+        searchedJobs,
+        (item, fieldId) => (fieldId === "status" ? item.status : null)
+      ),
+    [searchedJobs, tableFilters.filterItems]
+  )
+
+  const hasActiveQuery = search.trim() !== "" || tableFilters.hasActive
+  const isEmpty = filteredJobs.length === 0 && !hasActiveQuery
+  const noQueryHits = filteredJobs.length === 0 && hasActiveQuery
 
   function handleImport(description: string) {
     const tracked = addFromPaste(description)
@@ -91,7 +134,23 @@ export function ApplicationsPageContent() {
           search={search}
           onSearchChange={setSearch}
           filters={
-            <ViewModeTabs value={viewMode} onValueChange={setViewMode} />
+            <>
+              <TableFilterMenu
+                fields={filterFields}
+                isValueSelected={tableFilters.isValueSelected}
+                onToggleValue={tableFilters.toggleValue}
+                onClearAll={tableFilters.clearAll}
+                activeCount={tableFilters.activeCount}
+              />
+              {viewMode === "table" ? (
+                <TableDisplayMenu
+                  columns={displayColumns}
+                  isVisible={columnVisibility.isVisible}
+                  onToggle={columnVisibility.toggle}
+                />
+              ) : null}
+              <ViewModeTabs value={viewMode} onValueChange={setViewMode} />
+            </>
           }
           actions={
             <div id="applications-tour-import">
@@ -120,7 +179,7 @@ export function ApplicationsPageContent() {
               title={t("applications.empty.title")}
               description={t("applications.empty.description")}
             />
-          ) : noSearchHits ? (
+          ) : noQueryHits ? (
             <EntityEmptyState
               icon={Bookmark}
               title={t("applications.empty.noSearchTitle")}
@@ -131,6 +190,7 @@ export function ApplicationsPageContent() {
               jobs={filteredJobs}
               onStatusChange={updateStatus}
               onRemove={untrack}
+              isColumnVisible={columnVisibility.isVisible}
             />
           ) : (
             <TrackingKanban

@@ -12,12 +12,14 @@ interface SessionTableRowProps {
   readonly session: RecentSession
   readonly onDelete: () => void
   readonly isDeleting?: boolean
+  readonly isColumnVisible?: (columnId: string) => boolean
 }
 
 export function SessionTableRow({
   session,
   onDelete,
   isDeleting,
+  isColumnVisible = () => true,
 }: SessionTableRowProps) {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
@@ -54,52 +56,62 @@ export function SessionTableRow({
 
   return (
     <tr className="group border-b border-border/40 transition-colors hover:bg-muted/5">
-      <td className="px-4 py-3">
-        <button
-          type="button"
-          onClick={openSession}
-          className="flex w-full cursor-pointer items-center gap-3 text-left"
-        >
-          <div
-            className={`flex size-10 shrink-0 items-center justify-center rounded-xl text-sm font-semibold select-none ${avatarClass}`}
+      {isColumnVisible("session") ? (
+        <td className="px-4 py-3">
+          <button
+            type="button"
+            onClick={openSession}
+            className="flex w-full cursor-pointer items-center gap-3 text-left"
           >
-            {avatarText}
-          </div>
-          <div className="flex min-w-0 flex-col">
-            <span className="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
-              {session.title}
-            </span>
-            <span className="truncate text-xs text-muted-foreground">
-              {session.track}
-              <span className="mx-1.5 text-border">·</span>
-              {session.durationMin}{" "}
-              {t("simulations.recentSessions.durationSuffix")}
-            </span>
-          </div>
-        </button>
-      </td>
+            <div
+              className={`flex size-10 shrink-0 items-center justify-center rounded-xl text-sm font-semibold select-none ${avatarClass}`}
+            >
+              {avatarText}
+            </div>
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate text-sm font-semibold text-foreground transition-colors group-hover:text-primary">
+                {session.title}
+              </span>
+              <span className="truncate text-xs text-muted-foreground">
+                {session.track}
+                <span className="mx-1.5 text-border">·</span>
+                {session.durationMin}{" "}
+                {t("simulations.recentSessions.durationSuffix")}
+              </span>
+            </div>
+          </button>
+        </td>
+      ) : null}
 
-      <td className="px-4 py-3 text-center">
-        <DocumentScoreBadge score={session.score} />
-      </td>
+      {isColumnVisible("score") ? (
+        <td className="px-4 py-3 text-center">
+          <DocumentScoreBadge score={session.score} />
+        </td>
+      ) : null}
 
-      <td className="px-4 py-3">
-        <SessionStatusBadge status={session.status} />
-      </td>
+      {isColumnVisible("status") ? (
+        <td className="px-4 py-3">
+          <SessionStatusBadge status={session.status} />
+        </td>
+      ) : null}
 
-      <td className="hidden px-4 py-3 text-sm text-muted-foreground sm:table-cell">
-        {formatRelativeTime(session.updatedAt)}
-      </td>
+      {isColumnVisible("updated") ? (
+        <td className="hidden px-4 py-3 text-sm text-muted-foreground sm:table-cell">
+          {formatRelativeTime(session.updatedAt)}
+        </td>
+      ) : null}
 
-      <td className="px-4 py-3 text-right">
-        <EntityRowActions
-          translationPrefix="simulations.recentSessions"
-          entityTitle={session.title}
-          onOpen={openSession}
-          onDelete={onDelete}
-          isDeleting={isDeleting}
-        />
-      </td>
+      {isColumnVisible("actions") ? (
+        <td className="px-4 py-3 text-right">
+          <EntityRowActions
+            translationPrefix="simulations.recentSessions"
+            entityTitle={session.title}
+            onOpen={openSession}
+            onDelete={onDelete}
+            isDeleting={isDeleting}
+          />
+        </td>
+      ) : null}
     </tr>
   )
 }

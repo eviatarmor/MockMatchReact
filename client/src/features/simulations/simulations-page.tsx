@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { History, Play } from "lucide-react"
@@ -10,15 +11,69 @@ import { TableToolbar } from "@/components/dashboard/table-toolbar"
 import { EntityEmptyState } from "@/components/data/entity-empty-state"
 import { EntityListStates } from "@/components/data/entity-list-states"
 import { EntityTablePagination } from "@/components/data/entity-table-pagination"
+import { TableDisplayMenu } from "@/components/data/table-display-menu"
+import { TableFilterMenu } from "@/components/data/table-filter-menu"
+import { useTableColumnVisibility } from "@/hooks/use-table-column-visibility"
+import { useTableFilters } from "@/hooks/use-table-filters"
 import { SessionTable } from "./components/session-table"
 import { TrackBrowserSection } from "./components/track-browser-section"
 import { useSessionsList } from "./hooks/use-sessions-list"
-import type { RecentSession } from "./types"
+import type { RecentSession, SessionStatus } from "./types"
+
+const SESSION_STATUSES: readonly SessionStatus[] = [
+  "completed",
+  "in_progress",
+  "abandoned",
+]
 
 export function SimulationsPageContent() {
   const { t } = useTranslation("common")
   const navigate = useNavigate()
   const list = useSessionsList()
+  const tableFilters = useTableFilters()
+
+  const displayColumns = useMemo(
+    () => [
+      {
+        id: "session",
+        label: t("simulations.recentSessions.columns.session"),
+        locked: true,
+      },
+      { id: "score", label: t("simulations.recentSessions.columns.score") },
+      { id: "status", label: t("simulations.recentSessions.columns.status") },
+      { id: "updated", label: t("simulations.recentSessions.columns.updated") },
+      { id: "actions", label: t("tableChrome.actions"), locked: true },
+    ],
+    [t]
+  )
+  const columnVisibility = useTableColumnVisibility(displayColumns)
+
+  const filterFields = useMemo(
+    () => [
+      {
+        id: "status",
+        label: t("simulations.recentSessions.columns.status"),
+        options: SESSION_STATUSES.map((value) => ({
+          value,
+          label: t(`simulations.recentSessions.statusLabels.${value}`),
+        })),
+      },
+    ],
+    [t]
+  )
+
+  const filteredItems = useMemo(
+    () =>
+      tableFilters.filterItems(
+        list.items,
+        (item, fieldId) => (fieldId === "status" ? item.status : null)
+      ),
+    [list.items, tableFilters.filterItems]
+  )
+
+  const hasActiveQuery = list.hasActiveSearch || tableFilters.hasActive
+  const listEmpty = list.isEmpty && !tableFilters.hasActive
+  const filterEmpty = !list.isLoading && filteredItems.length === 0
 
   const goToTracks = () => navigate("/simulations/tracks")
 
@@ -31,17 +86,17 @@ export function SimulationsPageContent() {
     <EntityEmptyState
       icon={History}
       title={
-        list.hasActiveSearch
+        hasActiveQuery
           ? t("simulations.recentSessions.emptySearchTitle")
           : t("simulations.recentSessions.emptyTitle")
       }
       description={
-        list.hasActiveSearch
+        hasActiveQuery
           ? t("simulations.recentSessions.emptySearchDescription")
           : t("simulations.recentSessions.emptyDescription")
       }
       action={
-        list.hasActiveSearch
+        hasActiveQuery
           ? undefined
           : {
               label: t("dashboard.actions.startSimulation"),
@@ -64,6 +119,22 @@ export function SimulationsPageContent() {
           searchPlaceholder={t("dashboard.search.simulations")}
           search={list.search}
           onSearchChange={list.setSearch}
+          filters={
+            <>
+              <TableFilterMenu
+                fields={filterFields}
+                isValueSelected={tableFilters.isValueSelected}
+                onToggleValue={tableFilters.toggleValue}
+                onClearAll={tableFilters.clearAll}
+                activeCount={tableFilters.activeCount}
+              />
+              <TableDisplayMenu
+                columns={displayColumns}
+                isVisible={columnVisibility.isVisible}
+                onToggle={columnVisibility.toggle}
+              />
+            </>
+          }
           actions={
             <Button
               variant="default"
@@ -81,15 +152,16 @@ export function SimulationsPageContent() {
         <EntityListStates
           isError={list.isError}
           isLoading={list.isLoading}
-          isEmpty={list.isEmpty}
+          isEmpty={listEmpty || filterEmpty}
           errorMessage={t("simulations.recentSessions.loadError")}
           loadingMessage={t("simulations.recentSessions.loading")}
           emptyState={emptyState}
         >
           <SessionTable
-            sessions={list.items}
+            sessions={filteredItems}
             onDelete={handleDelete}
             deletingId={list.deletingId}
+            isColumnVisible={columnVisibility.isVisible}
           />
           <EntityTablePagination
             page={list.page}
