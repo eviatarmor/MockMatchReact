@@ -7,12 +7,23 @@ import {
   type ReactNode,
   type Ref,
 } from "react"
+import { mapClientToBoard } from "./map-client-to-board"
+import { isNativeTextTarget as checkNativeTextTarget } from "./is-native-text-target"
+import { useOverlayState } from "./use-overlay-state"
+import { useWrapperBoardPointer } from "./use-wrapper-board-pointer"
+import { BoardSurface } from "./board-surface"
+import {
+  handleElementPointerDown,
+  handlePortPointerDown,
+  handleResizePointerDown,
+  patchElementText,
+} from "./element-interaction"
+
+export { mapClientToBoard } from "./map-client-to-board"
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 import { hitTest, listElementsSorted } from "../document"
 import {
   applyResize,
-  closestPort,
-  elementPorts,
   type ResizeHandle,
 } from "../lib/flowchart"
 import {
@@ -41,29 +52,9 @@ import type {
   WhiteboardTool,
 } from "../types"
 import { DEFAULT_HIGHLIGHTER_STYLE, DEFAULT_PEN_STYLE } from "../types"
-import { ElementView } from "./elements"
 
 const GRID_DOT_FALLBACK = 24
 const BOARD_SIZE = 3000
-
-/**
- * Map a client (screen) point to board layout coords using the board plane’s
- * visual rect and layout size. Pure helper — unit-tested; canvas remeasures
- * getBoundingClientRect each call so pan/zoom after template apply stays aligned.
- */
-export function mapClientToBoard(
-  clientX: number,
-  clientY: number,
-  rect: { left: number; top: number; width: number; height: number },
-  layoutW: number,
-  layoutH: number
-): { x: number; y: number } {
-  if (rect.width <= 0 || rect.height <= 0) return { x: 0, y: 0 }
-  return {
-    x: ((clientX - rect.left) * layoutW) / rect.width,
-    y: ((clientY - rect.top) * layoutH) / rect.height,
-  }
-}
 
 export type WhiteboardCanvasProps = {
   readonly document: WhiteboardDocument
@@ -142,11 +133,9 @@ export function WhiteboardCanvas({
   docRef.current = doc
 
   const [editingLabelId, setEditingLabelId] = useState<string | null>(null)
-  const [overlays, setOverlays] = useState<Record<string, ReactNode>>({})
+  const { overlays, setOverlay, clearOverlays } = useOverlayState()
   const didInitCenter = useRef(false)
   const surfaceRectCacheRef = useRef<DOMRect | null>(null)
-  const overlayPendingRef = useRef<Record<string, ReactNode | null>>({})
-  const overlayRafRef = useRef(0)
 
   const selectedIdsRef = useRef(selectedIds)
   selectedIdsRef.current = selectedIds
@@ -249,72 +238,17 @@ export function WhiteboardCanvas({
   const clientToBoardRef = useRef(clientToBoard)
   clientToBoardRef.current = clientToBoard
 
-  const isNativeTextTarget = useCallback((target: EventTarget | null) => {
-    if (!(target instanceof HTMLElement)) return false
-    if (editingLabelIdRef.current) {
-      if (
-        target.isContentEditable ||
-        target.closest("[data-shape-label-editor]") ||
-        target.closest('[contenteditable="true"]')
-      ) {
-        return true
-      }
-    }
-    const tag = target.tagName
-    if (tag === "TEXTAREA" || tag === "INPUT") {
-      const elId = target.closest("[data-el-id]")?.getAttribute("data-el-id")
-      const ids = selectedIdsRef.current
-      if (ids.length === 0) return true
-      if (ids.length === 1 && elId && ids[0] === elId) return true
-      return false
-    }
-    if (target.isContentEditable) return true
-    return false
-  }, [])
+  const isNativeTextTarget = useCallback(
+    (target: EventTarget | null) =>
+      checkNativeTextTarget(
+        target,
+        editingLabelIdRef.current,
+        selectedIdsRef.current
+      ),
+    []
+  )
   const isNativeTextTargetRef = useRef(isNativeTextTarget)
   isNativeTextTargetRef.current = isNativeTextTarget
-
-  /** Coalesce overlay React updates to 1/frame during stroke/marquee. */
-  const setOverlay = useCallback((key: string, node: ReactNode | null) => {
-    overlayPendingRef.current[key] = node
-    if (overlayRafRef.current) return
-    overlayRafRef.current = requestAnimationFrame(() => {
-      overlayRafRef.current = 0
-      const pending = overlayPendingRef.current
-      overlayPendingRef.current = {}
-      setOverlays((prev) => {
-        let next = prev
-        let changed = false
-        for (const [k, v] of Object.entries(pending)) {
-          if (v == null) {
-            if (k in next) {
-              if (!changed) {
-                next = { ...next }
-                changed = true
-              }
-              delete next[k]
-            }
-          } else if (next[k] !== v) {
-            if (!changed) {
-              next = { ...next }
-              changed = true
-            }
-            next[k] = v
-          }
-        }
-        return changed ? next : prev
-      })
-    })
-  }, [])
-
-  const clearOverlays = useCallback(() => {
-    overlayPendingRef.current = {}
-    if (overlayRafRef.current) {
-      cancelAnimationFrame(overlayRafRef.current)
-      overlayRafRef.current = 0
-    }
-    setOverlays({})
-  }, [])
 
   const getViewportAccess = useCallback((): ViewportAccess | null => {
     const vp = viewportRef.current
@@ -473,46 +407,21 @@ export function WhiteboardCanvas({
     }
   }
 
-  /**
-   * After centerOnBoardPoint (template apply), the board plane's top-left can
-   * sit *inside* the viewport. The transform wrapper still paints the full
-   * grid, but pointer handlers only lived on the 3000² surface — so the
-   * top/left grid looked live and did nothing (classic “only bottom-right
-   * hits”). Forward pointerdown from the wrapper when the event is outside
-   * the board plane.
-   */
-  useEffect(() => {
-    let raf = 0
-    let wrapper: HTMLDivElement | null = null
+  const isPanToolFn = useCallback(() => toolRef.current === "pan", [])
+  const onBoardPointerDownStable = useCallback(
+    (e: PointerEvent) => onBoardPointerDown(e),
+    // host/toolRegistry identity drives rebind via bindKey
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [host, toolRegistry]
+  )
+  useWrapperBoardPointer({
+    viewportApiRef: ref,
+    surfaceRef,
+    isPanTool: isPanToolFn,
+    onBoardPointerDown: onBoardPointerDownStable,
+    bindKey: host,
+  })
 
-    const onWrapperPointerDown = (e: PointerEvent) => {
-      if (e.button !== 0) return
-      if (toolRef.current === "pan") return
-      const surface = surfaceRef.current
-      if (!surface) return
-      const target = e.target
-      if (!(target instanceof Node)) return
-      // Element chrome / surface already handled this event.
-      if (surface.contains(target)) return
-      // Outside board plane (visible grid on the wrapper) → board tool.
-      onBoardPointerDown(e)
-    }
-
-    const attach = () => {
-      wrapper = ref.current?.instance?.wrapperComponent ?? null
-      if (!wrapper) {
-        raf = requestAnimationFrame(attach)
-        return
-      }
-      wrapper.addEventListener("pointerdown", onWrapperPointerDown)
-    }
-    attach()
-
-    return () => {
-      cancelAnimationFrame(raf)
-      wrapper?.removeEventListener("pointerdown", onWrapperPointerDown)
-    }
-  }, [ref, host, toolRegistry])
 
   const onBoardPointerMove = (e: React.PointerEvent) => {
     const session = gestureRef.current
@@ -595,73 +504,33 @@ export function WhiteboardCanvas({
     }
   }, [])
 
-  const onTextChange = useCallback(
-    (id: string, text: string) => {
-      if (!canEditRef.current) return
-      const existing = docRef.current.elements[id]
-      if (!existing) return
-      if (existing.type === "sticky" || existing.type === "text") {
-        onCommandRef.current({
-          type: "patch",
-          id,
-          patch: { text } as Partial<typeof existing>,
-        })
-      } else if (existing.type === "shape") {
-        onCommandRef.current({
-          type: "patch",
-          id,
-          patch: { label: text } as Partial<typeof existing>,
-        })
-      }
-    },
-    []
-  )
+  const onTextChange = useCallback((id: string, textValue: string) => {
+    patchElementText(
+      docRef.current,
+      id,
+      textValue,
+      canEditRef.current,
+      (cmd) => onCommandRef.current(cmd as never)
+    )
+  }, [])
 
   const onPointerDownElement = useCallback(
     (id: string, ev: React.PointerEvent) => {
-      const currentTool = toolRef.current
-      if (currentTool === "pan") return
-      const defActive = toolRegistry.get(currentTool)
-      if (defActive?.passThroughElements) return
-      if (editingLabelIdRef.current === id) return
-
-      if (currentTool === "connector" && canEditRef.current) {
-        ev.stopPropagation()
-        ev.preventDefault()
-        const { x, y } = clientToBoardRef.current(ev.clientX, ev.clientY)
-        const hitEl = docRef.current.elements[id]
-        const port = hitEl ? closestPort(hitEl, x, y) : null
-        const def = toolRegistry.get("connector")
-        if (!def?.onPointerDown) return
-        const pointer = pointerFromEvent(ev, {
-          x: port?.x ?? x,
-          y: port?.y ?? y,
-        })
-        const g = def.onPointerDown(
-          {
-            ...pointer,
-            boardX: port?.x ?? x,
-            boardY: port?.y ?? y,
-          },
-          host
-        )
-        if (g) {
-          gestureRef.current = { toolId: "connector", data: g }
-          captureBoard(ev)
-        }
-        return
-      }
-
-      if (currentTool !== "select" || !canEditRef.current) return
-      const def = toolRegistry.get("select")
-      if (!def?.onPointerDown) return
-      const board = clientToBoardRef.current(ev.clientX, ev.clientY)
-      const pointer = pointerFromEvent(ev, board)
-      const g = def.onPointerDown(pointer, host)
-      if (g) {
-        gestureRef.current = { toolId: "select", data: g }
-        captureBoard(ev)
-      }
+      handleElementPointerDown({
+        id,
+        ev,
+        tool: toolRef.current,
+        canEdit: canEditRef.current,
+        editingLabelId: editingLabelIdRef.current,
+        doc: docRef.current,
+        toolRegistry,
+        host,
+        clientToBoard: (x, y) => clientToBoardRef.current(x, y),
+        setGesture: (g) => {
+          gestureRef.current = g
+        },
+        captureBoard,
+      })
     },
     [host, toolRegistry]
   )
@@ -672,53 +541,45 @@ export function WhiteboardCanvas({
       anchor: import("../types").ConnectorAnchor,
       ev: React.PointerEvent
     ) => {
-      if (!canEditRef.current) return
-      ev.stopPropagation()
-      ev.preventDefault()
-      const hitEl = docRef.current.elements[elementId]
-      const port = hitEl
-        ? elementPorts(hitEl)?.find((p) => p.anchor === anchor)
-        : null
-      const p = port ?? { x: 0, y: 0, anchor }
-      const def = toolRegistry.get("connector")
-      if (!def?.onPointerDown) return
-      const pointer = pointerFromEvent(ev, { x: p.x, y: p.y })
-      const g = def.onPointerDown(
-        { ...pointer, boardX: p.x, boardY: p.y },
-        host
-      )
-      if (g) {
-        gestureRef.current = { toolId: "connector", data: g }
-        captureBoard(ev)
-      }
+      handlePortPointerDown({
+        elementId,
+        anchor,
+        ev,
+        canEdit: canEditRef.current,
+        doc: docRef.current,
+        toolRegistry,
+        host,
+        setGesture: (g) => {
+          gestureRef.current = g
+        },
+        captureBoard,
+      })
     },
     [host, toolRegistry]
   )
 
   const onResizePointerDown = useCallback(
     (elementId: string, handle: ResizeHandle, ev: React.PointerEvent) => {
-      if (!canEditRef.current) return
-      ev.stopPropagation()
-      const hitEl = docRef.current.elements[elementId]
-      if (!hitEl || hitEl.type === "path" || hitEl.type === "connector") return
-      gestureRef.current = {
-        toolId: "__resize__",
-        data: {
-          type: "resize",
-          id: elementId,
-          handle,
-          start: {
-            x: hitEl.x,
-            y: hitEl.y,
-            w: hitEl.w,
-            h: hitEl.h,
-          },
+      handleResizePointerDown({
+        elementId,
+        handle,
+        ev,
+        canEdit: canEditRef.current,
+        doc: docRef.current,
+        setGesture: (g) => {
+          gestureRef.current = g
         },
-      }
-      captureBoard(ev)
+        captureBoard,
+      })
     },
     []
   )
+
+  const pluginOverlays: { id: string; node: ReactNode }[] = []
+  for (const plugin of sortedPlugins) {
+    const node = plugin.renderOverlay?.(featureCtx)
+    if (node) pluginOverlays.push({ id: plugin.id, node })
+  }
 
   return (
     <div className="relative h-full w-full min-h-0">
@@ -759,68 +620,34 @@ export function WhiteboardCanvas({
             cursor,
           }}
         >
-          <div
-            ref={setSurfaceRef}
-            className="relative"
-            style={{
-              width: BOARD_SIZE,
-              height: BOARD_SIZE,
-              cursor,
-            }}
-            onPointerDown={onBoardPointerDown}
-            onPointerMove={onBoardPointerMove}
-            onPointerUp={onBoardPointerUp}
-            onPointerCancel={onBoardPointerUp}
-            onDoubleClick={onBoardDoubleClick}
-          >
-            {elements.map((el) => (
-              <ElementView
-                key={el.id}
-                el={el}
-                doc={doc}
-                selected={selectedSet.has(el.id)}
-                canEdit={canEdit}
-                renderers={elementRenderers}
-                showPorts={
-                  !editingLabelId &&
-                  (tool === "connector" || selectedSet.has(el.id))
-                }
-                passThrough={passThroughElements}
-                editingLabelId={editingLabelId}
-                shapeLabelLabels={shapeLabelLabels}
-                onStartLabelEdit={onStartLabelEdit}
-                onEndLabelEdit={onEndLabelEdit}
-                onSelect={onSelectElement}
-                onTextChange={onTextChange}
-                onPointerDownElement={onPointerDownElement}
-                onPortPointerDown={onPortPointerDown}
-                onResizePointerDown={onResizePointerDown}
-              />
-            ))}
-
-            {Object.entries(overlays).map(([key, node]) => (
-              <div key={key} data-wb-overlay={key}>
-                {node}
-              </div>
-            ))}
-
-            {sortedPlugins.map((plugin) => {
-              const node = plugin.renderOverlay?.(featureCtx)
-              if (!node) return null
-              return (
-                <div
-                  key={plugin.id}
-                  className="pointer-events-none absolute inset-0"
-                  data-wb-plugin-overlay={plugin.id}
-                >
-                  {node}
-                </div>
-              )
-            })}
-
-            {boardOverlay}
-          </div>
-        </TransformComponent>
+          <BoardSurface
+            surfaceRef={setSurfaceRef}
+            cursor={cursor}
+            doc={doc}
+            elements={elements}
+            selectedSet={selectedSet}
+            canEdit={canEdit}
+            renderers={elementRenderers}
+            tool={tool}
+            editingLabelId={editingLabelId}
+            shapeLabelLabels={shapeLabelLabels}
+            passThroughElements={passThroughElements}
+            overlays={overlays}
+            pluginOverlays={pluginOverlays}
+            boardOverlay={boardOverlay}
+            onBoardPointerDown={onBoardPointerDown}
+            onBoardPointerMove={onBoardPointerMove}
+            onBoardPointerUp={onBoardPointerUp}
+            onBoardDoubleClick={onBoardDoubleClick}
+            onStartLabelEdit={onStartLabelEdit}
+            onEndLabelEdit={onEndLabelEdit}
+            onSelectElement={onSelectElement}
+            onTextChange={onTextChange}
+            onPointerDownElement={onPointerDownElement}
+            onPortPointerDown={onPortPointerDown}
+            onResizePointerDown={onResizePointerDown}
+          />
+</TransformComponent>
       </TransformWrapper>
 
       {sortedPlugins.map((plugin) => {
