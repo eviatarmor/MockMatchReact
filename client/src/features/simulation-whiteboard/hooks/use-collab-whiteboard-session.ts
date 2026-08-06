@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import * as Y from "yjs"
 import {
   createCollabDocumentUndoManager,
   materializeCollabYDoc,
@@ -10,6 +9,10 @@ import {
 import type { WhiteboardDocument } from "@mockmatch/whiteboard"
 import { useCollabRoom } from "@/features/collab/hooks/use-collab-room"
 import type { CollabPermissions } from "@/features/collab/types"
+
+type CollabDocumentUndoManager = ReturnType<
+  typeof createCollabDocumentUndoManager
+>
 
 type Args = {
   readonly boardId: string | null
@@ -48,7 +51,7 @@ export function useCollabWhiteboardSession({
   const skipOutbound = useRef(false)
   const sendYUpdateRef = useRef<(u: string) => void>(() => {})
   const liveRef = useRef(false)
-  const undoManagerRef = useRef<Y.UndoManager | null>(null)
+  const undoManagerRef = useRef<CollabDocumentUndoManager | null>(null)
   const [liveCanUndo, setLiveCanUndo] = useState(false)
   const [liveCanRedo, setLiveCanRedo] = useState(false)
 
