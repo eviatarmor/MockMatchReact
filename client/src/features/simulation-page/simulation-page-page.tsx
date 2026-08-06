@@ -20,6 +20,7 @@ import {
 } from "@mockmatch/ui/tooltip"
 import { SaveStatusBadge } from "@/components/data/save-status-badge"
 import { ShareDialog } from "@/features/collab/components/share-dialog"
+import { SimulationPromptRail } from "@/features/simulations/components/simulation-prompt-rail"
 import { trpc } from "@/lib/trpc"
 import { usePageDocumentSession } from "./hooks/use-page-document-session"
 
@@ -190,11 +191,6 @@ export function SimulationPagePageContent() {
           })}
         </Badge>
       }
-      center={
-        <p className="truncate text-xs text-muted-foreground">
-          {session.prompt ?? t("simulation-page:subtitle")}
-        </p>
-      }
       end={
         <div className="flex items-center gap-2">
           <SaveStatusBadge
@@ -223,16 +219,26 @@ export function SimulationPagePageContent() {
     />
   )
 
+  const prompt =
+    session.prompt?.trim() ||
+    t("common:simulations.promptRail.emptyPrompt")
+
   return (
     <>
-      <PageShell chrome={chrome} labels={shellLabels} className="h-full">
-        <PageEditor
-          value={html}
-          onChange={onChange}
-          labels={editorLabels}
-          placeholder={t("simulation-page:placeholder")}
-        />
-      </PageShell>
+      <SimulationPromptRail
+        prompt={prompt}
+        storageKey="mockmatch.page.rail-width"
+        slot="page-side-panel"
+      >
+        <PageShell chrome={chrome} labels={shellLabels} className="h-full">
+          <PageEditor
+            value={html}
+            onChange={onChange}
+            labels={editorLabels}
+            placeholder={t("simulation-page:placeholder")}
+          />
+        </PageShell>
+      </SimulationPromptRail>
       {pageId ? (
         <ShareDialog
           open={shareOpen}
