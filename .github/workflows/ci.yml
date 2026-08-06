@@ -28,6 +28,18 @@ jobs:
           # Full history for --changed-since / PR base detection
           fetch-depth: 0
 
+      # Workspace packages need node_modules so Fallow can resolve
+      # @mockmatch/* imports (landpage, packages/*, etc.). Without install,
+      # new package files look unused and the new-only gate false-fails.
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
       # PRs: fail only on findings introduced by the changeset
       - name: Fallow audit (new issues only)
         if: github.event_name == 'pull_request'
