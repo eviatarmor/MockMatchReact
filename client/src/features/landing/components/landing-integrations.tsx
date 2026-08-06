@@ -1,23 +1,48 @@
-import { forwardRef, useRef } from "react"
+import { createRef, useMemo, useRef, type ReactNode, type RefObject } from "react"
 import { useTranslation } from "react-i18next"
 import {
   Calendar,
   Mail,
   MessageSquare,
   Video,
+  type LucideIcon,
 } from "lucide-react"
 import { AnimatedBeam } from "@mockmatch/ui/animated-beam"
 import { AppLogo } from "@/components/icons/app-logo"
 import { cn } from "@/lib/utils"
+import { LANDING_INTEGRATION_NODES } from "../constants"
 import { ScrollReveal } from "./scroll-reveal"
 
-const Circle = forwardRef<
-  HTMLDivElement,
-  { className?: string; children?: React.ReactNode; label: string }
->(function Circle({ className, children, label }, ref) {
+const NODE_ICONS: Record<
+  (typeof LANDING_INTEGRATION_NODES)[number]["id"],
+  LucideIcon
+> = {
+  zoom: Video,
+  meet: Video,
+  outlook: Mail,
+  gmail: Mail,
+  chat: MessageSquare,
+  calendar: Calendar,
+}
+
+/** Beam layout: left column → center, right column → center (reverse). */
+const LEFT_NODE_IDS = ["zoom", "outlook", "chat"] as const
+const RIGHT_NODE_IDS = ["meet", "gmail", "calendar"] as const
+
+function IntegrationCircle({
+  className,
+  children,
+  label,
+  circleRef,
+}: {
+  className?: string
+  children?: ReactNode
+  label: string
+  circleRef: RefObject<HTMLDivElement | null>
+}) {
   return (
     <div
-      ref={ref}
+      ref={circleRef}
       className={cn(
         "z-10 flex size-12 flex-col items-center justify-center rounded-full border-2 border-border bg-card p-2 shadow-sm sm:size-14",
         className
@@ -28,21 +53,46 @@ const Circle = forwardRef<
       <span className="sr-only">{label}</span>
     </div>
   )
-})
+}
 
 export function LandingIntegrations() {
   const { t } = useTranslation("landing")
   const containerRef = useRef<HTMLDivElement>(null)
   const centerRef = useRef<HTMLDivElement>(null)
-  const zoomRef = useRef<HTMLDivElement>(null)
-  const meetRef = useRef<HTMLDivElement>(null)
-  const outlookRef = useRef<HTMLDivElement>(null)
-  const gmailRef = useRef<HTMLDivElement>(null)
-  const chatRef = useRef<HTMLDivElement>(null)
-  const calendarRef = useRef<HTMLDivElement>(null)
+
+  const nodeRefs = useMemo(() => {
+    const map = {} as Record<
+      (typeof LANDING_INTEGRATION_NODES)[number]["id"],
+      RefObject<HTMLDivElement | null>
+    >
+    for (const node of LANDING_INTEGRATION_NODES) {
+      map[node.id] = createRef<HTMLDivElement>()
+    }
+    return map
+  }, [])
 
   const primary = "oklch(0.52 0.21 262)"
   const primarySoft = "oklch(0.62 0.21 262)"
+
+  const labelFor = (id: (typeof LANDING_INTEGRATION_NODES)[number]["id"]) => {
+    const node = LANDING_INTEGRATION_NODES.find((n) => n.id === id)
+    return node ? t(node.labelKey) : id
+  }
+
+  const renderNode = (
+    id: (typeof LANDING_INTEGRATION_NODES)[number]["id"]
+  ) => {
+    const Icon = NODE_ICONS[id]
+    return (
+      <IntegrationCircle
+        key={id}
+        circleRef={nodeRefs[id]}
+        label={labelFor(id)}
+      >
+        <Icon className="size-5 text-foreground/80 sm:size-6" aria-hidden />
+      </IntegrationCircle>
+    )
+  }
 
   return (
     <section
@@ -73,101 +123,53 @@ export function LandingIntegrations() {
             ref={containerRef}
             className="relative flex h-[320px] w-full items-center justify-center overflow-hidden rounded-xl border border-border/60 bg-card p-6 sm:h-[380px] sm:p-10"
           >
-            <div className="flex size-full max-w-lg flex-col items-stretch justify-between gap-8">
-              <div className="flex flex-row items-center justify-between">
-                <Circle ref={zoomRef} label={t("integrations.nodes.zoom")}>
-                  <Video className="size-5 text-foreground/80 sm:size-6" aria-hidden />
-                </Circle>
-                <Circle ref={meetRef} label={t("integrations.nodes.meet")}>
-                  <Video className="size-5 text-foreground/80 sm:size-6" aria-hidden />
-                </Circle>
+            <div className="flex size-full max-w-lg flex-row items-center justify-between gap-6 sm:gap-10">
+              <div className="flex flex-col justify-center gap-6 sm:gap-8">
+                {LEFT_NODE_IDS.map((id) => renderNode(id))}
               </div>
-              <div className="flex flex-row items-center justify-between">
-                <Circle ref={outlookRef} label={t("integrations.nodes.outlook")}>
-                  <Mail className="size-5 text-foreground/80 sm:size-6" aria-hidden />
-                </Circle>
-                <Circle
-                  ref={centerRef}
-                  label={t("integrations.centerLabel")}
-                  className="size-16 border-primary/40 bg-primary/5 sm:size-20"
-                >
-                  <span className="flex size-8 items-center justify-center rounded-md bg-primary p-1 sm:size-10">
-                    <AppLogo className="size-full" />
-                  </span>
-                </Circle>
-                <Circle ref={gmailRef} label={t("integrations.nodes.gmail")}>
-                  <Mail className="size-5 text-foreground/80 sm:size-6" aria-hidden />
-                </Circle>
-              </div>
-              <div className="flex flex-row items-center justify-between">
-                <Circle ref={chatRef} label={t("integrations.nodes.chat")}>
-                  <MessageSquare className="size-5 text-foreground/80 sm:size-6" aria-hidden />
-                </Circle>
-                <Circle ref={calendarRef} label={t("integrations.nodes.calendar")}>
-                  <Calendar className="size-5 text-foreground/80 sm:size-6" aria-hidden />
-                </Circle>
+
+              <IntegrationCircle
+                circleRef={centerRef}
+                label={t("integrations.centerLabel")}
+                className="size-16 border-primary/40 bg-primary/5 sm:size-20"
+              >
+                <span className="flex size-8 items-center justify-center rounded-md bg-primary p-1 sm:size-10">
+                  <AppLogo className="size-full" />
+                </span>
+              </IntegrationCircle>
+
+              <div className="flex flex-col justify-center gap-6 sm:gap-8">
+                {RIGHT_NODE_IDS.map((id) => renderNode(id))}
               </div>
             </div>
 
-            <AnimatedBeam
-              containerRef={containerRef}
-              fromRef={zoomRef}
-              toRef={centerRef}
-              curvature={-50}
-              endYOffset={-6}
-              gradientStartColor={primary}
-              gradientStopColor={primarySoft}
-              pathColor="var(--border)"
-            />
-            <AnimatedBeam
-              containerRef={containerRef}
-              fromRef={meetRef}
-              toRef={centerRef}
-              curvature={-50}
-              endYOffset={-6}
-              reverse
-              gradientStartColor={primary}
-              gradientStopColor={primarySoft}
-              pathColor="var(--border)"
-            />
-            <AnimatedBeam
-              containerRef={containerRef}
-              fromRef={outlookRef}
-              toRef={centerRef}
-              gradientStartColor={primary}
-              gradientStopColor={primarySoft}
-              pathColor="var(--border)"
-            />
-            <AnimatedBeam
-              containerRef={containerRef}
-              fromRef={gmailRef}
-              toRef={centerRef}
-              reverse
-              gradientStartColor={primary}
-              gradientStopColor={primarySoft}
-              pathColor="var(--border)"
-            />
-            <AnimatedBeam
-              containerRef={containerRef}
-              fromRef={chatRef}
-              toRef={centerRef}
-              curvature={50}
-              endYOffset={6}
-              gradientStartColor={primary}
-              gradientStopColor={primarySoft}
-              pathColor="var(--border)"
-            />
-            <AnimatedBeam
-              containerRef={containerRef}
-              fromRef={calendarRef}
-              toRef={centerRef}
-              curvature={50}
-              endYOffset={6}
-              reverse
-              gradientStartColor={primary}
-              gradientStopColor={primarySoft}
-              pathColor="var(--border)"
-            />
+            {LEFT_NODE_IDS.map((id, i) => (
+              <AnimatedBeam
+                key={`left-${id}`}
+                containerRef={containerRef}
+                fromRef={nodeRefs[id]}
+                toRef={centerRef}
+                curvature={i === 0 ? -40 : i === 2 ? 40 : 0}
+                endYOffset={i === 0 ? -6 : i === 2 ? 6 : 0}
+                gradientStartColor={primary}
+                gradientStopColor={primarySoft}
+                pathColor="var(--border)"
+              />
+            ))}
+            {RIGHT_NODE_IDS.map((id, i) => (
+              <AnimatedBeam
+                key={`right-${id}`}
+                containerRef={containerRef}
+                fromRef={nodeRefs[id]}
+                toRef={centerRef}
+                reverse
+                curvature={i === 0 ? -40 : i === 2 ? 40 : 0}
+                endYOffset={i === 0 ? -6 : i === 2 ? 6 : 0}
+                gradientStartColor={primary}
+                gradientStopColor={primarySoft}
+                pathColor="var(--border)"
+              />
+            ))}
           </div>
         </ScrollReveal>
       </div>

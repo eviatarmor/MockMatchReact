@@ -61,11 +61,16 @@ export function LandingHeader() {
             variant="ghost"
             size="sm"
             className="hidden sm:inline-flex"
+            nativeButton={false}
             render={<Link to="/login" />}
           >
             {t("nav.login")}
           </Button>
-          <Button size="sm" render={<Link to="/signup" />}>
+          <Button
+            size="sm"
+            nativeButton={false}
+            render={<Link to="/signup" />}
+          >
             {t("nav.signup")}
           </Button>
           <Button

@@ -72,6 +72,7 @@ function BentoCard({
                 variant="link"
                 size="sm"
                 className="pointer-events-auto h-auto p-0"
+                nativeButton={false}
                 render={<a href={href} />}
               >
                 {cta}
@@ -87,6 +88,7 @@ function BentoCard({
                 variant="link"
                 size="sm"
                 className="pointer-events-auto h-auto p-0"
+                nativeButton={false}
                 render={<a href={href} />}
               >
                 {cta}

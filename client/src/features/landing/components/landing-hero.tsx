@@ -36,7 +36,12 @@ export function LandingHero() {
         </BlurFade>
         <BlurFade delay={0.15} direction="up" offset={12}>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Button size="lg" className="h-10 px-4" render={<Link to="/signup" />}>
+            <Button
+              size="lg"
+              className="h-10 px-4"
+              nativeButton={false}
+              render={<Link to="/signup" />}
+            >
               {t("hero.primaryCta")}
               <ArrowRight data-icon="inline-end" />
             </Button>
@@ -44,6 +49,7 @@ export function LandingHero() {
               size="lg"
               variant="outline"
               className="h-10 px-4"
+              nativeButton={false}
               render={
                 <a href={DOCS_URL} target="_blank" rel="noopener noreferrer" />
               }

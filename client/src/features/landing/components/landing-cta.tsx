@@ -22,6 +22,7 @@ export function LandingCta() {
                 <Button
                   size="lg"
                   className="h-10 bg-white px-4 text-primary hover:bg-white/90"
+                  nativeButton={false}
                   render={<Link to="/signup" />}
                 >
                   {t("cta.primaryCta")}
@@ -30,6 +31,7 @@ export function LandingCta() {
                   size="lg"
                   variant="outline"
                   className="h-10 border-white/30 bg-transparent px-4 text-primary-foreground hover:bg-white/10 hover:text-primary-foreground"
+                  nativeButton={false}
                   render={<Link to="/login" />}
                 >
                   {t("cta.secondaryCta")}
