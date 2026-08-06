@@ -136,13 +136,25 @@
   "saving": "Saving…",
   "ended": "Session ended",
   "errors": {
-    "invalidId": "Invalid question id",
-    "notFound": "Question not found",
-    "backToQuestionBank": "Back to question bank",
-    "backToSimulations": "Back to simulations",
+    "invalidId": {
+      "title": "Invalid link",
+      "description": "This question link is not valid."
+    },
+    "notFound": {
+      "title": "Question not found",
+      "description": "We could not find that whiteboard question."
+    },
+    "shareInvalid": {
+      "title": "Share link unavailable",
+      "description": "This share link is invalid or has expired."
+    },
+    "openFailed": {
+      "title": "Could not open board",
+      "description": "Could not open the whiteboard. Check your connection and try again."
+    },
     "wrongFormat": "This question is not a whiteboard exercise",
-    "shareInvalid": "This share link is invalid or has expired.",
-    "openFailed": "Could not open the whiteboard. Check your connection and try again."
+    "backToQuestionBank": "Back to question bank",
+    "backToSimulations": "Back to simulations"
   },
   "emptyPrompt": "Use the board to sketch your answer. Tools are on the left; open Prompt or Templates from the right rail."
 }

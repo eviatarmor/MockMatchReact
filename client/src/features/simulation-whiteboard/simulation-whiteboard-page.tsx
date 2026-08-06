@@ -8,7 +8,15 @@ import {
 } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { ArrowLeft, Download, Share2 } from "lucide-react"
+import {
+  ArrowLeft,
+  CloudOff,
+  Download,
+  Link2Off,
+  SearchX,
+  Share2,
+  type LucideIcon,
+} from "lucide-react"
 import { IdeChromeBar } from "@mockmatch/ide"
 import {
   PresenceAvatarStack,
@@ -541,7 +549,9 @@ export function SimulationWhiteboardPageContent() {
   if (!seedId) {
     return (
       <ErrorPane
-        message={t("errors.invalidId")}
+        icon={Link2Off}
+        title={t("errors.invalidId.title")}
+        message={t("errors.invalidId.description")}
         backLabel={t("errors.backToQuestionBank")}
         onBack={() => navigate("/question-bank")}
       />
@@ -560,7 +570,9 @@ export function SimulationWhiteboardPageContent() {
   if (summaryQuery.isError || !summaryQuery.data) {
     return (
       <ErrorPane
-        message={t("errors.notFound")}
+        icon={SearchX}
+        title={t("errors.notFound.title")}
+        message={t("errors.notFound.description")}
         backLabel={t("errors.backToQuestionBank")}
         onBack={() => navigate("/question-bank")}
       />
@@ -583,7 +595,9 @@ export function SimulationWhiteboardPageContent() {
   ) {
     return (
       <ErrorPane
-        message={t("errors.shareInvalid")}
+        icon={Link2Off}
+        title={t("errors.shareInvalid.title")}
+        message={t("errors.shareInvalid.description")}
         backLabel={t("errors.backToSimulations")}
         onBack={() => navigate("/simulations")}
       />
@@ -593,7 +607,9 @@ export function SimulationWhiteboardPageContent() {
   if (boardSession.loadError) {
     return (
       <ErrorPane
-        message={t("errors.openFailed")}
+        icon={CloudOff}
+        title={t("errors.openFailed.title")}
+        message={t("errors.openFailed.description")}
         backLabel={t("errors.backToSimulations")}
         onBack={() => navigate("/simulations")}
       />
@@ -917,19 +933,28 @@ function IconBtn({
   )
 }
 
+/** Full-pane error family — layout matches collab `RoomFullGate` (session ended). */
 function ErrorPane({
+  icon: Icon,
+  title,
   message,
   backLabel,
   onBack,
 }: {
+  readonly icon: LucideIcon
+  readonly title: string
   readonly message: string
   readonly backLabel: string
   readonly onBack: () => void
 }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 p-6">
-      <p className="text-sm text-muted-foreground">{message}</p>
-      <Button type="button" variant="outline" onClick={onBack}>
+    <div className="flex h-full min-h-[50vh] flex-col items-center justify-center gap-4 p-8 text-center">
+      <Icon className="size-10 text-muted-foreground" aria-hidden />
+      <div className="space-y-1">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        <p className="max-w-sm text-sm text-muted-foreground">{message}</p>
+      </div>
+      <Button type="button" variant="outline" size="sm" onClick={onBack}>
         {backLabel}
       </Button>
     </div>
