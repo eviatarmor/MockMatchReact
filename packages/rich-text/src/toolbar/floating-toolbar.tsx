@@ -2,8 +2,6 @@ import { useCallback, useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext"
 import {
-  $getSelection,
-  $isRangeSelection,
   FORMAT_TEXT_COMMAND,
   SELECTION_CHANGE_COMMAND,
   COMMAND_PRIORITY_LOW,
@@ -35,6 +33,7 @@ import {
   readActiveFormats,
   type ActiveFormats,
 } from "../lib/formats"
+import { measureToolbarAnchor } from "../lib/toolbar-selection"
 import { ToolbarButton } from "./toolbar-button"
 import { ColorSwatchMenu } from "./color-swatch-menu"
 import { LinkSlide } from "./link-slide"
@@ -70,28 +69,13 @@ export function FloatingToolbar({
   const [linkUrl, setLinkUrl] = useState("")
 
   const update = useCallback(() => {
-    const selection = $getSelection()
-    const native = window.getSelection()
-    const root = editor.getRootElement()
-    if (
-      !$isRangeSelection(selection) ||
-      selection.isCollapsed() ||
-      !native ||
-      native.rangeCount === 0 ||
-      !root ||
-      document.activeElement !== root ||
-      !root.contains(native.anchorNode)
-    ) {
+    const anchor = measureToolbarAnchor(editor)
+    if (!anchor) {
       setPos(null)
       setPanel("none")
       return
     }
-    const rect = native.getRangeAt(0).getBoundingClientRect()
-    if (rect.width === 0 && rect.height === 0) {
-      setPos(null)
-      return
-    }
-    setPos({ top: rect.top, left: rect.left + rect.width / 2 })
+    setPos(anchor)
     const formats = readActiveFormats()
     if (formats) setActive(formats)
   }, [editor])

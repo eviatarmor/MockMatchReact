@@ -8,10 +8,8 @@ import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin"
 import { ListPlugin } from "@lexical/react/LexicalListPlugin"
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin"
 import { OnChangePlugin } from "@lexical/react/LexicalOnChangePlugin"
-import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html"
+import { $generateHtmlFromNodes } from "@lexical/html"
 import {
-  $getRoot,
-  $insertNodes,
   $setSelection,
   type EditorState,
   type LexicalEditor,
@@ -19,6 +17,7 @@ import {
 import { cn } from "@mockmatch/ui/utils"
 import { EXTERNAL_HTML_TAG } from "./constants"
 import { isBlankHtml } from "./lib/blank-html"
+import { $applyHtml } from "./lib/editor-html"
 import { RICH_TEXT_NODES } from "./nodes"
 import { HtmlSyncPlugin } from "./plugins/html-sync-plugin"
 import { CollabCaretsPlugin } from "./plugins/collab-carets-plugin"
@@ -76,6 +75,41 @@ function BlurOnOutsidePointer() {
   return null
 }
 
+function resolveNamespace(
+  namespaceProp: string | undefined,
+  fieldId: string | undefined,
+  reactId: string
+): string {
+  if (namespaceProp) return namespaceProp
+  if (fieldId) return `rt:${fieldId}`
+  return `rt:${reactId}`
+}
+
+function ReadOnlyHtml({
+  value,
+  className,
+}: {
+  readonly value: string
+  readonly className?: string
+}) {
+  if (isBlankHtml(value)) return null
+  return (
+    <div
+      className={cn("whitespace-pre-wrap", className)}
+      dangerouslySetInnerHTML={{ __html: value }}
+    />
+  )
+}
+
+function emitHtmlChange(
+  editor: LexicalEditor,
+  tags: Set<string> | undefined,
+  onChange: (html: string) => void
+): void {
+  if (tags?.has(EXTERNAL_HTML_TAG) || tags?.has("collaboration")) return
+  editor.read(() => onChange($generateHtmlFromNodes(editor, null)))
+}
+
 /**
  * Lightweight Lexical rich-text input for resume fields, cover letters,
  * spreadsheet cells, and other hosts that need shared formatting chrome.
@@ -97,32 +131,21 @@ export function RichTextInput({
 }: RichTextInputProps) {
   const value = valueProp ?? ""
   const reactId = useId()
-  const namespace =
-    namespaceProp ??
-    (collab?.fieldId ? `rt:${collab.fieldId}` : `rt:${reactId}`)
+  const namespace = resolveNamespace(namespaceProp, collab?.fieldId, reactId)
   const compact = variant === "compact"
 
   const initialConfig = useMemo(
     () => ({
       namespace,
-      editable: !(readOnly ?? false),
+      editable: !readOnly,
       theme: richTextTheme,
       nodes: RICH_TEXT_NODES,
       onError: (error: Error) => {
         throw error
       },
       editorState: (editor: LexicalEditor) => {
-        const root = $getRoot()
-        root.clear()
-        const source = value
-        if (!source.trim()) return
-        const dom = new DOMParser().parseFromString(source, "text/html")
-        const nodes = $generateNodesFromDOM(editor, dom)
-        if (nodes.length > 0) {
-          root.select()
-          $insertNodes(nodes)
-        }
-        $setSelection(null)
+        // Runs inside Lexical's initial update — HtmlSyncPlugin owns later sync
+        $applyHtml(editor, value)
       },
     }),
     // value intentionally omitted — HtmlSyncPlugin owns live external updates
@@ -131,13 +154,7 @@ export function RichTextInput({
   )
 
   if (readOnly || !onChange) {
-    if (isBlankHtml(value)) return null
-    return (
-      <div
-        className={cn("whitespace-pre-wrap", className)}
-        dangerouslySetInnerHTML={{ __html: value }}
-      />
-    )
+    return <ReadOnlyHtml value={value} className={className} />
   }
 
   const handleChange = (
@@ -145,9 +162,7 @@ export function RichTextInput({
     editor: LexicalEditor,
     tags?: Set<string>
   ) => {
-    if (tags?.has(EXTERNAL_HTML_TAG)) return
-    if (tags?.has("collaboration")) return
-    editor.read(() => onChange($generateHtmlFromNodes(editor, null)))
+    emitHtmlChange(editor, tags, onChange)
   }
 
   return (

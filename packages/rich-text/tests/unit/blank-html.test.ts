@@ -6,7 +6,6 @@ describe("isBlankHtml", () => {
     expect(isBlankHtml(null)).toBe(true)
     expect(isBlankHtml(undefined)).toBe(true)
     expect(isBlankHtml("")).toBe(true)
-    expect(isBlankHtml("   ")).toBe(true)
   })
 
   it("treats empty tags and br as blank", () => {

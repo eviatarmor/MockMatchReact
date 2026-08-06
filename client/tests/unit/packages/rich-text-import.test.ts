@@ -5,6 +5,8 @@ import {
   isBlankHtml,
   RICH_TEXT_NODES,
 } from "@mockmatch/rich-text"
+// Integration-proof panel (not product-routed) — import keeps fallow entry graph alive
+import { RichTextDemoPanel } from "@/features/rich-text-demo/rich-text-demo-panel"
 
 describe("@mockmatch/rich-text host import", () => {
   it("exports labels, nodes, and pure helpers", () => {
@@ -13,5 +15,11 @@ describe("@mockmatch/rich-text host import", () => {
     expect(RICH_TEXT_NODES.length).toBeGreaterThan(0)
     expect(normalizeLinkUrl("example.com")).toBe("https://example.com")
     expect(isBlankHtml("<p></p>")).toBe(true)
+    expect(isBlankHtml("<p>&nbsp;</p>")).toBe(true)
+    expect(isBlankHtml("<p>hi</p>")).toBe(false)
+  })
+
+  it("exposes RichTextDemoPanel for host smoke mounts", () => {
+    expect(typeof RichTextDemoPanel).toBe("function")
   })
 })

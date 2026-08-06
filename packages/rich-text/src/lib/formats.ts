@@ -3,6 +3,7 @@ import {
   $getSelection,
   $isRangeSelection,
   type LexicalEditor,
+  type LexicalNode,
   type TextFormatType,
 } from "lexical"
 import {
@@ -52,28 +53,33 @@ export function getSelectedLinkUrl(): string | null {
   return null
 }
 
+function listTypeToBlock(listType: string): RichTextBlockType {
+  return listType === "number" ? "number" : "bullet"
+}
+
+function headingTagToBlock(tag: string): RichTextBlockType | null {
+  if (tag === "h1" || tag === "h2" || tag === "h3") return tag
+  return null
+}
+
+function topLevelElement(anchor: LexicalNode): LexicalNode | null {
+  if (anchor.getKey() === "root") return anchor
+  return $findMatchingParent(anchor, (n) => {
+    const parent = n.getParent()
+    return parent !== null && parent.getKey() === "root"
+  })
+}
+
 function readBlockType(): RichTextBlockType {
   const selection = $getSelection()
   if (!$isRangeSelection(selection)) return "paragraph"
   const anchor = selection.anchor.getNode()
-  const element =
-    anchor.getKey() === "root"
-      ? anchor
-      : $findMatchingParent(anchor, (n) => {
-          const parent = n.getParent()
-          return parent !== null && parent.getKey() === "root"
-        })
-
-  if ($isListNode(element)) {
-    return element.getListType() === "number" ? "number" : "bullet"
-  }
   const listParent = $findMatchingParent(anchor, $isListNode)
-  if ($isListNode(listParent)) {
-    return listParent.getListType() === "number" ? "number" : "bullet"
-  }
+  if (listParent) return listTypeToBlock(listParent.getListType())
+  const element = topLevelElement(anchor)
+  if ($isListNode(element)) return listTypeToBlock(element.getListType())
   if ($isHeadingNode(element)) {
-    const tag = element.getTag()
-    if (tag === "h1" || tag === "h2" || tag === "h3") return tag
+    return headingTagToBlock(element.getTag()) ?? "paragraph"
   }
   return "paragraph"
 }
