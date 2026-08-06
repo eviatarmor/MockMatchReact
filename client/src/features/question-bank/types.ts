@@ -38,6 +38,8 @@ export interface BankQuestion {
   readonly status: QuestionStatus
   readonly format?: QuestionFormat
   readonly trackHint?: string | null
+  /** Self-owned custom question (from createCustom + self deploy). */
+  readonly isCustom?: boolean
 }
 
 export interface DomainFilter {

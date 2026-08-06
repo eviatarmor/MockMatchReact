@@ -73,23 +73,24 @@ application tracking, practice, and readiness insights.
 
    - Bank share URLs: \`/simulations/:questionId?share=<token>\` only (token resolves board/workspace/workbook id). Freeform spreadsheet/page/workspace/terminal-lab: path + \`?share=\`. Resume/cover letter keep doc id in the path. Owner must stay in room.
    - **Exercise catalog** is Postgres \`practice_exercises\` (slug, domain, difficulty, prompt, tags, embedding-ready). Starter **files** live under S3 prefix \`exercises/<slug>/<version>/\` (dev mirror in \`content_cache\`). Seed: \`npm run db:seed:exercises\` in \`api/\`.
-6. **Question Bank** (\`/question-bank\`) — **shared global content bank** (\`questions\` only): format + payload + \`content_cache\` / \`content_prefix\` for files. Auto-filled on apply/import. Kimi K3 + vector dedupe. **Formats generated:** conversation, code_run, **mcq**, **spreadsheet** (case tables + optional starter workbook), **page** (document analysis writeup + optional starter HTML). Whiteboard is practice-ready; generation optional. **Practice** for every bank row: \`/simulations/:questionId\` (format dispatcher). Surfaces: conversation → voice (\`@mockmatch/voice-agent\`); **mcq** → same-domain sequence (single/multi/order); **whiteboard** → canvas shell; code_run/workspace/terminal → IDE; spreadsheet/page → freeform sheets/docs with bank seed. **Domains:** coding, systemDesign, dataScience, ml, security, devops, product, design, caseStudy, consulting, behavioral, finance, marketing, sales, clinical. Seeds stay in \`practice_exercises\`.
+6. **Question Bank** (\`/question-bank\`) — **shared global content bank** (\`questions\` only): format + payload + \`content_cache\` / \`content_prefix\` for files. Auto-filled on apply/import. Kimi K3 + vector dedupe. **Formats generated:** conversation, code_run, **mcq**, **spreadsheet** (case tables + optional starter workbook), **page** (document analysis writeup + optional starter HTML). Whiteboard is practice-ready; generation optional. **Practice** for every bank row: \`/simulations/:questionId\` (format dispatcher). Surfaces: conversation → voice (\`@mockmatch/voice-agent\`); **mcq** → same-domain sequence (single/multi/order); **whiteboard** → canvas shell; code_run/workspace/terminal → IDE; spreadsheet/page → freeform sheets/docs with bank seed. **Domains:** coding, systemDesign, dataScience, ml, security, devops, product, design, caseStudy, consulting, behavioral, finance, marketing, sales, clinical. Seeds stay in \`practice_exercises\`. Also shows **your self-deployed custom questions** (\`isCustom\`) mixed into the list; use **My custom** to filter to customs only.
+7. **Custom questions** (\`/custom-questions\`) — author private practice items for every simulation format (mcq, code_run, workspace, terminal, whiteboard, spreadsheet, page, conversation). Flow: pick type from \`questions.simulationTypes\` → create draft (\`questions.createCustom\`) → **Deploy to my bank** (\`questions.deploy\` with \`scope: "self"\` only — no team/global UI). Manage drafts via \`questions.listMine\`. Deployed customs appear in Question Bank for the owner only.
 
 ### Insights area
-7. **Readiness** (\`/readiness\`) — readiness metrics / progress toward interview readiness.
-8. **Performance** (\`/performance\`) — performance trends and practice outcomes.
+8. **Readiness** (\`/readiness\`) — readiness metrics / progress toward interview readiness.
+9. **Performance** (\`/performance\`) — performance trends and practice outcomes.
 
 ### Automation area
-9. **Autofill / Auto Apply** (\`/autofill\`) — dashboard for the MockMatch browser extension (Chrome/Edge/Brave/Firefox): install status, activity log. Extension side panel fills application forms with profile + chosen resume + cover letter (pick or AI tailor); **review only — never auto-submits**. Settings include theme, auto-detect, prepare applications.
-10. **Interview Recorder** (\`/interview-recorder\`) — connect to real interviews for transcription/insights (surface in nav).
+10. **Autofill / Auto Apply** (\`/autofill\`) — dashboard for the MockMatch browser extension (Chrome/Edge/Brave/Firefox): install status, activity log. Extension side panel fills application forms with profile + chosen resume + cover letter (pick or AI tailor); **review only — never auto-submits**. Settings include theme, auto-detect, prepare applications.
+11. **Interview Recorder** (\`/interview-recorder\`) — connect to real interviews for transcription/insights (surface in nav).
 
 ### Account
 - **Account Settings** — profile (name + optional profile photo via click-on-avatar crop), preferences, and account access. Photo shows in the sidebar user menu when set.
 - **Billing** — plan, credit packs (Stripe when configured), usage.
 - **Privacy** — privacy toggles / data preferences. Public docs/marketing may show a separate site preference notice for optional analytics (not shown inside the signed-in app).
 ### Help & support area
-11. **Help & support** (\`/help\`) — topic-based support request (billing, bug, account, feature request, general info). Optional screenshots. Follow-up uses the signed-in account email. Also in the user menu (avatar).
-12. **Docs** — external link in the Help & support nav group to the public product docs site (\`https://docs.mockmatch.ai\`). Opens in a new tab (external-link icon). Complements in-app Help and this Ask chat; does not replace them.
+12. **Help & support** (\`/help\`) — topic-based support request (billing, bug, account, feature request, general info). Optional screenshots. Follow-up uses the signed-in account email. Also in the user menu (avatar).
+13. **Docs** — external link in the Help & support nav group to the public product docs site (\`https://docs.mockmatch.ai\`). Opens in a new tab (external-link icon). Complements in-app Help and this Ask chat; does not replace them.
 - **Feedback** (navbar button) — short anonymous product notes (message + page path/locale only; no name/email sent to triage). For structured support, use Help.
 
 ### Other

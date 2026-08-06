@@ -21,7 +21,7 @@ function toggleSet<T>(set: Set<T>, value: T): Set<T> {
  * Shared list + filter state for Question Bank and Interview tracks browse.
  * Both surfaces read the same global `questions.list` bank.
  */
-export function useQuestionBankList() {
+export function useQuestionBankList(options?: { customOnly?: boolean }) {
   const [search, setSearch] = useState("")
   const [selectedDomains, setSelectedDomains] = useState<Set<QuestionDomain>>(
     new Set()
@@ -32,6 +32,7 @@ export function useQuestionBankList() {
   const [selectedStatuses, setSelectedStatuses] = useState<Set<QuestionStatus>>(
     new Set()
   )
+  const [customOnly, setCustomOnly] = useState(Boolean(options?.customOnly))
 
   const listQuery = trpc.questions.list.useQuery({
     search: search.trim() || undefined,
@@ -47,6 +48,7 @@ export function useQuestionBankList() {
       selectedStatuses.size > 0
         ? (Array.from(selectedStatuses) as QuestionStatus[])
         : undefined,
+    customOnly: customOnly || undefined,
     page: 1,
     pageSize: 100,
   })
@@ -62,6 +64,7 @@ export function useQuestionBankList() {
         status: q.status,
         format: q.format,
         trackHint: q.trackHint,
+        isCustom: q.isCustom,
       })),
     [listQuery.data?.items]
   )
@@ -96,6 +99,7 @@ export function useQuestionBankList() {
     selectedDomains.size > 0 ||
     selectedDifficulties.size > 0 ||
     selectedStatuses.size > 0 ||
+    customOnly ||
     Boolean(search.trim())
 
   return {
@@ -104,6 +108,8 @@ export function useQuestionBankList() {
     selectedDomains,
     selectedDifficulties,
     selectedStatuses,
+    customOnly,
+    setCustomOnly,
     onDomainToggle: (d: QuestionDomain) =>
       setSelectedDomains((prev) => toggleSet(prev, d)),
     onDifficultyToggle: (d: QuestionDifficulty) =>

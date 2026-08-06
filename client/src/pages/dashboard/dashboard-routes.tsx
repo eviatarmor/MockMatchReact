@@ -27,6 +27,7 @@ import { SimulationSpreadsheetPage } from "@/pages/dashboard/simulation-spreadsh
 import { SimulationPagePage } from "@/pages/dashboard/simulation-page-page"
 import { LegacyPracticeRedirect } from "@/features/simulations/components/legacy-practice-redirect"
 import { QuestionBankPage } from "@/pages/dashboard/question-bank-page"
+import { CustomQuestionsPage } from "@/pages/dashboard/custom-questions-page"
 import { ReadinessPage } from "@/pages/dashboard/readiness-page"
 import { PerformancePage } from "@/pages/dashboard/performance-page"
 import { AutofillPage } from "@/pages/dashboard/autofill-page"
@@ -42,6 +43,7 @@ const DASHBOARD_ROUTES = [
   { path: "job-workflow", titleKey: "navItems.jobWorkflow" },
   { path: "simulations", titleKey: "navItems.simulations" },
   { path: "question-bank", titleKey: "navItems.questionBank" },
+  { path: "custom-questions", titleKey: "navItems.customQuestions" },
   { path: "readiness", titleKey: "navItems.readiness" },
   { path: "performance", titleKey: "navItems.performance" },
   { path: "autofill", titleKey: "navItems.autofill" },
@@ -132,6 +134,11 @@ export function dashboardRoutes() {
           }
           if (path === "question-bank") {
             return <Route key={path} path={path} element={<QuestionBankPage />} />;
+          }
+          if (path === "custom-questions") {
+            return (
+              <Route key={path} path={path} element={<CustomQuestionsPage />} />
+            );
           }
           if (path === "readiness") {
             return <Route key={path} path={path} element={<ReadinessPage />} />;
