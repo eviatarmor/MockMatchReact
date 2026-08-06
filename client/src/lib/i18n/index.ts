@@ -20,7 +20,6 @@ import simulationSpreadsheetEnUS from "@/locales/en-US/simulation-spreadsheet.js
 import simulationPageEnUS from "@/locales/en-US/simulation-page.json"
 import helpEnUS from "@/locales/en-US/help.json"
 import notFoundEnUS from "@/locales/en-US/not-found.json"
-import landingEnUS from "@/locales/en-US/landing.json"
 
 import commonEnGB from "@/locales/en-GB/common.json"
 import loginEnGB from "@/locales/en-GB/login.json"
@@ -40,7 +39,6 @@ import simulationSpreadsheetEnGB from "@/locales/en-GB/simulation-spreadsheet.js
 import simulationPageEnGB from "@/locales/en-GB/simulation-page.json"
 import helpEnGB from "@/locales/en-GB/help.json"
 import notFoundEnGB from "@/locales/en-GB/not-found.json"
-import landingEnGB from "@/locales/en-GB/landing.json"
 
 import commonEnAU from "@/locales/en-AU/common.json"
 import loginEnAU from "@/locales/en-AU/login.json"
@@ -60,7 +58,6 @@ import simulationSpreadsheetEnAU from "@/locales/en-AU/simulation-spreadsheet.js
 import simulationPageEnAU from "@/locales/en-AU/simulation-page.json"
 import helpEnAU from "@/locales/en-AU/help.json"
 import notFoundEnAU from "@/locales/en-AU/not-found.json"
-import landingEnAU from "@/locales/en-AU/landing.json"
 
 import {
   DEFAULT_LANGUAGE,
@@ -90,7 +87,6 @@ const enUS = {
   "simulation-page": simulationPageEnUS,
   help: helpEnUS,
   "not-found": notFoundEnUS,
-  landing: landingEnUS,
 }
 
 const enGB = {
@@ -112,7 +108,6 @@ const enGB = {
   "simulation-page": simulationPageEnGB,
   help: helpEnGB,
   "not-found": notFoundEnGB,
-  landing: landingEnGB,
 }
 
 const enAU = {
@@ -134,7 +129,6 @@ const enAU = {
   "simulation-page": simulationPageEnAU,
   help: helpEnAU,
   "not-found": notFoundEnAU,
-  landing: landingEnAU,
 }
 
 const initialLanguage = readStoredLanguage() ?? DEFAULT_LANGUAGE

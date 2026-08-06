@@ -1,10 +1,9 @@
-import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
-import { AppLogo } from "@/components/icons/app-logo"
-import { CHANGELOG_HREF, DOCS_URL } from "../constants"
+import { AppLogo } from "./app-logo"
+import { appPath, CHANGELOG_HREF, DOCS_URL } from "../constants"
 
 export function LandingFooter() {
-  const { t } = useTranslation(["landing", "common"])
+  const { t } = useTranslation("landing")
   const year = new Date().getFullYear()
 
   return (
@@ -15,7 +14,7 @@ export function LandingFooter() {
             <span className="flex size-7 items-center justify-center rounded-md bg-primary p-1">
               <AppLogo className="size-full" />
             </span>
-            {t("common:appName")}
+            {t("appName")}
           </div>
           <p className="mt-3 max-w-xs text-sm text-muted-foreground">
             {t("footer.tagline")}
@@ -38,9 +37,9 @@ export function LandingFooter() {
               </a>
             </li>
             <li>
-              <Link to="/signup" className="text-foreground/80 hover:text-foreground">
+              <a href={appPath("/signup")} className="text-foreground/80 hover:text-foreground">
                 {t("footer.signup")}
-              </Link>
+              </a>
             </li>
           </ul>
         </div>
@@ -79,14 +78,14 @@ export function LandingFooter() {
           </h3>
           <ul className="mt-3 space-y-2 text-sm">
             <li>
-              <Link to="/login" className="text-foreground/80 hover:text-foreground">
+              <a href={appPath("/login")} className="text-foreground/80 hover:text-foreground">
                 {t("footer.login")}
-              </Link>
+              </a>
             </li>
             <li>
-              <Link to="/signup" className="text-foreground/80 hover:text-foreground">
+              <a href={appPath("/signup")} className="text-foreground/80 hover:text-foreground">
                 {t("footer.signup")}
-              </Link>
+              </a>
             </li>
           </ul>
         </div>

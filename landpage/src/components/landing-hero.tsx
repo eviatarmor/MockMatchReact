@@ -1,10 +1,9 @@
-import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { ArrowRight } from "lucide-react"
 import { Button } from "@mockmatch/ui/button"
 import { InteractiveGridPattern } from "@mockmatch/ui/interactive-grid-pattern"
 import { BlurFade } from "@mockmatch/ui/blur-fade"
-import { DOCS_URL } from "../constants"
+import { appPath, DOCS_URL } from "../constants"
 
 export function LandingHero() {
   const { t } = useTranslation("landing")
@@ -40,7 +39,7 @@ export function LandingHero() {
               size="lg"
               className="h-10 px-4"
               nativeButton={false}
-              render={<Link to="/signup" />}
+              render={<a href={appPath("/signup")} />}
             >
               {t("hero.primaryCta")}
               <ArrowRight data-icon="inline-end" />

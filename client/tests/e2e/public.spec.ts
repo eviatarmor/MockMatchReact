@@ -4,17 +4,16 @@ import { E2E_SKIP } from "./helpers"
 test.describe("public surfaces", () => {
   test.skip(E2E_SKIP, "E2E_SKIP=1")
 
-  test("home shows public marketing landing", async ({ page }) => {
+  test("home redirects into app shell (then auth gate)", async ({ page }) => {
     await page.goto("/")
-    await page.waitForLoadState("domcontentloaded")
-    await expect(page).toHaveURL(/\/$/)
-    await expect(
-      page.getByRole("heading", { level: 1, name: /practice like/i })
-    ).toBeVisible({ timeout: 15_000 })
-    await expect(page.getByRole("link", { name: /log in/i }).first()).toBeVisible()
-    await expect(
-      page.getByRole("link", { name: /get started|start free|create account/i }).first()
-    ).toBeVisible()
+    // Marketing lives in monorepo landpage/; client `/` → app shell
+    await page.waitForURL(/\/(login|resume-lab|discover)/, { timeout: 20_000 })
+    const url = page.url()
+    expect(
+      url.includes("/login") ||
+        url.includes("/resume-lab") ||
+        url.includes("/discover")
+    ).toBe(true)
   })
 
   test("login page has email + continue", async ({ page }) => {

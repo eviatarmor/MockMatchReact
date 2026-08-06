@@ -135,5 +135,6 @@
     "login": "Log in",
     "signup": "Get started",
     "copyright": "© {{year}} MockMatch. All rights reserved."
-  }
+  },
+  "appName": "MockMatch"
 }

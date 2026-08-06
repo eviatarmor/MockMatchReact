@@ -8,8 +8,8 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { AnimatedBeam } from "@mockmatch/ui/animated-beam"
-import { AppLogo } from "@/components/icons/app-logo"
-import { cn } from "@/lib/utils"
+import { AppLogo } from "./app-logo"
+import { cn } from "@mockmatch/ui/utils"
 import { LANDING_INTEGRATION_NODES } from "../constants"
 import { ScrollReveal } from "./scroll-reveal"
 

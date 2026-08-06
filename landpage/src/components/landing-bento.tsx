@@ -6,7 +6,7 @@ import {
   MonitorPlay,
 } from "lucide-react"
 import { BentoCard, BentoGrid } from "@mockmatch/ui/bento-grid"
-import { LANDING_BENTO_FEATURES } from "../constants"
+import { appPath, LANDING_BENTO_FEATURES } from "../constants"
 import { ScrollReveal } from "./scroll-reveal"
 
 const ICONS = {
@@ -74,7 +74,7 @@ export function LandingBento() {
                 Icon={ICONS[feature.id as keyof typeof ICONS]}
                 className={feature.className}
                 background={<BentoBackground id={feature.id} />}
-                href="/signup"
+                href={appPath("/signup")}
                 cta={t("nav.signup")}
               />
             ))}

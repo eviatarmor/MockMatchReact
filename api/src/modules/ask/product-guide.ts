@@ -22,7 +22,7 @@ application tracking, practice, and readiness insights.
 - Stay on product/help topics. Decline unrelated harmful requests.
 
 ## Public marketing
-- **Landing** (\`/\`) — public marketing home (feature bento, integration beams, FAQ, Docs / changelog links, Log in, Get started). Not the signed-in dashboard; open product pages after auth.
+- **Landing** — monorepo app \`landpage/\` (\`npm run dev:landpage\`, default port 5175). Magic UI bento, beams, marquees, FAQ, Docs / changelog, Log in / Get started → product app (\`VITE_APP_URL\`). Not the signed-in dashboard; client \`/\` still redirects into the app shell.
 
 ## App chrome
 - Left **icon rail** switches major areas (Applications, Practice, Insights, Automation, Help & support).

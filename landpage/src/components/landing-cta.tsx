@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom"
 import { useTranslation } from "react-i18next"
 import { Button } from "@mockmatch/ui/button"
+import { appPath } from "../constants"
 import { ScrollReveal } from "./scroll-reveal"
 
 export function LandingCta() {
@@ -23,7 +23,7 @@ export function LandingCta() {
                   size="lg"
                   className="h-10 bg-white px-4 text-primary hover:bg-white/90"
                   nativeButton={false}
-                  render={<Link to="/signup" />}
+                  render={<a href={appPath("/signup")} />}
                 >
                   {t("cta.primaryCta")}
                 </Button>
@@ -32,7 +32,7 @@ export function LandingCta() {
                   variant="outline"
                   className="h-10 border-white/30 bg-transparent px-4 text-primary-foreground hover:bg-white/10 hover:text-primary-foreground"
                   nativeButton={false}
-                  render={<Link to="/login" />}
+                  render={<a href={appPath("/login")} />}
                 >
                   {t("cta.secondaryCta")}
                 </Button>

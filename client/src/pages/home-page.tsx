@@ -1,11 +1,15 @@
-import { useDocumentTitle } from "@uidotdev/usehooks"
-import { useTranslation } from "react-i18next"
-import { LandingPageContent } from "@/features/landing/landing-page"
+import { Navigate } from "react-router-dom"
 
-/** Public marketing landing at `/`. Auth lives at `/login` / `/signup`. */
+import { NAV_SECTIONS } from "@/components/dashboard/constants"
+
+/** First sidebar item — default landing after `/`. */
+const DEFAULT_APP_PATH = NAV_SECTIONS[0]?.items[0]?.href ?? "/resume-lab"
+
+/**
+ * `/` redirects into the app. Unauthenticated users hit RequireAuth
+ * on the dashboard route and land on `/login`.
+ * Public marketing lives in the monorepo `landpage/` workspace.
+ */
 export function HomePage() {
-  const { t } = useTranslation("landing")
-  useDocumentTitle(t("documentTitle"))
-
-  return <LandingPageContent />
+  return <Navigate to={DEFAULT_APP_PATH} replace />
 }

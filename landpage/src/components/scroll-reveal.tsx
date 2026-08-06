@@ -1,6 +1,6 @@
 import type { ReactNode } from "react"
 import { BlurFade } from "@mockmatch/ui/blur-fade"
-import { cn } from "@/lib/utils"
+import { cn } from "@mockmatch/ui/utils"
 
 interface ScrollRevealProps {
   readonly children: ReactNode

@@ -5,16 +5,17 @@ import type {
   LandingFaqItem,
   LandingIntegrationNode,
 } from "./types"
-import { DOCS_URL } from "@/components/dashboard/constants"
+import { DOCS_URL } from "./lib/urls"
 
 export { DOCS_URL }
+export { APP_URL, appPath } from "./lib/urls"
 
 /** Public docs root — changelog section anchors the in-page product notes for now. */
 export const CHANGELOG_HREF = "#changelog"
 
 /**
- * Well-known employer marks already shipped under public/icons/companies.
- * Used only for recognition ("prep for roles at…"), never as partnership claims.
+ * Well-known employer marks under public/icons/companies.
+ * Recognition only — never partnership claims.
  */
 export const LANDING_COMPANIES: readonly LandingCompany[] = [
   { id: "google", name: "Google", logoSrc: "/icons/companies/google.svg" },
