@@ -17,6 +17,22 @@ export type PageEditorLabels = {
   readonly paragraph: string
   readonly slashMenuAria: string
   readonly placeholder: string
+  /** Block type select aria / group label */
+  readonly blockType?: string
+  readonly undo?: string
+  readonly redo?: string
+  readonly alignLeft?: string
+  readonly alignCenter?: string
+  readonly alignRight?: string
+  readonly alignJustify?: string
+  readonly clearFormatting?: string
+  /** Link dialog */
+  readonly linkDialogTitle?: string
+  readonly linkDialogDescription?: string
+  readonly linkUrlLabel?: string
+  readonly linkApply?: string
+  readonly linkRemove?: string
+  readonly linkCancel?: string
 }
 
 export type PageShellLabels = {
@@ -40,3 +56,15 @@ export type SlashItem = {
   readonly label: string
   readonly keywords: readonly string[]
 }
+
+/** Toolbar block-type select values (Lexical playground pattern). */
+export type BlockType =
+  | "paragraph"
+  | "h1"
+  | "h2"
+  | "h3"
+  | "bullet"
+  | "number"
+  | "check"
+  | "quote"
+  | "code"

@@ -1,10 +1,13 @@
 # `@mockmatch/page`
 
-Product-agnostic freeform page editor (Notion / Docs–like):
+Product-agnostic freeform page editor (Lexical playground–style interaction):
 
-- **Lexical** canvas — headings, lists, quote, code, links, divider
-- **Slash menu** + fixed format toolbar
-- **Page shell** — chrome slot + readable max-width column
+- **Lexical** canvas — headings, lists, quote, code, links, divider, alignment
+- **Sticky toolbar** — block-type `Select`, format toggles, undo/redo, align (shadcn `Button` / `Select` / `Tooltip` / `Separator`)
+- **Link dialog** — shadcn `Dialog` + `Input` + `Label` (no `window.prompt`)
+- **Slash menu** — block insert via `/`
+- **Paper chrome** — muted desk + centered bordered surface
+- **Page shell** — chrome slot + optional right rail
 - **Collab** — optional `LexicalYjsPlugin` from `@mockmatch/document-editor`
 
 Host supplies i18n labels, save/transport, practice chrome, and collab room.
