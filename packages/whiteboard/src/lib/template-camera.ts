@@ -1,16 +1,16 @@
+import type { WhiteboardElement } from "../types"
+
+function isBoxElement(
+  el: WhiteboardElement
+): el is Extract<WhiteboardElement, { w: number; h: number }> {
+  return el.type !== "path" && el.type !== "connector" && "w" in el && "h" in el
+}
+
 /** Bounding-box center of rectangular template elements (skip paths/connectors). */
 export function templateContentCenter(
-  elements: ReadonlyArray<{
-    type: string
-    x: number
-    y: number
-    w: number
-    h: number
-  }>
+  elements: readonly WhiteboardElement[]
 ): { x: number; y: number } | null {
-  const boxes = elements.filter(
-    (el) => el.type !== "path" && el.type !== "connector"
-  )
+  const boxes = elements.filter(isBoxElement)
   if (boxes.length === 0) return null
 
   const minX = Math.min(...boxes.map((el) => el.x))
@@ -22,13 +22,7 @@ export function templateContentCenter(
 
 /** Double rAF so layout/transform settle after setDocument before pan. */
 export function scheduleTemplateCameraPan(
-  elements: ReadonlyArray<{
-    type: string
-    x: number
-    y: number
-    w: number
-    h: number
-  }>,
+  elements: readonly WhiteboardElement[],
   viewport: {
     resetView: () => void
     centerOnBoardPoint: (x: number, y: number) => void
