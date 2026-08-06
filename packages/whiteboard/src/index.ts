@@ -82,6 +82,11 @@ export {
 } from "./canvas/whiteboard-canvas"
 
 export {
+  scheduleTemplateCameraPan,
+  templateContentCenter,
+} from "./lib/template-camera"
+
+export {
   WhiteboardShell,
   type WhiteboardShellProps,
 } from "./shell/whiteboard-shell"

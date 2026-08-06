@@ -40,39 +40,32 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # PRs: fail only on findings introduced by the changeset
+      # Use local workspace fallow (same as developers). Prefer merge-base vs
+      # the PR base action's opaque ISSUES count so failures are inspectable.
       - name: Fallow audit (new issues only)
         if: github.event_name == 'pull_request'
-        uses: fallow-rs/fallow@v3
-        with:
-          command: audit
-          gate: new-only
-          fail-on-issues: true
-          auto-changed-since: true
-          comment: true
-          review-comments: true
-          review-guidance: true
-          annotations: true
-          score: true
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          BASE="${{ github.event.pull_request.base.sha }}"
+          echo "Auditing changed-since $BASE"
+          npx fallow audit --changed-since "$BASE" --gate new-only --format json > fallow-audit.json
+          node -e '
+            const j = require("./fallow-audit.json");
+            console.log(JSON.stringify({
+              verdict: j.verdict,
+              attribution: j.attribution,
+              summary: j.summary,
+              introduced_complexity: (j.complexity?.findings || []).filter((f) => f.introduced),
+              introduced_unused_files: (j.dead_code?.unused_files || []).filter((f) => f.introduced),
+              introduced_unused_deps: (j.dead_code?.unused_dependencies || []).filter((f) => f.introduced),
+              introduced_dupes: (j.duplication?.clone_groups || []).filter((g) => g.introduced),
+            }, null, 2));
+            if (j.verdict === "fail") process.exit(1);
+          '
 
-      # Main pushes: full dead-code + dupes + health report (non-blocking until cleaned)
       - name: Fallow full analysis
         if: github.event_name == 'push'
-        uses: fallow-rs/fallow@v3
-        with:
-          fail-on-issues: false
-          format: sarif
-          score: true
-          annotations: true
-
-      - name: Upload Fallow SARIF
-        if: github.event_name == 'push' && always()
-        uses: github/codeql-action/upload-sarif@v3
-        continue-on-error: true
-        with:
-          sarif_file: fallow-results.sarif
-          category: fallow
+        run: npx fallow audit --gate all --format json > fallow-audit.json || true
 
   quality:
     name: Typecheck · Lint · Unit · Build
