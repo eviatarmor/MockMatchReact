@@ -20,7 +20,7 @@ export function SimulationsPageContent() {
   const navigate = useNavigate()
   const list = useSessionsList()
 
-  const goToTracks = () => navigate("/simulations/tracks")
+  const goToQuestionBank = () => navigate("/question-bank")
 
   const handleDelete = (session: RecentSession) => {
     list.removeSession(session)
@@ -46,7 +46,7 @@ export function SimulationsPageContent() {
           : {
               label: t("dashboard.actions.startSimulation"),
               icon: Play,
-              onClick: goToTracks,
+              onClick: goToQuestionBank,
             }
       }
     />
@@ -68,7 +68,7 @@ export function SimulationsPageContent() {
             <Button
               variant="default"
               className="h-8 w-8 cursor-pointer gap-1.5 px-0 sm:w-auto sm:px-3"
-              onClick={goToTracks}
+              onClick={goToQuestionBank}
             >
               <Play className="size-4" />
               <span className="hidden sm:inline">
