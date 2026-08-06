@@ -152,7 +152,7 @@ describe("wsTicket / getAccess", () => {
 })
 
 describe("resolveShareInputSchema", () => {
-  it("requires shareToken; optional questionId", () => {
+  it("requires shareToken; optional questionId + kind", () => {
     expect(resolveShareInputSchema.parse({ shareToken: TOKEN }).shareToken).toBe(
       TOKEN
     )
@@ -162,8 +162,20 @@ describe("resolveShareInputSchema", () => {
         questionId: UUID,
       }).questionId
     ).toBe(UUID)
+    expect(
+      resolveShareInputSchema.parse({
+        shareToken: TOKEN,
+        kind: "whiteboard",
+      }).kind
+    ).toBe("whiteboard")
     expect(() =>
       resolveShareInputSchema.parse({ shareToken: "short" })
+    ).toThrow()
+    expect(() =>
+      resolveShareInputSchema.parse({
+        shareToken: TOKEN,
+        kind: "not-a-kind",
+      })
     ).toThrow()
   })
 })

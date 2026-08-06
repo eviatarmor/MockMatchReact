@@ -88,4 +88,46 @@ describeIntegration("collab (integration)", () => {
 
     await caller.coverLetters.delete({ id: doc.id })
   })
+
+  it("resolveShare: invalid / revoked / wrong kind", async () => {
+    const caller = await signupAuthedCaller()
+    const board = await caller.whiteboard.create({ title: "Share board" })
+    await caller.collab.grantDevCredits({ amount: 50 })
+
+    const share = await caller.collab.createShareLink({
+      kind: "whiteboard",
+      id: board.id,
+      role: "edit",
+    })
+
+    const resolved = await caller.collab.resolveShare({
+      shareToken: share.token,
+      kind: "whiteboard",
+    })
+    expect(resolved.kind).toBe("whiteboard")
+    expect(resolved.documentId).toBe(board.id)
+
+    await expect(
+      caller.collab.resolveShare({
+        shareToken: share.token,
+        kind: "spreadsheet",
+      })
+    ).rejects.toMatchObject({ code: "NOT_FOUND" })
+
+    await expect(
+      caller.collab.resolveShare({
+        shareToken: "x".repeat(32),
+      })
+    ).rejects.toMatchObject({ code: "NOT_FOUND" })
+
+    await caller.collab.revokeShareLink({ shareId: share.shareId })
+    await expect(
+      caller.collab.resolveShare({
+        shareToken: share.token,
+        kind: "whiteboard",
+      })
+    ).rejects.toMatchObject({ code: "NOT_FOUND" })
+
+    await caller.whiteboard.delete({ id: board.id })
+  })
 })

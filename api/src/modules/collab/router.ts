@@ -41,7 +41,12 @@ export const collabRouter = router({
   resolveShare: protectedProcedure
     .input(resolveShareInputSchema)
     .query(async ({ ctx, input }) => {
-      return resolveShareToken(ctx.db, input.shareToken, input.questionId)
+      return resolveShareToken(
+        ctx.db,
+        input.shareToken,
+        input.questionId,
+        input.kind
+      )
     }),
 
   createShareLink: protectedProcedure

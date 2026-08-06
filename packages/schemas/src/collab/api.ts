@@ -61,6 +61,11 @@ export const resolveShareInputSchema = z.object({
   shareToken: z.string().min(16).max(128),
   /** Optional bank question path segment — rejects token for a different question. */
   questionId: z.string().uuid().optional(),
+  /**
+   * Optional surface kind (whiteboard / spreadsheet / …).
+   * When set, rejects tokens that resolve to a different document kind.
+   */
+  kind: documentKindSchema.optional(),
 })
 
 export const grantDevCreditsInputSchema = z.object({

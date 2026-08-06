@@ -76,4 +76,70 @@ describeIntegration("practiceSessions (integration)", () => {
 
     await caller.practiceSessions.delete({ sessionId: started.session.id })
   })
+
+  it("startWhiteboard links owned board; rejects foreign board", async () => {
+    const { db } = await import("../../../../src/db/client.js")
+    const { questions } = await import(
+      "../../../../src/db/schema/questions.js"
+    )
+    const { eq } = await import("drizzle-orm")
+
+    const owner = await signupAuthedCaller("wb-owner")
+    const other = await signupAuthedCaller("wb-other")
+
+    const stamp = Date.now()
+    const [q] = await db
+      .insert(questions)
+      .values({
+        title: `WB test ${stamp}`,
+        domain: "coding",
+        difficulty: "easy",
+        format: "whiteboard",
+        source: "manual",
+        status: "published",
+        payload: { prompt: "Draw a system" },
+        contentHash: `wb-test-${stamp}-${Math.random().toString(36).slice(2)}`,
+      })
+      .returning({ id: questions.id })
+    if (!q) throw new Error("failed to insert question")
+
+    const board = await owner.whiteboard.create({
+      title: "Practice board",
+      questionId: q.id,
+    })
+
+    const session = await owner.practiceSessions.startWhiteboard({
+      questionId: q.id,
+      boardId: board.id,
+      title: "WB practice",
+    })
+    expect(session.boardId).toBe(board.id)
+    expect(session.questionId).toBe(q.id)
+    expect(session.status).toBe("in_progress")
+
+    // Idempotent re-link
+    const again = await owner.practiceSessions.startWhiteboard({
+      questionId: q.id,
+      boardId: board.id,
+    })
+    expect(again.id).toBe(session.id)
+
+    await expect(
+      other.practiceSessions.startWhiteboard({
+        questionId: q.id,
+        boardId: board.id,
+      })
+    ).rejects.toMatchObject({ code: "NOT_FOUND" })
+
+    await expect(
+      owner.practiceSessions.startWhiteboard({
+        questionId: q.id,
+        boardId: "22222222-2222-4222-8222-222222222222",
+      })
+    ).rejects.toMatchObject({ code: "NOT_FOUND" })
+
+    await owner.practiceSessions.delete({ sessionId: session.id })
+    await owner.whiteboard.delete({ id: board.id })
+    await db.delete(questions).where(eq(questions.id, q.id))
+  })
 })

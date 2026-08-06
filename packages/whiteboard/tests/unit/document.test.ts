@@ -6,6 +6,7 @@ import {
   createShape,
   createSticky,
   elementBounds,
+  hitTest,
   isBoardEmpty,
   listElementsSorted,
   marqueeSelectIds,
@@ -98,6 +99,55 @@ describe("connectorPolyline / elementBounds with anchors", () => {
       { x: 0, y: 0 },
       { x: 40, y: 20 },
     ])
+  })
+
+  it("hitTest uses elbow polyline segments, not diagonal", () => {
+    const a = createShape({ x: 0, y: 0, w: 100, h: 60 })
+    const b = createShape({ x: 200, y: 100, w: 100, h: 60 })
+    const c = createConnector({
+      from: { kind: "element", elementId: a.id, anchor: "e" },
+      to: { kind: "element", elementId: b.id, anchor: "w" },
+      routing: "elbow",
+    })
+    const doc = {
+      version: 1 as const,
+      elements: { [a.id]: a, [b.id]: b, [c.id]: c },
+    }
+    const pts = connectorPolyline(c, doc)
+    // Midpoint of first elbow segment should hit the connector
+    expect(pts.length).toBeGreaterThanOrEqual(2)
+    const mid = {
+      x: (pts[0]!.x + pts[1]!.x) / 2,
+      y: (pts[0]!.y + pts[1]!.y) / 2,
+    }
+    expect(hitTest(doc, mid.x, mid.y)).toBe(c.id)
+    // Diagonal midpoint between endpoints often misses the elbow path
+    // (only assert when elbow actually detours off the straight line)
+    if (pts.length > 2) {
+      const a0 = pts[0]!
+      const a1 = pts[pts.length - 1]!
+      const diagMid = { x: (a0.x + a1.x) / 2, y: (a0.y + a1.y) / 2 }
+      const onAnySeg = pts.slice(1).some((pt, i) => {
+        const prev = pts[i]!
+        const dx = pt.x - prev.x
+        const dy = pt.y - prev.y
+        const len2 = dx * dx + dy * dy
+        if (len2 === 0) return false
+        const t = Math.max(
+          0,
+          Math.min(
+            1,
+            ((diagMid.x - prev.x) * dx + (diagMid.y - prev.y) * dy) / len2
+          )
+        )
+        const px = prev.x + t * dx
+        const py = prev.y + t * dy
+        return Math.hypot(diagMid.x - px, diagMid.y - py) < 8
+      })
+      if (!onAnySeg) {
+        expect(hitTest(doc, diagMid.x, diagMid.y)).not.toBe(c.id)
+      }
+    }
   })
 })
 

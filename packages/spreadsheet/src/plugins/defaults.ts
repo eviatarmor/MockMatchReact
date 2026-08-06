@@ -11,11 +11,11 @@ import { createKeyboardPlugin } from "./keyboard/plugin"
 import { createResizePlugin } from "./resize/plugin"
 import { createSelectionPlugin } from "./selection/plugin"
 import { createSheetTabsPlugin } from "./sheet-tabs/plugin"
-import { createToolbarPlugin } from "./toolbar/plugin"
 
 /**
  * Full product plugin set.
  * Fresh instances each call (selection/resize/fill drag state not shared).
+ * Format toolbar (`createToolbarPlugin`) is opt-in — not in defaults.
  */
 export function createDefaultPlugins(): SpreadsheetPlugin[] {
   return [
@@ -26,7 +26,6 @@ export function createDefaultPlugins(): SpreadsheetPlugin[] {
     createKeyboardPlugin(),
     createCellEditPlugin(),
     createResizePlugin(),
-    createToolbarPlugin(),
     createFormulaBarPlugin(),
     createSheetTabsPlugin(),
     createFormatPlugin(),

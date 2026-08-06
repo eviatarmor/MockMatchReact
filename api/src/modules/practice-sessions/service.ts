@@ -2,6 +2,7 @@ import { and, desc, eq, sql } from "drizzle-orm"
 import type { Database } from "../../db/client.js"
 import { practiceSessions } from "../../db/schema/practice-sessions.js"
 import { ideWorkspaces } from "../../db/schema/ide-workspaces.js"
+import { whiteboardBoards } from "../../db/schema/whiteboard-boards.js"
 import { getPracticeExerciseBySlug } from "../practice-exercises/service.js"
 import { createIdeWorkspace } from "../ide-workspaces/service.js"
 import {
@@ -466,6 +467,7 @@ export async function touchPracticeSession(
 
 /**
  * Link whiteboard board to the single history row for this bank question.
+ * Requires the board to exist, belong to the user, and match the question.
  */
 export async function startWhiteboardPracticeSession(
   db: Database,
@@ -478,11 +480,54 @@ export async function startWhiteboardPracticeSession(
     abandonOpen?: boolean
   }
 ): Promise<PracticeSessionDto> {
+  const [board] = await db
+    .select({
+      id: whiteboardBoards.id,
+      questionId: whiteboardBoards.questionId,
+      title: whiteboardBoards.title,
+    })
+    .from(whiteboardBoards)
+    .where(
+      and(
+        eq(whiteboardBoards.id, input.boardId),
+        eq(whiteboardBoards.userId, userId)
+      )
+    )
+    .limit(1)
+
+  if (!board) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Whiteboard not found.",
+    })
+  }
+  if (board.questionId && board.questionId !== input.questionId) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Board does not match this practice question.",
+    })
+  }
+
   const trackId = questionTrackId(input.questionId)
-  const title = input.title?.trim() || "Whiteboard"
+  const title = input.title?.trim() || board.title || "Whiteboard"
   const existing = await findSessionForTrack(db, userId, trackId)
 
   if (existing) {
+    // Idempotent: already linked to this board — refresh title/status only.
+    if (
+      existing.boardId === input.boardId &&
+      existing.questionId === input.questionId &&
+      existing.status === "in_progress"
+    ) {
+      if (existing.title === title) return toDto(existing)
+      const [touched] = await db
+        .update(practiceSessions)
+        .set({ title, updatedAt: new Date() })
+        .where(eq(practiceSessions.id, existing.id))
+        .returning()
+      return toDto(touched ?? existing)
+    }
+
     const [updated] = await db
       .update(practiceSessions)
       .set({
@@ -504,26 +549,36 @@ export async function startWhiteboardPracticeSession(
     return toDto(updated)
   }
 
-  const [session] = await db
-    .insert(practiceSessions)
-    .values({
-      userId,
-      trackId,
-      title,
-      boardId: input.boardId,
-      questionId: input.questionId,
-      status: "in_progress",
-      startedAt: new Date(),
-    })
-    .returning()
+  try {
+    const [session] = await db
+      .insert(practiceSessions)
+      .values({
+        userId,
+        trackId,
+        title,
+        boardId: input.boardId,
+        questionId: input.questionId,
+        status: "in_progress",
+        startedAt: new Date(),
+      })
+      .returning()
 
-  if (!session) {
+    if (!session) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to create practice session",
+      })
+    }
+    return toDto(session)
+  } catch (err) {
+    // Surface FK / schema errors as 5xx with a clear message (not silent).
+    if (err instanceof TRPCError) throw err
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
       message: "Failed to create practice session",
+      cause: err,
     })
   }
-  return toDto(session)
 }
 
 export async function completePracticeSession(

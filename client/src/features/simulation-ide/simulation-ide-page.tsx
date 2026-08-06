@@ -161,6 +161,7 @@ function ExerciseCollabBootstrap({
     {
       shareToken: shareToken!,
       questionId: questionId ?? undefined,
+      kind: "workspace",
     },
     {
       enabled: Boolean(shareToken) && !legacyValidId,

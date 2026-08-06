@@ -683,9 +683,16 @@ export function hitTest(
       continue
     }
     if (el.type === "connector") {
-      const a = resolveConnectorPoint(el.from, doc)
-      const b = resolveConnectorPoint(el.to, doc)
-      if (distToSegment(p, a, b) < 8) return el.id
+      // Hit-test along rendered polyline (elbow has mid segments, not A→B diagonal)
+      const pts = connectorPolyline(el, doc)
+      if (pts.length === 0) continue
+      if (pts.length === 1) {
+        if (distToSegment(p, pts[0]!, pts[0]!) < 8) return el.id
+        continue
+      }
+      for (let i = 1; i < pts.length; i++) {
+        if (distToSegment(p, pts[i - 1]!, pts[i]!) < 8) return el.id
+      }
       continue
     }
     if (x >= el.x && x <= el.x + el.w && y >= el.y && y <= el.y + el.h) {

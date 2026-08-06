@@ -134,7 +134,6 @@ describe("spreadsheet plugins", () => {
       "keyboard",
       "cell-edit",
       "resize",
-      "toolbar",
       "formula-bar",
       "sheet-tabs",
       "format",
@@ -393,8 +392,8 @@ describe("spreadsheet plugins", () => {
     const ctx = mockCtx()
     const top = collectChrome(plugins, ctx, "top")
     const bottom = collectChrome(plugins, ctx, "bottom")
-    // formula-bar + toolbar
-    expect(top.length).toBe(2)
+    // formula-bar only (format toolbar is opt-in)
+    expect(top.length).toBe(1)
     expect(bottom.length).toBe(1)
   })
 

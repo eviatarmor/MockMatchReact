@@ -118,6 +118,7 @@ export function SimulationWhiteboardPageContent() {
     {
       shareToken: shareToken!,
       questionId: seedId ?? undefined,
+      kind: "whiteboard",
     },
     {
       enabled: Boolean(shareToken),
@@ -332,15 +333,16 @@ export function SimulationWhiteboardPageContent() {
     const next = historyRef.current.undo()
     setDoc(next)
     syncHistoryFlags()
-    boardSession.scheduleSave(next)
-  }, [boardSession, syncHistoryFlags])
+    // Solo autosave only — collab persists via Yjs flush when live.
+    if (!collabSession.live) boardSession.scheduleSave(next)
+  }, [boardSession, collabSession.live, syncHistoryFlags])
 
   const redo = useCallback(() => {
     const next = historyRef.current.redo()
     setDoc(next)
     syncHistoryFlags()
-    boardSession.scheduleSave(next)
-  }, [boardSession, syncHistoryFlags])
+    if (!collabSession.live) boardSession.scheduleSave(next)
+  }, [boardSession, collabSession.live, syncHistoryFlags])
 
   useEffect(() => {
     const isTypingInField = (target: EventTarget | null) => {
@@ -513,8 +515,9 @@ export function SimulationWhiteboardPageContent() {
         if (cancelled) return
         sessionIdRef.current = row.id
       })
-      .catch(() => {
-        /* optional if migration lag */
+      .catch((err) => {
+        // Board still works without a history row; surface for ops (no silent swallow).
+        console.warn("[whiteboard] startWhiteboard practice session failed", err)
       })
     return () => {
       cancelled = true
@@ -545,7 +548,7 @@ export function SimulationWhiteboardPageContent() {
     )
   }
 
-  if (summaryQuery.isLoading || (isWhiteboard && !boardSession.ready)) {
+  if (summaryQuery.isLoading) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3">
         <RobotLoader size="md" label={t("loading")} />
@@ -568,6 +571,41 @@ export function SimulationWhiteboardPageContent() {
     return (
       <div className="flex h-full items-center justify-center">
         <RobotLoader size="md" label={t("loading")} />
+      </div>
+    )
+  }
+
+  // Guest share: invalid/expired token or wrong document kind → stop infinite load
+  if (
+    shareToken &&
+    shareReady &&
+    (shareResolve.isError || !existingBoardId)
+  ) {
+    return (
+      <ErrorPane
+        message={t("errors.shareInvalid")}
+        backLabel={t("errors.backToSimulations")}
+        onBack={() => navigate("/simulations")}
+      />
+    )
+  }
+
+  if (boardSession.loadError) {
+    return (
+      <ErrorPane
+        message={t("errors.openFailed")}
+        backLabel={t("errors.backToSimulations")}
+        onBack={() => navigate("/simulations")}
+      />
+    )
+  }
+
+  // Board open / share resolve still in flight
+  if (!boardSession.ready) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3">
+        <RobotLoader size="md" label={t("loading")} />
+        <p className="text-sm text-muted-foreground">{t("loading")}</p>
       </div>
     )
   }
@@ -713,36 +751,42 @@ export function SimulationWhiteboardPageContent() {
               stickyColor={stickyColor}
               onStickyColorChange={(color) => {
                 setStickyColor(color)
-                // Recolor selected sticky notes
+                // Recolor selected stickies in one history step
                 const stickyIds = selectedIds.filter(
                   (id) => doc.elements[id]?.type === "sticky"
                 )
-                if (stickyIds.length > 0) {
-                  for (const id of stickyIds) {
-                    dispatch({
-                      type: "patch",
-                      id,
-                      patch: { color } as { color: string },
-                    })
+                if (stickyIds.length === 0) return
+                const elements = { ...doc.elements }
+                for (const id of stickyIds) {
+                  const el = elements[id]
+                  if (el?.type === "sticky") {
+                    elements[id] = { ...el, color }
                   }
                 }
+                dispatch({
+                  type: "setDocument",
+                  document: { version: 1, elements },
+                })
               }}
               shapeColor={shapeColor}
               onShapeColorChange={(color) => {
                 setShapeColor(color)
-                // Recolor selected shapes (stroke)
+                // Recolor selected shapes (stroke) in one history step
                 const shapeIds = selectedIds.filter(
                   (id) => doc.elements[id]?.type === "shape"
                 )
-                if (shapeIds.length > 0) {
-                  for (const id of shapeIds) {
-                    dispatch({
-                      type: "patch",
-                      id,
-                      patch: { stroke: color } as { stroke: string },
-                    })
+                if (shapeIds.length === 0) return
+                const elements = { ...doc.elements }
+                for (const id of shapeIds) {
+                  const el = elements[id]
+                  if (el?.type === "shape") {
+                    elements[id] = { ...el, stroke: color }
                   }
                 }
+                dispatch({
+                  type: "setDocument",
+                  document: { version: 1, elements },
+                })
               }}
             />
           }

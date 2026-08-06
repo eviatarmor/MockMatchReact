@@ -52,6 +52,7 @@ export function SimulationSpreadsheetPageContent() {
     {
       shareToken: shareToken!,
       questionId: questionId ?? undefined,
+      kind: "spreadsheet",
     },
     {
       enabled: Boolean(shareToken),

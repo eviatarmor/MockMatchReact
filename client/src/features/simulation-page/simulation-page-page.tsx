@@ -49,6 +49,7 @@ export function SimulationPagePageContent() {
     {
       shareToken: shareToken!,
       questionId: questionId ?? undefined,
+      kind: "page",
     },
     {
       enabled: Boolean(shareToken),

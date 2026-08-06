@@ -21,6 +21,7 @@ export function useWhiteboardBoardSession(opts: {
   const [boardId, setBoardId] = useState<string | null>(null)
   const [seedDoc, setSeedDoc] = useState<WhiteboardDocument | null>(null)
   const [ready, setReady] = useState(false)
+  const [loadError, setLoadError] = useState(false)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle")
   const openForQuestion = trpc.whiteboard.openForQuestion.useMutation()
   const update = trpc.whiteboard.update.useMutation()
@@ -38,6 +39,7 @@ export function useWhiteboardBoardSession(opts: {
     if (!existingBoardId && !questionId) return
     let cancelled = false
     setReady(false)
+    setLoadError(false)
     setBoardId(null)
     setSeedDoc(null)
     void (async () => {
@@ -62,9 +64,10 @@ export function useWhiteboardBoardSession(opts: {
         setReady(true)
       } catch {
         if (cancelled) return
-        // Local-only fallback if API not migrated yet
+        // Surface failure — silent local-only board loses work with no save/share.
         setBoardId(null)
-        setSeedDoc(createEmptyBoard())
+        setSeedDoc(null)
+        setLoadError(true)
         setReady(true)
       }
     })()
@@ -98,5 +101,5 @@ export function useWhiteboardBoardSession(opts: {
     []
   )
 
-  return { boardId, seedDoc, ready, saveStatus, scheduleSave }
+  return { boardId, seedDoc, ready, loadError, saveStatus, scheduleSave }
 }

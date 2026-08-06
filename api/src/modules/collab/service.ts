@@ -87,15 +87,72 @@ async function questionIdForDocument(
   return null
 }
 
+const SHARE_NOT_FOUND = "Share link not found."
+
+/** True when the durable document row for this kind/id still exists. */
+async function documentExists(
+  db: Database,
+  kind: DocumentKind,
+  documentId: string
+): Promise<boolean> {
+  if (kind === "whiteboard") {
+    const row = await db.query.whiteboardBoards.findFirst({
+      where: eq(whiteboardBoards.id, documentId),
+      columns: { id: true },
+    })
+    return Boolean(row)
+  }
+  if (kind === "spreadsheet") {
+    const row = await db.query.spreadsheetWorkbooks.findFirst({
+      where: eq(spreadsheetWorkbooks.id, documentId),
+      columns: { id: true },
+    })
+    return Boolean(row)
+  }
+  if (kind === "page") {
+    const row = await db.query.pageDocuments.findFirst({
+      where: eq(pageDocuments.id, documentId),
+      columns: { id: true },
+    })
+    return Boolean(row)
+  }
+  if (kind === "workspace") {
+    const row = await db.query.ideWorkspaces.findFirst({
+      where: eq(ideWorkspaces.id, documentId),
+      columns: { id: true },
+    })
+    return Boolean(row)
+  }
+  if (kind === "resume") {
+    const row = await db.query.resumes.findFirst({
+      where: eq(resumes.id, documentId),
+      columns: { id: true },
+    })
+    return Boolean(row)
+  }
+  if (kind === "cover_letter") {
+    const row = await db.query.coverLetters.findFirst({
+      where: eq(coverLetters.id, documentId),
+      columns: { id: true },
+    })
+    return Boolean(row)
+  }
+  return false
+}
+
 /**
  * Map raw share token → document identity so clients can open
  * `/simulations/:questionId?share=` without embedding the board/workspace id.
  * Does not join the room (owner-online check happens on getAccess / wsTicket).
+ *
+ * Rejects: missing/revoked token, clock-expired rows, deleted documents,
+ * wrong bank question path, wrong surface kind (when expectedKind set).
  */
 export async function resolveShareToken(
   db: Database,
   shareToken: string,
-  expectedQuestionId?: string
+  expectedQuestionId?: string,
+  expectedKind?: DocumentKind
 ) {
   const tokenHash = hashToken(shareToken)
   const share = await db.query.documentShares.findFirst({
@@ -107,23 +164,45 @@ export async function resolveShareToken(
   if (!share) {
     throw new TRPCError({
       code: "NOT_FOUND",
-      message: "Share link not found.",
+      message: SHARE_NOT_FOUND,
+    })
+  }
+
+  // Sentinel expires_at (year 9999) = no clock expiry; real past dates still fail.
+  if (share.expiresAt.getTime() < Date.now()) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: SHARE_NOT_FOUND,
     })
   }
 
   const kind = share.documentKind as DocumentKind
   const documentId = share.documentId
-  const questionId = await questionIdForDocument(db, kind, documentId)
 
-  if (
-    expectedQuestionId &&
-    questionId &&
-    expectedQuestionId !== questionId
-  ) {
+  if (expectedKind && kind !== expectedKind) {
     throw new TRPCError({
       code: "NOT_FOUND",
-      message: "Share link not found.",
+      message: SHARE_NOT_FOUND,
     })
+  }
+
+  if (!(await documentExists(db, kind, documentId))) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: SHARE_NOT_FOUND,
+    })
+  }
+
+  const questionId = await questionIdForDocument(db, kind, documentId)
+
+  // Bank paths pass questionId — require a match (null board question ≠ match).
+  if (expectedQuestionId !== undefined) {
+    if (!questionId || questionId !== expectedQuestionId) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: SHARE_NOT_FOUND,
+      })
+    }
   }
 
   return {
@@ -705,12 +784,20 @@ export async function persistDocumentSnapshot(
   }
 
   if (kind === "whiteboard") {
-    await db
+    // Reject corrupt CRDT materializations so flush retries instead of wiping.
+    const { whiteboardDocumentSchema } = await import("@mockmatch/schemas")
+    const parsed = whiteboardDocumentSchema.safeParse(snapshot.document)
+    if (!parsed.success) {
+      throw new Error(
+        `Invalid whiteboard document on collab flush (${documentId}): ${parsed.error.message}`
+      )
+    }
+
+    const updated = await db
       .update(whiteboardBoards)
       .set({
         title: snapshot.title,
-        document:
-          snapshot.document as typeof whiteboardBoards.$inferInsert.document,
+        document: parsed.data as typeof whiteboardBoards.$inferInsert.document,
         updatedAt: new Date(),
       })
       .where(
@@ -719,6 +806,14 @@ export async function persistDocumentSnapshot(
           eq(whiteboardBoards.userId, ownerUserId)
         )
       )
+      .returning({ id: whiteboardBoards.id })
+
+    if (!updated[0]) {
+      // Avoid markFlushed clearing dirty when the row was missing/mismatched.
+      throw new Error(
+        `Whiteboard flush missed row ${documentId} (owner ${ownerUserId})`
+      )
+    }
     return
   }
 
