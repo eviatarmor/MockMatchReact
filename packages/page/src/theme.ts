@@ -33,4 +33,11 @@ export const pageEditorTheme = {
   codeHighlight: {},
   link: "text-primary underline underline-offset-2",
   hr: "my-4 border-0 border-t border-border",
+  /** Element alignment (FORMAT_ELEMENT_COMMAND) */
+  textAlign: {
+    left: "text-left",
+    center: "text-center",
+    right: "text-right",
+    justify: "text-justify",
+  },
 }

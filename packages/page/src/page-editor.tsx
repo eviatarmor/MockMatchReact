@@ -51,25 +51,35 @@ function PageEditorInner({
   return (
     <>
       <ToolbarPlugin labels={labels} readOnly={readOnly} />
-      <div className="relative min-h-0 flex-1 overflow-y-auto">
-        <div className="px-6 py-8 sm:px-8">
-          <RichTextPlugin
-            contentEditable={
-              <ContentEditable
-                className={cn(
-                  "min-h-[50vh] outline-none",
-                  readOnly && "cursor-default"
-                )}
-                aria-placeholder={placeholder ?? labels.placeholder}
-                placeholder={
-                  <div className="pointer-events-none absolute top-8 left-6 text-[15px] text-muted-foreground sm:left-8">
-                    {placeholder ?? labels.placeholder}
-                  </div>
-                }
-              />
-            }
-            ErrorBoundary={LexicalErrorBoundary}
-          />
+      {/* Playground-style scroller: muted desk + centered paper surface */}
+      <div className="relative min-h-0 flex-1 overflow-y-auto bg-muted/40">
+        <div className="mx-auto flex min-h-full w-full max-w-3xl justify-center px-3 py-6 sm:px-6 sm:py-8">
+          <div
+            className={cn(
+              "relative w-full min-h-[min(70vh,40rem)] rounded-xl border border-border/80 bg-background",
+              "px-6 py-8 shadow-sm sm:px-10 sm:py-10",
+              "ring-1 ring-foreground/5"
+            )}
+            data-page-paper
+          >
+            <RichTextPlugin
+              contentEditable={
+                <ContentEditable
+                  className={cn(
+                    "min-h-[min(50vh,28rem)] outline-none",
+                    readOnly && "cursor-default"
+                  )}
+                  aria-placeholder={placeholder ?? labels.placeholder}
+                  placeholder={
+                    <div className="pointer-events-none absolute top-8 left-6 text-[15px] text-muted-foreground sm:top-10 sm:left-10">
+                      {placeholder ?? labels.placeholder}
+                    </div>
+                  }
+                />
+              }
+              ErrorBoundary={LexicalErrorBoundary}
+            />
+          </div>
         </div>
       </div>
       <HistoryPlugin />
@@ -95,7 +105,7 @@ function PageEditorInner({
 }
 
 /**
- * Freeform Lexical page editor (near Docs / Notion blocks).
+ * Freeform Lexical page editor (playground-style surface + MockMatch chrome).
  * Host owns HTML persistence and optional collab Y.Doc.
  */
 export function PageEditor(props: PageEditorProps) {
