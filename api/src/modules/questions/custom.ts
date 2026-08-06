@@ -75,10 +75,11 @@ async function requireOwnedCustom(
       message: "Question not found",
     })
   }
+  // SEC-003: do not leak existence of another user's custom row
   if (row.ownerUserId !== userId || row.visibility !== "self") {
     throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "Only the owner can manage this custom question",
+      code: "NOT_FOUND",
+      message: "Question not found",
     })
   }
   return row
