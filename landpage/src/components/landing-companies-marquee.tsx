@@ -12,45 +12,48 @@ export function LandingCompaniesMarquee() {
   const { t } = useTranslation("landing")
 
   return (
-    <section className="border-b border-border/60 py-10 sm:py-12" aria-labelledby="companies-heading">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+    <section
+      className="border-y border-[var(--lp-line)] bg-white py-12 sm:py-14"
+      aria-labelledby="companies-heading"
+    >
+      <div className="lp-container">
         <ScrollReveal>
-          <div className="mb-6 flex flex-col gap-1 text-center">
+          <div className="mb-8 flex flex-col gap-1.5 text-center">
             <h2
               id="companies-heading"
-              className="text-sm font-medium text-muted-foreground"
+              className="text-[0.8125rem] font-medium tracking-wide text-[var(--lp-faint)]"
             >
               {t("companies.title")}
             </h2>
-            <p className="text-xs text-muted-foreground/80">
+            <p className="text-[0.75rem] text-[var(--lp-faint)]">
               {t("companies.disclaimer")}
             </p>
           </div>
         </ScrollReveal>
       </div>
 
-      <Marquee side="left" speed={40} pauseOnHover autoFill className="py-2">
+      <Marquee side="left" speed={36} pauseOnHover autoFill className="py-1">
         <MarqueeContent>
           {LANDING_COMPANIES.map((company) => (
             <MarqueeItem key={company.id}>
-              <div className="flex h-12 items-center gap-2.5 rounded-lg border border-border/60 bg-card px-4 py-2 shadow-sm">
+              <div className="flex h-11 items-center gap-2.5 px-5">
                 <img
                   src={company.logoSrc}
                   alt=""
-                  width={24}
-                  height={24}
-                  className="size-6 object-contain opacity-80 grayscale"
+                  width={22}
+                  height={22}
+                  className="size-[22px] object-contain opacity-50 grayscale"
                   loading="lazy"
                 />
-                <span className="text-sm font-medium text-muted-foreground">
+                <span className="text-sm font-medium tracking-tight text-[var(--lp-faint)]">
                   {company.name}
                 </span>
               </div>
             </MarqueeItem>
           ))}
         </MarqueeContent>
-        <MarqueeEdge side="left" size="sm" />
-        <MarqueeEdge side="right" size="sm" />
+        <MarqueeEdge side="left" size="lg" className="from-white" />
+        <MarqueeEdge side="right" size="lg" className="from-white" />
       </Marquee>
     </section>
   )

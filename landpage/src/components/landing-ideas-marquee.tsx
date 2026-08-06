@@ -12,30 +12,33 @@ export function LandingIdeasMarquee() {
   const { t } = useTranslation("landing")
 
   return (
-    <section className="border-b border-border/60 py-12 sm:py-14" aria-labelledby="ideas-heading">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+    <section
+      className="border-y border-[var(--lp-line)] bg-[var(--lp-canvas)] py-14 sm:py-16"
+      aria-labelledby="ideas-heading"
+    >
+      <div className="lp-container">
         <ScrollReveal>
           <h2
             id="ideas-heading"
-            className="mb-6 text-center text-sm font-medium text-muted-foreground"
+            className="mb-8 text-center text-[0.8125rem] font-medium tracking-wide text-[var(--lp-faint)]"
           >
             {t("ideas.title")}
           </h2>
         </ScrollReveal>
       </div>
 
-      <Marquee side="right" speed={35} pauseOnHover autoFill className="py-2">
+      <Marquee side="right" speed={32} pauseOnHover autoFill className="py-1">
         <MarqueeContent>
           {LANDING_IDEA_KEYS.map((key) => (
             <MarqueeItem key={key}>
-              <div className="max-w-xs rounded-xl border border-border/60 bg-muted/40 px-4 py-3 text-sm text-foreground shadow-sm">
+              <div className="max-w-xs rounded-full border border-[var(--lp-line)] bg-white px-5 py-2.5 text-[0.8125rem] font-medium tracking-tight text-[var(--lp-ink)] shadow-[var(--lp-shadow-sm)]">
                 {t(key)}
               </div>
             </MarqueeItem>
           ))}
         </MarqueeContent>
-        <MarqueeEdge side="left" size="sm" />
-        <MarqueeEdge side="right" size="sm" />
+        <MarqueeEdge side="left" size="lg" className="from-[var(--lp-canvas)]" />
+        <MarqueeEdge side="right" size="lg" className="from-[var(--lp-canvas)]" />
       </Marquee>
     </section>
   )

@@ -12,6 +12,7 @@ import { AppLogo } from "./app-logo"
 import { cn } from "@mockmatch/ui/utils"
 import { LANDING_INTEGRATION_NODES } from "../constants"
 import { ScrollReveal } from "./scroll-reveal"
+import { SectionHeading } from "./section-heading"
 
 const NODE_ICONS: Record<
   (typeof LANDING_INTEGRATION_NODES)[number]["id"],
@@ -54,7 +55,7 @@ function IntegrationCircle({
     <div
       ref={circleRef}
       className={cn(
-        "z-10 flex size-12 flex-col items-center justify-center rounded-full border-2 border-border bg-card p-2 shadow-sm sm:size-14",
+        "z-10 flex size-12 flex-col items-center justify-center rounded-full border border-[var(--lp-line-strong)] bg-white p-2 shadow-[var(--lp-shadow-sm)] sm:size-14",
         className
       )}
       title={label}
@@ -99,7 +100,7 @@ export function LandingIntegrations() {
         circleRef={nodeRefs[id]}
         label={labelFor(id)}
       >
-        <Icon className="size-5 text-foreground/80 sm:size-6" aria-hidden />
+        <Icon className="size-5 text-[var(--lp-ink)]/70 sm:size-6" aria-hidden />
       </IntegrationCircle>
     )
   }
@@ -107,31 +108,23 @@ export function LandingIntegrations() {
   return (
     <section
       id="integrations"
-      className="scroll-mt-16 border-b border-border/60 py-16 sm:py-20"
+      className="lp-section scroll-mt-20 bg-white"
       aria-labelledby="integrations-heading"
     >
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="lp-container">
         <ScrollReveal>
-          <div className="mb-10 max-w-2xl">
-            <p className="text-xs font-semibold tracking-wider text-primary uppercase">
-              {t("integrations.eyebrow")}
-            </p>
-            <h2
-              id="integrations-heading"
-              className="mt-2 text-2xl font-bold tracking-tight sm:text-3xl"
-            >
-              {t("integrations.title")}
-            </h2>
-            <p className="mt-3 text-muted-foreground text-pretty">
-              {t("integrations.description")}
-            </p>
-          </div>
+          <SectionHeading
+            eyebrow={t("integrations.eyebrow")}
+            title={t("integrations.title")}
+            description={t("integrations.description")}
+            titleId="integrations-heading"
+          />
         </ScrollReveal>
 
         <ScrollReveal delay={0.08}>
           <div
             ref={containerRef}
-            className="relative flex h-[320px] w-full items-center justify-center overflow-hidden rounded-xl border border-border/60 bg-card p-6 sm:h-[380px] sm:p-10"
+            className="relative flex h-[320px] w-full items-center justify-center overflow-hidden rounded-[var(--lp-radius)] border border-[var(--lp-line)] bg-[var(--lp-canvas)] p-6 shadow-[var(--lp-shadow-sm)] sm:h-[400px] sm:p-10"
           >
             <div className="flex size-full max-w-lg flex-row items-center justify-between gap-6 sm:gap-10">
               <div className="flex flex-col justify-center gap-6 sm:gap-8">
@@ -141,9 +134,9 @@ export function LandingIntegrations() {
               <IntegrationCircle
                 circleRef={centerRef}
                 label={t("integrations.centerLabel")}
-                className="size-16 border-primary/40 bg-primary/5 sm:size-20"
+                className="size-16 border-primary/25 bg-white sm:size-20"
               >
-                <span className="flex size-8 items-center justify-center rounded-md bg-primary p-1 sm:size-10">
+                <span className="flex size-8 items-center justify-center rounded-lg bg-primary p-1.5 sm:size-10">
                   <AppLogo className="size-full" />
                 </span>
               </IntegrationCircle>
@@ -164,7 +157,7 @@ export function LandingIntegrations() {
                 endYOffset={beam.endYOffset}
                 gradientStartColor={primary}
                 gradientStopColor={primarySoft}
-                pathColor="var(--border)"
+                pathColor="rgba(12,12,12,0.12)"
               />
             ))}
           </div>

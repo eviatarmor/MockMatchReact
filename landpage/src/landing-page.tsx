@@ -11,7 +11,7 @@ import { LandingFooter } from "./components/landing-footer"
 
 export function LandingPage() {
   return (
-    <div className="min-h-svh bg-background text-foreground">
+    <div className="min-h-svh bg-white text-[var(--lp-ink)]">
       <LandingHeader />
       <main>
         <LandingHero />

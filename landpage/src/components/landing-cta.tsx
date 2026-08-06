@@ -7,21 +7,28 @@ export function LandingCta() {
   const { t } = useTranslation("landing")
 
   return (
-    <section className="border-b border-border/60 py-16 sm:py-20">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+    <section className="lp-section bg-white">
+      <div className="lp-container">
         <ScrollReveal>
-          <div className="relative overflow-hidden rounded-2xl bg-primary px-6 py-12 text-primary-foreground sm:px-12 sm:py-14">
-            <div className="relative z-10 mx-auto flex max-w-2xl flex-col items-start gap-4 sm:items-center sm:text-center">
-              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          <div className="relative overflow-hidden rounded-[calc(var(--lp-radius)+0.25rem)] bg-[var(--lp-ink)] px-6 py-14 text-white shadow-[var(--lp-shadow-lg)] sm:px-14 sm:py-16">
+            <div
+              className="pointer-events-none absolute inset-0 opacity-40"
+              style={{
+                background:
+                  "radial-gradient(80% 80% at 100% 0%, color-mix(in oklch, var(--primary) 55%, transparent), transparent 55%)",
+              }}
+            />
+            <div className="relative z-10 mx-auto flex max-w-2xl flex-col items-center text-center">
+              <h2 className="text-[clamp(1.75rem,3vw,2.5rem)] font-semibold tracking-[-0.03em] text-balance">
                 {t("cta.title")}
               </h2>
-              <p className="text-primary-foreground/80 text-pretty">
+              <p className="mt-4 max-w-lg text-[1.0625rem] leading-relaxed text-white/70 text-pretty">
                 {t("cta.description")}
               </p>
-              <div className="mt-2 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-8 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
                 <Button
                   size="lg"
-                  className="h-10 bg-white px-4 text-primary hover:bg-white/90"
+                  className="h-11 rounded-full bg-white px-6 text-[0.9375rem] font-medium text-[var(--lp-ink)] hover:bg-white/90"
                   nativeButton={false}
                   render={<a href={appPath("/signup")} />}
                 >
@@ -30,7 +37,7 @@ export function LandingCta() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="h-10 border-white/30 bg-transparent px-4 text-primary-foreground hover:bg-white/10 hover:text-primary-foreground"
+                  className="h-11 rounded-full border-white/20 bg-transparent px-6 text-[0.9375rem] font-medium text-white hover:bg-white/10 hover:text-white"
                   nativeButton={false}
                   render={<a href={appPath("/login")} />}
                 >
